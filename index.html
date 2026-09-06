@@ -1,0 +1,1545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ndugu Coop — Sourcing &amp; Operations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root{
+    /* --- surfaces: raw parchment, cream, unbleached paper --- */
+    --paper:#FAF4EA;
+    --surface:#FFFCF6;
+    --surface-sunk:#F4EADA;
+    /* --- ink: espresso --- */
+    --ink:#2A1A10;
+    --ink-soft:#63483A;
+    --ink-faint:#8A7059;
+    --line:#EADCC7;
+    --line-strong:#D8C4A6;
+    /* --- roasted bean: the primary --- */
+    --roast:#7B4A24;
+    --roast-deep:#43260F;
+    --roast-light:#A97244;
+    --roast-wash:#F4E6D5;
+    /* --- leaf: the growing side --- */
+    --leaf:#4E7C2E;
+    --leaf-light:#7FA84A;
+    --leaf-wash:#E9F1DD;
+    /* --- coffee cherry --- */
+    --cherry:#B23A1E;
+    --cherry-wash:#F9E3D9;
+    /* --- golden harvest --- */
+    --honey:#D2911F;
+    --honey-wash:#FBEED4;
+    /* --- supporting --- */
+    --teal:#2C7A83;
+    --olive:#8C9A3B;
+    --clay:#9C5230;
+    --radius-sm:4px;
+    --radius-md:8px;
+    --shadow-pop:0 12px 30px -10px rgba(42,26,16,0.38);
+    --shadow-panel:0 1px 2px rgba(42,26,16,0.04), 0 10px 26px -20px rgba(42,26,16,0.55);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans',-apple-system,BlinkMacSystemFont,sans-serif;
+    font-size:15px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .num{font-family:'IBM Plex Mono',ui-monospace,monospace; font-variant-numeric: tabular-nums;}
+  a{color:inherit;}
+  ::selection{background:var(--roast); color:#fff;}
+
+  /* ---------- Layout shell ---------- */
+  .shell{max-width:1320px; margin:0 auto; padding:0 32px;}
+  @media (max-width:900px){ .shell{padding:0 18px;} }
+
+  /* ---------- Header ---------- */
+  body::before{
+    content:''; position:fixed; top:0; left:0; right:0; height:4px; z-index:60;
+    background:linear-gradient(90deg,var(--roast-deep) 0%,var(--roast) 22%,var(--cherry) 46%,var(--honey) 70%,var(--leaf) 100%);
+  }
+  header.topbar{
+    position:sticky; top:4px; z-index:50;
+    background:rgba(250,244,234,0.94);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line-strong);
+  }
+  .topbar-inner{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 0; gap:24px; flex-wrap:wrap;
+  }
+  .brand{display:flex; align-items:center; gap:14px;}
+  .brand-mark{height:30px; width:auto; flex:none;}
+  .brand-text{border-left:1px solid var(--line-strong); padding-left:14px;}
+  .brand-text .role{font-size:12.5px; color:var(--ink-soft); margin-top:1px;}
+
+  .filterbar{display:flex; align-items:center; gap:18px; flex-wrap:wrap;}
+  .pillgroup{display:flex; background:var(--surface-sunk); border-radius:999px; padding:3px; gap:2px;}
+  .pill{
+    border:none; background:transparent; padding:7px 14px; border-radius:999px;
+    font-family:'IBM Plex Sans'; font-size:13px; font-weight:500; color:var(--ink-soft);
+    cursor:pointer; transition:background .15s ease, color .15s ease;
+  }
+  .pill.active{background:var(--roast); color:#fff;}
+  .pill:not(.active):hover{color:var(--ink);}
+  .asof{font-size:12px; color:var(--ink-faint); white-space:nowrap;}
+
+  /* ---------- Section scaffolding ---------- */
+  section{padding:56px 0;}
+  section + section{border-top:1px solid var(--line);}
+  .section-head{
+    display:grid; grid-template-columns:repeat(12,minmax(0,1fr));
+    gap:24px; align-items:end; margin-bottom:26px;
+  }
+  .section-head > div:first-child{grid-column:span 8; min-width:0;}
+  .section-head h2{font-size:22px; margin:0 0 6px 0; font-weight:700; letter-spacing:-0.01em;}
+  .section-head h2::before{
+    content:''; display:block; width:30px; height:3px; border-radius:2px;
+    background:var(--roast); margin-bottom:14px;
+  }
+  .section-head p{margin:0; color:var(--ink-soft); font-size:14px; max-width:62ch;}
+  .section-tag{grid-column:span 4; align-self:end; font-size:12.5px; color:var(--ink-faint); text-align:right;}
+  @media (max-width:980px){
+    .section-head > div:first-child, .section-tag{grid-column:1 / -1;}
+    .section-tag{text-align:left;}
+  }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    padding-top:44px; padding-bottom:0; border-top:none;
+    background:
+      radial-gradient(ellipse 900px 460px at 8% -14%, var(--honey-wash) 0%, transparent 64%),
+      radial-gradient(ellipse 760px 400px at 100% -4%, var(--leaf-wash) 0%, transparent 60%),
+      radial-gradient(ellipse 520px 300px at 58% -18%, var(--roast-wash) 0%, transparent 66%);
+    margin-top:-1px;
+  }
+  .hero-grid{display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:24px; align-items:end;}
+  @media (max-width:980px){ .hero-grid > [class*="col-"]{grid-column:1 / -1;} }
+  .hero-eyebrow{font-size:14px; color:var(--roast); font-weight:600; margin:0 0 10px 0;}
+  .hero h1{font-size:40px; line-height:1.12; margin:0 0 16px 0; font-weight:700; letter-spacing:-0.015em; max-width:18ch;}
+  .hero p.lede{font-size:15.5px; color:var(--ink-soft); max-width:56ch; margin:0;}
+  .hero-badges{display:flex; gap:10px; flex-wrap:wrap; margin-top:22px;}
+  .badge{
+    display:inline-flex; align-items:center; gap:7px;
+    border:1px solid var(--line-strong); border-radius:999px; padding:6px 12px 6px 10px;
+    font-size:12.5px; color:var(--ink-soft); background:var(--surface);
+  }
+  .badge .dot{width:7px; height:7px; border-radius:50%; background:var(--honey); flex:none;}
+  .hero-figure{border-left:1px solid var(--line); padding-left:32px;}
+  @media (max-width:980px){ .hero-figure{border-left:none; padding-left:0; border-top:1px solid var(--line); padding-top:24px;} }
+  .hero-figure .big{font-family:'IBM Plex Mono'; font-size:52px; font-weight:600; color:var(--roast); line-height:1;}
+  .hero-figure .cap{font-size:13px; color:var(--ink-soft); margin-top:8px;}
+  .hero-figure .sub{font-family:'IBM Plex Mono'; font-size:18px; color:var(--ink); margin-top:14px;}
+
+  /* ---------- KPI ledger strip ---------- */
+  .kpi-strip{
+    margin-top:40px; box-shadow:var(--shadow-panel);
+    display:grid; grid-template-columns:repeat(6,1fr);
+    border:1px solid var(--line-strong); border-radius:var(--radius-md);
+    background:var(--surface); overflow:hidden;
+  }
+  @media (max-width:980px){ .kpi-strip{grid-template-columns:repeat(3,1fr);} }
+  @media (max-width:560px){ .kpi-strip{grid-template-columns:repeat(2,1fr);} }
+  .kpi-cell{
+    padding:20px 18px; border-right:1px solid var(--line);
+    border-top:3px solid transparent;
+  }
+  .kpi-cell:nth-child(6n){border-right:none;}
+  .kpi-cell:nth-child(6n+1){border-top-color:var(--leaf);}
+  .kpi-cell:nth-child(6n+2){border-top-color:var(--honey);}
+  .kpi-cell:nth-child(6n+3){border-top-color:var(--roast);}
+  .kpi-cell:nth-child(6n+4){border-top-color:var(--cherry);}
+  .kpi-cell:nth-child(6n+5){border-top-color:var(--teal);}
+  .kpi-cell:nth-child(6n+6){border-top-color:var(--olive);}
+  @media (max-width:980px){
+    .kpi-cell{border-bottom:1px solid var(--line);}
+    .kpi-cell:nth-child(3n){border-right:none;}
+    .kpi-cell:nth-last-child(-n+3){border-bottom:none;}
+  }
+  @media (max-width:560px){
+    .kpi-cell:nth-child(2n){border-right:none;}
+    .kpi-cell:nth-child(3n){border-right:1px solid var(--line);}
+    .kpi-cell:nth-child(2n){border-right:none;}
+    .kpi-cell:nth-last-child(-n+2){border-bottom:none;}
+  }
+  .kpi-label{font-size:12.5px; color:var(--ink-soft); margin:0 0 10px 0;}
+  .kpi-value{font-family:'IBM Plex Mono'; font-size:22px; font-weight:600; color:var(--ink); overflow-wrap:break-word;}
+  @media (max-width:560px){ .kpi-value{font-size:18px;} }
+  .kpi-value small{font-size:13px; font-weight:500; color:var(--ink-faint);}
+  .kpi-delta{font-size:12px; margin-top:8px; display:flex; align-items:center; gap:5px;}
+  .kpi-delta.up{color:var(--leaf);}
+  .kpi-delta.down{color:var(--clay);}
+  .kpi-delta.flat{color:var(--ink-faint);}
+
+  /* ---------- Generic panel ---------- */
+  .panel{
+    border:1px solid var(--line-strong); border-radius:var(--radius-md);
+    background:var(--surface); padding:24px; box-shadow:var(--shadow-panel);
+    display:flex; flex-direction:column; min-width:0;
+  }
+  .panel-title{font-size:14.5px; font-weight:600; margin:0 0 4px 0; min-height:1.4em;}
+  .panel-note{font-size:12.5px; color:var(--ink-faint); margin:0 0 16px 0; min-height:1.5em;}
+
+  /* ---------- Map section ---------- */
+  .map-panel{position:relative; display:flex; flex-direction:column;}
+  .map-svg-wrap{
+    position:relative; width:100%; flex:1 1 0%; min-height:520px;
+    border-radius:var(--radius-sm); overflow:hidden;
+    background:linear-gradient(180deg,#F7EFE1 0%,#EFE3D0 100%);
+  }
+  @media (max-width:980px){ .map-svg-wrap{min-height:420px;} }
+  .map-svg-wrap svg{width:100%; height:100%; display:block;}
+  .map-tooltip{
+    position:absolute; pointer-events:none; z-index:10;
+    background:var(--ink); color:#fff; padding:9px 12px; border-radius:var(--radius-sm);
+    font-size:12.5px; line-height:1.45; box-shadow:var(--shadow-pop);
+    transform:translate(-50%,-115%); white-space:nowrap; opacity:0; transition:opacity .1s ease;
+  }
+  .map-tooltip strong{font-weight:600;}
+  .map-tooltip .num{color:#EBD6BC;}
+  .map-legend{display:flex; gap:18px; margin-top:14px; flex-wrap:wrap; font-size:12px; color:var(--ink-soft);}
+  .map-legend .item{display:flex; align-items:center; gap:6px;}
+  .map-legend .sw{width:11px; height:11px; border-radius:50%; flex:none;}
+
+  .district-ledger{
+    border:1px solid var(--line-strong); border-radius:var(--radius-md); background:var(--surface);
+    overflow:hidden; box-shadow:var(--shadow-panel); display:flex; flex-direction:column;
+  }
+  #districtList{flex:1 1 auto;}
+  .district-ledger-head{padding:16px 18px 12px; border-bottom:1px solid var(--line);}
+  .district-row{
+    display:grid; grid-template-columns:1fr auto auto; gap:12px; align-items:center;
+    padding:11px 18px; border-bottom:1px solid var(--line); cursor:pointer;
+    transition:background .12s ease;
+  }
+  .district-row:last-child{border-bottom:none;}
+  .district-row:hover{background:var(--roast-wash);}
+  .district-row.selected{background:var(--roast-wash); box-shadow:inset 3px 0 0 var(--roast);}
+  .district-row .name{font-size:13.5px; font-weight:500;}
+  .district-row .sub{font-size:11.5px; color:var(--ink-faint); margin-top:2px;}
+  .district-row .bar-track{width:64px; height:5px; background:var(--surface-sunk); border-radius:3px; overflow:hidden; justify-self:end;}
+  .district-row .bar-fill{height:100%; background:linear-gradient(90deg,var(--roast) 0%,var(--roast-light) 100%);}
+  .district-row .qty{font-family:'IBM Plex Mono'; font-size:13px; text-align:right; min-width:64px;}
+  .district-detail{padding:16px 18px; border-top:1px solid var(--line); background:var(--surface-sunk); font-size:12.5px; color:var(--ink-soft);}
+  .district-detail b{color:var(--ink); font-family:'IBM Plex Mono'; font-weight:600;}
+
+  /* ---------- Chart toggle ---------- */
+  .toggle-row{display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; flex-wrap:wrap; gap:14px;}
+  .seg{display:inline-flex; border:1px solid var(--line-strong); border-radius:var(--radius-sm); overflow:hidden;}
+  .seg button{
+    border:none; background:var(--surface); padding:8px 16px; font-family:'IBM Plex Sans';
+    font-size:13px; font-weight:500; color:var(--ink-soft); cursor:pointer; border-right:1px solid var(--line-strong);
+  }
+  .seg button:last-child{border-right:none;}
+  .seg button.active{background:var(--roast); color:#fff;}
+  /* flex-basis 0 keeps the canvas from feeding its own height back into the row */
+  .chart-box{position:relative; flex:1 1 0%; min-height:320px;}
+  .chart-box.short{min-height:250px;}
+  .chart-box canvas{position:absolute; left:0; top:0;}
+  .insight-line{
+    margin-top:16px; padding:12px 16px; background:var(--honey-wash); border-radius:var(--radius-sm);
+    font-size:13px; color:#5C3A15; border-left:3px solid var(--honey);
+  }
+  .insight-line b{font-family:'IBM Plex Mono'; font-weight:600;}
+
+  /* ---------- 12-column layout grid ----------
+     Every row on the page sits on the same twelve columns with the same 24px
+     gutter, so panel edges line up vertically all the way down. Two-panel rows
+     split 7/5 (hero, map) or 6/6 (chart pairs); everything else spans 12.
+     minmax(0,1fr) stops a responsive canvas from forcing its column wider. */
+  .grid{
+    display:grid; grid-template-columns:repeat(12,minmax(0,1fr));
+    gap:24px; align-items:stretch;
+  }
+  .col-4{grid-column:span 4;}
+  .col-5{grid-column:span 5;}
+  .col-6{grid-column:span 6;}
+  .col-7{grid-column:span 7;}
+  .col-8{grid-column:span 8;}
+  .col-12{grid-column:span 12;}
+  @media (max-width:980px){ .grid > [class*="col-"]{grid-column:1 / -1;} }
+
+  table.leaderboard{width:100%; border-collapse:collapse; font-size:13.5px; table-layout:fixed;}
+  table.leaderboard th{
+    text-align:left; font-size:11px; font-weight:600; color:var(--ink-faint);
+    padding:0 14px 11px; border-bottom:1px solid var(--line-strong);
+    text-transform:uppercase; letter-spacing:0.07em; white-space:nowrap;
+  }
+  table.leaderboard td{
+    padding:12px 14px; border-bottom:1px solid var(--line);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  table.leaderboard tbody tr:last-child td{border-bottom:none;}
+  table.leaderboard tbody tr:hover{background:var(--roast-wash);}
+  table.leaderboard td.num, table.leaderboard th.num{font-family:'IBM Plex Mono'; text-align:right;}
+  table.leaderboard td.name{font-weight:500;}
+  table.leaderboard td.rank{color:var(--ink-faint); font-family:'IBM Plex Mono';}
+  @media (max-width:820px){ .leaderboard-scroll{overflow-x:auto;} table.leaderboard{min-width:660px;} }
+
+  /* ---------- Footer ---------- */
+  footer{
+    margin-top:56px; padding:44px 0 64px; font-size:12.5px; line-height:1.7;
+    background:var(--roast-deep); color:#BFA98F;
+    border-top:4px solid var(--roast);
+  }
+  footer .fgrid{display:grid; grid-template-columns:2fr 1fr; gap:40px;}
+  @media (max-width:780px){ footer .fgrid{grid-template-columns:1fr;} }
+  footer h4{font-size:12.5px; color:#F0DFC7; font-weight:600; margin:0 0 8px 0; letter-spacing:0.02em;}
+
+  .vis-hidden{display:none !important;}
+
+  /* ---------- boot states (before data.json arrives) ---------- */
+  .boot{
+    max-width:640px; margin:0 auto; padding:96px 24px 120px; text-align:center;
+  }
+  .boot-spinner{
+    width:26px; height:26px; margin:0 auto 18px; border-radius:50%;
+    border:2.5px solid var(--line-strong); border-top-color:var(--roast);
+    animation:boot-spin .8s linear infinite;
+  }
+  @keyframes boot-spin{to{transform:rotate(360deg);}}
+  @media (prefers-reduced-motion:reduce){ .boot-spinner{animation-duration:2.4s;} }
+  .boot p{margin:0; color:var(--ink-soft); font-size:14px;}
+  .boot-title{font-size:16px; font-weight:600; color:var(--ink); margin:0 0 10px 0;}
+  .boot-detail{
+    font-size:13.5px; color:var(--ink-soft); line-height:1.6;
+    background:var(--surface); border:1px solid var(--line-strong);
+    border-left:3px solid var(--cherry); border-radius:var(--radius-sm);
+    padding:14px 16px; text-align:left; margin-top:16px;
+  }
+</style>
+</head>
+<body>
+
+<div class="boot" id="bootLoading">
+  <div class="boot-spinner"></div>
+  <p>Loading dashboard data…</p>
+</div>
+
+<div class="boot" id="bootError" hidden>
+  <p class="boot-title"></p>
+  <p class="boot-detail"></p>
+</div>
+
+<div id="dashboard" hidden>
+
+<header class="topbar">
+  <div class="shell topbar-inner">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 1080 283.07" xmlns="http://www.w3.org/2000/svg"><style>.cls-1{fill:#347e19;}</style><path class="cls-1" d="M469.14,81.5c41.67,0,59.71,16.51,59.71,54.37v74.95H495.56V136.89c0-18.81-7.62-27.19-26.42-27.19-19.06,0-26.94,8.38-26.94,27.19v73.93h-33V135.87C409.17,98,426.7,81.5,469.14,81.5Z"></path><path class="cls-1" d="M593.37,81.5c20.32,0,30,6.6,37.6,13.46h1.78V28.46h33V148.83c0,44.21-20.58,64.28-63.52,64.28S538,193,538,148.83v-3.05C538,100.3,556.78,81.5,593.37,81.5Zm8.89,103.41c21.85,0,30.49-9.91,30.49-37.1v-1c0-27.18-8.64-37.09-30.49-37.09s-31,9.91-31,37.09v1C571.26,175,580.41,184.91,602.26,184.91Z"></path><path class="cls-1" d="M872.33,81.5c42.94,0,63.52,20.83,63.52,65.29V203c0,41.92-16.51,60-65.3,60a216.77,216.77,0,0,1-39.89-3.81V232.42a251.24,251.24,0,0,0,36.84,3.3c26.93,0,35.32-8.38,35.32-26.17v-9.91H901c-7.62,6.86-17.28,13.47-37.6,13.47-36.59,0-55.39-18.8-55.39-64.28v-3.05C808.05,101.57,829.39,81.5,872.33,81.5Zm0,103.41c21.85,0,30.49-9.91,30.49-37.1v-1c0-27.18-8.64-37.09-30.49-37.09s-31,9.91-31,37.09v1C841.33,175,850.48,184.91,872.33,184.91Z"></path><path class="cls-1" d="M948,80.84h33v76.88c0,18.8,7.88,27.19,26.94,27.19,18.8,0,26.42-8.39,26.42-27.19V80.84h33.29v77.9c0,37.85-18,54.37-59.71,54.37-42.44,0-60-16.52-60-54.37Z"></path><path class="cls-1" d="M799.15,80.85v77.9c0,37.85-18,54.36-59.7,54.36-42.42,0-60-16.51-60-54.36V80.85h42.64c-2.25,3.84-4.59,11-7,15.49-.92,1.93-1.78,3.86-2.55,5.77C701,130,702.28,156.31,716,174.48c0,.05,0,.07,0,.1A17.61,17.61,0,0,0,721,180.2a58.17,58.17,0,0,0,15.73,11,72,72,0,0,0,9.46,3.76,38.85,38.85,0,0,1-1.71-3.76,34.06,34.06,0,0,1-1.9-6.37c-4.07-19.62,8.9-37.66,15.57-56.5,2.36-6.62,5.87-14.37,7.78-25.68a142.1,142.1,0,0,0,1.36-19.93c0-.65,0-1.28,0-1.88Z"></path><path class="cls-1" d="M727.74,164.64c-.71-.78-8.53-11.11,9-59.73,1.05-2.93,1.9-5.66,2.63-8.32a48.22,48.22,0,0,0,7.18-1.21,121.65,121.65,0,0,1-4.47,11.82C724.22,147.81,727.46,163.44,727.74,164.64Z"></path><path class="cls-1" d="M240.49,8.16c23.92,0,77.27,38.63,98.88,117.28,18.77,68.29-39.55,149.46-67.6,149.46-58.41,0-45.53-94.28-43.23-104.85C251.07,79.45,214.74,8.16,240.49,8.16Z"></path><path class="cls-1" d="M211,274.9c-23.92,0-77.27-35.1-98.88-106.55-18.77-62.06,39.55-135.81,67.6-135.81,58.41,0,45.53,85.66,43.23,95.27C200.41,210.13,236.74,274.9,211,274.9Z"></path><path class="cls-1" d="M26.3,232.09a1.23,1.23,0,0,1,.21,1.67c-2.34,3.26-4.74,6.56-7.06,9.66-2.53,3.4-4.81,11.58-3.74,15.5s13.52,6.38,14.86,5.51,6.18-12.52,9.21-18.78c5.6-11.56,10.67-23.4,16.91-34.59,3.93-7.06,9.14-13.4,14.22-20.32a1.26,1.26,0,0,0-1.2-2c-12,1.85-20.42,10.16-28.44,18.17-.42.51-1.11.14-1-.28,7.62-14.37,20.45-20.79,35.69-22.2,12.23-1.13,20.52,5.89,26.66,16a1.19,1.19,0,0,1,.15.35A87.14,87.14,0,0,1,105,211.9c1.6,8.2,1,16.38-3.08,23.78C88.2,260.16,66.79,273,39.23,274.86c-6,.42-12.9-2.41-18.38-5.52a17.38,17.38,0,0,1-6.48-23.26c2.67-5,6.53-9.34,10-13.91a1.24,1.24,0,0,1,1.81-.2Zm34.57,24.78C75,245,81.15,230.78,90.41,217.9c5.1-7.09,3.94-20.8,1.35-24.06-2.36-3-5.24-3.55-8.43-4.55a1.24,1.24,0,0,0-1.49.58c-3.94,7.42-8.61,18.78-12.33,21.86-3.88,3.21-10.55,14.84-15.05,22.86-4.67,8.31-21.06,26.12-19.63,32.62S59.72,257.83,60.87,256.87Z"></path></svg>
+      <div class="brand-text">
+        <div class="role" data-i18n="brandRole">Sourcing &amp; operations</div>
+      </div>
+    </div>
+    <div class="filterbar">
+      <div class="pillgroup" id="seasonPills">
+        <button class="pill active" data-season="all">All seasons</button>
+        <button class="pill" data-season="2024">2024</button>
+        <button class="pill" data-season="2025">2025</button>
+        <button class="pill" data-season="2026">2026</button>
+      </div>
+      <div class="pillgroup" id="currencyPills">
+        <button class="pill active" data-currency="UGX">UGX</button>
+        <button class="pill" data-currency="USD">USD</button>
+      </div>
+      <div class="pillgroup" id="langPills">
+        <button class="pill active" data-lang="en">EN</button>
+        <button class="pill" data-lang="nl">NL</button>
+      </div>
+      <div class="asof"><span data-i18n="asofLabel">Data through</span> <span class="num" id="asOfDate">—</span></div>
+    </div>
+  </div>
+</header>
+
+<main class="shell">
+
+  <section class="hero">
+    <div class="hero-grid">
+      <div class="col-7">
+        <h1 data-i18n="heroH1">Greater Masaka's coffee, tracked from farm gate to export.</h1>
+        <p class="lede" data-i18n="heroLede">Ndugu Coop buys FAQ-grade, Rainforest Alliance / 4C-certified robusta from smallholder farmers across seven Ugandan districts, bulks it into export-ready lots, and hands it off to UGACOF, ETG and other buyers. This is where that pipeline stands today.</p>
+        <div class="hero-badges">
+          <span class="badge"><span class="dot"></span><span data-i18n="badge1">100% RFA/4C certified volume</span></span>
+          <span class="badge"><span class="dot" style="background:var(--leaf)"></span><span data-i18n="badge2">11,375 farmers registered</span></span>
+          <span class="badge"><span class="dot" style="background:var(--teal)"></span><span data-i18n="badge3">7 core districts, 1 emerging</span></span>
+        </div>
+      </div>
+      <div class="hero-figure col-5">
+        <div class="big num" id="heroQty">—</div>
+        <div class="cap"><span data-i18n="heroCap">coffee purchased from farmers,</span> <span id="heroWindow">May 2024 – Aug 2026</span></div>
+        <div class="sub num" id="heroAmount">—</div>
+      </div>
+    </div>
+
+    <div class="kpi-strip" id="kpiStrip"></div>
+  </section>
+
+  <section id="sec-map">
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="mapH2">Sourcing footprint</h2>
+        <p data-i18n="mapP">Every dot is a real farmer location. Bubbles mark district-level volume; click one for the detail.</p>
+      </div>
+      <div class="section-tag" id="mapSelectedTag" data-i18n="mapTagAll">Showing all districts</div>
+    </div>
+    <div class="grid">
+      <div class="map-panel col-7">
+        <div class="map-svg-wrap" id="mapSvgWrap">
+          <div class="map-tooltip" id="mapTooltip"></div>
+        </div>
+        <div class="map-legend">
+          <span class="item"><span class="sw" style="background:var(--roast);"></span><span data-i18n="legendActive">Active sourcing (bubble size = volume)</span></span>
+          <span class="item"><span class="sw" style="background:transparent;border:1.5px dashed var(--honey);"></span><span data-i18n="legendRegistered">Registered, not yet active</span></span>
+          <span class="item"><span class="sw" style="background:var(--leaf); opacity:.4; width:6px; height:6px;"></span><span data-i18n="legendFarmer">Individual farmer</span></span>
+        </div>
+      </div>
+      <div class="district-ledger col-5">
+        <div class="district-ledger-head">
+          <div class="panel-title" data-i18n="districtLedgerTitle">Districts, ranked by volume</div>
+          <div class="panel-note" data-i18n="districtLedgerNote">Active farmers / registered farmers</div>
+        </div>
+        <div id="districtList"></div>
+        <div class="district-detail vis-hidden" id="districtDetail"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="sec-trend">
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="trendH2">Volume, value &amp; price over time</h2>
+        <p data-i18n="trendP">Monthly purchases from farmers since the first delivery in May 2024.</p>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="toggle-row">
+        <div class="seg" id="trendToggle">
+          <button class="active" data-metric="qty" data-i18n="metricQty">Volume (kg)</button>
+          <button data-metric="amount" id="btnMetricAmount">Value (UGX)</button>
+          <button data-metric="price" data-i18n="metricPrice">Price per kg</button>
+        </div>
+        <div class="map-legend" style="margin-top:0;">
+          <span class="item"><span class="sw" style="background:var(--leaf); border-radius:2px; width:11px; height:11px;"></span><span data-i18n="season2024">Season 2024</span></span>
+          <span class="item"><span class="sw" style="background:var(--roast); border-radius:2px; width:11px; height:11px;"></span><span data-i18n="season2025">Season 2025</span></span>
+          <span class="item"><span class="sw" style="background:var(--honey); border-radius:2px; width:11px; height:11px;"></span><span data-i18n="season2026">Season 2026</span></span>
+        </div>
+      </div>
+      <div class="chart-box"><canvas id="trendChart"></canvas></div>
+      <div class="insight-line" id="trendInsight"></div>
+    </div>
+  </section>
+
+  <section id="sec-route">
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="routeH2">Route to market &amp; field team</h2>
+        <p data-i18n="routeP">All-time totals: how dispatched volume splits across buyers, and who's sourcing it.</p>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="panel col-6">
+        <div class="panel-title" data-i18n="buyerMixTitle">Buyer mix by month</div>
+        <div class="panel-note" data-i18n="buyerMixNote">1,079 batches, 8,494 t dispatched all-time</div>
+        <div class="chart-box short"><canvas id="buyerChart"></canvas></div>
+      </div>
+      <div class="panel col-6">
+        <div class="panel-title" data-i18n="fmTitle">Field manager performance</div>
+        <div class="panel-note" id="fmSelectedNote" data-i18n="fmNote">Volume sourced, current filter</div>
+        <div class="chart-box short"><canvas id="fmChart"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="sec-network">
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="networkH2">Farmer network</h2>
+        <p data-i18n="networkP">Who's registered, how their land is split, and which cooperatives they organize through.</p>
+      </div>
+      <div class="section-tag" data-i18n="networkTag">11,375 registered · 4,536 have delivered</div>
+    </div>
+    <div class="grid">
+      <div class="panel col-6">
+        <div class="panel-title" data-i18n="genderTitle">Gender</div>
+        <div class="panel-note" data-i18n="genderNote">Registered network vs. volume delivered, all-time</div>
+        <div class="chart-box short"><canvas id="genderChart"></canvas></div>
+      </div>
+      <div class="panel col-6">
+        <div class="panel-title" data-i18n="youthTitle">Youth involvement</div>
+        <div class="panel-note" data-i18n="youthNote">Registered network vs. volume delivered, by age group</div>
+        <div class="chart-box short"><canvas id="youthChart"></canvas></div>
+      </div>
+      <div class="panel col-6">
+        <div class="panel-title" data-i18n="farmsizeTitle">Farm size</div>
+        <div class="panel-note" data-i18n="farmsizeNote">Registered farmers by plot size</div>
+        <div class="chart-box short"><canvas id="farmsizeChart"></canvas></div>
+      </div>
+      <div class="panel col-6">
+        <div class="panel-title" data-i18n="coopTitle">Top cooperatives</div>
+        <div class="panel-note" data-i18n="coopNote">By registered farmer count</div>
+        <div class="chart-box short"><canvas id="coopChart"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="sec-suppliers">
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="leaderTitle">Top suppliers, all-time</h2>
+        <p data-i18n="leaderNote">The fifteen farmers who have delivered the most volume since the first purchase in May 2024.</p>
+      </div>
+      <div class="section-tag" id="leaderTag"></div>
+    </div>
+    <div class="panel">
+      <div class="leaderboard-scroll">
+        <table class="leaderboard">
+          <colgroup>
+            <col style="width:56px"><col style="width:30%"><col style="width:34%">
+            <col style="width:15%"><col>
+          </colgroup>
+          <thead>
+            <tr>
+              <th data-i18n="thRank">#</th>
+              <th data-i18n="thFarmer">Farmer</th>
+              <th data-i18n="thDistrictVillage">District / village</th>
+              <th class="num" data-i18n="thDeliveries">Deliveries</th>
+              <th class="num" data-i18n="thVolume">Volume</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboardBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+
+</main>
+
+<footer>
+  <div class="shell fgrid">
+    <div>
+      <h4 data-i18n="footerAboutH">About this data</h4>
+      <p data-i18n="footerAboutP">Covers transactions from 9 May 2024 through 25 Aug 2026. "Season" follows Ndugu's coffee-year convention rather than the calendar year, so a season typically runs from one year's harvest into the next. District is taken from each farmer's registered location; a handful of low-volume, likely mis-geocoded entries are grouped into the totals but excluded from the map. The shoreline is traced from GSHHG full-resolution coastline data rather than drawn by hand; 154 mapped farmers (1.9%) carry recorded coordinates that fall inside Lake Victoria — almost all of them a single cluster off Sango Bay — and are counted in every figure here but not plotted. Age is calculated from each farmer's recorded date of birth as of September 2026; 157 records (1.4%) show an implausible birth date placing them under 18 and are treated as data-entry errors, excluded from the youth breakdown. USD figures use an illustrative rate of ~3,777 UGX per USD (early September 2026) and are not a live conversion. Every chart and total on this page is computed over the complete dataset of 21,740 transactions.</p>
+    </div>
+    <div>
+      <h4 data-i18n="footerDefH">Definitions</h4>
+      <p data-i18n="footerDefP">FAQ / RFA-4C: Fair Average Quality, Rainforest Alliance / 4C certified. Active supplier: a registered farmer with at least one recorded delivery in this window. Batch: a bulked, graded lot dispatched to a buyer.</p>
+    </div>
+  </div>
+</footer>
+
+</div><!-- /#dashboard -->
+
+<script>
+(function(){
+"use strict";
+
+/* ---------------------------------------------------------------------------
+   The page ships with no numbers in it. Everything is read from ./data.json,
+   which scripts/build_data.py regenerates from the Excel exports. Boot order:
+   fetch -> validate -> start(). Any failure lands in the error panel below
+   rather than a blank page.
+   --------------------------------------------------------------------------- */
+var DATA = null;
+
+var REQUIRED_KEYS = ['meta','kpis','seasons','monthly','batches_monthly','buyers',
+  'districts','field_managers','gender_registered','gender_volume','farm_size',
+  'cooperatives','youth','points','top_farmers','season_district','season_manager','month_buyer'];
+
+function showFatal(title, detail){
+  var el = document.getElementById('bootError');
+  document.getElementById('bootLoading').hidden = true;
+  el.hidden = false;
+  el.querySelector('.boot-title').textContent = title;
+  el.querySelector('.boot-detail').textContent = detail;
+}
+
+function boot(){
+  /* cache-bust so a fresh deploy is picked up straight away */
+  fetch('./data.json?v=' + Date.now(), {cache:'no-store'})
+    .then(function(r){
+      if (!r.ok) throw new Error('HTTP ' + r.status + ' ' + r.statusText);
+      return r.json();
+    })
+    .then(function(json){
+      var missing = REQUIRED_KEYS.filter(function(k){ return !(k in json); });
+      if (missing.length) throw new Error('data.json is missing: ' + missing.join(', '));
+      DATA = json;
+      document.getElementById('bootLoading').hidden = true;
+      document.getElementById('dashboard').hidden = false;
+      start();
+    })
+    .catch(function(err){
+      var hint = (location.protocol === 'file:')
+        ? 'The page was opened straight from disk. Browsers block fetch() on file:// URLs — serve the folder over HTTP instead (python -m http.server 8000) or use the deployed GitHub Pages URL.'
+        : 'Could not load ./data.json next to this page. If this is a fresh deploy, check that the build workflow finished and published data.json.';
+      showFatal('Dashboard data could not be loaded', hint + '  [' + err.message + ']');
+    });
+}
+
+/* ============================= formatters ============================= */
+var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function fmtInt(v){ return Math.round(v).toLocaleString(numLocale()); }
+function fmtTonnes(kg){
+  var t = kg/1000;
+  return t.toLocaleString(numLocale(),{maximumFractionDigits: t<10?2:1}) + ' t';
+}
+function fmtKgShort(kg){
+  if (kg >= 1000) return fmtTonnes(kg);
+  return fmtInt(kg) + ' kg';
+}
+function fmtUGX(v){
+  var val = state.currency==='USD' ? v/FX_RATE : v;
+  var sym = state.currency==='USD' ? 'USD ' : 'UGX ';
+  var abs = Math.abs(val);
+  if (abs >= 1e9) return sym + (val/1e9).toLocaleString(numLocale(),{maximumFractionDigits:1}) + bigUnit('bn');
+  if (abs >= 1e6) return sym + (val/1e6).toLocaleString(numLocale(),{maximumFractionDigits:1}) + bigUnit('m');
+  return sym + fmtInt(val);
+}
+function fmtPrice(v){
+  if (v===null || v===undefined) return '—';
+  if (state.currency==='USD') return '$' + (v/FX_RATE).toLocaleString(numLocale(),{minimumFractionDigits:2, maximumFractionDigits:2});
+  return 'UGX ' + fmtInt(v);
+}
+function fmtPct(v){ return (v*100).toFixed(1) + '%'; }
+function fmtMonth(m){ var p=m.split('-'); return monthsArr()[parseInt(p[1],10)-1] + " '" + p[0].slice(2); }
+function fmtMonthYear(d){ var p=d.split('-'); return monthsArr()[parseInt(p[1],10)-1] + ' ' + p[0]; }
+/* Farm-size buckets arrive as data keys ("0.5-1 ha"); NL wants a decimal comma. */
+function fmtFarmSize(k){ return state.lang==='nl' ? String(k).replace(/(\d)\.(\d)/g, '$1,$2') : k; }
+function fmtDateHuman(d){ var p=d.split('-'); return parseInt(p[2],10) + ' ' + monthsArr()[parseInt(p[1],10)-1] + ' ' + p[0]; }
+function esc(s){ return (s===null||s===undefined) ? '' : String(s).replace(/[&<>]/g, function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}); }
+
+/* ============================= palette ============================= */
+var COLORS = {
+  roast:'#7B4A24', roastDeep:'#43260F', roastLight:'#A97244', roastWash:'#F4E6D5',
+  leaf:'#4E7C2E', leafLight:'#7FA84A', leafWash:'#E9F1DD',
+  cherry:'#B23A1E', cherryWash:'#F9E3D9',
+  honey:'#D2911F', honeyWash:'#FBEED4',
+  teal:'#2C7A83', olive:'#8C9A3B', clay:'#9C5230',
+  ink:'#2A1A10', inkSoft:'#63483A', inkFaint:'#8A7059', line:'#EADCC7'
+};
+/* Seasons read as a roast progression: green cherry -> roasted -> golden. */
+var SEASON_COLOR = {2024:COLORS.leaf, 2025:COLORS.roast, 2026:COLORS.honey};
+var BUYER_COLOR = {UGACOF:COLORS.roast, ETG:COLORS.cherry, NDUGUEXPORT:COLORS.honey, OLAM:COLORS.teal, SUPERBIA:COLORS.leaf, TOPOFTHECROP:COLORS.clay};
+
+Chart.defaults.font.family = "'IBM Plex Mono', monospace";
+Chart.defaults.color = COLORS.inkSoft;
+Chart.defaults.font.size = 11.5;
+
+/* ---------------------------------------------------------------------------
+   Chart registry. A <canvas> can only hold ONE live Chart instance; calling
+   `new Chart()` over a canvas that still has one throws "Canvas is already in
+   use". Every re-render (language switch, currency switch, season filter) goes
+   through mountChart so the previous instance is always destroyed first.
+   --------------------------------------------------------------------------- */
+var CHARTS = {};
+function mountChart(canvasId, cfg){
+  var el = document.getElementById(canvasId);
+  if (!el) return null;
+  var prev = CHARTS[canvasId] || (typeof Chart.getChart === 'function' ? Chart.getChart(el) : null);
+  if (prev) prev.destroy();
+  CHARTS[canvasId] = new Chart(el.getContext('2d'), cfg);
+  return CHARTS[canvasId];
+}
+
+/* ============================= state ============================= */
+/* Illustrative UGX->USD rate. Set in scripts/build_data.py (FX_UGX_PER_USD) so it
+   can be refreshed without touching this file; the fallback keeps USD usable if an
+   older data.json is served. */
+var FX_RATE = 3777;
+var state = { season:'all', district:null, trendMetric:'qty', currency:'UGX', lang:'en' };
+
+/* ============================= i18n ============================= */
+var MONTHS_EN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var MONTHS_NL = ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
+function monthsArr(){ return state.lang==='nl' ? MONTHS_NL : MONTHS_EN; }
+function numLocale(){ return state.lang==='nl' ? 'nl-NL' : 'en-US'; }
+function bigUnit(u){ if(state.lang!=='nl') return u; return u==='bn' ? 'mrd' : (u==='m' ? 'mln' : u); }
+
+/* ---------------------------------------------------------------------------
+   Numbers that appear inside sentences. These used to be typed into the copy,
+   which meant every daily rebuild silently made them wrong. They are derived
+   from data.json instead and recomputed on each language switch (formatting
+   is locale-dependent).
+   --------------------------------------------------------------------------- */
+var FACTS = {};
+function computeFacts(){
+  var k = DATA.kpis;
+  var mapped = 0, lakeFarmers = 0;
+  DATA.points.forEach(function(pt){
+    mapped += pt.n;
+    if (pt.lat<LAT_MIN || pt.lat>LAT_MAX || pt.lon<LON_MIN || pt.lon>LON_MAX) return;
+    if (pointInLake(pt.lat, pt.lon)) lakeFarmers += pt.n;
+  });
+  var buyers = DATA.buyers.slice().sort(function(a,b){ return b.qty_kg-a.qty_kg; });
+  FACTS = {
+    registered: k.n_registered_farmers,
+    activeFarmers: k.n_active_farmers,
+    activeDistricts: DATA.districts.filter(function(d){ return d.qty_kg>0; }).length,
+    emerging: DATA.districts.filter(function(d){ return d.qty_kg===0 && d.n_registered>0; }).length,
+    batches: k.n_batches,
+    batchQty: k.total_batch_qty_kg,
+    transactions: k.n_transactions,
+    topN: DATA.top_farmers.length,
+    under18: (DATA.youth && DATA.youth.excluded_under_18) || 0,
+    lakeFarmers: lakeFarmers,
+    lakePct: mapped ? (lakeFarmers/mapped*100).toFixed(1) : '0.0',
+    fx: FX_RATE,
+    generated: (DATA.meta && DATA.meta.generated) || '—',
+    firstMonth: fmtMonthYear(k.date_min),
+    dateMinHuman: fmtDateHuman(k.date_min),
+    dateMaxHuman: fmtDateHuman(k.date_max),
+    buyer1: buyers[0] ? buyers[0].buyer : '', buyer2: buyers[1] ? buyers[1].buyer : ''
+  };
+}
+
+var STR = {
+en:{
+  docTitle:'Ndugu Coop — Sourcing & Operations',
+  brandRole:'Sourcing & operations',
+  asofLabel:'Data through',
+  heroH1:"Greater Masaka's coffee, tracked from farm gate to export.",
+  heroLede:function(f){ return 'Ndugu Coop buys FAQ-grade, Rainforest Alliance / 4C-certified robusta from smallholder farmers across '+f.activeDistricts+' Ugandan districts, bulks it into export-ready lots, and hands it off to '+f.buyer1+', '+f.buyer2+' and other buyers. This is where that pipeline stands today.'; },
+  badge1:'100% RFA/4C certified volume',
+  badge2:function(f){ return fmtInt(f.registered)+' farmers registered'; },
+  badge3:function(f){ return f.activeDistricts+' sourcing districts'+(f.emerging ? ', '+f.emerging+' emerging' : ''); },
+  heroCap:'coffee purchased from farmers,',
+  heroAmountSuffix:'paid to farmers',
+  mapH2:'Sourcing footprint',
+  mapP:'Every dot is a real farmer location. Bubbles mark district-level volume; click one for the detail.',
+  mapTagAll:'Showing all districts',
+  legendActive:'Active sourcing (bubble size = volume)',
+  legendRegistered:'Registered, not yet active',
+  legendFarmer:'Individual farmer',
+  districtLedgerTitle:'Districts, ranked by volume',
+  districtLedgerNote:'Active farmers / registered farmers',
+  farmersWord:'farmers',
+  trendH2:'Volume, value &amp; price over time',
+  trendP:function(f){ return 'Monthly purchases from farmers since the first delivery in '+f.firstMonth+'.'; },
+  metricQty:'Volume (kg)', metricAmount:'Value', metricPrice:'Price per kg',
+  chartLabelQty:'Volume (kg)', chartLabelAmount:'Value', chartLabelPrice:'Avg price /kg',
+  season2024:'Season 2024', season2025:'Season 2025', season2026:'Season 2026',
+  routeH2:'Route to market &amp; field team',
+  routeP:"All-time totals: how dispatched volume splits across buyers, and who's sourcing it.",
+  buyerMixTitle:'Buyer mix by month',
+  buyerMixNote:function(f){ return fmtInt(f.batches)+' batches, '+fmtTonnes(f.batchQty)+' dispatched all-time'; },
+  fmTitle:'Field manager performance',
+  fmNote:'Volume sourced, current filter',
+  fmFarmersAvg:'farmers', fmAvgSuffix:'/kg avg',
+  networkH2:'Farmer network',
+  networkP:"Who's registered, how their land is split, and which cooperatives they organize through.",
+  networkTag:function(f){ return fmtInt(f.registered)+' registered · '+fmtInt(f.activeFarmers)+' have delivered'; },
+  genderTitle:'Gender', genderNote:'Registered network vs. volume delivered, all-time',
+  youthTitle:'Youth involvement', youthNote:'Registered network vs. volume delivered, by age group',
+  farmsizeTitle:'Farm size', farmsizeNote:'Registered farmers by plot size',
+  coopTitle:'Top cooperatives', coopNote:'By registered farmer count',
+  genderFemale:'Female', genderMale:'Male',
+  shareRegistry:'Share of registry', shareVolume:'Share of volume',
+  youthSenior:'Senior 60+', youthAdult:'Adult 36–59', youthYouth:'Youth 18–35',
+  leaderTitle:'Top suppliers, all-time',
+  leaderNote:function(f){ return 'The '+f.topN+' farmers who have delivered the most volume since the first purchase in '+f.firstMonth+'.'; },
+  leaderTag:function(n,total){ return 'Top '+n+' of '+total+' active suppliers'; },
+  thRank:'#', thFarmer:'Farmer', thDistrictVillage:'District / village', thDeliveries:'Deliveries', thVolume:'Volume',
+  footerAboutH:'About this data',
+  footerAboutP:function(f){ return 'Covers transactions from '+f.dateMinHuman+' through '+f.dateMaxHuman+'. "Season" follows Ndugu\'s coffee-year convention rather than the calendar year, so a season typically runs from one year\'s harvest into the next. District is taken from each farmer\'s registered location; a handful of low-volume, likely mis-geocoded entries are grouped into the totals but excluded from the map. The shoreline is traced from GSHHG full-resolution coastline data rather than drawn by hand; '+fmtInt(f.lakeFarmers)+' mapped farmers ('+f.lakePct+'%) carry recorded coordinates that fall inside Lake Victoria — almost all of them a single cluster off Sango Bay — and are counted in every figure here but not plotted. Age is calculated from each farmer\'s recorded date of birth; '+fmtInt(f.under18)+' records show an implausible birth date placing them under 18 and are treated as data-entry errors, excluded from the youth breakdown. USD figures use an illustrative rate of ~'+fmtInt(f.fx)+' UGX per USD and are not a live conversion. Every chart and total on this page is computed over the complete dataset of '+fmtInt(f.transactions)+' transactions, rebuilt from source on '+f.generated+'.'; },
+  footerDefH:'Definitions',
+  footerDefP:'FAQ / RFA-4C: Fair Average Quality, Rainforest Alliance / 4C certified. Active supplier: a registered farmer with at least one recorded delivery in this window. Batch: a bulked, graded lot dispatched to a buyer.',
+  kpiVolume:'Volume purchased', kpiValue:'Value paid to farmers', kpiActive:'Active suppliers',
+  kpiDistricts:'Districts covered', kpiAvgPrice:'Avg. price paid', kpiBatches:'Batches dispatched',
+  kpiSeasonWindow:'Season window', kpiToExporters:'to exporters', kpiTo:'to', kpiInProgress:'in progress',
+  vsPriorSeason:'vs prior season',
+  lakeLabel:'Lake Victoria',
+  tipRegisteredNoDeliv:'farmers registered', tipNoDelivYet:'no deliveries yet', tipNoDelivWindow:'no deliveries in this window',
+  tipActiveFarmers:'active farmers', tipAvgPrice:'avg. price',
+  ddEmerging: function(n){ return fmtInt(n)+' farmers registered through this district, none have delivered yet.'; },
+  ddNoActivity: function(active,reg){ return fmtInt(active)+' of '+fmtInt(reg)+' registered farmers have delivered historically; no deliveries recorded in this window.'; },
+  ddActive: function(active,reg,txnPart,vol,price){ return fmtInt(active)+' of '+fmtInt(reg)+' registered farmers have delivered, '+txnPart+vol+' at an average of <b>'+price+'</b>.'; },
+  ddTxnPart: function(n){ return fmtInt(n)+' transactions, '; },
+  trendInsight: function(pct,dir,q25,q24,f25,f24,pf24,pf25){
+    return 'Season 2025 volume came in <b>'+pct+'% '+dir+'</b> season 2024 ('+q25+' vs '+q24+'), even with more active farmers (<b>'+f25+'</b> vs <b>'+f24+'</b>). Average delivery per farmer fell from <b>'+pf24+' kg</b> to <b>'+pf25+' kg</b> — consistent with robusta\'s natural biennial bearing cycle rather than farmer attrition.';
+  },
+  trendBelow:'below', trendAbove:'above'
+},
+nl:{
+  docTitle:'Ndugu Coop — Inkoop & operaties',
+  brandRole:'Inkoop &amp; operaties',
+  asofLabel:'Gegevens tot',
+  heroH1:'Koffie uit Groot-Masaka, gevolgd van boerderij tot export.',
+  heroLede:function(f){ return 'Ndugu Coop koopt FAQ-kwaliteit, Rainforest Alliance/4C-gecertificeerde robusta van kleine boeren in '+f.activeDistricts+' Ugandese districten, bundelt dit tot exportklare partijen en levert het aan '+f.buyer1+', '+f.buyer2+' en andere kopers. Dit is de actuele stand van die keten.'; },
+  badge1:'100% RFA/4C-gecertificeerd volume',
+  badge2:function(f){ return fmtInt(f.registered)+' boeren geregistreerd'; },
+  badge3:function(f){ return f.activeDistricts+' inkoopdistricten'+(f.emerging ? ', '+f.emerging+' opkomend' : ''); },
+  heroCap:'koffie ingekocht bij boeren,',
+  heroAmountSuffix:'uitbetaald aan boeren',
+  mapH2:'Inkoopgebied',
+  mapP:'Elke stip is een echte boerderijlocatie. Bubbels tonen het volume per district; klik voor details.',
+  mapTagAll:'Alle districten getoond',
+  legendActive:'Actieve inkoop (bubbelgrootte = volume)',
+  legendRegistered:'Geregistreerd, nog niet actief',
+  legendFarmer:'Individuele boer',
+  districtLedgerTitle:'Districten, gerangschikt op volume',
+  districtLedgerNote:'Actieve boeren / geregistreerde boeren',
+  farmersWord:'boeren',
+  trendH2:'Volume, waarde &amp; prijs in de tijd',
+  trendP:function(f){ return 'Maandelijkse inkoop bij boeren sinds de eerste levering in '+f.firstMonth+'.'; },
+  metricQty:'Volume (kg)', metricAmount:'Waarde', metricPrice:'Prijs per kg',
+  chartLabelQty:'Volume (kg)', chartLabelAmount:'Waarde', chartLabelPrice:'Gem. prijs/kg',
+  season2024:'Seizoen 2024', season2025:'Seizoen 2025', season2026:'Seizoen 2026',
+  routeH2:'Route naar de markt &amp; veldteam',
+  routeP:'Totalen aller tijden: hoe het verzonden volume zich verdeelt over kopers, en wie het inkoopt.',
+  buyerMixTitle:'Kopersmix per maand',
+  buyerMixNote:function(f){ return fmtInt(f.batches)+' partijen, '+fmtTonnes(f.batchQty)+' verzonden (totaal)'; },
+  fmTitle:'Prestaties veldmedewerkers',
+  fmNote:'Ingekocht volume, huidig filter',
+  fmFarmersAvg:'boeren', fmAvgSuffix:'/kg gem.',
+  networkH2:'Boerennetwerk',
+  networkP:'Wie er geregistreerd is, hoe het land verdeeld is, en via welke coöperaties zij zich organiseren.',
+  networkTag:function(f){ return fmtInt(f.registered)+' geregistreerd · '+fmtInt(f.activeFarmers)+' hebben geleverd'; },
+  genderTitle:'Geslacht', genderNote:'Geregistreerd netwerk vs. geleverd volume, aller tijden',
+  youthTitle:'Betrokkenheid van jongeren', youthNote:'Geregistreerd netwerk vs. geleverd volume, per leeftijdsgroep',
+  farmsizeTitle:'Bedrijfsgrootte', farmsizeNote:'Geregistreerde boeren naar perceelgrootte',
+  coopTitle:'Grootste coöperaties', coopNote:'Naar aantal geregistreerde boeren',
+  genderFemale:'Vrouw', genderMale:'Man',
+  shareRegistry:'Aandeel register', shareVolume:'Aandeel volume',
+  youthSenior:'Senior 60+', youthAdult:'Volwassen 36–59', youthYouth:'Jongeren 18–35',
+  leaderTitle:'Grootste leveranciers, aller tijden',
+  leaderNote:function(f){ return 'De '+f.topN+' boeren die sinds de eerste inkoop in '+f.firstMonth+' het meeste volume hebben geleverd.'; },
+  leaderTag:function(n,total){ return 'Top '+n+' van '+total+' actieve leveranciers'; },
+  thRank:'#', thFarmer:'Boer', thDistrictVillage:'District / dorp', thDeliveries:'Leveringen', thVolume:'Volume',
+  footerAboutH:'Over deze gegevens',
+  footerAboutP:function(f){ return 'Omvat transacties van '+f.dateMinHuman+' tot en met '+f.dateMaxHuman+'. "Seizoen" volgt Ndugu\'s koffiejaar-conventie in plaats van het kalenderjaar, dus een seizoen loopt doorgaans van de ene oogst tot in de volgende. Het district komt uit de geregistreerde locatie van elke boer; een klein aantal laagvolume-, vermoedelijk verkeerd gegeocodeerde items telt wel mee in de totalen maar is uitgesloten van de kaart. De kustlijn is overgenomen uit GSHHG-kustlijndata op volle resolutie in plaats van met de hand getekend; '+fmtInt(f.lakeFarmers)+' in kaart gebrachte boeren ('+f.lakePct+'%) hebben geregistreerde coördinaten die in het Victoriameer vallen — vrijwel allemaal één cluster bij Sango Bay — en tellen mee in alle cijfers hier, maar worden niet geplot. Leeftijd wordt berekend op basis van de geregistreerde geboortedatum; '+fmtInt(f.under18)+' records tonen een onwaarschijnlijke geboortedatum waardoor iemand onder de 18 zou vallen en worden als invoerfout behandeld, uitgesloten van de jongerenanalyse. USD-bedragen gebruiken een indicatieve koers van ~'+fmtInt(f.fx)+' UGX per USD en zijn geen live omrekening. Elke grafiek en elk totaal op deze pagina is berekend over de volledige dataset van '+fmtInt(f.transactions)+' transacties, opnieuw opgebouwd op '+f.generated+'.'; },
+  footerDefH:'Definities',
+  footerDefP:'FAQ / RFA-4C: Fair Average Quality, Rainforest Alliance/4C-gecertificeerd. Actieve leverancier: een geregistreerde boer met minstens één geregistreerde levering in deze periode. Partij: een gebundelde, gesorteerde lading verzonden naar een koper.',
+  kpiVolume:'Ingekocht volume', kpiValue:'Uitbetaald aan boeren', kpiActive:'Actieve leveranciers',
+  kpiDistricts:'Districten gedekt', kpiAvgPrice:'Gem. betaalde prijs', kpiBatches:'Verzonden partijen',
+  kpiSeasonWindow:'Seizoensvenster', kpiToExporters:'naar exporteurs', kpiTo:'tot', kpiInProgress:'loopt nog',
+  vsPriorSeason:'t.o.v. vorig seizoen',
+  lakeLabel:'Victoriameer',
+  tipRegisteredNoDeliv:'boeren geregistreerd', tipNoDelivYet:'nog geen leveringen', tipNoDelivWindow:'geen leveringen in deze periode',
+  tipActiveFarmers:'actieve boeren', tipAvgPrice:'gem. prijs',
+  ddEmerging: function(n){ return fmtInt(n)+' boeren geregistreerd via dit district, nog niemand heeft geleverd.'; },
+  ddNoActivity: function(active,reg){ return fmtInt(active)+' van '+fmtInt(reg)+' geregistreerde boeren hebben ooit geleverd; geen leveringen in deze periode.'; },
+  ddActive: function(active,reg,txnPart,vol,price){ return fmtInt(active)+' van '+fmtInt(reg)+' geregistreerde boeren hebben geleverd, '+txnPart+vol+' tegen een gemiddelde van <b>'+price+'</b>.'; },
+  ddTxnPart: function(n){ return fmtInt(n)+' transacties, '; },
+  trendInsight: function(pct,dir,q25,q24,f25,f24,pf24,pf25){
+    return 'Het volume van seizoen 2025 kwam <b>'+pct+'% '+dir+'</b> seizoen 2024 uit ('+q25+' vs '+q24+'), ondanks meer actieve boeren (<b>'+f25+'</b> vs <b>'+f24+'</b>). De gemiddelde levering per boer daalde van <b>'+pf24+' kg</b> naar <b>'+pf25+' kg</b> — dit past bij de natuurlijke tweejaarlijkse draagcyclus van robusta, niet bij het wegvallen van boeren.';
+  },
+  trendBelow:'lager dan', trendAbove:'hoger dan'
+}
+};
+function T(k){ var d = STR[state.lang] || STR.en; var v = (d[k]!==undefined) ? d[k] : STR.en[k]; return v===undefined ? k : v; }
+function applyStaticI18n(){
+  document.documentElement.lang = state.lang;
+  document.querySelectorAll('[data-i18n]').forEach(function(el){
+    var v = T(el.getAttribute('data-i18n'));
+    if (typeof v === 'function') v = v(FACTS);   /* copy with live figures in it */
+    if (typeof v === 'string') el.innerHTML = v;
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(function(el){
+    el.setAttribute('placeholder', T(el.getAttribute('data-i18n-placeholder')));
+  });
+}
+
+/* ============================= header / hero ============================= */
+/* All of these are locale-sensitive (month names, thousands separators, currency),
+   so they are re-rendered on every language / currency change rather than set once. */
+function renderHero(){
+  document.title = T('docTitle');
+  document.getElementById('asOfDate').textContent = fmtDateHuman(DATA.kpis.date_max);
+  document.getElementById('heroQty').textContent = fmtTonnes(DATA.kpis.total_qty_kg);
+  document.getElementById('heroWindow').textContent =
+    fmtMonthYear(DATA.kpis.date_min) + ' – ' + fmtMonthYear(DATA.kpis.date_max);
+  document.getElementById('heroAmount').textContent = fmtUGX(DATA.kpis.total_amount_ugx) + ' ' + T('heroAmountSuffix');
+}
+
+/* ============================= KPI strip ============================= */
+function seasonData(season){
+  if (season==='all') return {
+    qty_kg: DATA.kpis.total_qty_kg,
+    amount_ugx: DATA.kpis.total_amount_ugx,
+    avg_price: DATA.kpis.avg_price_kg,
+    n_transactions: DATA.kpis.n_transactions,
+    n_farmers: DATA.kpis.n_active_farmers,
+    n_districts: DATA.kpis.n_districts,
+    date_min: DATA.kpis.date_min,
+    date_max: DATA.kpis.date_max
+  };
+  var row = DATA.seasons.find(function(s){ return String(s.season)===String(season); });
+  return row;
+}
+function prevSeasonRow(season){
+  var idx = DATA.seasons.findIndex(function(s){ return String(s.season)===String(season); });
+  if (idx<=0) return null;
+  return DATA.seasons[idx-1];
+}
+function deltaHTML(curr, prev, key, higherIsGood){
+  if (prev===null || prev[key]===0) return '';
+  var d = (curr[key]-prev[key])/prev[key];
+  var cls = Math.abs(d)<0.01 ? 'flat' : (d>0 ? 'up':'down');
+  var arrow = d>0 ? '▲' : (d<0 ? '▼':'—');
+  return '<div class="kpi-delta '+cls+'"><span>'+arrow+'</span><span>'+fmtPct(Math.abs(d))+' '+T('vsPriorSeason')+'</span></div>';
+}
+function renderKPIs(){
+  var s = state.season;
+  var d = seasonData(s);
+  var isAll = s==='all';
+  var prev = isAll ? null : prevSeasonRow(s);
+  var registered = DATA.kpis.n_registered_farmers;
+  var farmers = isAll ? DATA.kpis.n_active_farmers : d.n_farmers;
+  var districts = isAll ? DATA.kpis.n_districts : d.n_districts;
+  var batchesQty = isAll ? DATA.kpis.total_batch_qty_kg : null;
+  var batchesN = isAll ? DATA.kpis.n_batches : null;
+
+  var cells = [];
+  cells.push({label:T('kpiVolume'), value:fmtTonnes(d.qty_kg), delta: isAll?'':deltaHTML(d,prev,'qty_kg')});
+  cells.push({label:T('kpiValue'), value:fmtUGX(d.amount_ugx), delta: isAll?'':deltaHTML(d,prev,'amount_ugx')});
+  cells.push({label:T('kpiActive'), value:fmtInt(farmers)+' <small>/ '+fmtInt(registered)+'</small>', delta:''});
+  cells.push({label:T('kpiDistricts'), value:fmtInt(districts), delta:''});
+  cells.push({label:T('kpiAvgPrice'), value:fmtPrice(d.avg_price)+' <small>/kg</small>', delta: isAll?'':deltaHTML(d,prev,'avg_price')});
+  if (isAll){
+    cells.push({label:T('kpiBatches'), value:fmtInt(batchesN), delta:'<div class="kpi-delta flat">'+fmtTonnes(batchesQty)+' '+T('kpiToExporters')+'</div>'});
+  } else {
+    cells.push({label:T('kpiSeasonWindow'), value:'<span style="font-size:15px">'+fmtDateHuman(d.date_min)+'</span>', delta:'<div class="kpi-delta flat">'+T('kpiTo')+' '+fmtDateHuman(d.date_max)+(s==='2026' ? ' · '+T('kpiInProgress'):'')+'</div>'});
+  }
+
+  var html = cells.map(function(c){
+    return '<div class="kpi-cell"><div class="kpi-label">'+c.label+'</div><div class="kpi-value num">'+c.value+'</div>'+c.delta+'</div>';
+  }).join('');
+  document.getElementById('kpiStrip').innerHTML = html;
+}
+
+/* ============================= season pills ============================= */
+document.getElementById('seasonPills').addEventListener('click', function(e){
+  var btn = e.target.closest('.pill');
+  if (!btn) return;
+  document.querySelectorAll('#seasonPills .pill').forEach(function(p){ p.classList.remove('active'); });
+  btn.classList.add('active');
+  state.season = btn.getAttribute('data-season');
+  renderKPIs();
+  renderDistrictList();
+  renderMapBubbles();
+  renderTrendChart();
+  renderFMChart();
+});
+
+/* ============================= currency pills ============================= */
+function updateCurrencyLabels(){
+  var cur = state.currency==='USD' ? 'USD' : 'UGX';
+  var btnAmt = document.getElementById('btnMetricAmount');
+  if (btnAmt) btnAmt.textContent = T('metricAmount') + ' (' + cur + ')';
+}
+document.getElementById('currencyPills').addEventListener('click', function(e){
+  var btn = e.target.closest('.pill');
+  if (!btn) return;
+  document.querySelectorAll('#currencyPills .pill').forEach(function(p){ p.classList.remove('active'); });
+  btn.classList.add('active');
+  state.currency = btn.getAttribute('data-currency');
+  updateCurrencyLabels();
+  renderHero();
+  renderKPIs();
+  renderTrendChart();
+  renderLeaderboard();
+  renderDistrictDetail();
+});
+
+/* ============================= language pills ============================= */
+/* Re-render everything that carries language-dependent text or number formatting.
+   Static markup first, then the data-driven views, then the charts (each of which
+   replaces its own canvas instance via mountChart). */
+function applyLanguage(){
+  computeFacts();       /* figures embedded in prose, formatted for this language */
+  applyStaticI18n();
+  applyMapStaticLabelsI18n();
+  updateCurrencyLabels();
+  renderHero();
+  renderKPIs();
+  renderDistrictList();   /* also re-renders the detail box and the map tag */
+  renderMapBubbles();
+  renderTrendChart();
+  renderBuyerChart();
+  renderFMChart();
+  renderGenderChart();
+  renderYouthChart();
+  renderFarmsizeChart();
+  renderCoopChart();
+  renderLeaderboard();
+}
+document.getElementById('langPills').addEventListener('click', function(e){
+  var btn = e.target.closest('.pill');
+  if (!btn) return;
+  if (btn.getAttribute('data-lang') === state.lang) return;
+  document.querySelectorAll('#langPills .pill').forEach(function(p){ p.classList.remove('active'); });
+  btn.classList.add('active');
+  state.lang = btn.getAttribute('data-lang');
+  applyLanguage();
+});
+
+/* ============================= district data helpers ============================= */
+function districtsForSeason(){
+  if (state.season==='all'){
+    return DATA.districts.filter(function(d){ return d.qty_kg>0 || d.n_registered>=100; })
+      .sort(function(a,b){return b.qty_kg-a.qty_kg;});
+  }
+  var rows = DATA.season_district.filter(function(r){ return String(r.season)===String(state.season); });
+  var byName = {};
+  rows.forEach(function(r){ byName[r.district]=r; });
+  return DATA.districts.map(function(d){
+    var r = byName[d.district];
+    return {
+      district:d.district, lat:d.lat, lon:d.lon, n_registered:d.n_registered,
+      qty_kg: r? r.qty_kg:0, amount_ugx: r? r.amount_ugx:0,
+      n_active_farmers: r? r.n_farmers:0, n_transactions: r? r.n_transactions:0,
+      avg_price: (r && r.qty_kg) ? r.amount_ugx/r.qty_kg : null
+    };
+  }).filter(function(d){ return d.qty_kg>0 || d.n_registered>=100; })
+    .sort(function(a,b){return b.qty_kg-a.qty_kg;});
+}
+
+/* ============================= district ledger list ============================= */
+function renderDistrictList(){
+  var rows = districtsForSeason();
+  var maxQty = Math.max.apply(null, rows.map(function(r){return r.qty_kg;}).concat([1]));
+  var html = rows.map(function(r){
+    var pct = Math.round((r.qty_kg/maxQty)*100);
+    var sel = (state.district===r.district) ? ' selected':'';
+    var isEmerging = isAllTimeEmerging(r.district);
+    var noActivityThisPeriod = r.qty_kg===0;
+    return '<div class="district-row'+sel+'" data-district="'+esc(r.district)+'">'+
+      '<div><div class="name">'+esc(r.district)+'</div><div class="sub">'+fmtInt(r.n_active_farmers)+' / '+fmtInt(r.n_registered)+' '+T('farmersWord')+'</div></div>'+
+      '<div class="bar-track"><div class="bar-fill" style="width:'+pct+'%;'+(isEmerging?'background:var(--honey);':'')+'"></div></div>'+
+      '<div class="qty num">'+ (noActivityThisPeriod? '—' : fmtKgShort(r.qty_kg)) +'</div>'+
+    '</div>';
+  }).join('');
+  document.getElementById('districtList').innerHTML = html;
+
+  document.querySelectorAll('.district-row').forEach(function(el){
+    el.addEventListener('click', function(){
+      var name = el.getAttribute('data-district');
+      state.district = (state.district===name) ? null : name;
+      renderDistrictList();
+      renderMapBubbles();
+      renderDistrictDetail();
+    });
+  });
+  renderDistrictDetail();
+  document.getElementById('mapSelectedTag').textContent = state.district ? state.district : T('mapTagAll');
+}
+
+function renderDistrictDetail(){
+  var box = document.getElementById('districtDetail');
+  if (!state.district){ box.classList.add('vis-hidden'); return; }
+  var rows = districtsForSeason();
+  var r = rows.find(function(x){return x.district===state.district;});
+  if (!r){ box.classList.add('vis-hidden'); return; }
+  box.classList.remove('vis-hidden');
+  var priceStr = r.avg_price ? fmtPrice(r.avg_price)+'/kg' : '—';
+  var body;
+  if (isAllTimeEmerging(r.district)){
+    body = T('ddEmerging')(r.n_registered);
+  } else if (r.qty_kg===0){
+    body = T('ddNoActivity')(r.n_active_farmers, r.n_registered);
+  } else {
+    body = T('ddActive')(r.n_active_farmers, r.n_registered,
+      (r.n_transactions? T('ddTxnPart')(r.n_transactions):''),
+      fmtKgShort(r.qty_kg), priceStr);
+  }
+  box.innerHTML = '<b>'+esc(r.district)+'</b> — '+body;
+}
+
+/* ============================= MAP (SVG) ============================= */
+var MAP_W=900, MAP_H=990;
+var LON_MIN=30.9, LON_MAX=33.0, LAT_MIN=-1.05, LAT_MAX=1.15;
+function proj(lat,lon){
+  return {
+    x: (lon-LON_MIN)/(LON_MAX-LON_MIN)*MAP_W,
+    y: (LAT_MAX-lat)/(LAT_MAX-LAT_MIN)*MAP_H
+  };
+}
+var DISTRICT_COLOR_ORDER = [COLORS.roast, COLORS.cherry, COLORS.leaf, COLORS.honey, COLORS.teal, COLORS.olive, COLORS.clay, COLORS.roastLight];
+var districtColorMap = {};
+
+// "Emerging" (registered but never active) is an ALL-TIME property of a district — e.g. Kiboga.
+// It must not be confused with a district that simply had no deliveries in the currently
+// selected season filter (e.g. Ntungamo only shipped in 2026, Mukono only in 2024).
+var ALL_TIME_QTY = {};
+
+/* Built from data.json, so it cannot run until the fetch resolves. */
+function initLookups(){
+  DATA.meta.districts_legend.forEach(function(d,i){
+    districtColorMap[d] = DISTRICT_COLOR_ORDER[i % DISTRICT_COLOR_ORDER.length];
+  });
+  DATA.districts.forEach(function(d){ ALL_TIME_QTY[d.district] = d.qty_kg; });
+}
+function isAllTimeEmerging(districtName){ return (ALL_TIME_QTY[districtName]||0) === 0; }
+
+function buildStaticMapSVG(){
+  var svgParts = [];
+  svgParts.push('<svg viewBox="0 0 '+MAP_W+' '+MAP_H+'" xmlns="http://www.w3.org/2000/svg">');
+
+  // graticule
+  svgParts.push('<g stroke="'+COLORS.line+'" stroke-width="1">');
+  for (var lon=31.0; lon<=33.0; lon+=0.5){
+    var p1=proj(LAT_MIN,lon), p2=proj(LAT_MAX,lon);
+    svgParts.push('<line x1="'+p1.x+'" y1="'+p1.y+'" x2="'+p2.x+'" y2="'+p2.y+'"/>');
+  }
+  for (var lat=-1.0; lat<=1.0; lat+=0.5){
+    var q1=proj(lat,LON_MIN), q2=proj(lat,LON_MAX);
+    svgParts.push('<line x1="'+q1.x+'" y1="'+q1.y+'" x2="'+q2.x+'" y2="'+q2.y+'"/>');
+  }
+  svgParts.push('</g>');
+  svgParts.push('<g fill="'+COLORS.inkFaint+'" font-size="10" font-family="IBM Plex Mono">');
+  for (var lon2=31.0; lon2<=33.0; lon2+=0.5){
+    var lp = proj(LAT_MAX, lon2);
+    svgParts.push('<text x="'+(lp.x+3)+'" y="14">'+lon2.toFixed(1)+'°E</text>');
+  }
+  svgParts.push('</g>');
+
+  var d = 'M ' + LAKE_POLY.map(function(pt){ var p=proj(pt[1],pt[0]); return p.x+' '+p.y; }).join(' L ') + ' Z';
+  svgParts.push('<path d="'+d+'" fill="#BFD7DC" opacity="0.8"/>');
+  var lakeLabelP = proj(-0.45,32.55);
+  svgParts.push('<text id="lakeLabelText" x="'+lakeLabelP.x+'" y="'+lakeLabelP.y+'" fill="#4C7078" font-size="13" font-style="italic" font-family="IBM Plex Mono">'+T('lakeLabel')+'</text>');
+
+  // Kampala reference marker
+  var kp = proj(0.3476, 32.5825);
+  svgParts.push('<g>'+
+    '<circle cx="'+kp.x+'" cy="'+kp.y+'" r="4" fill="none" stroke="'+COLORS.ink+'" stroke-width="1.5"/>'+
+    '<circle cx="'+kp.x+'" cy="'+kp.y+'" r="1.5" fill="'+COLORS.ink+'"/>'+
+    '<text x="'+(kp.x+8)+'" y="'+(kp.y+4)+'" fill="'+COLORS.ink+'" font-size="12" font-family=\'IBM Plex Sans\'>Kampala</text>'+
+  '</g>');
+
+  // farmer density dots — skip any that fall on the lake side of the shoreline
+  svgParts.push('<g>');
+  DATA.points.forEach(function(pt){
+    if (pt.lat<LAT_MIN || pt.lat>LAT_MAX || pt.lon<LON_MIN || pt.lon>LON_MAX) return;
+    if (pointInLake(pt.lat, pt.lon)) return;
+    var p = proj(pt.lat, pt.lon);
+    var col = districtColorMap[pt.district] || COLORS.leaf;
+    var r = 1.1 + Math.min(pt.n,8)*0.18;
+    svgParts.push('<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="'+r.toFixed(1)+'" fill="'+col+'" opacity="0.34"/>');
+  });
+  svgParts.push('</g>');
+
+  // scale bar + compass
+  var sbStart = proj(LAT_MIN+0.04, 31.0), sbEnd = proj(LAT_MIN+0.04, 31.5);
+  svgParts.push('<g font-family="IBM Plex Mono" font-size="10.5" fill="'+COLORS.inkSoft+'">'+
+    '<line x1="'+sbStart.x+'" y1="'+sbStart.y+'" x2="'+sbEnd.x+'" y2="'+sbEnd.y+'" stroke="'+COLORS.inkSoft+'" stroke-width="1.5"/>'+
+    '<line x1="'+sbStart.x+'" y1="'+(sbStart.y-4)+'" x2="'+sbStart.x+'" y2="'+(sbStart.y+4)+'" stroke="'+COLORS.inkSoft+'" stroke-width="1.5"/>'+
+    '<line x1="'+sbEnd.x+'" y1="'+(sbEnd.y-4)+'" x2="'+sbEnd.x+'" y2="'+(sbEnd.y+4)+'" stroke="'+COLORS.inkSoft+'" stroke-width="1.5"/>'+
+    '<text x="'+sbStart.x+'" y="'+(sbStart.y+18)+'">~55 km</text>'+
+  '</g>');
+  var nX = MAP_W-40, nY = 34;
+  svgParts.push('<g font-family="IBM Plex Mono" font-size="11" fill="'+COLORS.ink+'" text-anchor="middle">'+
+    '<line x1="'+nX+'" y1="'+(nY+16)+'" x2="'+nX+'" y2="'+(nY-10)+'" stroke="'+COLORS.ink+'" stroke-width="1.5"/>'+
+    '<path d="M '+(nX-4)+' '+(nY-4)+' L '+nX+' '+(nY-12)+' L '+(nX+4)+' '+(nY-4)+' Z" fill="'+COLORS.ink+'"/>'+
+    '<text x="'+nX+'" y="'+(nY+30)+'">N</text>'+
+  '</g>');
+
+  // bubble layer placeholder group (populated separately)
+  svgParts.push('<g id="bubbleLayer"></g>');
+
+  svgParts.push('</svg>');
+  document.getElementById('mapSvgWrap').insertAdjacentHTML('afterbegin', svgParts.join(''));
+}
+function applyMapStaticLabelsI18n(){
+  var el = document.getElementById('lakeLabelText');
+  if (el) el.textContent = T('lakeLabel');
+}
+
+// Lake Victoria — traced from GSHHG full-resolution coastline data (level 2, lakes),
+// clipped to this map's window and simplified to ~1px at render scale. Not sketched by
+// hand: the shore passes 0.157°N off Katosi and 0.291°N at the head of Murchison Bay,
+// matching the surveyed positions of those places. Mukono's farmers sit ~37 km inland
+// of it, which is where they actually are.
+var LAKE_POLY = [
+  [31.8669,-1.0500],[31.8694,-1.0350],[31.8617,-1.0219],[31.8575,-1.0194],[31.8486,-1.0292],[31.8403,-1.0264],
+  [31.8392,-0.9958],[31.8322,-0.9889],[31.8225,-0.9933],[31.8222,-1.0167],[31.8169,-1.0181],[31.8090,-1.0500],
+  [31.7663,-1.0500],[31.7636,-1.0275],[31.7850,-1.0008],[31.7869,-0.9892],[31.7678,-0.9600],[31.7711,-0.9244],
+  [31.7625,-0.9047],[31.7700,-0.8717],[31.7658,-0.8619],[31.7422,-0.8439],[31.7203,-0.8472],[31.7031,-0.8442],
+  [31.6975,-0.8361],[31.6964,-0.8175],[31.6994,-0.8003],[31.7264,-0.7389],[31.7600,-0.7106],[31.7811,-0.6706],
+  [31.8019,-0.6503],[31.8039,-0.6453],[31.7825,-0.6272],[31.7908,-0.5750],[31.7994,-0.5564],[31.8231,-0.5389],
+  [31.8406,-0.4844],[31.8586,-0.4681],[31.9175,-0.4308],[31.9578,-0.3819],[31.9919,-0.3208],[32.0061,-0.3078],
+  [32.0206,-0.3081],[32.0286,-0.3278],[32.0378,-0.3167],[32.0203,-0.2931],[32.0089,-0.2700],[32.0058,-0.2522],
+  [31.9886,-0.2506],[31.9817,-0.2439],[31.9764,-0.2281],[31.9808,-0.2000],[31.9758,-0.1911],[31.9619,-0.1792],
+  [31.9231,-0.1983],[31.9350,-0.1722],[31.9314,-0.1619],[31.9414,-0.1447],[31.9247,-0.1408],[31.9239,-0.1306],
+  [31.9417,-0.1275],[31.9536,-0.1122],[31.9894,-0.0931],[32.0725,-0.0989],[32.0731,-0.0925],[32.0506,-0.0706],
+  [32.0303,-0.0778],[32.0200,-0.0744],[32.0181,-0.0500],[32.0406,-0.0514],[32.0800,-0.0356],[32.0967,-0.0381],
+  [32.1231,-0.0594],[32.1514,-0.0719],[32.1917,-0.0758],[32.1956,-0.0594],[32.2108,-0.0406],[32.1958,-0.0017],
+  [32.1975,0.0167],[32.2081,0.0333],[32.2031,0.0142],[32.2075,-0.0022],[32.2317,-0.0119],[32.2608,-0.0375],
+  [32.2825,-0.0314],[32.2886,-0.0239],[32.2928,0.0036],[32.2631,0.0214],[32.2511,0.0417],[32.2542,0.0461],
+  [32.3219,0.0200],[32.3556,0.0133],[32.3586,-0.0031],[32.3531,-0.0244],[32.3558,-0.0286],[32.3736,-0.0283],
+  [32.3769,-0.0247],[32.3656,-0.0086],[32.3789,0.0122],[32.3753,0.0225],[32.3772,0.0539],[32.3750,0.0656],
+  [32.3644,0.0756],[32.3664,0.0806],[32.3883,0.0864],[32.3981,0.0731],[32.4281,0.0844],[32.4369,0.0894],
+  [32.4486,0.1186],[32.4583,0.1092],[32.4572,0.0928],[32.4333,0.0619],[32.4131,0.0547],[32.4158,0.0453],
+  [32.4319,0.0339],[32.4464,0.0281],[32.4600,0.0353],[32.4936,0.0839],[32.5028,0.0792],[32.5089,0.0506],
+  [32.5183,0.0522],[32.5194,0.0700],[32.5261,0.0769],[32.5411,0.0719],[32.5531,0.0564],[32.5500,0.0461],
+  [32.5664,0.0464],[32.5722,0.0594],[32.5478,0.0897],[32.5417,0.1117],[32.5492,0.1178],[32.5714,0.0992],
+  [32.5811,0.0967],[32.5850,0.1064],[32.5736,0.1294],[32.5808,0.1358],[32.5981,0.1394],[32.5972,0.1442],
+  [32.5750,0.1561],[32.5781,0.1761],[32.5683,0.1772],[32.5647,0.1872],[32.5733,0.1992],[32.5789,0.2006],
+  [32.5914,0.1928],[32.5961,0.1936],[32.6000,0.2031],[32.6164,0.2036],[32.6200,0.2269],[32.6319,0.2492],
+  [32.6347,0.2731],[32.6414,0.2869],[32.6508,0.2911],[32.6617,0.2886],[32.6661,0.2792],[32.6603,0.2578],
+  [32.6472,0.2369],[32.6481,0.2256],[32.6625,0.2194],[32.6725,0.2300],[32.6769,0.2219],[32.6719,0.2014],
+  [32.6544,0.1844],[32.6547,0.1681],[32.6672,0.1600],[32.6906,0.1633],[32.6978,0.1767],[32.7114,0.1836],
+  [32.7144,0.1994],[32.7225,0.2053],[32.7303,0.1856],[32.7417,0.1761],[32.7417,0.1706],[32.7194,0.1586],
+  [32.7053,0.1383],[32.6867,0.1456],[32.6756,0.1294],[32.6556,0.1297],[32.6642,0.1108],[32.6619,0.0903],
+  [32.6819,0.0872],[32.7031,0.0939],[32.7211,0.1100],[32.7431,0.1078],[32.7522,0.1258],[32.7778,0.1175],
+  [32.7903,0.1025],[32.7950,0.1117],[32.7950,0.1383],[32.8064,0.1475],[32.8103,0.1572],[32.8236,0.1444],
+  [32.8456,0.1503],[32.8553,0.1431],[32.8525,0.1778],[32.8650,0.1644],[32.8697,0.1667],[32.8708,0.1831],
+  [32.8808,0.1936],[32.8897,0.1903],[32.8878,0.1800],[32.9011,0.1728],[32.8836,0.1561],[32.8844,0.1497],
+  [32.8969,0.1419],[32.8944,0.1378],[32.8758,0.1353],[32.8733,0.1242],[32.8758,0.1128],[32.8964,0.1064],
+  [32.8972,0.0722],[32.9081,0.0708],[32.9194,0.0803],[32.9456,0.0819],[32.9631,0.0919],[32.9789,0.0889],
+  [33.0000,0.1014],[33.0000,-1.0500]
+];
+
+function pointInLake(lat, lon){
+  var inside = false;
+  for (var i=0, j=LAKE_POLY.length-1; i<LAKE_POLY.length; j=i++){
+    var xi=LAKE_POLY[i][0], yi=LAKE_POLY[i][1], xj=LAKE_POLY[j][0], yj=LAKE_POLY[j][1];
+    var intersects = ((yi>lat) !== (yj>lat)) && (lon < (xj-xi)*(lat-yi)/(yj-yi)+xi);
+    if (intersects) inside = !inside;
+}
+  return inside;
+}
+
+function bubbleRadius(qty){
+  if (qty<=0) return 9; /* small presence marker for a district that's inactive this period but not all-time */
+  var r = 15 + Math.sqrt(qty)*0.027;
+  return Math.min(r, 68);
+}
+
+function renderMapBubbles(){
+  var svg = document.querySelector('#mapSvgWrap svg');
+  if (!svg) return;
+  var layer = svg.querySelector('#bubbleLayer');
+  layer.innerHTML = '';
+  var rows = districtsForSeason();
+  // include Kiboga (registered-only) always, even if season filter zeroes it — it's a static registration fact
+  var kiboga = DATA.districts.find(function(d){return d.district==='Kiboga';});
+  if (kiboga && !rows.find(function(r){return r.district==='Kiboga';})) rows = rows.concat([kiboga]);
+
+  rows.forEach(function(r){
+    if (r.lat===null) return;
+    var p = proj(r.lat, r.lon);
+    var isEmerging = isAllTimeEmerging(r.district);
+    var rad = isEmerging ? 22 : bubbleRadius(r.qty_kg);
+    var isSel = state.district===r.district;
+    var g = document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.setAttribute('data-district', r.district);
+    g.style.cursor='pointer';
+
+    var circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    circle.setAttribute('cx', p.x); circle.setAttribute('cy', p.y); circle.setAttribute('r', rad);
+    if (isEmerging){
+      circle.setAttribute('fill', 'rgba(210,145,31,0.12)');
+      circle.setAttribute('stroke', COLORS.honey);
+      circle.setAttribute('stroke-width', isSel?3:1.75);
+      circle.setAttribute('stroke-dasharray','4,3');
+    } else {
+      circle.setAttribute('fill', isSel ? COLORS.roastDeep : 'rgba(123,74,36,0.76)');
+      circle.setAttribute('stroke', '#FFFCF6');
+      circle.setAttribute('stroke-width', isSel?3:1.5);
+    }
+    g.appendChild(circle);
+
+    if (rad>26 || isSel){
+      var label = document.createElementNS('http://www.w3.org/2000/svg','text');
+      label.setAttribute('x', p.x); label.setAttribute('y', p.y+4);
+      label.setAttribute('text-anchor','middle');
+      label.setAttribute('font-family',"IBM Plex Sans");
+      label.setAttribute('font-size', 11.5);
+      label.setAttribute('font-weight', 600);
+      label.setAttribute('fill', isEmerging ? COLORS.roastDeep : '#FFFCF6');
+      label.textContent = r.district;
+      g.appendChild(label);
+    }
+
+    g.addEventListener('mousemove', function(e){ showMapTooltip(e, r, isEmerging); });
+    g.addEventListener('mouseleave', hideMapTooltip);
+    g.addEventListener('click', function(){
+      state.district = (state.district===r.district) ? null : r.district;
+      renderDistrictList();
+      renderMapBubbles();
+    });
+    layer.appendChild(g);
+  });
+}
+
+var tooltipEl = document.getElementById('mapTooltip');
+function showMapTooltip(e, r, isEmerging){
+  var wrap = document.getElementById('mapSvgWrap');
+  var box = wrap.getBoundingClientRect();
+  var x = e.clientX - box.left, y = e.clientY - box.top;
+  tooltipEl.style.left = x+'px'; tooltipEl.style.top = y+'px';
+  tooltipEl.style.opacity = 1;
+  if (isEmerging){
+    tooltipEl.innerHTML = '<strong>'+esc(r.district)+'</strong><br>'+fmtInt(r.n_registered)+' '+T('tipRegisteredNoDeliv')+'<br>'+T('tipNoDelivYet');
+  } else if (r.qty_kg===0){
+    tooltipEl.innerHTML = '<strong>'+esc(r.district)+'</strong><br>'+fmtInt(r.n_registered)+' '+T('tipRegisteredNoDeliv')+'<br>'+T('tipNoDelivWindow');
+  } else {
+    tooltipEl.innerHTML = '<strong>'+esc(r.district)+'</strong><br>'+
+      '<span class="num">'+fmtKgShort(r.qty_kg)+'</span> · '+fmtInt(r.n_active_farmers)+' '+T('tipActiveFarmers')+'<br>'+
+      '<span class="num">'+fmtPrice(r.avg_price)+'/kg</span> '+T('tipAvgPrice');
+  }
+}
+function hideMapTooltip(){ tooltipEl.style.opacity = 0; }
+
+/* ============================= TREND CHART ============================= */
+function renderTrendChart(){
+  var metric = state.trendMetric;
+  var labels = DATA.monthly.map(function(m){ return fmtMonth(m.month); });
+  var values = DATA.monthly.map(function(m){ return metric==='qty'?m.qty_kg : metric==='amount'?m.amount_ugx : m.avg_price; });
+  var colors = DATA.monthly.map(function(m){
+    var base = SEASON_COLOR[m.season] || COLORS.roast;
+    if (state.season!=='all' && String(m.season)!==String(state.season)) return base+'35';
+    return base;
+  });
+
+  var cfg = {
+    type: metric==='price' ? 'line' : 'bar',
+    data: { labels: labels, datasets: [{
+      label: metric==='qty'?T('chartLabelQty'): metric==='amount'?T('chartLabelAmount'):T('chartLabelPrice'),
+      data: values,
+      backgroundColor: colors,
+      borderColor: metric==='price' ? COLORS.roast : colors,
+      borderWidth: metric==='price' ? 2 : 0,
+      pointRadius: metric==='price' ? 2.5 : 0,
+      pointBackgroundColor: COLORS.roast,
+      tension: 0.25,
+      borderRadius: metric==='price' ? 0 : 2,
+      maxBarThickness: 26
+    }]},
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor: COLORS.ink, padding:10, titleFont:{family:"'IBM Plex Sans'"},
+          bodyFont:{family:"'IBM Plex Mono'"},
+          callbacks:{ label: function(c){
+            if (metric==='qty') return fmtInt(c.parsed.y)+' kg';
+            if (metric==='amount') return fmtUGX(c.parsed.y);
+            return fmtPrice(c.parsed.y)+' /kg';
+          }}
+        }
+      },
+      scales:{
+        x:{ grid:{display:false}, ticks:{maxRotation:0, autoSkip:true, maxTicksLimit:14, font:{family:"'IBM Plex Mono'"}} },
+        y:{ grid:{color:COLORS.line}, ticks:{ callback:function(v){
+              if (metric==='qty') return (v/1000).toLocaleString(numLocale())+'t';
+              if (metric==='amount'){
+                var val = state.currency==='USD' ? v/FX_RATE : v;
+                var sym = state.currency==='USD' ? '$' : '';
+                if (Math.abs(val) >= 1e9) return sym+(val/1e9).toLocaleString(numLocale(),{maximumFractionDigits:1})+bigUnit('bn');
+                return sym+(val/1e6).toLocaleString(numLocale(),{maximumFractionDigits:1})+bigUnit('m');
+              }
+              /* price */
+              if (state.currency==='USD') return '$'+(v/FX_RATE).toFixed(2);
+              return v.toLocaleString(numLocale());
+            }, font:{family:"'IBM Plex Mono'"} } }
+      }
+    }
+  };
+  mountChart('trendChart', cfg);
+
+  var s24=DATA.seasons[0], s25=DATA.seasons[1];
+  var qtyDelta = ((s25.qty_kg-s24.qty_kg)/s24.qty_kg*100).toFixed(1);
+  var perFarmer24 = Math.round(s24.qty_kg/s24.n_farmers), perFarmer25=Math.round(s25.qty_kg/s25.n_farmers);
+  document.getElementById('trendInsight').innerHTML = T('trendInsight')(
+    Math.abs(qtyDelta), (qtyDelta<0?T('trendBelow'):T('trendAbove')),
+    fmtTonnes(s25.qty_kg), fmtTonnes(s24.qty_kg),
+    fmtInt(s25.n_farmers), fmtInt(s24.n_farmers),
+    fmtInt(perFarmer24), fmtInt(perFarmer25)
+  );
+}
+
+document.getElementById('trendToggle').addEventListener('click', function(e){
+  var btn = e.target.closest('button');
+  if (!btn) return;
+  document.querySelectorAll('#trendToggle button').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  state.trendMetric = btn.getAttribute('data-metric');
+  renderTrendChart();
+});
+
+/* ============================= BUYER STACKED CHART ============================= */
+function renderBuyerChart(){
+  var months = DATA.batches_monthly.map(function(m){return m.month;});
+  var buyers = DATA.buyers.map(function(b){return b.buyer;});
+  var byMonthBuyer = {};
+  DATA.month_buyer.forEach(function(r){ byMonthBuyer[r.month+'|'+r.buyer]=r.qty_kg; });
+  var datasets = buyers.map(function(b){
+    return {
+      label:b,
+      data: months.map(function(m){ return byMonthBuyer[m+'|'+b] || 0; }),
+      backgroundColor: BUYER_COLOR[b] || COLORS.inkFaint,
+      maxBarThickness: 22
+    };
+  });
+  mountChart('buyerChart', {
+    type:'bar',
+    data:{ labels: months.map(fmtMonth), datasets: datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{position:'bottom', labels:{boxWidth:10, boxHeight:10, font:{family:"'IBM Plex Sans'", size:11.5}, color:COLORS.inkSoft}},
+        tooltip:{ backgroundColor:COLORS.ink, callbacks:{ label:function(c){ return c.dataset.label+': '+fmtInt(c.parsed.y)+' kg'; } } } },
+      scales:{ x:{stacked:true, grid:{display:false}, ticks:{maxTicksLimit:10, font:{family:"'IBM Plex Mono'"}}},
+               y:{stacked:true, grid:{color:COLORS.line}, ticks:{callback:function(v){return (v/1000).toLocaleString(numLocale())+'t';}, font:{family:"'IBM Plex Mono'"}}} }
+    }
+  });
+}
+
+/* ============================= FIELD MANAGER CHART ============================= */
+function renderFMChart(){
+  var rows;
+  if (state.season==='all'){
+    rows = DATA.field_managers.slice();
+  } else {
+    rows = DATA.season_manager.filter(function(r){return String(r.season)===String(state.season);}).slice();
+  }
+  rows = rows.map(function(r){
+    return Object.assign({}, r, { avg_price: (r.avg_price!==undefined && r.avg_price!==null) ? r.avg_price : (r.qty_kg ? r.amount_ugx/r.qty_kg : 0) });
+  });
+  rows.sort(function(a,b){return a.qty_kg-b.qty_kg;}); /* ascending: Chart.js horizontal bars render index 0 at the bottom */
+  mountChart('fmChart', {
+    type:'bar',
+    data:{
+      labels: rows.map(function(r){return r.manager;}),
+      datasets:[{ data: rows.map(function(r){return r.qty_kg;}), backgroundColor: COLORS.roast, maxBarThickness:22, borderRadius:2 }]
+    },
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false},
+        tooltip:{ backgroundColor:COLORS.ink, callbacks:{ label:function(c){
+          var r = rows[c.dataIndex];
+          return [fmtInt(r.qty_kg)+' kg · '+fmtInt(r.n_farmers)+' '+T('fmFarmersAvg'), fmtPrice(r.avg_price)+T('fmAvgSuffix')];
+        } } } },
+      scales:{ x:{ grid:{color:COLORS.line}, ticks:{callback:function(v){return (v/1000).toLocaleString(numLocale())+'t';}, font:{family:"'IBM Plex Mono'"}} },
+               y:{ grid:{display:false}, ticks:{font:{family:"'IBM Plex Sans'", size:12}} } }
+    }
+  });
+}
+
+/* ============================= GENDER CHART ============================= */
+function renderGenderChart(){
+  var totalReg = DATA.gender_registered.Male + DATA.gender_registered.Female;
+  var totalVol = DATA.gender_volume.Male + DATA.gender_volume.Female;
+  var regPct = { Male: DATA.gender_registered.Male/totalReg, Female: DATA.gender_registered.Female/totalReg };
+  var volPct = { Male: DATA.gender_volume.Male/totalVol, Female: DATA.gender_volume.Female/totalVol };
+  mountChart('genderChart', {
+    type:'bar',
+    data:{
+      labels:[T('genderFemale'),T('genderMale')],
+      datasets:[
+        {label:T('shareRegistry'), data:[regPct.Female, regPct.Male], backgroundColor: COLORS.roast, maxBarThickness:26, borderRadius:2},
+        {label:T('shareVolume'), data:[volPct.Female, volPct.Male], backgroundColor: COLORS.honey, maxBarThickness:26, borderRadius:2}
+      ]
+    },
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{position:'bottom', labels:{boxWidth:10, boxHeight:10, font:{family:"'IBM Plex Sans'", size:11.5}, color:COLORS.inkSoft}},
+        tooltip:{ backgroundColor:COLORS.ink, callbacks:{ label:function(c){ return c.dataset.label+': '+fmtPct(c.parsed.x); } } } },
+      scales:{ x:{ grid:{color:COLORS.line}, ticks:{callback:function(v){return Math.round(v*100)+'%';}, font:{family:"'IBM Plex Mono'"}}, max:0.75 },
+               y:{ grid:{display:false} } }
+    }
+  });
+}
+
+/* ============================= YOUTH CHART ============================= */
+function renderYouthChart(){
+  var cats = [
+    {key:'Senior (60+)', label:T('youthSenior')},
+    {key:'Adult (36-59)', label:T('youthAdult')},
+    {key:'Youth (18-35)', label:T('youthYouth')}
+  ]; /* Chart.js horizontal bars render index 0 at the bottom, so Youth (last) lands on top */
+  var totalReg = cats.reduce(function(s,c){return s+DATA.youth.registered[c.key];},0);
+  var totalVol = cats.reduce(function(s,c){return s+DATA.youth.volume_kg[c.key];},0);
+  var regPct = cats.map(function(c){return DATA.youth.registered[c.key]/totalReg;});
+  var volPct = cats.map(function(c){return DATA.youth.volume_kg[c.key]/totalVol;});
+  mountChart('youthChart', {
+    type:'bar',
+    data:{
+      labels: cats.map(function(c){return c.label;}),
+      datasets:[
+        {label:T('shareRegistry'), data:regPct, backgroundColor: COLORS.roast, maxBarThickness:22, borderRadius:2},
+        {label:T('shareVolume'), data:volPct, backgroundColor: COLORS.honey, maxBarThickness:22, borderRadius:2}
+      ]
+    },
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{position:'bottom', labels:{boxWidth:10, boxHeight:10, font:{family:"'IBM Plex Sans'", size:11.5}, color:COLORS.inkSoft}},
+        tooltip:{ backgroundColor:COLORS.ink, callbacks:{ label:function(c){ return c.dataset.label+': '+fmtPct(c.parsed.x); } } } },
+      scales:{ x:{ grid:{color:COLORS.line}, ticks:{callback:function(v){return Math.round(v*100)+'%';}, font:{family:"'IBM Plex Mono'"}}, max:0.65 },
+               y:{ grid:{display:false} } }
+    }
+  });
+}
+
+/* ============================= FARM SIZE CHART ============================= */
+function renderFarmsizeChart(){
+  var labels = Object.keys(DATA.farm_size);
+  var values = labels.map(function(k){return DATA.farm_size[k];});
+  mountChart('farmsizeChart', {
+    type:'bar',
+    data:{ labels: labels.map(fmtFarmSize), datasets:[{ data: values, backgroundColor: COLORS.leaf, maxBarThickness:34, borderRadius:2 }] },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ backgroundColor:COLORS.ink, callbacks:{label:function(c){return fmtInt(c.parsed.y)+' '+T('farmersWord');}} } },
+      scales:{ x:{ grid:{display:false}, ticks:{font:{family:"'IBM Plex Sans'", size:10.5}} },
+               y:{ grid:{color:COLORS.line}, ticks:{font:{family:"'IBM Plex Mono'"}} } }
+    }
+  });
+}
+
+/* ============================= COOPERATIVE CHART ============================= */
+function renderCoopChart(){
+  var rows = DATA.cooperatives.slice().sort(function(a,b){return a.n_farmers-b.n_farmers;});
+  mountChart('coopChart', {
+    type:'bar',
+    data:{ labels: rows.map(function(r){return r.cooperative;}), datasets:[{ data: rows.map(function(r){return r.n_farmers;}), backgroundColor: COLORS.cherry, maxBarThickness:16, borderRadius:2 }] },
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ backgroundColor:COLORS.ink, callbacks:{label:function(c){return fmtInt(c.parsed.x)+' '+T('farmersWord');}} } },
+      scales:{ x:{ grid:{color:COLORS.line}, ticks:{font:{family:"'IBM Plex Mono'"}} },
+               y:{ grid:{display:false}, ticks:{font:{family:"'IBM Plex Sans'", size:10.5}} } }
+    }
+  });
+}
+
+/* ============================= LEADERBOARD ============================= */
+function renderLeaderboard(){
+  var html = DATA.top_farmers.map(function(f, i){
+    var loc = [f.village, f.district].filter(Boolean).join(', ');
+    return '<tr><td class="rank">'+(i+1)+'</td><td class="name">'+esc(f.name)+'</td><td>'+esc(loc)+'</td>'+
+      '<td class="num">'+fmtInt(f.n_deliveries)+'</td><td class="num">'+fmtKgShort(f.qty_kg)+'</td></tr>';
+  }).join('');
+  document.getElementById('leaderboardBody').innerHTML = html;
+  var tag = document.getElementById('leaderTag');
+  if (tag) tag.textContent = T('leaderTag')(DATA.top_farmers.length, fmtInt(DATA.kpis.n_active_farmers));
+}
+
+/* ============================= INIT ============================= */
+function start(){
+  if (DATA.meta && DATA.meta.fx_ugx_per_usd > 0) FX_RATE = DATA.meta.fx_ugx_per_usd;
+  initLookups();
+  buildStaticMapSVG();  /* the SVG shell must exist before bubbles are drawn into it */
+  applyLanguage();      /* single entry point — same path EN and NL take on every switch */
+}
+
+boot();
+
+})();
+
+</script>
+
+
+</body>
+</html>
