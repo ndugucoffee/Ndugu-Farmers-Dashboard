@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Export | Ndugu Coop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FAF4EA; --surface:#FFFCF6;
+    --ink:#2A1A10; --ink-soft:#63483A; --ink-faint:#8A7059;
+    --line:#EADCC7; --line-strong:#D8C4A6;
+    --roast:#7B4A24; --roast-deep:#43260F; --honey:#D2911F;
+    --nav-bg:#43260F; --nav-edge:#5A3618; --nav-title:#F0DFC7;
+    --nav-btn:#835231; --nav-btn-hover:#8A5A34;
+    --nav-btn-current:#D2911F; --nav-btn-current-ink:#2A1A10;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:'IBM Plex Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    font-size:15px; line-height:1.55; -webkit-font-smoothing:antialiased;
+  }
+  body::before{
+    content:''; position:fixed; top:0; left:0; right:0; height:4px; z-index:60;
+    background:linear-gradient(90deg,var(--roast-deep) 0%,var(--roast) 22%,#B23A1E 46%,var(--honey) 70%,#4E7C2E 100%);
+  }
+  .layout{display:flex; align-items:flex-start; min-height:100vh;}
+  .layout-main{flex:1 1 auto; min-width:0;}
+  .sidenav{
+    flex:0 0 172px; width:172px; align-self:stretch;
+    position:sticky; top:4px; max-height:calc(100vh - 4px); overflow-y:auto;
+    background:var(--nav-bg); border-right:1px solid var(--nav-edge);
+    padding:16px 14px 28px; display:flex; flex-direction:column; gap:13px;
+  }
+  .sidenav-title{
+    color:var(--nav-title); font-size:12px; font-weight:600;
+    text-transform:uppercase; letter-spacing:0.12em; margin:0; padding:2px;
+  }
+  .navbtn{
+    display:block; text-align:center; text-decoration:none;
+    background:var(--nav-btn); color:#fff; font-size:13px; font-weight:500;
+    line-height:1.3; padding:12px 6px; border:1px solid rgba(255,252,246,0.10);
+    clip-path:polygon(9px 0, calc(100% - 9px) 0, 100% 9px, 100% calc(100% - 9px),
+                      calc(100% - 9px) 100%, 9px 100%, 0 calc(100% - 9px), 0 9px);
+    transition:background .15s ease;
+  }
+  .navbtn:hover{background:var(--nav-btn-hover);}
+  .navbtn:focus-visible{outline:none; box-shadow:inset 0 0 0 2px #fff;}
+  .navbtn[aria-current="page"]{
+    background:var(--nav-btn-current); color:var(--nav-btn-current-ink);
+    font-weight:600; border-color:transparent;
+  }
+  @media (prefers-reduced-motion:reduce){ .navbtn{transition:none;} }
+  @media (max-width:900px){
+    .layout{flex-direction:column;}
+    .sidenav{
+      position:static; width:auto; max-height:none; flex:0 0 auto; align-self:auto;
+      flex-direction:row; align-items:center; gap:10px; overflow-x:auto;
+      padding:12px 16px; border-right:none; border-bottom:1px solid var(--nav-edge);
+    }
+    .sidenav-title{display:none;}
+    .navbtn{flex:0 0 auto; padding:10px 16px; white-space:nowrap;}
+  }
+
+  header.topbar{
+    position:sticky; top:4px; z-index:50;
+    background:rgba(250,244,234,0.94); backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line-strong);
+  }
+  .topbar-inner{
+    max-width:1320px; margin:0 auto; padding:16px 32px;
+    display:flex; align-items:center; gap:14px;
+  }
+  .brand-mark{height:28px; width:auto; flex:none;}
+  .brand-text{
+    border-left:1px solid var(--line-strong); padding-left:14px;
+    font-size:12.5px; color:var(--ink-soft);
+  }
+
+  .stage{
+    max-width:1320px; margin:0 auto; padding:0 32px;
+    display:flex; align-items:center; justify-content:center;
+    min-height:calc(100vh - 66px);
+  }
+  .card{
+    max-width:520px; width:100%; text-align:center;
+    background:var(--surface); border:1px solid var(--line-strong);
+    border-radius:8px; padding:44px 40px 40px;
+    box-shadow:0 1px 2px rgba(42,26,16,0.04), 0 10px 26px -20px rgba(42,26,16,0.55);
+  }
+  .rule{width:30px; height:3px; border-radius:2px; background:var(--roast); margin:0 auto 18px;}
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600;
+    letter-spacing:0.13em; text-transform:uppercase; color:var(--ink-faint);
+    margin:0 0 10px;
+  }
+  h1{font-size:27px; line-height:1.18; font-weight:700; letter-spacing:-0.015em; margin:0 0 12px;}
+  .card p{margin:0 0 22px; color:var(--ink-soft); font-size:15px;}
+  .back{
+    display:inline-block; text-decoration:none;
+    background:var(--roast); color:#FFFCF6;
+    font-size:13.5px; font-weight:500; padding:11px 20px; border-radius:5px;
+    transition:background .15s ease;
+  }
+  .back:hover{background:#8A5A34;}
+  .back:focus-visible{outline:2px solid var(--roast); outline-offset:2px;}
+  @media (prefers-reduced-motion:reduce){ .back{transition:none;} }
+  @media (max-width:900px){ .stage{min-height:auto; padding:56px 18px 72px;} }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+<nav class="sidenav" aria-label="Dashboards">
+  <p class="sidenav-title">Navigation</p>
+  <a class="navbtn" href="index.html">Domestic</a>
+  <a class="navbtn" href="export.html" aria-current="page">Export</a>
+  <a class="navbtn" href="impact.html">Impact</a>
+  <a class="navbtn" href="production.html">Production</a>
+  <a class="navbtn" href="finance.html">Finance</a>
+  <a class="navbtn" href="agritracker.html">Agritracker</a>
+  <a class="navbtn" href="coffee.html">Coffee</a>
+  <a class="navbtn" href="about.html">About us</a>
+</nav>
+
+<div class="layout-main">
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <svg class="brand-mark" viewBox="0 0 1080 283.07" xmlns="http://www.w3.org/2000/svg" aria-label="Ndugu"><path fill="#347e19" d="M240.49,8.16c23.92,0,77.27,38.63,98.88,117.28,18.77,68.29-39.55,149.46-67.6,149.46-58.41,0-45.53-94.28-43.23-104.85C251.07,79.45,214.74,8.16,240.49,8.16Z"/><path fill="#347e19" d="M211,274.9c-23.92,0-77.27-35.1-98.88-106.55-18.77-62.06,39.55-135.81,67.6-135.81,58.41,0,45.53,85.66,43.23,95.27C200.41,210.13,236.74,274.9,211,274.9Z"/></svg>
+    <div class="brand-text">Export</div>
+  </div>
+</header>
+
+<main class="stage">
+  <div class="card">
+    <div class="rule"></div>
+    <p class="eyebrow">In development</p>
+    <h1>The Export dashboard is still being built.</h1>
+    <p>This view is not ready yet. The sourcing and operations dashboard is live now, and the rest are being added in turn.</p>
+    <a class="back" href="index.html">Go to the Domestic dashboard</a>
+  </div>
+</main>
+
+</div><!-- /.layout-main -->
+</div><!-- /.layout -->
+
+</body>
+</html>

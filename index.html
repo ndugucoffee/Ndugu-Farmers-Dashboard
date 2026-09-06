@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ndugu Coop — Sourcing &amp; Operations</title>
+<title>Ndugu Coop Sourcing &amp; Operations</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -39,7 +39,11 @@
     --teal:#2C7A83;
     --olive:#8C9A3B;
     --clay:#9C5230;
+<<<<<<< Updated upstream
     /* Side navigation — drawn from the page's own palette: the rail is the
+=======
+    /* Side navigation: drawn from the page's own palette: the rail is the
+>>>>>>> Stashed changes
        same espresso as the footer, so the dashboard sits framed between them.
        Contrast (white on button 6.5:1, espresso on honey 6.2:1) is above AA. */
     --nav-bg:#43260F;
@@ -436,7 +440,7 @@
         <button class="pill active" data-lang="en">EN</button>
         <button class="pill" data-lang="nl">NL</button>
       </div>
-      <div class="asof"><span data-i18n="asofLabel">Data through</span> <span class="num" id="asOfDate">—</span></div>
+      <div class="asof"><span data-i18n="asofLabel">Data through</span> <span class="num" id="asOfDate">-</span></div>
     </div>
   </div>
 </header>
@@ -446,21 +450,25 @@
   <section class="hero">
     <div class="hero-head">
       <h1 data-i18n="heroH1">Greater Masaka's coffee, tracked from farm gate to export.</h1>
+<<<<<<< Updated upstream
       <p class="lede" data-i18n="heroLede">Ndugu Coop buys FAQ-grade, Rainforest Alliance / 4C-certified robusta from smallholder farmers across seven Ugandan districts, bulks it into export-ready lots, and hands it off to UGACOF, ETG and other buyers. This is where that pipeline stands today.</p>
+=======
+      <p class="lede" data-i18n="heroLede">Ndugu Coop buys FAQ-grade robusta, certified under Rainforest Alliance, Fairtrade and 4C, from smallholder farmers across seven Ugandan districts, bulks it into export-ready lots, and hands it off to UGACOF, ETG and other buyers. This is where that pipeline stands today.</p>
+>>>>>>> Stashed changes
     </div>
 
     <div class="hero-grid">
       <div class="col-7">
         <div class="hero-badges">
-          <span class="badge"><span class="dot"></span><span data-i18n="badge1">100% RFA/4C certified volume</span></span>
+          <span class="badge"><span class="dot"></span><span data-i18n="badge1">RFA, Fairtrade and 4C certified</span></span>
           <span class="badge"><span class="dot" style="background:var(--leaf)"></span><span data-i18n="badge2">11,375 farmers registered</span></span>
           <span class="badge"><span class="dot" style="background:var(--teal)"></span><span data-i18n="badge3">7 core districts, 1 emerging</span></span>
         </div>
       </div>
       <div class="hero-figure col-5">
-        <div class="big num" id="heroQty">—</div>
+        <div class="big num" id="heroQty">-</div>
         <div class="cap"><span data-i18n="heroCap">coffee purchased from farmers,</span> <span id="heroWindow">May 2024 – Aug 2026</span></div>
-        <div class="sub num" id="heroAmount">—</div>
+        <div class="sub num" id="heroAmount">-</div>
       </div>
     </div>
 
@@ -612,11 +620,11 @@
   <div class="shell fgrid">
     <div>
       <h4 data-i18n="footerAboutH">About this data</h4>
-      <p data-i18n="footerAboutP">Covers transactions from 9 May 2024 through 25 Aug 2026. "Season" follows Ndugu's coffee-year convention rather than the calendar year, so a season typically runs from one year's harvest into the next. District is taken from each farmer's registered location; a handful of low-volume, likely mis-geocoded entries are grouped into the totals but excluded from the map. The shoreline is traced from GSHHG full-resolution coastline data rather than drawn by hand; 154 mapped farmers (1.9%) carry recorded coordinates that fall inside Lake Victoria — almost all of them a single cluster off Sango Bay — and are counted in every figure here but not plotted. Age is calculated from each farmer's recorded date of birth as of September 2026; 157 records (1.4%) show an implausible birth date placing them under 18 and are treated as data-entry errors, excluded from the youth breakdown. USD figures use an illustrative rate of ~3,777 UGX per USD (early September 2026) and are not a live conversion. Every chart and total on this page is computed over the complete dataset of 21,740 transactions.</p>
+      <p data-i18n="footerAboutP">Covers transactions from 9 May 2024 through 25 Aug 2026. "Season" follows Ndugu's coffee-year convention rather than the calendar year, so a season typically runs from one year's harvest into the next. District is taken from each farmer's registered location. The map plots farmers whose registered coordinates fall inside the mapped area; records without a usable coordinate are included in every total but are not plotted. Age bands are derived from recorded dates of birth and exclude records where that date falls outside a plausible range. USD figures use an indicative rate of about 3,777 UGX per USD and are not a live conversion. Every chart and total on this page is computed over the complete dataset of 21,734 transactions.</p>
     </div>
     <div>
       <h4 data-i18n="footerDefH">Definitions</h4>
-      <p data-i18n="footerDefP">FAQ / RFA-4C: Fair Average Quality, Rainforest Alliance / 4C certified. Active supplier: a registered farmer with at least one recorded delivery in this window. Batch: a bulked, graded lot dispatched to a buyer.</p>
+      <p data-i18n="footerDefP">FAQ: Fair Average Quality. Certification: Rainforest Alliance, Fairtrade and 4C. Active supplier: a registered farmer with at least one recorded delivery in this window. Batch: a bulked, graded lot dispatched to a buyer.</p>
     </div>
   </div>
 </footer>
@@ -667,7 +675,7 @@ function boot(){
     })
     .catch(function(err){
       var hint = (location.protocol === 'file:')
-        ? 'The page was opened straight from disk. Browsers block fetch() on file:// URLs — serve the folder over HTTP instead (python -m http.server 8000) or use the deployed GitHub Pages URL.'
+        ? 'The page was opened straight from disk. Browsers block fetch() on file:// URLs. Serve the folder over HTTP instead (python -m http.server 8000) or use the deployed GitHub Pages URL.'
         : 'Could not load ./data.json next to this page. If this is a fresh deploy, check that the build workflow finished and published data.json.';
       showFatal('Dashboard data could not be loaded', hint + '  [' + err.message + ']');
     });
@@ -693,7 +701,7 @@ function fmtUGX(v){
   return sym + fmtInt(val);
 }
 function fmtPrice(v){
-  if (v===null || v===undefined) return '—';
+  if (v===null || v===undefined) return '-';
   if (state.currency==='USD') return '$' + (v/FX_RATE).toLocaleString(numLocale(),{minimumFractionDigits:2, maximumFractionDigits:2});
   return 'UGX ' + fmtInt(v);
 }
@@ -786,7 +794,7 @@ function computeFacts(){
     lakeFarmers: lakeFarmers,
     lakePct: mapped ? (lakeFarmers/mapped*100).toFixed(1) : '0.0',
     fx: FX_RATE,
-    generated: (DATA.meta && DATA.meta.generated) || '—',
+    generated: (DATA.meta && DATA.meta.generated) || '-',
     firstMonth: fmtMonthYear(k.date_min),
     dateMinHuman: fmtDateHuman(k.date_min),
     dateMaxHuman: fmtDateHuman(k.date_max),
@@ -796,7 +804,11 @@ function computeFacts(){
 
 var STR = {
 en:{
+<<<<<<< Updated upstream
   docTitle:'Ndugu Coop — Sourcing & Operations',
+=======
+  docTitle:'Ndugu Coop Sourcing & Operations',
+>>>>>>> Stashed changes
   navTitle:'Navigation',
   navDomestic:'Domestic', navExport:'Export', navImpact:'Impact',
   navProduction:'Production', navFinance:'Finance', navAgritracker:'Agritracker',
@@ -804,8 +816,8 @@ en:{
   brandRole:'Sourcing & operations',
   asofLabel:'Data through',
   heroH1:"Greater Masaka's coffee, tracked from farm gate to export.",
-  heroLede:function(f){ return 'Ndugu Coop buys FAQ-grade, Rainforest Alliance / 4C-certified robusta from smallholder farmers across '+f.activeDistricts+' Ugandan districts, bulks it into export-ready lots, and hands it off to '+f.buyer1+', '+f.buyer2+' and other buyers. This is where that pipeline stands today.'; },
-  badge1:'100% RFA/4C certified volume',
+  heroLede:function(f){ return 'Ndugu Coop buys FAQ-grade robusta, certified under Rainforest Alliance, Fairtrade and 4C, from smallholder farmers across '+f.activeDistricts+' Ugandan districts, bulks it into export-ready lots, and hands it off to '+f.buyer1+', '+f.buyer2+' and other buyers. This is where that pipeline stands today.'; },
+  badge1:'RFA, Fairtrade and 4C certified',
   badge2:function(f){ return fmtInt(f.registered)+' farmers registered'; },
   badge3:function(f){ return f.activeDistricts+' sourcing districts'+(f.emerging ? ', '+f.emerging+' emerging' : ''); },
   heroCap:'coffee purchased from farmers,',
@@ -846,9 +858,9 @@ en:{
   leaderTag:function(n,total){ return 'Top '+n+' of '+total+' active suppliers'; },
   thRank:'#', thFarmer:'Farmer', thDistrictVillage:'District / village', thDeliveries:'Deliveries', thVolume:'Volume',
   footerAboutH:'About this data',
-  footerAboutP:function(f){ return 'Covers transactions from '+f.dateMinHuman+' through '+f.dateMaxHuman+'. "Season" follows Ndugu\'s coffee-year convention rather than the calendar year, so a season typically runs from one year\'s harvest into the next. District is taken from each farmer\'s registered location; a handful of low-volume, likely mis-geocoded entries are grouped into the totals but excluded from the map. The shoreline is traced from GSHHG full-resolution coastline data rather than drawn by hand; '+fmtInt(f.lakeFarmers)+' mapped farmers ('+f.lakePct+'%) carry recorded coordinates that fall inside Lake Victoria — almost all of them a single cluster off Sango Bay — and are counted in every figure here but not plotted. Age is calculated from each farmer\'s recorded date of birth; '+fmtInt(f.under18)+' records show an implausible birth date placing them under 18 and are treated as data-entry errors, excluded from the youth breakdown. USD figures use an illustrative rate of ~'+fmtInt(f.fx)+' UGX per USD and are not a live conversion. Every chart and total on this page is computed over the complete dataset of '+fmtInt(f.transactions)+' transactions, rebuilt from source on '+f.generated+'.'; },
+  footerAboutP:function(f){ return 'Covers transactions from '+f.dateMinHuman+' through '+f.dateMaxHuman+'. "Season" follows Ndugu\'s coffee-year convention rather than the calendar year, so a season typically runs from one year\'s harvest into the next. District is taken from each farmer\'s registered location. The map plots farmers whose registered coordinates fall inside the mapped area; records without a usable coordinate are included in every total but are not plotted. Age bands are derived from recorded dates of birth and exclude records where that date falls outside a plausible range. USD figures use an indicative rate of about '+fmtInt(f.fx)+' UGX per USD and are not a live conversion. Every chart and total on this page is computed over the complete dataset of '+fmtInt(f.transactions)+' transactions, rebuilt from source on '+f.generated+'.'; },
   footerDefH:'Definitions',
-  footerDefP:'FAQ / RFA-4C: Fair Average Quality, Rainforest Alliance / 4C certified. Active supplier: a registered farmer with at least one recorded delivery in this window. Batch: a bulked, graded lot dispatched to a buyer.',
+  footerDefP:'FAQ: Fair Average Quality. Certification: Rainforest Alliance, Fairtrade and 4C. Active supplier: a registered farmer with at least one recorded delivery in this window. Batch: a bulked, graded lot dispatched to a buyer.',
   kpiVolume:'Volume purchased', kpiValue:'Value paid to farmers', kpiActive:'Active suppliers',
   kpiDistricts:'Districts covered', kpiAvgPrice:'Avg. price paid', kpiBatches:'Batches dispatched',
   kpiSeasonWindow:'Season window', kpiToExporters:'to exporters', kpiTo:'to', kpiInProgress:'in progress',
@@ -861,12 +873,16 @@ en:{
   ddActive: function(active,reg,txnPart,vol,price){ return fmtInt(active)+' of '+fmtInt(reg)+' registered farmers have delivered, '+txnPart+vol+' at an average of <b>'+price+'</b>.'; },
   ddTxnPart: function(n){ return fmtInt(n)+' transactions, '; },
   trendInsight: function(pct,dir,q25,q24,f25,f24,pf24,pf25){
-    return 'Season 2025 volume came in <b>'+pct+'% '+dir+'</b> season 2024 ('+q25+' vs '+q24+'), even with more active farmers (<b>'+f25+'</b> vs <b>'+f24+'</b>). Average delivery per farmer fell from <b>'+pf24+' kg</b> to <b>'+pf25+' kg</b> — consistent with robusta\'s natural biennial bearing cycle rather than farmer attrition.';
+    return 'Season 2025 volume came in <b>'+pct+'% '+dir+'</b> season 2024 ('+q25+' vs '+q24+'), even with more active farmers (<b>'+f25+'</b> vs <b>'+f24+'</b>). Average delivery per farmer fell from <b>'+pf24+' kg</b> to <b>'+pf25+' kg</b>, consistent with robusta\'s natural biennial bearing cycle rather than farmer attrition.';
   },
   trendBelow:'below', trendAbove:'above'
 },
 nl:{
+<<<<<<< Updated upstream
   docTitle:'Ndugu Coop — Inkoop & operaties',
+=======
+  docTitle:'Ndugu Coop Inkoop & operaties',
+>>>>>>> Stashed changes
   navTitle:'Navigatie',
   navDomestic:'Binnenland', navExport:'Export', navImpact:'Impact',
   navProduction:'Productie', navFinance:'Financiën', navAgritracker:'Agritracker',
@@ -874,8 +890,8 @@ nl:{
   brandRole:'Inkoop &amp; operaties',
   asofLabel:'Gegevens tot',
   heroH1:'Koffie uit Groot-Masaka, gevolgd van boerderij tot export.',
-  heroLede:function(f){ return 'Ndugu Coop koopt FAQ-kwaliteit, Rainforest Alliance/4C-gecertificeerde robusta van kleine boeren in '+f.activeDistricts+' Ugandese districten, bundelt dit tot exportklare partijen en levert het aan '+f.buyer1+', '+f.buyer2+' en andere kopers. Dit is de actuele stand van die keten.'; },
-  badge1:'100% RFA/4C-gecertificeerd volume',
+  heroLede:function(f){ return 'Ndugu Coop koopt FAQ-kwaliteit robusta, gecertificeerd volgens Rainforest Alliance, Fairtrade en 4C, van kleine boeren in '+f.activeDistricts+' Ugandese districten, bundelt dit tot exportklare partijen en levert het aan '+f.buyer1+', '+f.buyer2+' en andere kopers. Dit is de actuele stand van die keten.'; },
+  badge1:'RFA, Fairtrade en 4C gecertificeerd',
   badge2:function(f){ return fmtInt(f.registered)+' boeren geregistreerd'; },
   badge3:function(f){ return f.activeDistricts+' inkoopdistricten'+(f.emerging ? ', '+f.emerging+' opkomend' : ''); },
   heroCap:'koffie ingekocht bij boeren,',
@@ -916,9 +932,9 @@ nl:{
   leaderTag:function(n,total){ return 'Top '+n+' van '+total+' actieve leveranciers'; },
   thRank:'#', thFarmer:'Boer', thDistrictVillage:'District / dorp', thDeliveries:'Leveringen', thVolume:'Volume',
   footerAboutH:'Over deze gegevens',
-  footerAboutP:function(f){ return 'Omvat transacties van '+f.dateMinHuman+' tot en met '+f.dateMaxHuman+'. "Seizoen" volgt Ndugu\'s koffiejaar-conventie in plaats van het kalenderjaar, dus een seizoen loopt doorgaans van de ene oogst tot in de volgende. Het district komt uit de geregistreerde locatie van elke boer; een klein aantal laagvolume-, vermoedelijk verkeerd gegeocodeerde items telt wel mee in de totalen maar is uitgesloten van de kaart. De kustlijn is overgenomen uit GSHHG-kustlijndata op volle resolutie in plaats van met de hand getekend; '+fmtInt(f.lakeFarmers)+' in kaart gebrachte boeren ('+f.lakePct+'%) hebben geregistreerde coördinaten die in het Victoriameer vallen — vrijwel allemaal één cluster bij Sango Bay — en tellen mee in alle cijfers hier, maar worden niet geplot. Leeftijd wordt berekend op basis van de geregistreerde geboortedatum; '+fmtInt(f.under18)+' records tonen een onwaarschijnlijke geboortedatum waardoor iemand onder de 18 zou vallen en worden als invoerfout behandeld, uitgesloten van de jongerenanalyse. USD-bedragen gebruiken een indicatieve koers van ~'+fmtInt(f.fx)+' UGX per USD en zijn geen live omrekening. Elke grafiek en elk totaal op deze pagina is berekend over de volledige dataset van '+fmtInt(f.transactions)+' transacties, opnieuw opgebouwd op '+f.generated+'.'; },
+  footerAboutP:function(f){ return 'Omvat transacties van '+f.dateMinHuman+' tot en met '+f.dateMaxHuman+'. "Seizoen" volgt Ndugu\'s koffiejaar-conventie in plaats van het kalenderjaar, dus een seizoen loopt doorgaans van de ene oogst tot in de volgende. Het district komt uit de geregistreerde locatie van elke boer. De kaart toont boeren met geregistreerde coördinaten binnen het kaartgebied; records zonder bruikbare coördinaat tellen mee in alle totalen maar worden niet geplot. Leeftijdsgroepen zijn afgeleid van geregistreerde geboortedata en sluiten records uit waarvan die datum buiten een plausibel bereik valt. USD-bedragen gebruiken een indicatieve koers van ongeveer '+fmtInt(f.fx)+' UGX per USD en zijn geen live omrekening. Elke grafiek en elk totaal op deze pagina is berekend over de volledige dataset van '+fmtInt(f.transactions)+' transacties, opnieuw opgebouwd op '+f.generated+'.'; },
   footerDefH:'Definities',
-  footerDefP:'FAQ / RFA-4C: Fair Average Quality, Rainforest Alliance/4C-gecertificeerd. Actieve leverancier: een geregistreerde boer met minstens één geregistreerde levering in deze periode. Partij: een gebundelde, gesorteerde lading verzonden naar een koper.',
+  footerDefP:'FAQ: Fair Average Quality. Certificering: Rainforest Alliance, Fairtrade en 4C. Actieve leverancier: een geregistreerde boer met minstens één geregistreerde levering in deze periode. Partij: een gebundelde, gesorteerde lading verzonden naar een koper.',
   kpiVolume:'Ingekocht volume', kpiValue:'Uitbetaald aan boeren', kpiActive:'Actieve leveranciers',
   kpiDistricts:'Districten gedekt', kpiAvgPrice:'Gem. betaalde prijs', kpiBatches:'Verzonden partijen',
   kpiSeasonWindow:'Seizoensvenster', kpiToExporters:'naar exporteurs', kpiTo:'tot', kpiInProgress:'loopt nog',
@@ -931,7 +947,7 @@ nl:{
   ddActive: function(active,reg,txnPart,vol,price){ return fmtInt(active)+' van '+fmtInt(reg)+' geregistreerde boeren hebben geleverd, '+txnPart+vol+' tegen een gemiddelde van <b>'+price+'</b>.'; },
   ddTxnPart: function(n){ return fmtInt(n)+' transacties, '; },
   trendInsight: function(pct,dir,q25,q24,f25,f24,pf24,pf25){
-    return 'Het volume van seizoen 2025 kwam <b>'+pct+'% '+dir+'</b> seizoen 2024 uit ('+q25+' vs '+q24+'), ondanks meer actieve boeren (<b>'+f25+'</b> vs <b>'+f24+'</b>). De gemiddelde levering per boer daalde van <b>'+pf24+' kg</b> naar <b>'+pf25+' kg</b> — dit past bij de natuurlijke tweejaarlijkse draagcyclus van robusta, niet bij het wegvallen van boeren.';
+    return 'Het volume van seizoen 2025 kwam <b>'+pct+'% '+dir+'</b> seizoen 2024 uit ('+q25+' vs '+q24+'), ondanks meer actieve boeren (<b>'+f25+'</b> vs <b>'+f24+'</b>). De gemiddelde levering per boer daalde van <b>'+pf24+' kg</b> naar <b>'+pf25+' kg</b>. Dit past bij de natuurlijke tweejaarlijkse draagcyclus van robusta, niet bij het wegvallen van boeren.';
   },
   trendBelow:'lager dan', trendAbove:'hoger dan'
 }
@@ -985,7 +1001,7 @@ function deltaHTML(curr, prev, key, higherIsGood){
   if (prev===null || prev[key]===0) return '';
   var d = (curr[key]-prev[key])/prev[key];
   var cls = Math.abs(d)<0.01 ? 'flat' : (d>0 ? 'up':'down');
-  var arrow = d>0 ? '▲' : (d<0 ? '▼':'—');
+  var arrow = d>0 ? '▲' : (d<0 ? '▼':'=');
   return '<div class="kpi-delta '+cls+'"><span>'+arrow+'</span><span>'+fmtPct(Math.abs(d))+' '+T('vsPriorSeason')+'</span></div>';
 }
 function renderKPIs(){
@@ -1116,7 +1132,7 @@ function renderDistrictList(){
     return '<div class="district-row'+sel+'" data-district="'+esc(r.district)+'">'+
       '<div><div class="name">'+esc(r.district)+'</div><div class="sub">'+fmtInt(r.n_active_farmers)+' / '+fmtInt(r.n_registered)+' '+T('farmersWord')+'</div></div>'+
       '<div class="bar-track"><div class="bar-fill" style="width:'+pct+'%;'+(isEmerging?'background:var(--honey);':'')+'"></div></div>'+
-      '<div class="qty num">'+ (noActivityThisPeriod? '—' : fmtKgShort(r.qty_kg)) +'</div>'+
+      '<div class="qty num">'+ (noActivityThisPeriod? '-' : fmtKgShort(r.qty_kg)) +'</div>'+
     '</div>';
   }).join('');
   document.getElementById('districtList').innerHTML = html;
@@ -1141,7 +1157,7 @@ function renderDistrictDetail(){
   var r = rows.find(function(x){return x.district===state.district;});
   if (!r){ box.classList.add('vis-hidden'); return; }
   box.classList.remove('vis-hidden');
-  var priceStr = r.avg_price ? fmtPrice(r.avg_price)+'/kg' : '—';
+  var priceStr = r.avg_price ? fmtPrice(r.avg_price)+'/kg' : '-';
   var body;
   if (isAllTimeEmerging(r.district)){
     body = T('ddEmerging')(r.n_registered);
@@ -1152,7 +1168,7 @@ function renderDistrictDetail(){
       (r.n_transactions? T('ddTxnPart')(r.n_transactions):''),
       fmtKgShort(r.qty_kg), priceStr);
   }
-  box.innerHTML = '<b>'+esc(r.district)+'</b> — '+body;
+  box.innerHTML = '<b>'+esc(r.district)+'</b>: '+body;
 }
 
 /* ============================= MAP (SVG) ============================= */
@@ -1167,7 +1183,7 @@ function proj(lat,lon){
 var DISTRICT_COLOR_ORDER = [COLORS.roast, COLORS.cherry, COLORS.leaf, COLORS.honey, COLORS.teal, COLORS.olive, COLORS.clay, COLORS.roastLight];
 var districtColorMap = {};
 
-// "Emerging" (registered but never active) is an ALL-TIME property of a district — e.g. Kiboga.
+// "Emerging" (registered but never active) is an ALL-TIME property of a district, e.g. Kiboga.
 // It must not be confused with a district that simply had no deliveries in the currently
 // selected season filter (e.g. Ntungamo only shipped in 2026, Mukono only in 2024).
 var ALL_TIME_QTY = {};
@@ -1216,7 +1232,7 @@ function buildStaticMapSVG(){
     '<text x="'+(kp.x+8)+'" y="'+(kp.y+4)+'" fill="'+COLORS.ink+'" font-size="12" font-family=\'IBM Plex Sans\'>Kampala</text>'+
   '</g>');
 
-  // farmer density dots — skip any that fall on the lake side of the shoreline
+  // farmer density dots: skip any that fall on the lake side of the shoreline
   svgParts.push('<g>');
   DATA.points.forEach(function(pt){
     if (pt.lat<LAT_MIN || pt.lat>LAT_MAX || pt.lon<LON_MIN || pt.lon>LON_MAX) return;
@@ -1254,7 +1270,7 @@ function applyMapStaticLabelsI18n(){
   if (el) el.textContent = T('lakeLabel');
 }
 
-// Lake Victoria — traced from GSHHG full-resolution coastline data (level 2, lakes),
+// Lake Victoria, traced from GSHHG full-resolution coastline data (level 2, lakes),
 // clipped to this map's window and simplified to ~1px at render scale. Not sketched by
 // hand: the shore passes 0.157°N off Katosi and 0.291°N at the head of Murchison Bay,
 // matching the surveyed positions of those places. Mukono's farmers sit ~37 km inland
@@ -1321,7 +1337,7 @@ function renderMapBubbles(){
   var layer = svg.querySelector('#bubbleLayer');
   layer.innerHTML = '';
   var rows = districtsForSeason();
-  // include Kiboga (registered-only) always, even if season filter zeroes it — it's a static registration fact
+  // include Kiboga (registered-only) always, even if season filter zeroes it, since it is a static registration fact
   var kiboga = DATA.districts.find(function(d){return d.district==='Kiboga';});
   if (kiboga && !rows.find(function(r){return r.district==='Kiboga';})) rows = rows.concat([kiboga]);
 
@@ -1631,7 +1647,7 @@ function start(){
   if (DATA.meta && DATA.meta.fx_ugx_per_usd > 0) FX_RATE = DATA.meta.fx_ugx_per_usd;
   initLookups();
   buildStaticMapSVG();  /* the SVG shell must exist before bubbles are drawn into it */
-  applyLanguage();      /* single entry point — same path EN and NL take on every switch */
+  applyLanguage();      /* single entry point, the same path EN and NL take on every switch */
 }
 
 boot();
