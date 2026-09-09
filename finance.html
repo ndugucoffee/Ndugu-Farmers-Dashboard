@@ -4,9 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Finance | Ndugu Farmers Ltd</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
     --paper:#FAF4EA; --surface:#FFFCF6;
@@ -20,7 +17,7 @@
   *{box-sizing:border-box;}
   body{
     margin:0; background:var(--paper); color:var(--ink);
-    font-family:'IBM Plex Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
     font-size:15px; line-height:1.55; -webkit-font-smoothing:antialiased;
   }
   body::before{
@@ -28,7 +25,7 @@
     background:linear-gradient(90deg,var(--roast-deep) 0%,var(--roast) 22%,#B23A1E 46%,var(--honey) 70%,#4E7C2E 100%);
   }
   .layout{display:flex; align-items:flex-start; min-height:100vh;}
-  .layout-main{flex:1 1 auto; min-width:0;}
+  .layout-main{flex:1 1 auto; min-width:0; max-width:100%;}
   .sidenav{
     flex:0 0 172px; width:172px; align-self:stretch;
     position:sticky; top:4px; max-height:calc(100vh - 4px); overflow-y:auto;
@@ -59,6 +56,9 @@
     .sidenav{
       position:static; width:auto; max-height:none; flex:0 0 auto; align-self:auto;
       flex-direction:row; align-items:center; gap:10px; overflow-x:auto;
+      /* min-width:0 is what makes that overflow-x actually scroll: without it
+         the rail sizes to all nine buttons and widens the page instead. */
+      min-width:0; max-width:100%;
       padding:12px 16px; border-right:none; border-bottom:1px solid var(--nav-edge);
     }
     .sidenav-title{display:none;}
@@ -93,7 +93,7 @@
   }
   .rule{width:30px; height:3px; border-radius:2px; background:var(--roast); margin:0 auto 18px;}
   .eyebrow{
-    font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600;
+    font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-size:11px; font-weight:600;
     letter-spacing:0.13em; text-transform:uppercase; color:var(--ink-faint);
     margin:0 0 10px;
   }
