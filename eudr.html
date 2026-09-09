@@ -1,0 +1,2117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ndugu Farmers Ltd | EUDR Readiness</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root{
+    /* --- surfaces: raw parchment, cream, unbleached paper --- */
+    --paper:#FAF4EA;
+    --surface:#FFFCF6;
+    --surface-sunk:#F4EADA;
+    /* --- ink: espresso --- */
+    --ink:#2A1A10;
+    --ink-soft:#63483A;
+    --ink-faint:#8A7059;
+    --line:#EADCC7;
+    --line-strong:#D8C4A6;
+    /* --- roasted bean: the primary --- */
+    --roast:#7B4A24;
+    --roast-deep:#43260F;
+    --roast-light:#A97244;
+    --roast-wash:#F4E6D5;
+    /* --- leaf: the growing side --- */
+    --leaf:#4E7C2E;
+    --leaf-light:#7FA84A;
+    --leaf-wash:#E9F1DD;
+    /* --- coffee cherry --- */
+    --cherry:#B23A1E;
+    --cherry-wash:#F9E3D9;
+    /* --- golden harvest --- */
+    --honey:#D2911F;
+    --honey-wash:#FBEED4;
+    /* --- supporting --- */
+    --teal:#2C7A83;
+    --olive:#8C9A3B;
+    --clay:#9C5230;
+    /* Side navigation: drawn from the page's own palette: the rail is the
+       same espresso as the footer, so the dashboard sits framed between them.
+       Contrast (white on button 6.5:1, espresso on honey 6.2:1) is above AA. */
+    --nav-bg:#43260F;
+    --nav-edge:#5A3618;
+    --nav-title:#F0DFC7;
+    --nav-btn:#835231;
+    --nav-btn-hover:#8A5A34;
+    --nav-btn-current:#D2911F;
+    --nav-btn-current-ink:#2A1A10;
+    --radius-sm:4px;
+    --radius-md:8px;
+    --shadow-pop:0 12px 30px -10px rgba(42,26,16,0.38);
+    --shadow-panel:0 1px 2px rgba(42,26,16,0.04), 0 10px 26px -20px rgba(42,26,16,0.55);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Libre Franklin',-apple-system,BlinkMacSystemFont,sans-serif;
+    font-size:15px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .num{font-family:'IBM Plex Mono',ui-monospace,monospace; font-variant-numeric: tabular-nums;}
+  a{color:inherit;}
+  ::selection{background:var(--roast); color:#fff;}
+
+  /* ---------- Page frame: fixed side nav + the dashboard column ---------- */
+  .layout{display:flex; align-items:flex-start; min-height:100vh;}
+  .layout-main{flex:1 1 auto; min-width:0;}   /* min-width:0 so grids can shrink */
+
+  .sidenav{
+    flex:0 0 172px; width:172px; align-self:stretch;
+    position:sticky; top:4px; max-height:calc(100vh - 4px); overflow-y:auto;
+    background:var(--nav-bg);
+    border-right:1px solid var(--nav-edge);
+    padding:16px 14px 28px;
+    display:flex; flex-direction:column; gap:13px;
+  }
+  .sidenav-title{
+    color:var(--nav-title); font-size:12px; font-weight:600;
+    text-transform:uppercase; letter-spacing:0.12em;
+    padding:2px 2px 2px; margin:0;
+  }
+  .navbtn{
+    display:block; text-align:center; text-decoration:none;
+    background:var(--nav-btn); color:#fff;
+    border:1px solid rgba(255,252,246,0.10);
+    font-size:13px; font-weight:500; line-height:1.3;
+    padding:12px 6px;
+    /* chamfered corners, matching the other dashboards' buttons */
+    clip-path:polygon(9px 0, calc(100% - 9px) 0, 100% 9px, 100% calc(100% - 9px),
+                      calc(100% - 9px) 100%, 9px 100%, 0 calc(100% - 9px), 0 9px);
+    transition:background .15s ease;
+  }
+  .navbtn:hover{background:var(--nav-btn-hover);}
+  /* clip-path would crop a normal outline, so the focus ring is drawn inside */
+  .navbtn:focus-visible{outline:none; box-shadow:inset 0 0 0 2px #fff;}
+  .navbtn[aria-current="page"]{
+    background:var(--nav-btn-current); color:var(--nav-btn-current-ink);
+    font-weight:600; border-color:transparent;
+  }
+  @media (prefers-reduced-motion:reduce){ .navbtn{transition:none;} }
+
+  @media (max-width:900px){
+    .layout{flex-direction:column;}
+    .sidenav{
+      position:static; width:auto; max-height:none; flex:0 0 auto; align-self:auto;
+      flex-direction:row; align-items:center; gap:10px;
+      overflow-x:auto; padding:12px 16px;
+      border-right:none; border-bottom:1px solid var(--nav-edge);
+    }
+    .sidenav-title{display:none;}
+    .navbtn{flex:0 0 auto; padding:10px 16px; white-space:nowrap;}
+  }
+
+  /* ---------- Layout shell ---------- */
+  .shell{max-width:1320px; margin:0 auto; padding:0 32px;}
+  @media (max-width:900px){ .shell{padding:0 18px;} }
+
+  /* ---------- Header ---------- */
+  body::before{
+    content:''; position:fixed; top:0; left:0; right:0; height:4px; z-index:60;
+    background:linear-gradient(90deg,var(--roast-deep) 0%,var(--roast) 22%,var(--cherry) 46%,var(--honey) 70%,var(--leaf) 100%);
+  }
+  header.topbar{
+    position:sticky; top:4px; z-index:50;
+    background:rgba(250,244,234,0.94);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line-strong);
+  }
+  .topbar-inner{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:11px 0; gap:24px; flex-wrap:wrap;
+  }
+  .brand{display:flex; align-items:center; gap:14px;}
+  .brand-mark{height:30px; width:auto; flex:none;}
+  .brand-text{border-left:1px solid var(--line-strong); padding-left:14px;}
+  .brand-text .role{font-size:12.5px; color:var(--ink-soft); margin-top:1px;}
+
+  .filterbar{display:flex; align-items:center; gap:18px; flex-wrap:wrap;}
+  .pillgroup{display:flex; background:var(--surface-sunk); border-radius:999px; padding:3px; gap:2px;}
+  .pill{
+    border:none; background:transparent; padding:7px 14px; border-radius:999px;
+    font-family:'Libre Franklin',sans-serif; font-size:13px; font-weight:500; color:var(--ink-soft);
+    cursor:pointer; transition:background .15s ease, color .15s ease;
+  }
+  .pill.active{background:var(--roast); color:#fff;}
+  .pill:not(.active):hover{color:var(--ink);}
+  .asof{font-size:12px; color:var(--ink-faint); white-space:nowrap;}
+
+  /* ---------- Section scaffolding ---------- */
+  section{padding:34px 0;}
+  section + section{border-top:1px solid var(--line);}
+  .section-head{
+    display:grid; grid-template-columns:repeat(12,minmax(0,1fr));
+    gap:24px; align-items:end; margin-bottom:18px;
+  }
+  .section-head > div:first-child{grid-column:span 8; min-width:0;}
+  .section-head h2{font-size:22px; margin:0 0 6px 0; font-weight:700; letter-spacing:-0.01em;}
+  .section-head h2::before{
+    content:''; display:block; width:30px; height:3px; border-radius:2px;
+    background:var(--roast); margin-bottom:10px;
+  }
+  .section-head p{margin:0; color:var(--ink-soft); font-size:14px; max-width:62ch;}
+  .section-tag{grid-column:span 4; align-self:end; font-size:12.5px; color:var(--ink-faint); text-align:right;}
+  @media (max-width:980px){
+    .section-head > div:first-child, .section-tag{grid-column:1 / -1;}
+    .section-tag{text-align:left;}
+  }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    padding-top:30px; padding-bottom:0; border-top:none;
+    background:
+      radial-gradient(ellipse 900px 460px at 8% -14%, var(--honey-wash) 0%, transparent 64%),
+      radial-gradient(ellipse 760px 400px at 100% -4%, var(--leaf-wash) 0%, transparent 60%),
+      radial-gradient(ellipse 520px 300px at 58% -18%, var(--roast-wash) 0%, transparent 66%);
+    margin-top:-1px;
+  }
+  .hero-head{margin-bottom:20px;}
+  /* the figure column is far taller than the badges; centring stops a dead
+     band opening up above them */
+  .hero-grid > .col-7{display:flex; align-items:center;}
+  /* these sit before .hero h1 / .hero p.lede in the cascade, so they need
+     enough specificity to win rather than relying on source order */
+  .hero .hero-head h1{max-width:none;}
+  .hero .hero-head p.lede{max-width:none;}
+  .hero-grid{display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:24px; align-items:end;}
+  @media (max-width:980px){ .hero-grid > [class*="col-"]{grid-column:1 / -1;} }
+  .hero-eyebrow{font-size:14px; color:var(--roast); font-weight:600; margin:0 0 10px 0;}
+  .hero h1{font-size:36px; line-height:1.1; margin:0 0 12px 0; font-weight:700; letter-spacing:-0.015em; max-width:18ch;}
+  .hero p.lede{font-size:15.5px; color:var(--ink-soft); max-width:56ch; margin:0;}
+  .hero-badges{display:flex; gap:10px; flex-wrap:wrap; margin-top:0;}
+  .badge{
+    display:inline-flex; align-items:center; gap:7px;
+    border:1px solid var(--line-strong); border-radius:999px; padding:6px 12px 6px 10px;
+    font-size:12.5px; color:var(--ink-soft); background:var(--surface);
+  }
+  .badge .dot{width:7px; height:7px; border-radius:50%; background:var(--honey); flex:none;}
+  .hero-figure{border-left:1px solid var(--line); padding-left:32px;}
+  @media (max-width:980px){ .hero-figure{border-left:none; padding-left:0; border-top:1px solid var(--line); padding-top:24px;} }
+  .hero-figure .big{font-family:'IBM Plex Mono'; font-size:44px; font-weight:600; color:var(--roast); line-height:1;}
+  .hero-figure .cap{font-size:13px; color:var(--ink-soft); margin-top:8px;}
+  .hero-figure .sub{font-family:'IBM Plex Mono'; font-size:17px; color:var(--ink); margin-top:10px;}
+
+  /* ---------- KPI ledger strip ---------- */
+  .kpi-strip{
+    margin-top:26px; box-shadow:var(--shadow-panel);
+    display:grid; grid-template-columns:repeat(6,1fr);
+    border:1px solid var(--line-strong); border-radius:var(--radius-md);
+    background:var(--surface); overflow:hidden;
+  }
+  @media (max-width:980px){ .kpi-strip{grid-template-columns:repeat(3,1fr);} }
+  @media (max-width:560px){ .kpi-strip{grid-template-columns:repeat(2,1fr);} }
+  .kpi-cell{
+    padding:14px 16px; border-right:1px solid var(--line);
+    border-top:3px solid transparent;
+  }
+  .kpi-cell:nth-child(6n){border-right:none;}
+  .kpi-cell:nth-child(6n+1){border-top-color:var(--leaf);}
+  .kpi-cell:nth-child(6n+2){border-top-color:var(--honey);}
+  .kpi-cell:nth-child(6n+3){border-top-color:var(--roast);}
+  .kpi-cell:nth-child(6n+4){border-top-color:var(--cherry);}
+  .kpi-cell:nth-child(6n+5){border-top-color:var(--teal);}
+  .kpi-cell:nth-child(6n+6){border-top-color:var(--olive);}
+  @media (max-width:980px){
+    .kpi-cell{border-bottom:1px solid var(--line);}
+    .kpi-cell:nth-child(3n){border-right:none;}
+    .kpi-cell:nth-last-child(-n+3){border-bottom:none;}
+  }
+  @media (max-width:560px){
+    .kpi-cell:nth-child(2n){border-right:none;}
+    .kpi-cell:nth-child(3n){border-right:1px solid var(--line);}
+    .kpi-cell:nth-child(2n){border-right:none;}
+    .kpi-cell:nth-last-child(-n+2){border-bottom:none;}
+  }
+  .kpi-label{font-size:12.5px; color:var(--ink-soft); margin:0 0 6px 0;}
+  .kpi-value{font-family:'IBM Plex Mono'; font-size:22px; font-weight:600; color:var(--ink); overflow-wrap:break-word;}
+  @media (max-width:560px){ .kpi-value{font-size:18px;} }
+  .kpi-value small{font-size:13px; font-weight:500; color:var(--ink-faint);}
+  .kpi-delta{font-size:12px; margin-top:5px; display:flex; align-items:center; gap:5px;}
+  .kpi-delta.up{color:var(--leaf);}
+  .kpi-delta.down{color:var(--clay);}
+  .kpi-delta.flat{color:var(--ink-faint);}
+
+  /* ---------- Generic panel ---------- */
+  .panel{
+    border:1px solid var(--line-strong); border-radius:var(--radius-md);
+    background:var(--surface); padding:18px; box-shadow:var(--shadow-panel);
+    display:flex; flex-direction:column; min-width:0;
+  }
+  .panel-title{font-size:14.5px; font-weight:600; margin:0 0 4px 0; min-height:1.4em;}
+  .panel-note{font-size:12.5px; color:var(--ink-faint); margin:0 0 11px 0; min-height:1.5em;}
+
+  /* ---------- Map section ---------- */
+  .map-panel{position:relative; display:flex; flex-direction:column;}
+  .map-svg-wrap{
+    position:relative; width:100%; flex:1 1 0%; min-height:420px;
+    border-radius:var(--radius-sm); overflow:hidden;
+    background:linear-gradient(180deg,#F7EFE1 0%,#EFE3D0 100%);
+  }
+  @media (max-width:980px){ .map-svg-wrap{min-height:340px;} }
+  .map-svg-wrap svg{width:100%; height:100%; display:block;}
+  .map-tooltip{
+    position:absolute; pointer-events:none; z-index:10;
+    background:var(--ink); color:#fff; padding:9px 12px; border-radius:var(--radius-sm);
+    font-size:12.5px; line-height:1.45; box-shadow:var(--shadow-pop);
+    transform:translate(-50%,-115%); white-space:nowrap; opacity:0; transition:opacity .1s ease;
+  }
+  .map-tooltip strong{font-weight:600;}
+  .map-tooltip .num{color:#EBD6BC;}
+  .map-legend{display:flex; gap:18px; margin-top:10px; flex-wrap:wrap; font-size:12px; color:var(--ink-soft);}
+  .map-legend .item{display:flex; align-items:center; gap:6px;}
+  .map-legend .sw{width:11px; height:11px; border-radius:50%; flex:none;}
+
+  .district-ledger{
+    border:1px solid var(--line-strong); border-radius:var(--radius-md); background:var(--surface);
+    overflow:hidden; box-shadow:var(--shadow-panel); display:flex; flex-direction:column;
+  }
+  #districtList{flex:1 1 auto;}
+  .district-ledger-head{padding:14px 16px 10px; border-bottom:1px solid var(--line);}
+  .district-row{
+    display:grid; grid-template-columns:1fr auto auto; gap:12px; align-items:center;
+    padding:6px 16px; border-bottom:1px solid var(--line); cursor:pointer;
+    transition:background .12s ease;
+  }
+  .district-row:last-child{border-bottom:none;}
+  .district-row:hover{background:var(--roast-wash);}
+  .district-row.selected{background:var(--roast-wash); box-shadow:inset 3px 0 0 var(--roast);}
+  .district-row .name{font-size:13.5px; font-weight:500; line-height:1.35;}
+  .district-row .sub{font-size:11.5px; color:var(--ink-faint); margin-top:1px; line-height:1.35;}
+  .district-row .bar-track{width:64px; height:5px; background:var(--surface-sunk); border-radius:3px; overflow:hidden; justify-self:end;}
+  .district-row .bar-fill{height:100%; background:linear-gradient(90deg,var(--roast) 0%,var(--roast-light) 100%);}
+  .district-row .qty{font-family:'IBM Plex Mono'; font-size:13px; text-align:right; min-width:64px;}
+  .district-detail{padding:12px 16px; border-top:1px solid var(--line); background:var(--surface-sunk); font-size:12.5px; color:var(--ink-soft);}
+  .district-detail b{color:var(--ink); font-family:'IBM Plex Mono'; font-weight:600;}
+
+  /* ---------- Chart toggle ---------- */
+  .toggle-row{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:14px;}
+  .seg{display:inline-flex; border:1px solid var(--line-strong); border-radius:var(--radius-sm); overflow:hidden;}
+  .seg button{
+    border:none; background:var(--surface); padding:8px 16px; font-family:'Libre Franklin',sans-serif;
+    font-size:13px; font-weight:500; color:var(--ink-soft); cursor:pointer; border-right:1px solid var(--line-strong);
+  }
+  .seg button:last-child{border-right:none;}
+  .seg button.active{background:var(--roast); color:#fff;}
+  /* flex-basis 0 keeps the canvas from feeding its own height back into the row */
+  .chart-box{position:relative; flex:1 1 0%; min-height:270px;}
+  .chart-box.short{min-height:205px;}
+  .chart-box canvas{position:absolute; left:0; top:0;}
+  .insight-line{
+    margin-top:12px; padding:10px 14px; background:var(--honey-wash); border-radius:var(--radius-sm);
+    font-size:13px; color:#5C3A15; border-left:3px solid var(--honey);
+  }
+  .insight-line b{font-family:'IBM Plex Mono'; font-weight:600;}
+
+  /* ---------- 12-column layout grid ----------
+     Every row on the page sits on the same twelve columns with the same 24px
+     gutter, so panel edges line up vertically all the way down. Two-panel rows
+     split 7/5 (hero, map) or 6/6 (chart pairs); everything else spans 12.
+     minmax(0,1fr) stops a responsive canvas from forcing its column wider. */
+  .grid{
+    display:grid; grid-template-columns:repeat(12,minmax(0,1fr));
+    gap:18px; align-items:stretch;
+  }
+  .col-4{grid-column:span 4;}
+  .col-5{grid-column:span 5;}
+  .col-6{grid-column:span 6;}
+  .col-7{grid-column:span 7;}
+  .col-8{grid-column:span 8;}
+  .col-12{grid-column:span 12;}
+  @media (max-width:980px){ .grid > [class*="col-"]{grid-column:1 / -1;} }
+
+  table.leaderboard{width:100%; border-collapse:collapse; font-size:13.5px; table-layout:fixed;}
+  table.leaderboard th{
+    text-align:left; font-size:11px; font-weight:600; color:var(--ink-faint);
+    padding:0 14px 11px; border-bottom:1px solid var(--line-strong);
+    text-transform:uppercase; letter-spacing:0.07em; white-space:nowrap;
+  }
+  table.leaderboard td{
+    padding:9px 14px; border-bottom:1px solid var(--line);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  table.leaderboard tbody tr:last-child td{border-bottom:none;}
+  table.leaderboard tbody tr:hover{background:var(--roast-wash);}
+  table.leaderboard td.num, table.leaderboard th.num{font-family:'IBM Plex Mono'; text-align:right;}
+  table.leaderboard td.name{font-weight:500;}
+  table.leaderboard td.rank{color:var(--ink-faint); font-family:'IBM Plex Mono';}
+  @media (max-width:820px){ .leaderboard-scroll{overflow-x:auto;} table.leaderboard{min-width:660px;} }
+
+  /* ---------- Footer ---------- */
+  footer{
+    margin-top:34px; padding:32px 0 40px; font-size:12.5px; line-height:1.7;
+    background:var(--roast-deep); color:#BFA98F;
+    border-top:4px solid var(--roast);
+  }
+  footer .fgrid{display:grid; grid-template-columns:2fr 1fr; gap:40px;}
+  @media (max-width:780px){ footer .fgrid{grid-template-columns:1fr;} }
+  footer h4{font-size:12.5px; color:#F0DFC7; font-weight:600; margin:0 0 8px 0; letter-spacing:0.02em;}
+
+  .vis-hidden{display:none !important;}
+
+  /* ---------- boot states (before data.json arrives) ---------- */
+  .boot{
+    max-width:640px; margin:0 auto; padding:96px 24px 120px; text-align:center;
+  }
+  .boot-spinner{
+    width:26px; height:26px; margin:0 auto 18px; border-radius:50%;
+    border:2.5px solid var(--line-strong); border-top-color:var(--roast);
+    animation:boot-spin .8s linear infinite;
+  }
+  @keyframes boot-spin{to{transform:rotate(360deg);}}
+  @media (prefers-reduced-motion:reduce){ .boot-spinner{animation-duration:2.4s;} }
+  .boot p{margin:0; color:var(--ink-soft); font-size:14px;}
+  .boot-title{font-size:16px; font-weight:600; color:var(--ink); margin:0 0 10px 0;}
+  .boot-detail{
+    font-size:13.5px; color:var(--ink-soft); line-height:1.6;
+    background:var(--surface); border:1px solid var(--line-strong);
+    border-left:3px solid var(--cherry); border-radius:var(--radius-sm);
+    padding:14px 16px; text-align:left; margin-top:16px;
+  }
+
+  /* ---------- EUDR-only ---------- */
+
+  /* Countdown band. Deliberately loud: the whole page is about a date. */
+  .countdown{
+    display:flex; align-items:center; gap:18px; flex-wrap:wrap;
+    background:var(--roast-deep); color:#F0DFC7;
+    border-radius:var(--radius-md); padding:14px 20px; margin-top:22px;
+  }
+  .countdown .days{
+    font-family:'IBM Plex Mono'; font-size:32px; font-weight:600;
+    color:#fff; line-height:1;
+  }
+  .countdown .days.urgent{color:var(--honey);}
+  .countdown .lab{font-size:13px; line-height:1.45;}
+  .countdown .lab b{color:#fff; font-weight:600;}
+  .countdown .rule{width:1px; align-self:stretch; background:rgba(240,223,199,0.25);}
+
+  /* Gap ledger: what is missing, and what closing it involves. */
+  .gap-row{
+    display:grid; grid-template-columns:10px 1fr auto; gap:12px;
+    align-items:start; padding:10px 16px; border-bottom:1px solid var(--line);
+  }
+  .gap-row:last-child{border-bottom:none;}
+  .gap-row .chip{width:10px; height:10px; border-radius:2px; margin-top:5px;}
+  .gap-row .name{font-size:13.5px; font-weight:600; line-height:1.35;}
+  .gap-row .fix{font-size:12px; color:var(--ink-soft); margin-top:3px; line-height:1.45;}
+  .gap-row .qty{font-family:'IBM Plex Mono'; font-size:13px; text-align:right; white-space:nowrap;}
+  .gap-row .qty .sub{
+    display:block; font-size:11px; color:var(--ink-faint);
+    font-family:'Libre Franklin',sans-serif;
+  }
+
+  /* The four things the regulation actually asks for. */
+  .req{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px;}
+  @media (max-width:900px){ .req{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  @media (max-width:560px){ .req{grid-template-columns:1fr;} }
+  .req-card{
+    border:1px solid var(--line-strong); border-top:3px solid var(--roast);
+    border-radius:var(--radius-sm); background:var(--surface); padding:13px 15px;
+  }
+  .req-card h4{font-size:13px; margin:0 0 6px 0; font-weight:600; color:var(--ink);}
+  .req-card p{margin:0; font-size:12px; color:var(--ink-soft); line-height:1.55;}
+  .req-card .art{
+    font-family:'IBM Plex Mono'; font-size:10.5px; color:var(--ink-faint);
+    display:block; margin-top:7px; letter-spacing:0.02em;
+  }
+  .req-card:nth-child(2){border-top-color:var(--honey);}
+  .req-card:nth-child(3){border-top-color:var(--leaf);}
+  .req-card:nth-child(4){border-top-color:var(--teal);}
+
+  .callout{
+    border:1px solid var(--line-strong); border-left:3px solid var(--teal);
+    border-radius:var(--radius-sm); background:var(--surface);
+    padding:14px 16px; font-size:13px; color:var(--ink-soft); line-height:1.6;
+  }
+  .callout b{color:var(--ink); font-weight:600;}
+  .callout .n{font-family:'IBM Plex Mono'; color:var(--ink); font-weight:600;}
+  .callout + .callout{margin-top:10px;}
+  .callout.act{border-left-color:var(--honey); background:var(--honey-wash); color:#5C3A15;}
+  .callout.act b, .callout.act .n{color:#3E2609;}
+
+  /* Readiness meter used in the officer and district tables. */
+  .meter{display:flex; align-items:center; gap:8px; justify-content:flex-end;}
+  .meter .track{
+    width:70px; height:6px; border-radius:3px; background:var(--surface-sunk);
+    overflow:hidden; flex:none;
+  }
+  .meter .fill{height:100%; background:var(--leaf);}
+  .meter .fill.low{background:var(--honey);}
+  .meter .val{font-family:'IBM Plex Mono'; font-size:12.5px; min-width:3.4em; text-align:right;}
+
+  .statline{
+    display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-bottom:14px;
+  }
+  @media (max-width:700px){ .statline{grid-template-columns:1fr;} }
+  .statline .cell{
+    border:1px solid var(--line-strong); border-radius:var(--radius-sm);
+    background:var(--surface-sunk); padding:12px 14px;
+  }
+  .statline .cell .v{font-family:'IBM Plex Mono'; font-size:19px; font-weight:600; color:var(--ink);}
+  .statline .cell .l{font-size:12px; color:var(--ink-soft); margin-top:3px; line-height:1.45;}
+
+  /* ---------- Plot boundary map ---------- */
+  .mapwrap{
+    position:relative; width:100%; flex:1 1 0%; min-height:520px;
+    border-radius:var(--radius-sm); overflow:hidden;
+    background:linear-gradient(180deg,#F7EFE1 0%,#EFE3D0 100%);
+    cursor:grab; touch-action:none;
+  }
+  .mapwrap.dragging{cursor:grabbing;}
+  .mapwrap svg{width:100%; height:100%; display:block;}
+  @media (max-width:980px){ .mapwrap{min-height:400px;} }
+
+  /* A typical plot here is 0.38 ha, about 60 m across, inside a district some
+     50 km wide: at district zoom it is far under one pixel and the map renders
+     as dust. The stroke is therefore drawn in the plot's own band colour at a
+     non-scaling width, so every plot has a floor of roughly one pixel however
+     far out the view is. Zooming in, the stroke stays hairline and the true
+     boundary emerges from underneath it. */
+  .plot{stroke-width:1.1; vector-effect:non-scaling-stroke; stroke-linejoin:round;}
+  .plot.prov{stroke:var(--teal) !important; stroke-dasharray:2.5 1.5;}
+  .plot:hover{stroke:var(--ink) !important; stroke-width:2.4; stroke-dasharray:none;}
+  .dbubble{fill:var(--roast); fill-opacity:0.62; stroke:#FFFCF6; stroke-width:1.5; cursor:pointer;}
+  .dbubble:hover{fill-opacity:0.85;}
+  .dlabel{font-family:'Libre Franklin',sans-serif; font-size:11px; fill:var(--ink);
+          pointer-events:none; text-anchor:middle; paint-order:stroke;
+          stroke:#F7EFE1; stroke-width:3px; stroke-linejoin:round;}
+
+  .maptip{
+    position:absolute; pointer-events:none; z-index:12;
+    background:var(--ink); color:#fff; padding:9px 12px; border-radius:var(--radius-sm);
+    font-size:12.5px; line-height:1.5; box-shadow:var(--shadow-pop);
+    transform:translate(-50%,-118%); white-space:nowrap; opacity:0; transition:opacity .1s ease;
+  }
+  .maptip b{font-family:'IBM Plex Mono'; font-weight:600; color:#EBD6BC;}
+
+  .mapbar{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:11px;
+  }
+  .mapbar .crumb{font-size:13px; color:var(--ink-soft);}
+  .mapbar .crumb b{color:var(--ink); font-weight:600;}
+  .mapbtn{
+    border:1px solid var(--line-strong); background:var(--surface); color:var(--ink-soft);
+    font-family:'Libre Franklin',sans-serif; font-size:12.5px; padding:6px 12px;
+    border-radius:var(--radius-sm); cursor:pointer;
+  }
+  .mapbtn:hover{background:var(--roast-wash); color:var(--ink);}
+  .mapbtn[disabled]{opacity:0.45; cursor:default;}
+  .mapbtn:focus-visible{outline:2px solid var(--roast); outline-offset:2px;}
+  .mapstat{margin-left:auto; font-size:12px; color:var(--ink-faint);}
+  .mapfind{
+    border:1px solid var(--line-strong); background:var(--surface); color:var(--ink);
+    font-family:'IBM Plex Mono',monospace; font-size:12.5px; padding:6px 10px;
+    border-radius:var(--radius-sm); width:170px; min-width:0;
+  }
+  .mapfind:focus-visible{outline:2px solid var(--roast); outline-offset:1px;}
+  .mapfind[hidden]{display:none;}
+  .plot.hit{stroke:var(--cherry) !important; stroke-width:3 !important; stroke-dasharray:none;}
+
+  .maplegend{
+    display:flex; gap:16px; margin-top:10px; flex-wrap:wrap;
+    font-size:12px; color:var(--ink-soft); align-items:center;
+  }
+  .maplegend .item{display:flex; align-items:center; gap:6px;}
+  .maplegend .sw{width:13px; height:11px; border-radius:2px; flex:none; border:1px solid rgba(0,0,0,.12);}
+  .maplegend .sw.prov{background:transparent; border:1.5px dashed var(--teal);}
+
+  .mapload{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    background:rgba(247,239,225,0.82); font-size:13px; color:var(--ink-soft); z-index:11;
+  }
+  /* display:flex outranks the user-agent's [hidden]{display:none}, so without
+     this the overlay stays laid out while "hidden" and silently swallows every
+     click on the map underneath it. */
+  .mapload[hidden]{display:none;}
+</style>
+</head>
+<body>
+
+<div class="boot" id="bootLoading">
+  <div class="boot-spinner"></div>
+  <p>Loading dashboard data&hellip;</p>
+</div>
+
+<div class="boot" id="bootError" hidden>
+  <p class="boot-title"></p>
+  <p class="boot-detail"></p>
+</div>
+
+<div id="dashboard" hidden>
+<div class="layout">
+
+<nav class="sidenav" aria-label="Dashboards">
+  <p class="sidenav-title" data-i18n="navTitle">Navigation</p>
+  <a class="navbtn" href="index.html"       data-i18n="navDomestic">Domestic</a>
+  <a class="navbtn" href="export.html"      data-i18n="navExport">Export</a>
+  <a class="navbtn" href="eudr.html"        aria-current="page" data-i18n="navEudr">EUDR</a>
+  <a class="navbtn" href="impact.html"      data-i18n="navImpact">Impact</a>
+  <a class="navbtn" href="production.html"  data-i18n="navProduction">Production</a>
+  <a class="navbtn" href="finance.html"     data-i18n="navFinance">Finance</a>
+  <a class="navbtn" href="agritracker.html" data-i18n="navAgritracker">Agritracker</a>
+  <a class="navbtn" href="coffee.html"      data-i18n="navCoffee">Coffee</a>
+  <a class="navbtn" href="about.html"       data-i18n="navAbout">About us</a>
+</nav>
+
+<div class="layout-main">
+
+<header class="topbar">
+  <div class="shell topbar-inner">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 1080 283.07" xmlns="http://www.w3.org/2000/svg"><style>.cls-1{fill:#347e19;}</style><path class="cls-1" d="M469.14,81.5c41.67,0,59.71,16.51,59.71,54.37v74.95H495.56V136.89c0-18.81-7.62-27.19-26.42-27.19-19.06,0-26.94,8.38-26.94,27.19v73.93h-33V135.87C409.17,98,426.7,81.5,469.14,81.5Z"></path><path class="cls-1" d="M593.37,81.5c20.32,0,30,6.6,37.6,13.46h1.78V28.46h33V148.83c0,44.21-20.58,64.28-63.52,64.28S538,193,538,148.83v-3.05C538,100.3,556.78,81.5,593.37,81.5Zm8.89,103.41c21.85,0,30.49-9.91,30.49-37.1v-1c0-27.18-8.64-37.09-30.49-37.09s-31,9.91-31,37.09v1C571.26,175,580.41,184.91,602.26,184.91Z"></path><path class="cls-1" d="M872.33,81.5c42.94,0,63.52,20.83,63.52,65.29V203c0,41.92-16.51,60-65.3,60a216.77,216.77,0,0,1-39.89-3.81V232.42a251.24,251.24,0,0,0,36.84,3.3c26.93,0,35.32-8.38,35.32-26.17v-9.91H901c-7.62,6.86-17.28,13.47-37.6,13.47-36.59,0-55.39-18.8-55.39-64.28v-3.05C808.05,101.57,829.39,81.5,872.33,81.5Zm0,103.41c21.85,0,30.49-9.91,30.49-37.1v-1c0-27.18-8.64-37.09-30.49-37.09s-31,9.91-31,37.09v1C841.33,175,850.48,184.91,872.33,184.91Z"></path><path class="cls-1" d="M948,80.84h33v76.88c0,18.8,7.88,27.19,26.94,27.19,18.8,0,26.42-8.39,26.42-27.19V80.84h33.29v77.9c0,37.85-18,54.37-59.71,54.37-42.44,0-60-16.52-60-54.37Z"></path><path class="cls-1" d="M799.15,80.85v77.9c0,37.85-18,54.36-59.7,54.36-42.42,0-60-16.51-60-54.36V80.85h42.64c-2.25,3.84-4.59,11-7,15.49-.92,1.93-1.78,3.86-2.55,5.77C701,130,702.28,156.31,716,174.48c0,.05,0,.07,0,.1A17.61,17.61,0,0,0,721,180.2a58.17,58.17,0,0,0,15.73,11,72,72,0,0,0,9.46,3.76,38.85,38.85,0,0,1-1.71-3.76,34.06,34.06,0,0,1-1.9-6.37c-4.07-19.62,8.9-37.66,15.57-56.5,2.36-6.62,5.87-14.37,7.78-25.68a142.1,142.1,0,0,0,1.36-19.93c0-.65,0-1.28,0-1.88Z"></path><path class="cls-1" d="M727.74,164.64c-.71-.78-8.53-11.11,9-59.73,1.05-2.93,1.9-5.66,2.63-8.32a48.22,48.22,0,0,0,7.18-1.21,121.65,121.65,0,0,1-4.47,11.82C724.22,147.81,727.46,163.44,727.74,164.64Z"></path><path class="cls-1" d="M240.49,8.16c23.92,0,77.27,38.63,98.88,117.28,18.77,68.29-39.55,149.46-67.6,149.46-58.41,0-45.53-94.28-43.23-104.85C251.07,79.45,214.74,8.16,240.49,8.16Z"></path><path class="cls-1" d="M211,274.9c-23.92,0-77.27-35.1-98.88-106.55-18.77-62.06,39.55-135.81,67.6-135.81,58.41,0,45.53,85.66,43.23,95.27C200.41,210.13,236.74,274.9,211,274.9Z"></path><path class="cls-1" d="M26.3,232.09a1.23,1.23,0,0,1,.21,1.67c-2.34,3.26-4.74,6.56-7.06,9.66-2.53,3.4-4.81,11.58-3.74,15.5s13.52,6.38,14.86,5.51,6.18-12.52,9.21-18.78c5.6-11.56,10.67-23.4,16.91-34.59,3.93-7.06,9.14-13.4,14.22-20.32a1.26,1.26,0,0,0-1.2-2c-12,1.85-20.42,10.16-28.44,18.17-.42.51-1.11.14-1-.28,7.62-14.37,20.45-20.79,35.69-22.2,12.23-1.13,20.52,5.89,26.66,16a1.19,1.19,0,0,1,.15.35A87.14,87.14,0,0,1,105,211.9c1.6,8.2,1,16.38-3.08,23.78C88.2,260.16,66.79,273,39.23,274.86c-6,.42-12.9-2.41-18.38-5.52a17.38,17.38,0,0,1-6.48-23.26c2.67-5,6.53-9.34,10-13.91a1.24,1.24,0,0,1,1.81-.2Zm34.57,24.78C75,245,81.15,230.78,90.41,217.9c5.1-7.09,3.94-20.8,1.35-24.06-2.36-3-5.24-3.55-8.43-4.55a1.24,1.24,0,0,0-1.49.58c-3.94,7.42-8.61,18.78-12.33,21.86-3.88,3.21-10.55,14.84-15.05,22.86-4.67,8.31-21.06,26.12-19.63,32.62S59.72,257.83,60.87,256.87Z"></path></svg>
+      <div class="brand-text">
+        <div class="role" data-i18n="brandRole">EUDR readiness</div>
+      </div>
+    </div>
+    <div class="filterbar">
+      <div class="pillgroup" id="langPills">
+        <button class="pill active" data-lang="en">EN</button>
+        <button class="pill" data-lang="nl">NL</button>
+      </div>
+      <div class="asof"><span data-i18n="asofLabel">Assessed</span> <span class="num" id="asOf">-</span></div>
+    </div>
+  </div>
+</header>
+
+<main class="shell">
+
+  <section class="hero">
+    <div class="hero-head">
+      <p class="hero-eyebrow" data-i18n="heroEyebrow">EU Deforestation Regulation</p>
+      <div class="hero-grid">
+        <div class="col-7">
+          <div>
+            <h1 data-i18n="heroH1">Every kilogram sold into Europe needs the location of the plot it grew on</h1>
+            <p class="lede" data-i18n="heroLede">-</p>
+            <div class="hero-badges" style="margin-top:16px;">
+              <span class="badge"><span class="dot"></span><span id="badgeReg">-</span></span>
+              <span class="badge"><span class="dot" style="background:var(--leaf);"></span><span id="badgeCutoff">-</span></span>
+              <span class="badge"><span class="dot" style="background:var(--teal);"></span><span id="badgePrecision">-</span></span>
+            </div>
+          </div>
+        </div>
+        <div class="col-5">
+          <div class="hero-figure">
+            <div class="big" id="heroBig">-</div>
+            <div class="cap" data-i18n="heroCap">of volume meets the geolocation standard</div>
+            <div class="sub" id="heroSub">-</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="countdown">
+      <div><span class="days" id="cdDays">-</span></div>
+      <div class="lab" id="cdLab">-</div>
+      <div class="rule"></div>
+      <div class="lab" id="cdSmall">-</div>
+    </div>
+
+    <div class="kpi-strip">
+      <div class="kpi-cell">
+        <p class="kpi-label" data-i18n="kpiCompliant">Volume that qualifies</p>
+        <div class="kpi-value" id="kpiCompliant">-</div>
+        <div class="kpi-delta flat" id="kpiCompliantSub">-</div>
+      </div>
+      <div class="kpi-cell">
+        <p class="kpi-label" data-i18n="kpiAtRisk">Volume at risk</p>
+        <div class="kpi-value" id="kpiAtRisk">-</div>
+        <div class="kpi-delta down" id="kpiAtRiskSub">-</div>
+      </div>
+      <div class="kpi-cell">
+        <p class="kpi-label" data-i18n="kpiVisits">Farmers needing a visit</p>
+        <div class="kpi-value" id="kpiVisits">-</div>
+        <div class="kpi-delta flat" id="kpiVisitsSub">-</div>
+      </div>
+      <div class="kpi-cell">
+        <p class="kpi-label" data-i18n="kpiMappedPlots">Plot boundaries walked</p>
+        <div class="kpi-value" id="kpiPolygon">-</div>
+        <div class="kpi-delta up" id="kpiPolygonSub">-</div>
+      </div>
+      <div class="kpi-cell">
+        <p class="kpi-label" data-i18n="kpiMapped">Farmers with a usable point</p>
+        <div class="kpi-value" id="kpiMapped">-</div>
+        <div class="kpi-delta flat" id="kpiMappedSub">-</div>
+      </div>
+      <div class="kpi-cell">
+        <p class="kpi-label" data-i18n="kpiChain">Chain intact</p>
+        <div class="kpi-value" id="kpiChain">-</div>
+        <div class="kpi-delta up" data-i18n="kpiChainSub">every kg links to a farmer</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="secGapH">What is missing</h2>
+        <p data-i18n="secGapP">-</p>
+      </div>
+      <div class="section-tag" data-i18n="secGapTag">Volume that cannot be documented today</div>
+    </div>
+    <div class="grid">
+      <div class="col-7 panel">
+        <p class="panel-title" data-i18n="panGapH">Volume at risk, by reason</p>
+        <p class="panel-note" data-i18n="panGapN">Each farmer counts once, under the work their plot actually needs.</p>
+        <div class="chart-box"><canvas id="gapChart"></canvas></div>
+      </div>
+      <div class="col-5">
+        <div class="district-ledger">
+          <div class="district-ledger-head">
+            <p class="panel-title" style="margin:0;" data-i18n="panFixH">What closing each gap involves</p>
+            <p class="panel-note" style="margin:2px 0 0;" data-i18n="panFixN">Farmers affected and volume behind them.</p>
+          </div>
+          <div id="gapList"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="secPlanH">What it would take to close it</h2>
+        <p data-i18n="secPlanP">-</p>
+      </div>
+      <div class="section-tag" data-i18n="secPlanTag">Field visits against volume recovered</div>
+    </div>
+    <div class="grid">
+      <div class="col-7 panel">
+        <p class="panel-title" data-i18n="panCurveH">Compliance recovered per farmer visited</p>
+        <p class="panel-note" data-i18n="panCurveN">Largest suppliers with a gap visited first.</p>
+        <div class="chart-box"><canvas id="curveChart"></canvas></div>
+        <div class="insight-line" id="curveInsight">-</div>
+      </div>
+      <div class="col-5">
+        <div class="district-ledger">
+          <div class="district-ledger-head">
+            <p class="panel-title" style="margin:0;" data-i18n="panDistH">Where the work is</p>
+            <p class="panel-note" style="margin:2px 0 0;" data-i18n="panDistN">Districts by volume at risk.</p>
+          </div>
+          <div id="districtList"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="secBuyerH">Readiness by buyer</h2>
+        <p data-i18n="secBuyerP">-</p>
+      </div>
+      <div class="section-tag" data-i18n="secBuyerTag">Where the exposure actually sits</div>
+    </div>
+    <div class="grid">
+      <div class="col-12 panel">
+        <div class="chart-box" style="min-height:300px"><canvas id="buyerChart"></canvas></div>
+        <div class="insight-line" id="buyerInsight">-</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="officerSection">
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="secOffH">By field officer</h2>
+        <p data-i18n="secOffP">-</p>
+      </div>
+      <div class="section-tag" data-i18n="secOffTag">Data completeness is an operational metric</div>
+    </div>
+    <div class="grid">
+      <div class="col-12 panel">
+        <div class="leaderboard-scroll">
+          <table class="leaderboard">
+            <thead>
+              <tr>
+                <th data-i18n="thOfficer">Field officer</th>
+                <th class="num" style="width:7rem;" data-i18n="thFarmers">Farmers</th>
+                <th class="num" style="width:9rem;" data-i18n="thVolume">Volume sourced</th>
+                <th class="num" style="width:12rem;" data-i18n="thReady">Meets the standard</th>
+              </tr>
+            </thead>
+            <tbody id="officerBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <section id="mapSection">
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="secMapH">Mapped plot boundaries</h2>
+        <p data-i18n="secMapP">-</p>
+      </div>
+      <div class="section-tag" data-i18n="secMapTag">Click a district to open its plots</div>
+    </div>
+    <div class="grid">
+      <div class="col-8 panel">
+        <div class="mapbar">
+          <button class="mapbtn" id="mapBack" disabled data-i18n="mapBack">All districts</button>
+          <button class="mapbtn" id="mapReset" data-i18n="mapReset">Reset zoom</button>
+          <input class="mapfind" id="mapFind" type="search" autocomplete="off"
+                 placeholder="Find a plot" aria-label="Find a plot">
+          <span class="crumb" id="mapCrumb">-</span>
+          <span class="mapstat" id="mapStat">-</span>
+        </div>
+        <div class="mapwrap" id="mapWrap">
+          <div class="mapload" id="mapLoad" hidden>-</div>
+          <div class="maptip" id="mapTip"></div>
+        </div>
+        <div class="maplegend" id="mapLegend"></div>
+      </div>
+      <div class="col-4">
+        <div class="district-ledger">
+          <div class="district-ledger-head">
+            <p class="panel-title" style="margin:0;" data-i18n="panMapListH">Districts mapped</p>
+            <p class="panel-note" style="margin:2px 0 0;" data-i18n="panMapListN">Click a row to open its plots.</p>
+          </div>
+          <div id="mapDistrictList"></div>
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="callout" id="mapNote">-</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="secReqH">What the regulation asks for</h2>
+        <p data-i18n="secReqP">-</p>
+      </div>
+      <div class="section-tag" id="secReqTag">-</div>
+    </div>
+    <div class="grid">
+      <div class="col-12 panel">
+        <div class="req">
+          <div class="req-card">
+            <h4 data-i18n="req1H">Geolocation of every plot</h4>
+            <p data-i18n="req1P">Latitude and longitude for each plot the coffee was produced on, to at least six decimal digits. Fewer digits is not a rounding preference, it fails the test.</p>
+            <span class="art" data-i18n="req1A">Art. 9(1)(d)</span>
+          </div>
+          <div class="req-card">
+            <h4 data-i18n="req2H">Polygons above 4 hectares</h4>
+            <p data-i18n="req2P">A plot larger than four hectares must be given as a polygon tracing its perimeter. A single point is only accepted at four hectares or below.</p>
+            <span class="art" data-i18n="req2A">Art. 2(28)</span>
+          </div>
+          <div class="req-card">
+            <h4 data-i18n="req3H">Deforestation-free</h4>
+            <p data-i18n="req3P">The land must not have been converted from forest after 31 December 2020. The geolocation is what makes that checkable against satellite records.</p>
+            <span class="art" data-i18n="req3A">Art. 3(a)</span>
+          </div>
+          <div class="req-card">
+            <h4 data-i18n="req4H">Legally produced</h4>
+            <p data-i18n="req4P">Production must comply with Uganda's law on land use, tenure and labour. Evidencing that needs the administrative location, not just the district.</p>
+            <span class="art" data-i18n="req4A">Art. 3(b)</span>
+          </div>
+        </div>
+        <div style="margin-top:14px;">
+          <div class="callout" id="whoFiles">-</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="secOtherH">Gaps that will surface next</h2>
+        <p data-i18n="secOtherP">-</p>
+      </div>
+      <div class="section-tag" data-i18n="secOtherTag">Beyond the coordinate itself</div>
+    </div>
+    <div class="grid">
+      <div class="col-12 panel">
+        <div class="statline">
+          <div class="cell">
+            <div class="v" id="stPlots">-</div>
+            <div class="l" id="stPlotsL">-</div>
+          </div>
+          <div class="cell">
+            <div class="v" id="stParish">-</div>
+            <div class="l" id="stParishL">-</div>
+          </div>
+          <div class="cell">
+            <div class="v" id="stSize">-</div>
+            <div class="l" id="stSizeL">-</div>
+          </div>
+        </div>
+        <div id="otherNotes"></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="shell fgrid">
+    <div>
+      <h4 data-i18n="footerAboutH">About this data</h4>
+      <p id="footerAboutP">-</p>
+    </div>
+    <div>
+      <h4 data-i18n="footerDefH">Definitions</h4>
+      <p data-i18n="footerDefP">EUDR: Regulation (EU) 2023/1115 on deforestation-free products, as amended. Operator: the party first placing goods on the EU market. DDS: the due diligence statement an operator files before placing a consignment. Plot: a single parcel of land on which the coffee was produced. Polygon: the traced perimeter of a plot, as opposed to a single point inside it.</p>
+    </div>
+  </div>
+</footer>
+
+</div><!-- /.layout-main -->
+</div><!-- /.layout -->
+</div><!-- /#dashboard -->
+
+<script>
+
+(function(){
+"use strict";
+
+/* ---------------------------------------------------------------------------
+   Every figure is read from ./eudr-data.json, rebuilt by scripts/build_eudr.py
+   from the farmer list, the transactions and the batches. That file carries
+   counts and kilograms only: no farmer name, code, contact detail or
+   coordinate, so no individual farmer is identifiable from this page.
+   --------------------------------------------------------------------------- */
+var DATA = null;
+var DATA_POLY = null;
+var POLY_V = Date.now();
+var REQUIRED_KEYS = ['meta','kpis','gaps','precision','by_buyer','by_district',
+  'by_cooperative','by_officer','curve','plots','admin_completeness','size_flags'];
+
+function showFatal(title, detail){
+  var el = document.getElementById('bootError');
+  document.getElementById('bootLoading').hidden = true;
+  el.hidden = false;
+  el.querySelector('.boot-title').textContent = title;
+  el.querySelector('.boot-detail').textContent = detail;
+}
+
+function boot(){
+  if (typeof Chart === 'undefined'){
+    showFatal('Charting library could not be loaded',
+      'The page loads Chart.js from cdnjs.cloudflare.com and the request did not ' +
+      'complete. This is usually a network or proxy restriction rather than a problem ' +
+      'with the dashboard. Check that cdnjs.cloudflare.com is reachable from this machine.');
+    return;
+  }
+  fetch('./eudr-data.json?v=' + Date.now(), {cache:'no-store'})
+    .then(function(r){
+      if (!r.ok) throw new Error('HTTP ' + r.status + ' ' + r.statusText);
+      return r.json();
+    })
+    .then(function(json){
+      var missing = REQUIRED_KEYS.filter(function(k){ return !(k in json); });
+      if (missing.length) throw new Error('eudr-data.json is missing: ' + missing.join(', '));
+      DATA = json;
+      /* The boundary index is optional: if it is missing the rest of the page
+         is still correct, so a failure here hides the map instead of blocking
+         the dashboard. */
+      return fetch('./polygon-data.json?v=' + POLY_V, {cache:'no-store'})
+        .then(function(r){ return r.ok ? r.json() : null; })
+        .catch(function(){ return null; })
+        .then(function(poly){
+          DATA_POLY = poly;
+          document.getElementById('bootLoading').hidden = true;
+          document.getElementById('dashboard').hidden = false;
+          start();
+        });
+    })
+    .catch(function(err){
+      var hint = (location.protocol === 'file:')
+        ? 'The page was opened straight from disk. Browsers block fetch() on file:// URLs. Serve the folder over HTTP instead (python -m http.server 8000) or use the deployed GitHub Pages URL.'
+        : 'Could not load ./eudr-data.json next to this page. If this is a fresh deploy, check that the build workflow finished and published it.';
+      showFatal('Dashboard data could not be loaded', hint + '  [' + err.message + ']');
+    });
+}
+
+/* ============================= state & formatters ============================= */
+var state = { lang:'en' };
+var MONTHS_EN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var MONTHS_NL = ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
+function monthsArr(){ return state.lang==='nl' ? MONTHS_NL : MONTHS_EN; }
+function numLocale(){ return state.lang==='nl' ? 'nl-NL' : 'en-US'; }
+function fmtInt(v){ return Math.round(v).toLocaleString(numLocale()); }
+function fmtTonnes(kg){
+  var t = kg/1000;
+  return t.toLocaleString(numLocale(),{maximumFractionDigits: t<10?2:1}) + ' t';
+}
+function fmtKgShort(kg){ return kg >= 1000 ? fmtTonnes(kg) : fmtInt(kg) + ' kg'; }
+/* Axis ticks stay in one unit the whole way up, so the zero tick is not "0 kg"
+   next to "10 t". */
+function fmtAxisT(kg){
+  return (kg/1000).toLocaleString(numLocale(),{maximumFractionDigits:1}) + ' t';
+}
+function fmtPct(v, dp){
+  if (dp === undefined) dp = 1;
+  return (v*100).toLocaleString(numLocale(),{minimumFractionDigits:dp, maximumFractionDigits:dp}) + '%';
+}
+function fmtDate(d){
+  if (!d) return '-';
+  var p = d.split('-');
+  return parseInt(p[2],10) + ' ' + monthsArr()[parseInt(p[1],10)-1] + ' ' + p[0];
+}
+function esc(s){
+  return (s===null||s===undefined) ? '' :
+    String(s).replace(/[&<>]/g, function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});
+}
+
+/* ============================= palette ============================= */
+var COLORS = {
+  roast:'#7B4A24', roastDeep:'#43260F', roastLight:'#A97244', roastWash:'#F4E6D5',
+  leaf:'#4E7C2E', leafLight:'#7FA84A', leafWash:'#E9F1DD',
+  cherry:'#B23A1E', honey:'#D2911F', honeyWash:'#FBEED4',
+  teal:'#2C7A83', olive:'#8C9A3B', clay:'#9C5230',
+  ink:'#2A1A10', inkSoft:'#63483A', inkFaint:'#8A7059', line:'#EADCC7'
+};
+/* Compliant vs at-risk. Chosen with the palette validator rather than by eye:
+   green against red measures a colour-blind separation of 2.2 (deuteranopia),
+   which is invisible to a red-green colour-blind reader. Green against gold
+   measures 12.0 and passes. Gold is below 3:1 on this background, so every gold
+   mark is labelled or sits beside a table. */
+var C_OK = COLORS.leaf;
+var C_RISK = COLORS.honey;
+
+function themeCharts(){
+  Chart.defaults.font.family = "'IBM Plex Mono', monospace";
+  Chart.defaults.color = COLORS.inkSoft;
+  Chart.defaults.font.size = 11.5;
+}
+
+var CHARTS = {};
+function mountChart(canvasId, cfg){
+  var el = document.getElementById(canvasId);
+  if (!el) return null;
+  var prev = CHARTS[canvasId] || (typeof Chart.getChart === 'function' ? Chart.getChart(el) : null);
+  if (prev) prev.destroy();
+  CHARTS[canvasId] = new Chart(el.getContext('2d'), cfg);
+  return CHARTS[canvasId];
+}
+
+/* ============================= derived facts ============================= */
+var FACTS = {};
+function computeFacts(){
+  var k = DATA.kpis, meta = DATA.meta;
+  var top = DATA.by_district[0] || {district:'-', kg_at_risk:0, farmers:0};
+  var direct = null, worst = null;
+  DATA.by_buyer.forEach(function(b){
+    if (b.direct_export) direct = b;
+    if (b.kg > 50000 && (!worst || b.pct < worst.pct)) worst = b;
+  });
+  /* The knee of the curve: the fewest visits that pass 90%. */
+  var knee = null;
+  DATA.curve.forEach(function(p){ if (!knee && p.pct >= 0.9) knee = p; });
+  if (!knee) knee = DATA.curve[DATA.curve.length-1];
+  var byGap = {};
+  DATA.gaps.forEach(function(g){ byGap[g.key] = g; });
+
+  FACTS = {
+    pctReady: fmtPct(k.pct_volume_ready),
+    pctFarmers: fmtPct(k.pct_farmers_ready),
+    ready: fmtTonnes(k.ready_kg),
+    total: fmtTonnes(k.total_kg),
+    atRisk: fmtTonnes(k.kg_at_risk),
+    toFix: fmtInt(k.n_farmers_to_fix),
+    farmers: fmtInt(k.n_farmers),
+    polygon: fmtInt(k.n_needing_polygon),
+    days: fmtInt(meta.days_remaining),
+    deadline: fmtDate(meta.deadline),
+    deadlineSmall: fmtDate(meta.deadline_small),
+    cutoff: fmtDate(meta.cutoff),
+    decimals: meta.min_decimals,
+    ha: meta.polygon_above_ha,
+    regulation: meta.regulation,
+    generated: fmtDate(meta.generated),
+    kneeN: fmtInt(knee.farmers),
+    kneePct: fmtPct(knee.pct),
+    topDistrict: top.district,
+    topDistrictKg: fmtTonnes(top.kg_at_risk),
+    topDistrictFarmers: fmtInt(top.farmers),
+    topDistrictShare: fmtPct(k.kg_at_risk ? top.kg_at_risk/k.kg_at_risk : 0),
+    directBuyer: direct ? direct.buyer : '-',
+    directPct: direct ? fmtPct(direct.pct) : '-',
+    directKg: direct ? fmtTonnes(direct.kg) : '-',
+    worstBuyer: worst ? worst.buyer : '-',
+    worstPct: worst ? fmtPct(worst.pct) : '-',
+    lowPrecN: byGap.low_precision ? fmtInt(byGap.low_precision.farmers) : '0',
+    lowPrecKg: byGap.low_precision ? fmtTonnes(byGap.low_precision.kg) : '0 t',
+    noGpsN: byGap.no_gps ? fmtInt(byGap.no_gps.farmers) : '0',
+    multiPlot: fmtInt(DATA.plots.farmers_multi_plot),
+    multiPlotKg: fmtTonnes(DATA.plots.kg_from_multi_plot),
+    maxPlots: DATA.plots.max_plots,
+    parishPct: fmtPct(DATA.admin_completeness.parish),
+    villagePct: fmtPct(DATA.admin_completeness.village),
+    subcountyPct: fmtPct(DATA.admin_completeness.subcounty),
+    over50: fmtInt(DATA.size_flags.over_50_ha),
+    maxHa: fmtInt(DATA.size_flags.max_ha),
+    noSize: fmtInt(DATA.size_flags.zero_or_missing),
+    mapped: fmtInt(k.n_mapped || 0),
+    mappedPct: fmtPct(k.pct_farmers_mapped || 0),
+    mappedKg: fmtTonnes(k.mapped_kg || 0),
+    plots: DATA_POLY ? fmtInt(DATA_POLY.summary.plots) : '0',
+    mapDistricts: DATA_POLY ? fmtInt(DATA_POLY.summary.districts) : '0',
+    mapHa: DATA_POLY ? fmtInt(DATA_POLY.summary.total_ha) : '0',
+    provisional: DATA_POLY ? fmtInt(DATA_POLY.summary.provisional) : '0',
+    medianHa: DATA_POLY ? String(DATA_POLY.summary.median_ha) : '-',
+    over4Measured: DATA_POLY ? fmtInt(DATA_POLY.summary.over4) : '0',
+    defAll: DATA_POLY ? fmtInt((DATA_POLY.deforestation_conflict.all_sheet||{})['Deforestation detected']||0) : '0',
+    defFailed: DATA_POLY ? fmtInt((DATA_POLY.deforestation_conflict.failed_sheet||{})['Deforestation detected']||0) : '0'
+  };
+}
+
+/* ============================= i18n ============================= */
+/* Readiness comes in two grades now: a walked boundary, and an adequate point
+   for a holding small enough that a point is accepted. Everything else is a
+   gap. Listing the ready keys here rather than testing for one literal is what
+   stops a newly added ready category from silently rendering as a gap. */
+var READY_KEYS = {ready_polygon:1, ready_point:1};
+var GAP_META = {
+  low_precision:  {color:COLORS.roast},
+  needs_polygon:  {color:COLORS.honey},
+  no_gps:         {color:COLORS.cherry},
+  zeroed:         {color:COLORS.clay},
+  outside_uganda: {color:COLORS.teal},
+  unmatched:      {color:COLORS.inkFaint}
+};
+
+var I18N = {
+  en: {
+    navTitle:'Navigation', navDomestic:'Domestic', navExport:'Export', navEudr:'EUDR',
+    navImpact:'Impact', navProduction:'Production', navFinance:'Finance',
+    navAgritracker:'Agritracker', navCoffee:'Coffee', navAbout:'About us',
+    brandRole:'EUDR readiness', asofLabel:'Assessed',
+    heroEyebrow:'EU Deforestation Regulation',
+    heroH1:'Every kilogram sold into Europe needs the location of the plot it grew on',
+    heroLede:function(f){
+      return f.plots + ' plot boundaries have been walked, covering ' + f.mapped +
+        ' farmers. Of the ' + f.total + ' Ndugu has bought from its members, ' + f.ready +
+        ' can now be documented to the standard the regulation sets. The remaining ' +
+        f.atRisk + ' sits behind ' + f.toFix + ' farmers whose plots still need field ' +
+        'work before ' + f.deadline + '.';
+    },
+    heroCap:'of volume meets the geolocation standard',
+    cdLab:function(f){
+      return '<b>' + f.days + ' days</b> until ' + f.deadline +
+        ', when large and medium operators must comply';
+    },
+    cdSmall:function(f){ return 'Micro and small operators: ' + f.deadlineSmall; },
+    badgeReg:function(f){ return f.regulation; },
+    badgeCutoff:function(f){ return 'Deforestation-free since ' + f.cutoff; },
+    badgePrecision:function(f){ return 'At least ' + f.decimals + ' decimal digits'; },
+    kpiCompliant:'Volume that qualifies', kpiAtRisk:'Volume at risk',
+    kpiVisits:'Farmers needing a visit', kpiPolygon:'Farms needing a polygon',
+    kpiPolygonSub:'over 4 ha, point not accepted',
+    kpiMappedPlots:'Plot boundaries walked',
+    lblFarmersMapped:'farmers mapped',
+    kpiMapped:'Farmers with a usable point', kpiChain:'Chain intact',
+    kpiChainSub:'every kg links to a farmer',
+    secGapH:'What is missing',
+    secGapP:function(f){
+      return 'The chain itself is sound: every kilogram links to a named farmer and onward ' +
+        'to a buyer, and ' + f.mapped + ' farmers now have a walked plot boundary, which ' +
+        'satisfies the requirement outright. What remains is a short tail, and it fails in ' +
+        'distinct ways that need different work.';
+    },
+    secGapTag:'Volume that cannot be documented today',
+    panGapH:'Volume at risk, by reason',
+    panGapN:'Each farmer counts once, under the work their plot actually needs.',
+    panFixH:'What closing each gap involves',
+    panFixN:'Farmers affected and volume behind them.',
+    secPlanH:'What it would take to close it',
+    secPlanP:function(f){
+      return 'Volume is heavily concentrated, so the gap is far smaller in practice than ' +
+        'in headcount. Visiting the largest suppliers with a gap first, ' + f.kneeN +
+        ' farm visits carry compliance past ' + f.kneePct + '.';
+    },
+    secPlanTag:'Field visits against volume recovered',
+    panCurveH:'Compliance recovered per farmer visited',
+    panCurveN:'Largest suppliers with a gap visited first.',
+    panDistH:'Where the work is', panDistN:'Districts by volume at risk.',
+    secBuyerH:'Readiness by buyer',
+    secBuyerP:function(f){
+      return 'Coffee sold to a trader is placed on the EU market by that trader, who ' +
+        'needs our geolocation to do it. On the direct export channel there is no ' +
+        'intermediary to absorb the problem.';
+    },
+    secBuyerTag:'Where the exposure actually sits',
+    secOffH:'By field officer',
+    secOffP:function(f){
+      return 'Registration data is captured in the field, so completeness tracks the ' +
+        'officer who collected it. The spread here is wide enough to be a training ' +
+        'question rather than a data question.';
+    },
+    secOffTag:'Data completeness is an operational metric',
+    thOfficer:'Field officer', thFarmers:'Farmers', thVolume:'Volume sourced',
+    thReady:'Meets the standard',
+    secMapH:'Mapped plot boundaries',
+    secMapP:function(f){
+      return f.plots + ' plot boundaries have been walked and recorded across ' +
+        f.mapDistricts + ' districts, covering ' + f.mapHa +
+        ' hectares. Click a district to open its plots, then scroll to zoom and drag to pan.';
+    },
+    secMapTag:'Click a district to open its plots',
+    mapBack:'All districts', mapReset:'Reset zoom',
+    mapLoading:'Loading boundaries\u2026',
+    mapFailed:'Those boundaries could not be loaded.',
+    mapOpenHint:'Click to open',
+    crumbAll:'Bubble size shows how many plots are mapped in each district.',
+    crumbDistrict:'Showing every mapped plot in <b>%s</b>.',
+    legendBubble:'Bubble area is proportional to the number of mapped plots.',
+    lblPlots:'plots', lblAcres:'acres', lblItc:'submitted to ITC',
+    lblProvShort:'provisional',
+    lblRef:'Ref', lblMatches:'matches', lblNoMatch:'no match',
+    findPlaceholder:'Find a plot or code',
+    panMapListH:'Districts mapped', panMapListN:'Click a row to open its plots.',
+    band_under_half:'Under 0.5 ha', band_half1:'0.5 to 1 ha', band_1to2:'1 to 2 ha',
+    band_2to4:'2 to 4 ha', band_over4:'Over 4 ha',
+    bandProvisional:'Provisional, matched on name',
+    tipRegistered:'Linked to the register', tipProvisional:'Provisional, matched on name',
+    mapNote:function(f){
+      return '<b>Each boundary carries its farmer code, plot name and farm unit ID</b>, so a ' +
+        'plot can be identified and looked up. Hover any plot, or search by code. ' +
+        'National ID numbers, phone numbers, dates of birth and addresses are never ' +
+        'published and the build fails rather than include one. ' +
+        'Areas are measured from the geometry rather than taken from the workbook, whose ' +
+        'rather than taken from the workbook, whose own size column is in acres. ' +
+        f.provisional + ' plots come from a second register with no shared identifier and ' +
+        'are matched on farmer name alone, so they are marked provisional. ' +
+        '<b>No deforestation status is shown.</b> The source workbook contradicts itself, ' +
+        'marking ' + f.defAll + ' plots as deforestation-detected on one sheet and ' +
+        f.defFailed + ' on another, with the two disagreeing on the plots they share. ' +
+        'That has to be reconciled at source before any plot here can be called ' +
+        'deforestation-free.';
+    },
+    secReqH:'What the regulation asks for',
+    secReqP:function(f){
+      return 'Four tests, all of which have to pass for a consignment. This page ' +
+        'measures the first two, which are the ones our own records determine.';
+    },
+    secOtherH:'Gaps that will surface next',
+    secOtherP:function(f){
+      return 'Fixing the coordinates does not finish the job. Three further gaps are ' +
+        'already visible in the register and are cheaper to close during the same ' +
+        'field visits than in a second round.';
+    },
+    secOtherTag:'Beyond the coordinate itself',
+    footerAboutH:'About this data', footerDefH:'Definitions',
+    footerDefP:'EUDR: Regulation (EU) 2023/1115 on deforestation-free products, as amended. Operator: the party first placing goods on the EU market. DDS: the due diligence statement an operator files before placing a consignment. Plot: a single parcel of land on which the coffee was produced. Polygon: the traced perimeter of a plot, as opposed to a single point inside it.',
+    gapShort:{
+      ready_polygon:'Boundary walked', ready_point:'Point on file',
+      low_precision:'Below 6 decimals', needs_polygon:'Over 4 ha, no polygon',
+      no_gps:'No GPS fix', zeroed:'Saved as zero', outside_uganda:'Outside Uganda',
+      unmatched:'Unmatched'
+    },
+    gapName:{
+      ready_polygon:'Plot boundary walked', ready_point:'Adequate point on file',
+      low_precision:'Coordinates below six decimal places',
+      needs_polygon:'Farms over 4 ha with no polygon',
+      no_gps:'No GPS fix on file at all',
+      zeroed:'Coordinates saved as zero',
+      outside_uganda:'Coordinates outside Uganda',
+      unmatched:'Volume not matched to a farmer'
+    },
+    gapFix:{
+      ready_polygon:'A walked boundary satisfies the geolocation requirement outright, at any plot size.',
+      ready_point:'A point is accepted at or below four hectares, which measurement suggests is nearly every holding here.',
+      low_precision:'The farm is mapped but the digits were truncated on capture. Re-record the fix at full precision; usually no new visit is needed if the device still holds it.',
+      needs_polygon:'Walk the perimeter and record it as a polygon. A single point is not accepted above 4 ha, however precise.',
+      no_gps:'A first mapping visit. Nothing is on file for these farmers.',
+      zeroed:'The location field was saved empty and stored as 0,0. Re-capture on the next visit.',
+      outside_uganda:'Latitude and longitude are almost certainly transposed or mistyped. Verify against the village before re-capturing.',
+      unmatched:'Volume that could not be linked back to a registered farmer.'
+    },
+    lblFarmers:'farmers', lblFarmer:'farmer', lblCompliant:'Meets the standard', lblAtRisk:'At risk',
+    lblVisits:'Farm visits', lblCompliance:'Volume compliant',
+    lblDirect:'direct export',
+    ofVolume:function(f){ return 'of ' + f.total; },
+    ofFarmers:function(f){ return 'of ' + f.farmers + ' registered'; },
+    insCurve:function(f){
+      return 'Visiting <b>' + f.kneeN + '</b> farmers carries compliance to <b>' +
+        f.kneePct + '</b>. All ' + f.toFix + ' would close it completely.';
+    },
+    insBuyer:function(f){
+      return 'The direct export channel sits at <b>' + f.directPct + '</b> on ' + f.directKg +
+        ', the weakest of the meaningful volumes and the one with no intermediary between ' +
+        'Ndugu and a European buyer.';
+    },
+    whoFiles:function(f){
+      return '<b>Ndugu does not file the due diligence statement.</b> Under the 2025 ' +
+        'amendment only the party first placing goods on the EU market files, which means ' +
+        'our European buyers file, not us. Our exposure is commercial rather than legal: ' +
+        'a buyer cannot file without plot geolocation from its supplier, so volume that ' +
+        'fails these tests is volume a European buyer cannot lawfully accept. ' +
+        'That is what the ' + f.atRisk + ' above represents.';
+    },
+    stPlotsL:function(f){
+      return 'farmers deliver from more than one plot, but one coordinate is held per ' +
+        'farmer, not per plot. Behind them sits ' + f.multiPlotKg +
+        '. The register allows up to ' + f.maxPlots + ' plots for one farmer.';
+    },
+    stParishL:function(f){
+      return 'of farmers have a parish recorded. Village reaches ' + f.villagePct +
+        ' and subcounty ' + f.subcountyPct + '. Evidencing lawful production needs the ' +
+        'administrative location, not just the district.';
+    },
+    stSizeL:function(f){
+      return 'farms are recorded above 50 ha, the largest at ' + f.maxHa +
+        ' ha, on a register whose median holding is under one hectare. ' + f.noSize +
+        ' have no size at all, so the 4 ha polygon test cannot be applied to them.';
+    },
+    noteOther:function(f){
+      return 'All three are cheaper to fix during the mapping visits above than in a ' +
+        'separate round. A farmer whose perimeter is being walked can have their plots ' +
+        'separated, their parish recorded and their acreage checked in the same visit.';
+    },
+    aboutP:function(f){
+      return 'Assessed on ' + f.generated + ' against ' + f.regulation +
+        '. Covers all ' + f.farmers + ' registered farmers and the ' + f.total +
+        ' recorded against them. A farmer counts as meeting the standard when their ' +
+        'coordinates fall inside Uganda, carry at least ' + f.decimals +
+        ' decimal digits, and their holding is at or below ' + f.ha +
+        ' ha so that a point is accepted in place of a polygon. Deforestation status ' +
+        'itself is not assessed here: that is checked against satellite records once ' +
+        'the geolocation exists, and the geolocation is the gap. This page publishes ' +
+        'counts and volumes only. No farmer name, identifier, contact detail or ' +
+        'coordinate is included, and the build fails rather than publish one.';
+    }
+  },
+  nl: {
+    navTitle:'Navigatie', navDomestic:'Binnenland', navExport:'Export', navEudr:'EUDR',
+    navImpact:'Impact', navProduction:'Productie', navFinance:'Financiën',
+    navAgritracker:'Agritracker', navCoffee:'Koffie', navAbout:'Over ons',
+    brandRole:'EUDR-gereedheid', asofLabel:'Beoordeeld',
+    heroEyebrow:'EU-ontbossingsverordening',
+    heroH1:'Elke kilo die naar Europa gaat heeft de locatie nodig van het perceel waarop hij groeide',
+    heroLede:function(f){
+      return f.plots + ' perceelgrenzen zijn afgelopen, samen ' + f.mapped +
+        ' boeren. Van de ' + f.total + ' die Ndugu bij haar leden heeft gekocht, kan ' +
+        f.ready + ' nu worden onderbouwd volgens de norm van de verordening. De resterende ' +
+        f.atRisk + ' zit achter ' + f.toFix + ' boeren van wie het perceel nog veldwerk ' +
+        'nodig heeft vóór ' + f.deadline + '.';
+    },
+    heroCap:'van het volume voldoet aan de geolocatienorm',
+    cdLab:function(f){
+      return '<b>' + f.days + ' dagen</b> tot ' + f.deadline +
+        ', wanneer grote en middelgrote marktdeelnemers moeten voldoen';
+    },
+    cdSmall:function(f){ return 'Micro- en kleine marktdeelnemers: ' + f.deadlineSmall; },
+    badgeReg:function(f){ return f.regulation; },
+    badgeCutoff:function(f){ return 'Ontbossingsvrij sinds ' + f.cutoff; },
+    badgePrecision:function(f){ return 'Minimaal ' + f.decimals + ' decimalen'; },
+    kpiCompliant:'Volume dat voldoet', kpiAtRisk:'Volume met risico',
+    kpiVisits:'Boeren die bezoek nodig hebben', kpiPolygon:'Percelen die een polygoon nodig hebben',
+    kpiPolygonSub:'boven 4 ha, punt niet toegestaan',
+    kpiMappedPlots:'Ingemeten perceelgrenzen',
+    lblFarmersMapped:'boeren ingemeten',
+    kpiMapped:'Boeren met een bruikbaar punt', kpiChain:'Keten intact',
+    kpiChainSub:'elke kg is te herleiden tot een boer',
+    secGapH:'Wat ontbreekt',
+    secGapP:function(f){
+      return 'De keten zelf is in orde: elke kilo is te herleiden tot een boer met naam en ' +
+        'vervolgens tot een afnemer, en ' + f.mapped + ' boeren hebben nu een ingemeten ' +
+        'perceelgrens, wat zonder meer aan de eis voldoet. Wat overblijft is een korte ' +
+        'staart, met verschillende oorzaken die elk ander werk vragen.';
+    },
+    secGapTag:'Volume dat vandaag niet te onderbouwen is',
+    panGapH:'Volume met risico, naar oorzaak',
+    panGapN:'Elke boer telt één keer mee, bij het werk dat zijn perceel werkelijk nodig heeft.',
+    panFixH:'Wat het dichten van elk gat inhoudt',
+    panFixN:'Betrokken boeren en het volume daarachter.',
+    secPlanH:'Wat er nodig is om het te dichten',
+    secPlanP:function(f){
+      return 'Het volume is sterk geconcentreerd, dus in de praktijk is het gat veel ' +
+        'kleiner dan het aantal boeren suggereert. Door de grootste leveranciers met een ' +
+        'gat eerst te bezoeken, brengen ' + f.kneeN + ' bedrijfsbezoeken de naleving ' +
+        'voorbij ' + f.kneePct + '.';
+    },
+    secPlanTag:'Veldbezoeken tegenover teruggewonnen volume',
+    panCurveH:'Teruggewonnen naleving per bezochte boer',
+    panCurveN:'Grootste leveranciers met een gat eerst bezocht.',
+    panDistH:'Waar het werk zit', panDistN:'Districten naar volume met risico.',
+    secBuyerH:'Gereedheid per afnemer',
+    secBuyerP:function(f){
+      return 'Koffie die aan een handelaar wordt verkocht, wordt door die handelaar op de ' +
+        'EU-markt gebracht, en daarvoor heeft hij onze geolocatie nodig. Op het directe ' +
+        'exportkanaal is er geen tussenpersoon die het probleem opvangt.';
+    },
+    secBuyerTag:'Waar het risico werkelijk zit',
+    secOffH:'Per veldmedewerker',
+    secOffP:function(f){
+      return 'Registratiegegevens worden in het veld vastgelegd, dus volledigheid volgt de ' +
+        'medewerker die ze heeft verzameld. De spreiding is groot genoeg om eerder een ' +
+        'trainingsvraag te zijn dan een datavraag.';
+    },
+    secOffTag:'Datavolledigheid is een operationele maatstaf',
+    thOfficer:'Veldmedewerker', thFarmers:'Boeren', thVolume:'Ingekocht volume',
+    thReady:'Voldoet aan de norm',
+    secMapH:'Ingemeten perceelgrenzen',
+    secMapP:function(f){
+      return f.plots + ' perceelgrenzen zijn afgelopen en vastgelegd in ' + f.mapDistricts +
+        ' districten, samen ' + f.mapHa + ' hectare. Klik op een district om de percelen ' +
+        'te openen, scroll om in te zoomen en sleep om te verschuiven.';
+    },
+    secMapTag:'Klik op een district om de percelen te openen',
+    mapBack:'Alle districten', mapReset:'Zoom herstellen',
+    mapLoading:'Grenzen laden\u2026',
+    mapFailed:'Die grenzen konden niet worden geladen.',
+    mapOpenHint:'Klik om te openen',
+    crumbAll:'De grootte van de bol toont hoeveel percelen per district zijn ingemeten.',
+    crumbDistrict:'Alle ingemeten percelen in <b>%s</b>.',
+    legendBubble:'Het oppervlak van de bol is evenredig met het aantal ingemeten percelen.',
+    lblPlots:'percelen', lblAcres:'acres', lblItc:'ingediend bij ITC',
+    lblProvShort:'voorlopig',
+    lblRef:'Ref', lblMatches:'treffers', lblNoMatch:'geen treffer',
+    findPlaceholder:'Zoek perceel of code',
+    panMapListH:'Ingemeten districten', panMapListN:'Klik op een rij om de percelen te openen.',
+    band_under_half:'Onder 0,5 ha', band_half1:'0,5 tot 1 ha', band_1to2:'1 tot 2 ha',
+    band_2to4:'2 tot 4 ha', band_over4:'Boven 4 ha',
+    bandProvisional:'Voorlopig, gematcht op naam',
+    tipRegistered:'Gekoppeld aan het register', tipProvisional:'Voorlopig, gematcht op naam',
+    mapNote:function(f){
+      return '<b>Bij elke grens staan de boerencode, de perceelnaam en het farm unit ID</b>, ' +
+        'zodat een perceel te identificeren en op te zoeken is. Beweeg over een perceel of ' +
+        'zoek op code. Nationale identiteitsnummers, telefoonnummers, geboortedata en ' +
+        'adressen worden nooit gepubliceerd; de build faalt liever dan er een op te nemen. ' +
+        'Oppervlakten zijn berekend uit de geometrie en niet overgenomen uit het ' +
+        'bronbestand, waarvan de eigen oppervlaktekolom in acres staat. ' + f.provisional +
+        ' percelen komen uit een tweede register zonder gedeelde identificatie en zijn ' +
+        'alleen op naam gematcht; die zijn als voorlopig gemarkeerd. ' +
+        '<b>Er wordt geen ontbossingsstatus getoond.</b> Het bronbestand spreekt zichzelf ' +
+        'tegen: op het ene blad staan ' + f.defAll + ' percelen als ontbossing ' +
+        'gedetecteerd en op het andere ' + f.defFailed + ', en voor de percelen die zij ' +
+        'delen zijn de oordelen tegenstrijdig. Dat moet bij de bron worden opgelost ' +
+        'voordat een perceel hier ontbossingsvrij kan worden genoemd.';
+    },
+    secReqH:'Wat de verordening vraagt',
+    secReqP:function(f){
+      return 'Vier toetsen, die allemaal moeten slagen voor een zending. Deze pagina meet ' +
+        'de eerste twee, de toetsen die door onze eigen administratie worden bepaald.';
+    },
+    secOtherH:'Gaten die hierna opduiken',
+    secOtherP:function(f){
+      return 'Het herstellen van de coördinaten maakt het werk niet af. Drie andere gaten ' +
+        'zijn al zichtbaar in het register en zijn goedkoper te dichten tijdens dezelfde ' +
+        'veldbezoeken dan in een tweede ronde.';
+    },
+    secOtherTag:'Verder dan de coördinaat zelf',
+    footerAboutH:'Over deze gegevens', footerDefH:'Definities',
+    footerDefP:'EUDR: Verordening (EU) 2023/1115 inzake ontbossingsvrije producten, zoals gewijzigd. Marktdeelnemer: de partij die de goederen als eerste op de EU-markt brengt. DDS: de zorgvuldigheidsverklaring die een marktdeelnemer indient voordat hij een zending op de markt brengt. Perceel: één stuk land waarop de koffie is geproduceerd. Polygoon: de uitgezette omtrek van een perceel, in plaats van één punt daarbinnen.',
+    gapShort:{
+      ready_polygon:'Grens ingemeten', ready_point:'Punt vastgelegd',
+      low_precision:'Minder dan 6 decimalen', needs_polygon:'Boven 4 ha, geen polygoon',
+      no_gps:'Geen GPS-meting', zeroed:'Opgeslagen als nul', outside_uganda:'Buiten Oeganda',
+      unmatched:'Niet gekoppeld'
+    },
+    gapName:{
+      ready_polygon:'Perceelgrens ingemeten', ready_point:'Bruikbaar punt vastgelegd',
+      low_precision:'Coördinaten met minder dan zes decimalen',
+      needs_polygon:'Percelen boven 4 ha zonder polygoon',
+      no_gps:'Geen GPS-meting vastgelegd',
+      zeroed:'Coördinaten opgeslagen als nul',
+      outside_uganda:'Coördinaten buiten Oeganda',
+      unmatched:'Volume niet gekoppeld aan een boer'
+    },
+    gapFix:{
+      ready_polygon:'Een ingemeten grens voldoet zonder meer aan de geolocatie-eis, bij elke perceelgrootte.',
+      ready_point:'Een punt wordt geaccepteerd tot en met vier hectare, wat volgens de metingen vrijwel elk bedrijf hier is.',
+      low_precision:'Het perceel is in kaart gebracht maar de decimalen zijn bij het vastleggen afgekapt. Leg de meting opnieuw vast op volledige precisie; meestal is geen nieuw bezoek nodig als het apparaat de meting nog heeft.',
+      needs_polygon:'Loop de omtrek af en leg die vast als polygoon. Boven 4 ha wordt één punt niet geaccepteerd, hoe nauwkeurig ook.',
+      no_gps:'Een eerste karteringsbezoek. Voor deze boeren is niets vastgelegd.',
+      zeroed:'Het locatieveld is leeg opgeslagen en staat als 0,0 in het bestand. Opnieuw vastleggen bij het volgende bezoek.',
+      outside_uganda:'Breedte- en lengtegraad zijn vrijwel zeker verwisseld of verkeerd getypt. Controleer tegen het dorp voordat u opnieuw vastlegt.',
+      unmatched:'Volume dat niet kon worden herleid tot een geregistreerde boer.'
+    },
+    lblFarmers:'boeren', lblFarmer:'boer', lblCompliant:'Voldoet aan de norm', lblAtRisk:'Met risico',
+    lblVisits:'Bedrijfsbezoeken', lblCompliance:'Volume dat voldoet',
+    lblDirect:'directe export',
+    ofVolume:function(f){ return 'van ' + f.total; },
+    ofFarmers:function(f){ return 'van ' + f.farmers + ' geregistreerd'; },
+    insCurve:function(f){
+      return 'Het bezoeken van <b>' + f.kneeN + '</b> boeren brengt de naleving op <b>' +
+        f.kneePct + '</b>. Alle ' + f.toFix + ' zou het volledig dichten.';
+    },
+    insBuyer:function(f){
+      return 'Het directe exportkanaal staat op <b>' + f.directPct + '</b> over ' + f.directKg +
+        ', het zwakste van de betekenisvolle volumes en het enige zonder tussenpersoon ' +
+        'tussen Ndugu en een Europese afnemer.';
+    },
+    whoFiles:function(f){
+      return '<b>Ndugu dient de zorgvuldigheidsverklaring niet zelf in.</b> Onder de ' +
+        'wijziging van 2025 dient alleen de partij die de goederen als eerste op de ' +
+        'EU-markt brengt de verklaring in, en dat zijn onze Europese afnemers, niet wij. ' +
+        'Ons risico is commercieel en niet juridisch: een afnemer kan niet indienen zonder ' +
+        'perceelgeolocatie van zijn leverancier, dus volume dat deze toetsen niet doorstaat ' +
+        'is volume dat een Europese afnemer niet rechtmatig kan aannemen. Dat is wat de ' +
+        f.atRisk + ' hierboven vertegenwoordigt.';
+    },
+    stPlotsL:function(f){
+      return 'boeren leveren van meer dan één perceel, maar er wordt één coördinaat per ' +
+        'boer bewaard, niet per perceel. Daarachter zit ' + f.multiPlotKg +
+        '. Het register staat tot ' + f.maxPlots + ' percelen voor één boer toe.';
+    },
+    stParishL:function(f){
+      return 'van de boeren heeft een parish vastgelegd. Dorp haalt ' + f.villagePct +
+        ' en subcounty ' + f.subcountyPct + '. Het aantonen van rechtmatige productie vraagt ' +
+        'de administratieve locatie, niet alleen het district.';
+    },
+    stSizeL:function(f){
+      return 'percelen staan geregistreerd boven 50 ha, het grootste op ' + f.maxHa +
+        ' ha, in een register waarvan het mediane bedrijf onder één hectare ligt. ' +
+        f.noSize + ' hebben helemaal geen oppervlakte, waardoor de 4 ha-toets voor ' +
+        'polygonen niet op hen kan worden toegepast.';
+    },
+    noteOther:function(f){
+      return 'Alle drie zijn goedkoper te herstellen tijdens de karteringsbezoeken ' +
+        'hierboven dan in een aparte ronde. Bij een boer van wie de omtrek wordt afgelopen ' +
+        'kunnen in hetzelfde bezoek de percelen worden gesplitst, de parish worden ' +
+        'vastgelegd en de oppervlakte worden gecontroleerd.';
+    },
+    aboutP:function(f){
+      return 'Beoordeeld op ' + f.generated + ' aan de hand van ' + f.regulation +
+        '. Betreft alle ' + f.farmers + ' geregistreerde boeren en de ' + f.total +
+        ' die op hen is geregistreerd. Een boer voldoet aan de norm wanneer de coördinaten ' +
+        'binnen Oeganda vallen, minimaal ' + f.decimals + ' decimalen hebben, en het bedrijf ' +
+        'niet groter is dan ' + f.ha + ' ha, zodat een punt in plaats van een polygoon wordt ' +
+        'geaccepteerd. De ontbossingsstatus zelf wordt hier niet beoordeeld: die wordt tegen ' +
+        'satellietgegevens gecontroleerd zodra de geolocatie bestaat, en juist de geolocatie ' +
+        'is het gat. Deze pagina publiceert alleen aantallen en volumes. Geen enkele naam, ' +
+        'identificatie, contactgegeven of coördinaat van een boer is opgenomen, en de build ' +
+        'faalt liever dan er een te publiceren.';
+    }
+  }
+};
+function t(key){
+  var v = I18N[state.lang][key];
+  if (v === undefined) v = I18N.en[key];
+  return (typeof v === 'function') ? v(FACTS) : v;
+}
+function gapName(k){ return (I18N[state.lang].gapName || {})[k] || I18N.en.gapName[k] || k; }
+/* 'Luuka, 1 farmers' reads as a bug even though the number is right. */
+function farmersLabel(n){ return fmtInt(n) + ' ' + t(n === 1 ? 'lblFarmer' : 'lblFarmers'); }
+function gapShort(k){ return (I18N[state.lang].gapShort || {})[k] || I18N.en.gapShort[k] || k; }
+function gapFix(k){ return (I18N[state.lang].gapFix || {})[k] || I18N.en.gapFix[k] || ''; }
+
+function applyStaticI18n(){
+  document.querySelectorAll('[data-i18n]').forEach(function(el){
+    var v = t(el.getAttribute('data-i18n'));
+    if (v !== undefined && v !== null) el.textContent = v;
+  });
+  document.documentElement.lang = state.lang;
+}
+
+
+/* ======================= plot boundary map =======================
+   Two levels. The overview places one bubble per district, sized by plot
+   count. Opening a district fetches only that district's boundaries, which is
+   why the ETL splits them: Masaka alone is 1.6 MB and nobody should pay for it
+   to look at Rakai.
+
+   The projection is equirectangular with longitude scaled by cos(latitude), so
+   a plot keeps its true shape instead of being stretched east-west. Zoom and
+   pan are done by moving the SVG viewBox, which keeps every boundary as real
+   geometry rather than a raster, so it stays sharp at any magnification. */
+var MAP = {
+  level:'districts', district:null, plots:null, cache:{},
+  view:null, home:null, drag:null, lat0:0
+};
+/* Sequential ramp, light to dark, for a magnitude (plot size). One hue: a
+   categorical palette here would imply the bands are unordered, which they are
+   not. Provisional plots carry a dashed outline as a second encoding, so they
+   are distinguishable without relying on colour. */
+var BAND_FILL = {
+  under_half:'#F0DCC4', half1:'#D3A878', '1to2':'#A97244',
+  '2to4':'#7B4A24', over4:'#4A2A11'
+};
+var BAND_ORDER = ['under_half','half1','1to2','2to4','over4'];
+
+function proj(lat, lng){
+  return [lng * Math.cos(MAP.lat0 * Math.PI/180) * 111.32, -lat * 110.54];
+}
+function robustBox(rows, pad){
+  /* Percentile extent of plot centroids. A district's true bounding box is set
+     by its few most distant plots, which squeezes the cluster everyone actually
+     wants to look at into a corner. Framing the 2nd to 98th percentile puts the
+     bulk of the plots on screen; the outliers are still drawn and still
+     reachable by zooming out. */
+  var xs = [], ys = [];
+  for (var i=0;i<rows.length;i++){
+    var r = rows[i].p, sx = 0, sy = 0;
+    for (var j=0;j<r.length;j++){ sx += r[j][0]; sy += r[j][1]; }
+    xs.push(sx/r.length); ys.push(sy/r.length);
+  }
+  xs.sort(function(a,b){return a-b;}); ys.sort(function(a,b){return a-b;});
+  var q = function(a, f){ return a[Math.min(a.length-1, Math.max(0, Math.floor(a.length*f)))]; };
+  return boxFrom([q(xs,0.02), q(ys,0.02), q(xs,0.98), q(ys,0.98)], pad);
+}
+function boxFrom(bbox, pad){
+  /* bbox is [minLat, minLng, maxLat, maxLng] */
+  var a = proj(bbox[0], bbox[1]), b = proj(bbox[2], bbox[3]);
+  var x0 = Math.min(a[0],b[0]), x1 = Math.max(a[0],b[0]);
+  var y0 = Math.min(a[1],b[1]), y1 = Math.max(a[1],b[1]);
+  var w = Math.max(x1-x0, 0.02), h = Math.max(y1-y0, 0.02);
+  var m = (pad === undefined ? 0.06 : pad);
+  return {x:x0 - w*m, y:y0 - h*m, w:w*(1+2*m), h:h*(1+2*m)};
+}
+function fitAspect(v){
+  /* Match the viewBox aspect to the element so nothing is squashed. */
+  var el = document.getElementById('mapWrap');
+  var ar = (el.clientWidth||900) / (el.clientHeight||520);
+  var cx = v.x + v.w/2, cy = v.y + v.h/2;
+  var w = v.w, h = v.h;
+  if (w/h < ar) w = h*ar; else h = w/ar;
+  return {x:cx-w/2, y:cy-h/2, w:w, h:h};
+}
+function applyView(){
+  var svg = document.querySelector('#mapWrap svg');
+  if (!svg || !MAP.view) return;
+  var v = MAP.view;
+  svg.setAttribute('viewBox', v.x+' '+v.y+' '+v.w+' '+v.h);
+}
+function mapLoading(on, msg){
+  var el = document.getElementById('mapLoad');
+  el.hidden = !on;
+  if (on) el.textContent = msg || t('mapLoading');
+}
+
+/* The most useful label available, given whatever identity mode the build
+   published. "u" is the farm unit id, "c" the farmer code, "n" the plot name,
+   "r" an opaque reference; in "none" mode there is nothing to show. */
+function plotLabel(pl){
+  if (pl.u) return pl.u + (pl.n && pl.n !== pl.u ? ' · ' + pl.n : '');
+  if (pl.c) return pl.c + (pl.n ? ' · ' + pl.n : '');
+  if (pl.n) return pl.n;
+  if (pl.r) return t('lblRef') + ' ' + pl.r;
+  return '';
+}
+
+function ringPath(ring){
+  var d = '';
+  for (var i=0;i<ring.length;i++){
+    var q = proj(ring[i][0], ring[i][1]);
+    d += (i?'L':'M') + q[0].toFixed(4) + ' ' + q[1].toFixed(4);
+  }
+  return d + 'Z';
+}
+
+function renderDistricts(){
+  MAP.level='districts'; MAP.district=null;
+  var ds = DATA_POLY.districts;
+  var lats=[], lngs=[];
+  ds.forEach(function(d){ lats.push(d.bbox[0],d.bbox[2]); lngs.push(d.bbox[1],d.bbox[3]); });
+  MAP.lat0 = (Math.min.apply(null,lats)+Math.max.apply(null,lats))/2;
+  MAP.home = fitAspect(boxFrom([Math.min.apply(null,lats),Math.min.apply(null,lngs),
+                                Math.max.apply(null,lats),Math.max.apply(null,lngs)], 0.10));
+  MAP.view = {x:MAP.home.x,y:MAP.home.y,w:MAP.home.w,h:MAP.home.h};
+
+  var maxP = Math.max.apply(null, ds.map(function(d){ return d.plots; }));
+  var body = '';
+  ds.forEach(function(d, i){
+    var c = proj((d.bbox[0]+d.bbox[2])/2, (d.bbox[1]+d.bbox[3])/2);
+    /* area-proportional radius, so a bubble twice the area means twice the plots */
+    var r = Math.sqrt(d.plots/maxP) * MAP.home.w * 0.042 + MAP.home.w*0.004;
+    body += '<circle class="dbubble" data-i="'+i+'" cx="'+c[0].toFixed(3)+'" cy="'+
+            c[1].toFixed(3)+'" r="'+r.toFixed(3)+'"></circle>';
+  });
+  ds.forEach(function(d){
+    if (d.plots < maxP*0.02) return;
+    var c = proj((d.bbox[0]+d.bbox[2])/2, (d.bbox[1]+d.bbox[3])/2);
+    var r = Math.sqrt(d.plots/maxP) * MAP.home.w * 0.042 + MAP.home.w*0.004;
+    body += '<text class="dlabel" x="'+c[0].toFixed(3)+'" y="'+(c[1]-r-MAP.home.w*0.012).toFixed(3)+
+            '" style="font-size:'+(MAP.home.w*0.022).toFixed(3)+'px">'+esc(d.district)+'</text>';
+  });
+  document.getElementById('mapWrap').querySelector('svg').innerHTML = body;
+  applyView();
+  document.getElementById('mapBack').disabled = true;
+  var f = document.getElementById('mapFind');
+  if (f){ f.hidden = true; f.value = ''; }
+  document.getElementById('mapCrumb').innerHTML = t('crumbAll');
+  document.getElementById('mapStat').textContent =
+    fmtInt(DATA_POLY.summary.plots) + ' ' + t('lblPlots') + ' · ' +
+    fmtInt(DATA_POLY.summary.total_ha) + ' ha';
+  renderLegend(false);
+  renderMapList();
+}
+
+function openDistrict(idx){
+  var d = DATA_POLY.districts[idx];
+  if (!d) return;
+  var done = function(rows){
+    MAP.level='district'; MAP.district=d; MAP.plots=rows;
+    MAP.lat0 = (d.bbox[0]+d.bbox[2])/2;
+    MAP.home = fitAspect(rows.length > 20 ? robustBox(rows, 0.08)
+                                       : boxFrom(d.bbox, 0.10));
+    MAP.view = {x:MAP.home.x,y:MAP.home.y,w:MAP.home.w,h:MAP.home.h};
+    var body='';
+    for (var i=0;i<rows.length;i++){
+      var r = rows[i];
+      var col = BAND_FILL[r.b] || '#A97244';
+      body += '<path class="plot'+(r.s==='provisional'?' prov':'')+'" data-i="'+i+
+              '" fill="'+col+'" stroke="'+col+'" d="'+ringPath(r.p)+'"></path>';
+    }
+    document.getElementById('mapWrap').querySelector('svg').innerHTML = body;
+    applyView();
+    mapLoading(false);
+    document.getElementById('mapBack').disabled = false;
+    var f = document.getElementById('mapFind');
+    if (f){
+      /* nothing to search on when the build published no identifiers */
+      f.hidden = !(rows.length && plotLabel(rows[0]));
+      f.value = '';
+      f.placeholder = t('findPlaceholder');
+    }
+    document.getElementById('mapCrumb').innerHTML = t('crumbDistrict').replace('%s', esc(d.district));
+    document.getElementById('mapStat').textContent =
+      fmtInt(d.plots) + ' ' + t('lblPlots') + ' · ' + fmtInt(d.ha) + ' ha · ' +
+      fmtInt(d.itc) + ' ' + t('lblItc');
+    renderLegend(true);
+    renderMapList();
+  };
+  if (MAP.cache[d.file]) return done(MAP.cache[d.file]);
+  mapLoading(true, t('mapLoading'));
+  fetch('./' + d.file + '?v=' + POLY_V, {cache:'no-store'})
+    .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+    .then(function(rows){ MAP.cache[d.file]=rows; done(rows); })
+    .catch(function(err){
+      mapLoading(true, t('mapFailed') + ' [' + err.message + ']');
+    });
+}
+
+function renderMapList(){
+  var host = document.getElementById('mapDistrictList');
+  if (!host || !DATA_POLY) return;
+  var ds = DATA_POLY.districts;
+  var maxP = Math.max.apply(null, ds.map(function(d){ return d.plots; }));
+  host.innerHTML = ds.map(function(d, i){
+    var sel = (MAP.district === d) ? ' selected' : '';
+    return '<div class="district-row' + sel + '" data-i="' + i + '" role="button" tabindex="0">' +
+      '<div><div class="name">' + esc(d.district) + '</div>' +
+        '<div class="sub">' + fmtInt(d.ha) + ' ha' +
+        (d.provisional ? ' · ' + fmtInt(d.provisional) + ' ' + t('lblProvShort') : '') +
+        '</div></div>' +
+      '<div class="bar-track"><div class="bar-fill" style="width:' +
+        (d.plots/maxP*100).toFixed(1) + '%"></div></div>' +
+      '<div class="qty">' + fmtInt(d.plots) + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function renderLegend(detail){
+  var el = document.getElementById('mapLegend');
+  if (!detail){
+    el.innerHTML = '<span class="item">' + t('legendBubble') + '</span>';
+    return;
+  }
+  var html = BAND_ORDER.map(function(b){
+    return '<span class="item"><span class="sw" style="background:'+BAND_FILL[b]+'"></span>'+
+           t('band_'+b)+'</span>';
+  }).join('');
+  html += '<span class="item"><span class="sw prov"></span>'+t('bandProvisional')+'</span>';
+  el.innerHTML = html;
+}
+
+function bindMap(){
+  var wrap = document.getElementById('mapWrap');
+  var svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('preserveAspectRatio','xMidYMid meet');
+  wrap.insertBefore(svg, wrap.firstChild);
+  var tip = document.getElementById('mapTip');
+
+  wrap.addEventListener('click', function(e){
+    var b = e.target.closest('.dbubble');
+    if (b) openDistrict(parseInt(b.dataset.i,10));
+  });
+  wrap.addEventListener('mousemove', function(e){
+    var el = e.target.closest('.plot, .dbubble');
+    if (!el){ tip.style.opacity = 0; return; }
+    var r = wrap.getBoundingClientRect();
+    tip.style.left = (e.clientX - r.left) + 'px';
+    tip.style.top  = (e.clientY - r.top) + 'px';
+    tip.style.opacity = 1;
+    if (el.classList.contains('dbubble')){
+      var d = DATA_POLY.districts[parseInt(el.dataset.i,10)];
+      tip.innerHTML = '<strong>'+esc(d.district)+'</strong><br>'+
+        '<b>'+fmtInt(d.plots)+'</b> '+t('lblPlots')+' · <b>'+fmtInt(d.ha)+'</b> ha<br>'+
+        t('mapOpenHint');
+    } else {
+      var pl = MAP.plots[parseInt(el.dataset.i,10)];
+      tip.innerHTML = (plotLabel(pl) ? '<strong>'+esc(plotLabel(pl))+'</strong><br>' : '')+
+        '<strong>'+t('band_'+pl.b)+'</strong><br>'+
+        '<b>'+pl.h.toLocaleString(numLocale(),{maximumFractionDigits:2})+'</b> ha'+
+        ' · <b>'+(pl.h*2.4711).toLocaleString(numLocale(),{maximumFractionDigits:2})+'</b> '+t('lblAcres')+'<br>'+
+        (pl.s==='provisional' ? t('tipProvisional') : t('tipRegistered')) +
+        (pl.i ? ' · ' + t('lblItc') : '');
+    }
+  });
+  wrap.addEventListener('mouseleave', function(){ tip.style.opacity = 0; });
+
+  /* Zoom about the cursor: the point under the pointer stays put. */
+  wrap.addEventListener('wheel', function(e){
+    if (!MAP.view) return;
+    e.preventDefault();
+    var r = wrap.getBoundingClientRect();
+    var fx = (e.clientX-r.left)/r.width, fy = (e.clientY-r.top)/r.height;
+    var k = e.deltaY > 0 ? 1.18 : 1/1.18;
+    var v = MAP.view;
+    var nw = Math.min(Math.max(v.w*k, MAP.home.w/4000), MAP.home.w*40);
+    var nh = nw * (v.h/v.w);
+    MAP.view = {x: v.x + (v.w-nw)*fx, y: v.y + (v.h-nh)*fy, w:nw, h:nh};
+    applyView();
+  }, {passive:false});
+
+  wrap.addEventListener('pointerdown', function(e){
+    if (!MAP.view) return;
+    MAP.drag = {x:e.clientX, y:e.clientY, vx:MAP.view.x, vy:MAP.view.y};
+    wrap.classList.add('dragging');
+    wrap.setPointerCapture(e.pointerId);
+  });
+  wrap.addEventListener('pointermove', function(e){
+    if (!MAP.drag) return;
+    var r = wrap.getBoundingClientRect();
+    MAP.view.x = MAP.drag.vx - (e.clientX-MAP.drag.x)/r.width*MAP.view.w;
+    MAP.view.y = MAP.drag.vy - (e.clientY-MAP.drag.y)/r.height*MAP.view.h;
+    applyView();
+  });
+  ['pointerup','pointercancel'].forEach(function(ev){
+    wrap.addEventListener(ev, function(e){
+      MAP.drag = null; wrap.classList.remove('dragging');
+      try { wrap.releasePointerCapture(e.pointerId); } catch(_){}
+    });
+  });
+
+  var list = document.getElementById('mapDistrictList');
+  if (list){
+    var open = function(e){
+      var row = e.target.closest('.district-row');
+      if (!row) return;
+      if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') return;
+      e.preventDefault();
+      openDistrict(parseInt(row.dataset.i, 10));
+    };
+    list.addEventListener('click', open);
+    list.addEventListener('keydown', open);
+  }
+  var find = document.getElementById('mapFind');
+  if (find){
+    find.addEventListener('input', function(){
+      var q = this.value.trim().toLowerCase();
+      var svg = document.querySelector('#mapWrap svg');
+      if (!svg || MAP.level !== 'district' || !MAP.plots) return;
+      svg.querySelectorAll('.plot.hit').forEach(function(e){ e.classList.remove('hit'); });
+      if (q.length < 2) return;
+      var first = null, n = 0;
+      for (var i=0;i<MAP.plots.length;i++){
+        var lab = plotLabel(MAP.plots[i]).toLowerCase();
+        if (lab && lab.indexOf(q) !== -1){
+          var el = svg.querySelector('.plot[data-i="'+i+'"]');
+          if (el){ el.classList.add('hit'); if (!first) first = MAP.plots[i]; n++; }
+        }
+      }
+      document.getElementById('mapStat').textContent =
+        n ? n + ' ' + t('lblMatches') : t('lblNoMatch');
+      /* Zoom to the first match, so finding a plot actually shows it rather
+         than highlighting a pixel somewhere off screen. */
+      if (first){
+        var lats = first.p.map(function(c){return c[0];});
+        var lngs = first.p.map(function(c){return c[1];});
+        var box = boxFrom([Math.min.apply(null,lats), Math.min.apply(null,lngs),
+                           Math.max.apply(null,lats), Math.max.apply(null,lngs)], 6);
+        MAP.view = fitAspect(box);
+        applyView();
+      }
+    });
+  }
+  document.getElementById('mapBack').addEventListener('click', renderDistricts);
+  document.getElementById('mapReset').addEventListener('click', function(){
+    if (!MAP.home) return;
+    MAP.view = {x:MAP.home.x,y:MAP.home.y,w:MAP.home.w,h:MAP.home.h};
+    applyView();
+  });
+  window.addEventListener('resize', function(){
+    if (!MAP.home) return;
+    MAP.home = fitAspect(MAP.home);
+    applyView();
+  });
+}
+
+function renderMap(){
+  var sec = document.getElementById('mapSection');
+  if (!DATA_POLY || !DATA_POLY.districts || !DATA_POLY.districts.length){
+    sec.hidden = true; return;
+  }
+  sec.hidden = false;
+  document.getElementById('mapNote').innerHTML = t('mapNote');
+  if (MAP.level === 'district' && MAP.district){
+    var i = DATA_POLY.districts.indexOf(MAP.district);
+    if (i >= 0) return openDistrict(i);
+  }
+  renderDistricts();
+}
+
+/* ============================= renderers ============================= */
+function renderHeader(){
+  var k = DATA.kpis, meta = DATA.meta;
+  document.getElementById('asOf').textContent = fmtDate(meta.generated);
+  document.getElementById('heroBig').textContent = FACTS.pctReady;
+  document.getElementById('heroSub').textContent = FACTS.ready + ' ' + t('ofVolume');
+  document.getElementById('badgeReg').textContent = t('badgeReg');
+  document.getElementById('badgeCutoff').textContent = t('badgeCutoff');
+  document.getElementById('badgePrecision').textContent = t('badgePrecision');
+
+  var days = document.getElementById('cdDays');
+  days.textContent = FACTS.days;
+  days.className = 'days' + (meta.days_remaining <= 180 ? ' urgent' : '');
+  document.getElementById('cdLab').innerHTML = t('cdLab');
+  document.getElementById('cdSmall').innerHTML = t('cdSmall');
+
+  document.getElementById('kpiCompliant').textContent = FACTS.ready;
+  document.getElementById('kpiCompliantSub').textContent = FACTS.pctReady + ' ' + t('ofVolume');
+  document.getElementById('kpiAtRisk').textContent = FACTS.atRisk;
+  document.getElementById('kpiAtRiskSub').textContent = fmtPct(1 - k.pct_volume_ready) + ' ' + t('ofVolume');
+  document.getElementById('kpiVisits').textContent = FACTS.toFix;
+  document.getElementById('kpiVisitsSub').textContent = FACTS.topDistrictShare + ' ' + FACTS.topDistrict;
+  document.getElementById('kpiPolygon').textContent = FACTS.plots;
+  document.getElementById('kpiPolygonSub').textContent =
+    FACTS.mapped + ' ' + t('lblFarmersMapped');
+  document.getElementById('kpiMapped').textContent = fmtInt(k.n_ready);
+  document.getElementById('kpiMappedSub').textContent = FACTS.pctFarmers + ' ' + t('ofFarmers');
+  document.getElementById('kpiChain').textContent = '100%';
+}
+
+function renderGap(){
+  var rows = DATA.gaps.filter(function(g){ return !READY_KEYS[g.key] && g.kg > 0; });
+  rows.sort(function(a,b){ return b.kg - a.kg; });
+  mountChart('gapChart', {
+    type:'bar',
+    data:{
+      labels: rows.map(function(r){ return gapShort(r.key); }),
+      datasets:[{
+        label: t('lblAtRisk'),
+        /* Single series: the axis labels carry identity, so one colour is
+           correct here. A category palette would imply a distinction the data
+           does not have. */
+        data: rows.map(function(r){ return r.kg; }),
+        backgroundColor: rows.map(function(r){
+          return (GAP_META[r.key] || {}).color || COLORS.roast;
+        }),
+        borderRadius:4, borderSkipped:false, barPercentage:0.7
+      }]
+    },
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:function(c){
+          var r = rows[c.dataIndex];
+          return fmtKgShort(r.kg) + '  ·  ' + farmersLabel(r.farmers);
+        }}}
+      },
+      scales:{
+        x:{grid:{color:COLORS.line}, border:{display:false},
+           ticks:{maxTicksLimit:6, callback:function(v){ return fmtAxisT(v); }}},
+        y:{grid:{display:false}, border:{display:false},
+           ticks:{font:{family:"'Libre Franklin', sans-serif", size:12}, color:COLORS.ink}}
+      }
+    }
+  });
+
+  document.getElementById('gapList').innerHTML = rows.map(function(r){
+    var col = (GAP_META[r.key] || {}).color || COLORS.roast;
+    return '<div class="gap-row">' +
+      '<div class="chip" style="background:' + col + '"></div>' +
+      '<div><div class="name">' + esc(gapName(r.key)) + '</div>' +
+        '<div class="fix">' + esc(gapFix(r.key)) + '</div></div>' +
+      '<div class="qty">' + fmtKgShort(r.kg) +
+        '<span class="sub">' + farmersLabel(r.farmers) + '</span></div>' +
+    '</div>';
+  }).join('');
+}
+
+function renderCurve(){
+  var pts = DATA.curve;
+  mountChart('curveChart', {
+    type:'line',
+    data:{
+      datasets:[{
+        label: t('lblCompliance'),
+        /* {x,y} pairs on a linear axis. On a category axis the samples (50,
+           100, 250 ... 1255) would be evenly spaced, which flattens the early
+           steepness and moves the apparent knee. The shape of this curve is
+           the whole argument, so the axis has to be true to it. */
+        data: pts.map(function(p){ return {x:p.farmers, y:p.pct*100}; }),
+        borderColor: C_OK, backgroundColor:'rgba(78,124,46,0.10)',
+        borderWidth:2, pointRadius:4, pointHoverRadius:6,
+        pointBackgroundColor: C_OK, pointBorderColor:'#FFFCF6', pointBorderWidth:2,
+        fill:true, tension:0.25
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index', intersect:false},
+      plugins:{
+        /* One series: the panel title names it, so no legend box. */
+        legend:{display:false},
+        tooltip:{callbacks:{
+          title:function(c){ return fmtInt(c[0].parsed.x) + ' ' + t('lblVisits').toLowerCase(); },
+          label:function(c){ return ' ' + t('lblCompliance') + ': ' + fmtPct(c.parsed.y/100); }
+        }}
+      },
+      scales:{
+        x:{type:'linear', grid:{display:false}, border:{display:false},
+           min:0, ticks:{maxTicksLimit:7, callback:function(v){ return fmtInt(v); }},
+           title:{display:true, text:t('lblVisits'), color:COLORS.inkFaint,
+                  font:{family:"'Libre Franklin', sans-serif", size:11.5}}},
+        y:{grid:{color:COLORS.line}, border:{display:false},
+           min:60, max:100,
+           ticks:{callback:function(v){ return v + '%'; }}}
+      }
+    }
+  });
+  document.getElementById('curveInsight').innerHTML = t('insCurve');
+
+  var maxKg = Math.max.apply(null, DATA.by_district.map(function(d){ return d.kg_at_risk; }));
+  document.getElementById('districtList').innerHTML = DATA.by_district.map(function(d){
+    return '<div class="district-row">' +
+      '<div><div class="name">' + esc(d.district) + '</div>' +
+        '<div class="sub">' + farmersLabel(d.farmers) + '</div></div>' +
+      '<div class="bar-track"><div class="bar-fill" style="width:' +
+        (maxKg ? (d.kg_at_risk/maxKg*100) : 0) + '%; background:' + C_RISK + '"></div></div>' +
+      '<div class="qty">' + fmtKgShort(d.kg_at_risk) + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function renderBuyers(){
+  var rows = DATA.by_buyer;
+  mountChart('buyerChart', {
+    type:'bar',
+    data:{
+      labels: rows.map(function(r){
+        return r.buyer + (r.direct_export ? ' • ' + t('lblDirect') : '');
+      }),
+      datasets:[
+        {label:t('lblCompliant'), data:rows.map(function(r){ return r.ready_kg; }),
+         backgroundColor:C_OK, borderRadius:{topLeft:4,bottomLeft:4},
+         borderSkipped:false, barPercentage:0.72,
+         /* 2px of surface between stacked segments so the boundary reads even
+            where the two colours meet at similar lightness. */
+         borderColor:'#FFFCF6', borderWidth:{right:2}},
+        {label:t('lblAtRisk'), data:rows.map(function(r){ return r.kg - r.ready_kg; }),
+         backgroundColor:C_RISK, borderRadius:{topRight:4,bottomRight:4},
+         borderSkipped:false, barPercentage:0.72}
+      ]
+    },
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{position:'bottom', labels:{boxWidth:11, boxHeight:11, padding:12,
+          font:{family:"'Libre Franklin', sans-serif", size:12}, color:COLORS.inkSoft}},
+        tooltip:{callbacks:{
+          label:function(c){
+            var r = rows[c.dataIndex];
+            return ' ' + c.dataset.label + ': ' + fmtKgShort(c.parsed.x) +
+                   '  (' + fmtPct(r.kg ? c.parsed.x/r.kg : 0) + ')';
+          },
+          footer:function(c){
+            var r = rows[c[0].dataIndex];
+            return t('lblCompliant') + ' ' + fmtPct(r.pct);
+          }
+        }}
+      },
+      scales:{
+        x:{stacked:true, grid:{color:COLORS.line}, border:{display:false},
+           ticks:{callback:function(v){ return fmtAxisT(v); }}},
+        y:{stacked:true, grid:{display:false}, border:{display:false},
+           ticks:{font:{family:"'Libre Franklin', sans-serif", size:12}, color:COLORS.ink}}
+      }
+    }
+  });
+  document.getElementById('buyerInsight').innerHTML = t('insBuyer');
+}
+
+function renderOfficers(){
+  var sec = document.getElementById('officerSection');
+  if (!DATA.by_officer || !DATA.by_officer.length){ sec.hidden = true; return; }
+  sec.hidden = false;
+  document.getElementById('officerBody').innerHTML = DATA.by_officer.map(function(o){
+    var low = o.pct < 0.75;
+    return '<tr>' +
+      '<td class="name">' + esc(o.officer) + '</td>' +
+      '<td class="num">' + fmtInt(o.farmers) + '</td>' +
+      '<td class="num">' + fmtKgShort(o.kg) + '</td>' +
+      '<td class="num"><div class="meter">' +
+        '<div class="track"><div class="fill' + (low ? ' low' : '') +
+          '" style="width:' + (o.pct*100) + '%"></div></div>' +
+        '<span class="val">' + fmtPct(o.pct) + '</span>' +
+      '</div></td>' +
+    '</tr>';
+  }).join('');
+}
+
+function renderOther(){
+  document.getElementById('secReqTag').textContent = DATA.meta.regulation;
+  document.getElementById('whoFiles').innerHTML = t('whoFiles');
+
+  document.getElementById('stPlots').textContent = FACTS.multiPlot;
+  document.getElementById('stPlotsL').textContent = t('stPlotsL');
+  document.getElementById('stParish').textContent = FACTS.parishPct;
+  document.getElementById('stParishL').textContent = t('stParishL');
+  document.getElementById('stSize').textContent = FACTS.over50;
+  document.getElementById('stSizeL').textContent = t('stSizeL');
+  document.getElementById('otherNotes').innerHTML =
+    '<div class="callout act">' + t('noteOther') + '</div>';
+}
+
+function renderAll(){
+  computeFacts();
+  applyStaticI18n();
+  document.getElementById('footerAboutP').textContent = t('aboutP');
+  renderHeader();
+  renderGap();
+  renderCurve();
+  renderBuyers();
+  renderOfficers();
+  renderMap();
+  renderOther();
+}
+
+function bindControls(){
+  document.getElementById('langPills').addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    state.lang = b.dataset.lang;
+    this.querySelectorAll('.pill').forEach(function(p){ p.classList.toggle('active', p === b); });
+    renderAll();
+  });
+}
+
+function start(){
+  themeCharts();
+  bindControls();
+  bindMap();
+  renderAll();
+}
+
+boot();
+})();
+
+</script>
+</body>
+</html>

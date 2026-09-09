@@ -404,14 +404,15 @@
 
 <nav class="sidenav" aria-label="Dashboards">
   <p class="sidenav-title" data-i18n="navTitle">Navigation</p>
-  <a class="navbtn" href="index.html"      aria-current="page" data-i18n="navDomestic">Domestic</a>
-  <a class="navbtn" href="export.html"     data-i18n="navExport">Export</a>
-  <a class="navbtn" href="impact.html"     data-i18n="navImpact">Impact</a>
-  <a class="navbtn" href="production.html" data-i18n="navProduction">Production</a>
-  <a class="navbtn" href="finance.html"    data-i18n="navFinance">Finance</a>
+  <a class="navbtn" href="index.html"       aria-current="page" data-i18n="navDomestic">Domestic</a>
+  <a class="navbtn" href="export.html"      data-i18n="navExport">Export</a>
+  <a class="navbtn" href="eudr.html"        data-i18n="navEudr">EUDR</a>
+  <a class="navbtn" href="impact.html"      data-i18n="navImpact">Impact</a>
+  <a class="navbtn" href="production.html"  data-i18n="navProduction">Production</a>
+  <a class="navbtn" href="finance.html"     data-i18n="navFinance">Finance</a>
   <a class="navbtn" href="agritracker.html" data-i18n="navAgritracker">Agritracker</a>
-  <a class="navbtn" href="coffee.html"     data-i18n="navCoffee">Coffee</a>
-  <a class="navbtn" href="about.html"      data-i18n="navAbout">About us</a>
+  <a class="navbtn" href="coffee.html"      data-i18n="navCoffee">Coffee</a>
+  <a class="navbtn" href="about.html"       data-i18n="navAbout">About us</a>
 </nav>
 
 <div class="layout-main">
@@ -700,7 +701,11 @@ function fmtPrice(v){
   if (state.currency==='USD') return '$' + (v/FX_RATE).toLocaleString(numLocale(),{minimumFractionDigits:2, maximumFractionDigits:2});
   return 'UGX ' + fmtInt(v);
 }
-function fmtPct(v){ return (v*100).toFixed(1) + '%'; }
+/* toFixed always emits a full stop, which is wrong in Dutch; the locale
+   formatter gives 61,6% in NL and 61.6% in EN off the same figure. */
+function fmtPct(v){
+  return (v*100).toLocaleString(numLocale(),{minimumFractionDigits:1, maximumFractionDigits:1}) + '%';
+}
 function fmtMonth(m){ var p=m.split('-'); return monthsArr()[parseInt(p[1],10)-1] + " '" + p[0].slice(2); }
 function fmtMonthYear(d){ var p=d.split('-'); return monthsArr()[parseInt(p[1],10)-1] + ' ' + p[0]; }
 /* Farm-size buckets arrive as data keys ("0.5-1 ha"); NL wants a decimal comma. */
@@ -801,7 +806,7 @@ var STR = {
 en:{
   docTitle:'Ndugu Farmers Ltd | Sourcing & Operations',
   navTitle:'Navigation',
-  navDomestic:'Domestic', navExport:'Export', navImpact:'Impact',
+  navDomestic:'Domestic', navExport:'Export', navEudr:'EUDR', navImpact:'Impact',
   navProduction:'Production', navFinance:'Finance', navAgritracker:'Agritracker',
   navCoffee:'Coffee', navAbout:'About us',
   brandRole:'Sourcing & operations',

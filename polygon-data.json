@@ -1,0 +1,251 @@
+{
+ "meta": {
+  "source": "Ndugu_data_cleaned.xlsx",
+  "coord_decimals": 6,
+  "polygon_above_ha": 4.0,
+  "identity": "full",
+  "identity_published": true,
+  "deforestation_published": false
+ },
+ "summary": {
+  "plots": 9919,
+  "districts": 13,
+  "total_ha": 5812.9,
+  "median_ha": 0.377,
+  "mean_ha": 0.586,
+  "over4": 69,
+  "provisional": 969,
+  "itc": 5121,
+  "rows_in_source": 11952,
+  "skipped": {
+   "bad_geometry": 0,
+   "no_district": 137,
+   "ambiguous_name": 162,
+   "unmatched_name": 1734
+  }
+ },
+ "deforestation_conflict": {
+  "all_sheet": {
+   "No deforestation": 9001,
+   "Error": 69,
+   "Deforestation detected": 17
+  },
+  "failed_sheet": {
+   "Deforestation detected": 154,
+   "No deforestation": 7
+  },
+  "failed_rows": 161,
+  "failed_rows_present_in_all": 38,
+  "reconciled": false
+ },
+ "districts": [
+  {
+   "district": "Masaka",
+   "file": "polygons/masaka.json",
+   "plots": 5629,
+   "ha": 3545.88,
+   "over4": 48,
+   "provisional": 93,
+   "itc": 3214,
+   "bbox": [
+    -0.974203,
+    31.351205,
+    -0.038563,
+    31.971533
+   ],
+   "kb": 1919.7
+  },
+  {
+   "district": "Rakai",
+   "file": "polygons/rakai.json",
+   "plots": 2035,
+   "ha": 967.92,
+   "over4": 10,
+   "provisional": 7,
+   "itc": 963,
+   "bbox": [
+    -0.97508,
+    31.335929,
+    -0.143693,
+    31.829711
+   ],
+   "kb": 532.2
+  },
+  {
+   "district": "Bukomansimbi",
+   "file": "polygons/bukomansimbi.json",
+   "plots": 1277,
+   "ha": 621.5,
+   "over4": 3,
+   "provisional": 644,
+   "itc": 453,
+   "bbox": [
+    -0.850096,
+    31.468317,
+    -0.000318,
+    31.752377
+   ],
+   "kb": 981.3
+  },
+  {
+   "district": "Kyotera",
+   "file": "polygons/kyotera.json",
+   "plots": 606,
+   "ha": 337.92,
+   "over4": 2,
+   "provisional": 221,
+   "itc": 219,
+   "bbox": [
+    -0.893886,
+    31.323,
+    -0.066073,
+    31.772252
+   ],
+   "kb": 385.6
+  },
+  {
+   "district": "Mukono",
+   "file": "polygons/mukono.json",
+   "plots": 270,
+   "ha": 240.01,
+   "over4": 2,
+   "provisional": 2,
+   "itc": 203,
+   "bbox": [
+    -0.521108,
+    31.56403,
+    0.625785,
+    32.894071
+   ],
+   "kb": 167.3
+  },
+  {
+   "district": "Lwengo",
+   "file": "polygons/lwengo.json",
+   "plots": 44,
+   "ha": 37.08,
+   "over4": 1,
+   "provisional": 2,
+   "itc": 24,
+   "bbox": [
+    -0.587959,
+    31.460816,
+    -0.126447,
+    31.640755
+   ],
+   "kb": 11.5
+  },
+  {
+   "district": "Kayunga",
+   "file": "polygons/kayunga.json",
+   "plots": 29,
+   "ha": 36.43,
+   "over4": 2,
+   "provisional": 0,
+   "itc": 25,
+   "bbox": [
+    0.627844,
+    32.977899,
+    0.681889,
+    33.029395
+   ],
+   "kb": 11.0
+  },
+  {
+   "district": "Luuka",
+   "file": "polygons/luuka.json",
+   "plots": 20,
+   "ha": 14.68,
+   "over4": 0,
+   "provisional": 0,
+   "itc": 18,
+   "bbox": [
+    -0.688283,
+    31.437163,
+    0.814681,
+    33.376455
+   ],
+   "kb": 4.4
+  },
+  {
+   "district": "Sembabule",
+   "file": "polygons/sembabule.json",
+   "plots": 3,
+   "ha": 0.86,
+   "over4": 0,
+   "provisional": 0,
+   "itc": 1,
+   "bbox": [
+    -0.326496,
+    31.536847,
+    -0.323605,
+    31.540866
+   ],
+   "kb": 0.6
+  },
+  {
+   "district": "Kampala",
+   "file": "polygons/kampala.json",
+   "plots": 3,
+   "ha": 7.29,
+   "over4": 1,
+   "provisional": 0,
+   "itc": 0,
+   "bbox": [
+    -0.440984,
+    31.636232,
+    0.672972,
+    33.027995
+   ],
+   "kb": 0.8
+  },
+  {
+   "district": "Mpigi",
+   "file": "polygons/mpigi.json",
+   "plots": 1,
+   "ha": 1.68,
+   "over4": 0,
+   "provisional": 0,
+   "itc": 1,
+   "bbox": [
+    0.032295,
+    32.038715,
+    0.034651,
+    32.039783
+   ],
+   "kb": 0.3
+  },
+  {
+   "district": "Luwero",
+   "file": "polygons/luwero.json",
+   "plots": 1,
+   "ha": 1.21,
+   "over4": 0,
+   "provisional": 0,
+   "itc": 0,
+   "bbox": [
+    -0.846302,
+    31.468897,
+    -0.845327,
+    31.470484
+   ],
+   "kb": 0.5
+  },
+  {
+   "district": "Kalangala",
+   "file": "polygons/kalangala.json",
+   "plots": 1,
+   "ha": 0.43,
+   "over4": 0,
+   "provisional": 0,
+   "itc": 0,
+   "bbox": [
+    -0.43735,
+    31.638877,
+    -0.436377,
+    31.639373
+   ],
+   "kb": 0.3
+  }
+ ]
+}

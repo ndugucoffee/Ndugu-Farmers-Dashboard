@@ -1,0 +1,307 @@
+{
+ "meta": {
+  "generated": "2026-09-09",
+  "deadline": "2026-12-30",
+  "deadline_small": "2027-06-30",
+  "days_remaining": 112,
+  "cutoff": "2020-12-31",
+  "min_decimals": 6,
+  "polygon_above_ha": 4.0,
+  "regulation": "(EU) 2023/1115 as amended by (EU) 2025/2650"
+ },
+ "kpis": {
+  "n_farmers": 11375,
+  "n_ready": 9341,
+  "pct_farmers_ready": 0.8212,
+  "total_kg": 8361166,
+  "ready_kg": 8246020,
+  "pct_volume_ready": 0.9862,
+  "kg_at_risk": 115146,
+  "n_farmers_to_fix": 105,
+  "n_needing_polygon": 104,
+  "n_mapped": 6167,
+  "pct_farmers_mapped": 0.5422,
+  "mapped_kg": 7865441,
+  "unmatched_kg": 0,
+  "no_buyer_kg": 0
+ },
+ "gaps": [
+  {
+   "key": "ready_polygon",
+   "farmers": 6167,
+   "kg": 7865441,
+   "pct": 0.9407
+  },
+  {
+   "key": "ready_point",
+   "farmers": 3174,
+   "kg": 380579,
+   "pct": 0.0455
+  },
+  {
+   "key": "low_precision",
+   "farmers": 243,
+   "kg": 51785,
+   "pct": 0.0062
+  },
+  {
+   "key": "needs_polygon",
+   "farmers": 104,
+   "kg": 37003,
+   "pct": 0.0044
+  },
+  {
+   "key": "no_gps",
+   "farmers": 1182,
+   "kg": 20329,
+   "pct": 0.0024
+  },
+  {
+   "key": "zeroed",
+   "farmers": 505,
+   "kg": 6029,
+   "pct": 0.0007
+  }
+ ],
+ "precision": [
+  {
+   "decimals": 0,
+   "farmers": 1595
+  },
+  {
+   "decimals": 1,
+   "farmers": 29
+  },
+  {
+   "decimals": 2,
+   "farmers": 4
+  },
+  {
+   "decimals": 3,
+   "farmers": 67
+  },
+  {
+   "decimals": 4,
+   "farmers": 531
+  },
+  {
+   "decimals": 5,
+   "farmers": 502
+  },
+  {
+   "decimals": 6,
+   "farmers": 3505
+  },
+  {
+   "decimals": 7,
+   "farmers": 1728
+  },
+  {
+   "decimals": 8,
+   "farmers": 1727
+  }
+ ],
+ "by_buyer": [
+  {
+   "buyer": "UGACOF",
+   "kg": 5235885,
+   "ready_kg": 5152375,
+   "pct": 0.9841,
+   "direct_export": false
+  },
+  {
+   "buyer": "ETG",
+   "kg": 1819706,
+   "ready_kg": 1791345,
+   "pct": 0.9844,
+   "direct_export": false
+  },
+  {
+   "buyer": "NDUGUEXPORT",
+   "kg": 1055395,
+   "ready_kg": 1054029,
+   "pct": 0.9987,
+   "direct_export": true
+  },
+  {
+   "buyer": "OLAM",
+   "kg": 211765,
+   "ready_kg": 209856,
+   "pct": 0.991,
+   "direct_export": false
+  },
+  {
+   "buyer": "SUPERBIA",
+   "kg": 19215,
+   "ready_kg": 19215,
+   "pct": 1.0,
+   "direct_export": false
+  },
+  {
+   "buyer": "TOPOFTHECROP",
+   "kg": 19200,
+   "ready_kg": 19200,
+   "pct": 1.0,
+   "direct_export": false
+  }
+ ],
+ "by_district": [
+  {
+   "district": "Masaka",
+   "farmers": 45,
+   "kg_at_risk": 86473
+  },
+  {
+   "district": "Bukomansimbi",
+   "farmers": 41,
+   "kg_at_risk": 13587
+  },
+  {
+   "district": "Kyotera",
+   "farmers": 10,
+   "kg_at_risk": 6877
+  },
+  {
+   "district": "Rakai",
+   "farmers": 6,
+   "kg_at_risk": 6673
+  },
+  {
+   "district": "Ntungamo",
+   "farmers": 3,
+   "kg_at_risk": 1536
+  }
+ ],
+ "by_cooperative": [
+  {
+   "cooperative": "Ndugu Private Farmers",
+   "farmers": 536,
+   "farmers_at_risk": 78,
+   "kg_at_risk": 20163
+  },
+  {
+   "cooperative": "Made Coffee Farmers Cooperative",
+   "farmers": 240,
+   "farmers_at_risk": 23,
+   "kg_at_risk": 12075
+  },
+  {
+   "cooperative": "Kalisizo Farmers Cooperative",
+   "farmers": 1395,
+   "farmers_at_risk": 174,
+   "kg_at_risk": 11190
+  },
+  {
+   "cooperative": "Kyengeza Farmers Cooperative",
+   "farmers": 383,
+   "farmers_at_risk": 80,
+   "kg_at_risk": 8572
+  },
+  {
+   "cooperative": "Biganda Coffee Farmers Cooperative",
+   "farmers": 835,
+   "farmers_at_risk": 326,
+   "kg_at_risk": 8543
+  },
+  {
+   "cooperative": "Miti Farm Field School",
+   "farmers": 325,
+   "farmers_at_risk": 69,
+   "kg_at_risk": 8273
+  },
+  {
+   "cooperative": "Walyogambotya Coffee Farmers Cooperative",
+   "farmers": 319,
+   "farmers_at_risk": 11,
+   "kg_at_risk": 7129
+  },
+  {
+   "cooperative": "Kyotera Bikira Farmers Cooperative",
+   "farmers": 592,
+   "farmers_at_risk": 161,
+   "kg_at_risk": 6736
+  },
+  {
+   "cooperative": "Kitasiba Farmers Cooperatives",
+   "farmers": 337,
+   "farmers_at_risk": 87,
+   "kg_at_risk": 5924
+  },
+  {
+   "cooperative": "Butenga Coffee Farmers Association",
+   "farmers": 494,
+   "farmers_at_risk": 134,
+   "kg_at_risk": 5884
+  }
+ ],
+ "by_officer": [
+  {
+   "officer": "BIRUNGI EVELYN (Ndugu)",
+   "kg": 2214669,
+   "pct": 0.9953,
+   "farmers": 890
+  },
+  {
+   "officer": "JULIUS SSEMPEEBWA (Ndugu)",
+   "kg": 2153981,
+   "pct": 0.9913,
+   "farmers": 2152
+  },
+  {
+   "officer": "JUSTINE MUKANGOGA (Ndugu)",
+   "kg": 1664541,
+   "pct": 0.967,
+   "farmers": 858
+  },
+  {
+   "officer": "HENRY MAGEZI (Ndugu)",
+   "kg": 1581232,
+   "pct": 0.9926,
+   "farmers": 1086
+  },
+  {
+   "officer": "JOSIAH MULINDWA (Ndugu)",
+   "kg": 668248,
+   "pct": 0.9711,
+   "farmers": 895
+  },
+  {
+   "officer": "Bumba James",
+   "kg": 78495,
+   "pct": 1.0,
+   "farmers": 65
+  }
+ ],
+ "curve": [
+  {
+   "farmers": 50,
+   "pct": 0.9982
+  },
+  {
+   "farmers": 100,
+   "pct": 0.9999
+  },
+  {
+   "farmers": 105,
+   "pct": 1.0
+  }
+ ],
+ "plots": {
+  "farmers_delivering": 4536,
+  "farmers_multi_plot": 852,
+  "kg_from_multi_plot": 2408713,
+  "max_plots": 7
+ },
+ "admin_completeness": {
+  "district": 1.0,
+  "subcounty": 0.7305,
+  "parish": 0.1237,
+  "village": 0.5121
+ },
+ "size_flags": {
+  "zero_or_missing": 724,
+  "over_50_ha": 68,
+  "over_100_ha": 5,
+  "max_ha": 896.0
+ }
+}

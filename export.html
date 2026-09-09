@@ -3,151 +3,1339 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Export | Ndugu Farmers Ltd</title>
+<title>Ndugu Farmers Ltd | Export Programme</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
   :root{
-    --paper:#FAF4EA; --surface:#FFFCF6;
-    --ink:#2A1A10; --ink-soft:#63483A; --ink-faint:#8A7059;
-    --line:#EADCC7; --line-strong:#D8C4A6;
-    --roast:#7B4A24; --roast-deep:#43260F; --honey:#D2911F;
-    --nav-bg:#43260F; --nav-edge:#5A3618; --nav-title:#F0DFC7;
-    --nav-btn:#835231; --nav-btn-hover:#8A5A34;
-    --nav-btn-current:#D2911F; --nav-btn-current-ink:#2A1A10;
+    /* --- surfaces: raw parchment, cream, unbleached paper --- */
+    --paper:#FAF4EA;
+    --surface:#FFFCF6;
+    --surface-sunk:#F4EADA;
+    /* --- ink: espresso --- */
+    --ink:#2A1A10;
+    --ink-soft:#63483A;
+    --ink-faint:#8A7059;
+    --line:#EADCC7;
+    --line-strong:#D8C4A6;
+    /* --- roasted bean: the primary --- */
+    --roast:#7B4A24;
+    --roast-deep:#43260F;
+    --roast-light:#A97244;
+    --roast-wash:#F4E6D5;
+    /* --- leaf: the growing side --- */
+    --leaf:#4E7C2E;
+    --leaf-light:#7FA84A;
+    --leaf-wash:#E9F1DD;
+    /* --- coffee cherry --- */
+    --cherry:#B23A1E;
+    --cherry-wash:#F9E3D9;
+    /* --- golden harvest --- */
+    --honey:#D2911F;
+    --honey-wash:#FBEED4;
+    /* --- supporting --- */
+    --teal:#2C7A83;
+    --olive:#8C9A3B;
+    --clay:#9C5230;
+    /* Side navigation: drawn from the page's own palette: the rail is the
+       same espresso as the footer, so the dashboard sits framed between them.
+       Contrast (white on button 6.5:1, espresso on honey 6.2:1) is above AA. */
+    --nav-bg:#43260F;
+    --nav-edge:#5A3618;
+    --nav-title:#F0DFC7;
+    --nav-btn:#835231;
+    --nav-btn-hover:#8A5A34;
+    --nav-btn-current:#D2911F;
+    --nav-btn-current-ink:#2A1A10;
+    --radius-sm:4px;
+    --radius-md:8px;
+    --shadow-pop:0 12px 30px -10px rgba(42,26,16,0.38);
+    --shadow-panel:0 1px 2px rgba(42,26,16,0.04), 0 10px 26px -20px rgba(42,26,16,0.55);
   }
   *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
   body{
-    margin:0; background:var(--paper); color:var(--ink);
-    font-family:'Libre Franklin',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-    font-size:15px; line-height:1.55; -webkit-font-smoothing:antialiased;
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Libre Franklin',-apple-system,BlinkMacSystemFont,sans-serif;
+    font-size:15px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
   }
-  body::before{
-    content:''; position:fixed; top:0; left:0; right:0; height:4px; z-index:60;
-    background:linear-gradient(90deg,var(--roast-deep) 0%,var(--roast) 22%,#B23A1E 46%,var(--honey) 70%,#4E7C2E 100%);
-  }
+  .num{font-family:'IBM Plex Mono',ui-monospace,monospace; font-variant-numeric: tabular-nums;}
+  a{color:inherit;}
+  ::selection{background:var(--roast); color:#fff;}
+
+  /* ---------- Page frame: fixed side nav + the dashboard column ---------- */
   .layout{display:flex; align-items:flex-start; min-height:100vh;}
-  .layout-main{flex:1 1 auto; min-width:0;}
+  .layout-main{flex:1 1 auto; min-width:0;}   /* min-width:0 so grids can shrink */
+
   .sidenav{
     flex:0 0 172px; width:172px; align-self:stretch;
     position:sticky; top:4px; max-height:calc(100vh - 4px); overflow-y:auto;
-    background:var(--nav-bg); border-right:1px solid var(--nav-edge);
-    padding:16px 14px 28px; display:flex; flex-direction:column; gap:13px;
+    background:var(--nav-bg);
+    border-right:1px solid var(--nav-edge);
+    padding:16px 14px 28px;
+    display:flex; flex-direction:column; gap:13px;
   }
   .sidenav-title{
     color:var(--nav-title); font-size:12px; font-weight:600;
-    text-transform:uppercase; letter-spacing:0.12em; margin:0; padding:2px;
+    text-transform:uppercase; letter-spacing:0.12em;
+    padding:2px 2px 2px; margin:0;
   }
   .navbtn{
     display:block; text-align:center; text-decoration:none;
-    background:var(--nav-btn); color:#fff; font-size:13px; font-weight:500;
-    line-height:1.3; padding:12px 6px; border:1px solid rgba(255,252,246,0.10);
+    background:var(--nav-btn); color:#fff;
+    border:1px solid rgba(255,252,246,0.10);
+    font-size:13px; font-weight:500; line-height:1.3;
+    padding:12px 6px;
+    /* chamfered corners, matching the other dashboards' buttons */
     clip-path:polygon(9px 0, calc(100% - 9px) 0, 100% 9px, 100% calc(100% - 9px),
                       calc(100% - 9px) 100%, 9px 100%, 0 calc(100% - 9px), 0 9px);
     transition:background .15s ease;
   }
   .navbtn:hover{background:var(--nav-btn-hover);}
+  /* clip-path would crop a normal outline, so the focus ring is drawn inside */
   .navbtn:focus-visible{outline:none; box-shadow:inset 0 0 0 2px #fff;}
   .navbtn[aria-current="page"]{
     background:var(--nav-btn-current); color:var(--nav-btn-current-ink);
     font-weight:600; border-color:transparent;
   }
   @media (prefers-reduced-motion:reduce){ .navbtn{transition:none;} }
+
   @media (max-width:900px){
     .layout{flex-direction:column;}
     .sidenav{
       position:static; width:auto; max-height:none; flex:0 0 auto; align-self:auto;
-      flex-direction:row; align-items:center; gap:10px; overflow-x:auto;
-      padding:12px 16px; border-right:none; border-bottom:1px solid var(--nav-edge);
+      flex-direction:row; align-items:center; gap:10px;
+      overflow-x:auto; padding:12px 16px;
+      border-right:none; border-bottom:1px solid var(--nav-edge);
     }
     .sidenav-title{display:none;}
     .navbtn{flex:0 0 auto; padding:10px 16px; white-space:nowrap;}
   }
 
+  /* ---------- Layout shell ---------- */
+  .shell{max-width:1320px; margin:0 auto; padding:0 32px;}
+  @media (max-width:900px){ .shell{padding:0 18px;} }
+
+  /* ---------- Header ---------- */
+  body::before{
+    content:''; position:fixed; top:0; left:0; right:0; height:4px; z-index:60;
+    background:linear-gradient(90deg,var(--roast-deep) 0%,var(--roast) 22%,var(--cherry) 46%,var(--honey) 70%,var(--leaf) 100%);
+  }
   header.topbar{
     position:sticky; top:4px; z-index:50;
-    background:rgba(250,244,234,0.94); backdrop-filter:blur(10px);
+    background:rgba(250,244,234,0.94);
+    backdrop-filter:blur(10px);
     border-bottom:1px solid var(--line-strong);
   }
   .topbar-inner{
-    max-width:1320px; margin:0 auto; padding:16px 32px;
-    display:flex; align-items:center; gap:14px;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:11px 0; gap:24px; flex-wrap:wrap;
   }
-  .brand-mark{height:28px; width:auto; flex:none;}
-  .brand-text{
-    border-left:1px solid var(--line-strong); padding-left:14px;
-    font-size:12.5px; color:var(--ink-soft);
+  .brand{display:flex; align-items:center; gap:14px;}
+  .brand-mark{height:30px; width:auto; flex:none;}
+  .brand-text{border-left:1px solid var(--line-strong); padding-left:14px;}
+  .brand-text .role{font-size:12.5px; color:var(--ink-soft); margin-top:1px;}
+
+  .filterbar{display:flex; align-items:center; gap:18px; flex-wrap:wrap;}
+  .pillgroup{display:flex; background:var(--surface-sunk); border-radius:999px; padding:3px; gap:2px;}
+  .pill{
+    border:none; background:transparent; padding:7px 14px; border-radius:999px;
+    font-family:'Libre Franklin',sans-serif; font-size:13px; font-weight:500; color:var(--ink-soft);
+    cursor:pointer; transition:background .15s ease, color .15s ease;
+  }
+  .pill.active{background:var(--roast); color:#fff;}
+  .pill:not(.active):hover{color:var(--ink);}
+  .asof{font-size:12px; color:var(--ink-faint); white-space:nowrap;}
+
+  /* ---------- Section scaffolding ---------- */
+  section{padding:34px 0;}
+  section + section{border-top:1px solid var(--line);}
+  .section-head{
+    display:grid; grid-template-columns:repeat(12,minmax(0,1fr));
+    gap:24px; align-items:end; margin-bottom:18px;
+  }
+  .section-head > div:first-child{grid-column:span 8; min-width:0;}
+  .section-head h2{font-size:22px; margin:0 0 6px 0; font-weight:700; letter-spacing:-0.01em;}
+  .section-head h2::before{
+    content:''; display:block; width:30px; height:3px; border-radius:2px;
+    background:var(--roast); margin-bottom:10px;
+  }
+  .section-head p{margin:0; color:var(--ink-soft); font-size:14px; max-width:62ch;}
+  .section-tag{grid-column:span 4; align-self:end; font-size:12.5px; color:var(--ink-faint); text-align:right;}
+  @media (max-width:980px){
+    .section-head > div:first-child, .section-tag{grid-column:1 / -1;}
+    .section-tag{text-align:left;}
   }
 
-  .stage{
-    max-width:1320px; margin:0 auto; padding:0 32px;
-    display:flex; align-items:center; justify-content:center;
-    min-height:calc(100vh - 66px);
+  /* ---------- Hero ---------- */
+  .hero{
+    padding-top:30px; padding-bottom:0; border-top:none;
+    background:
+      radial-gradient(ellipse 900px 460px at 8% -14%, var(--honey-wash) 0%, transparent 64%),
+      radial-gradient(ellipse 760px 400px at 100% -4%, var(--leaf-wash) 0%, transparent 60%),
+      radial-gradient(ellipse 520px 300px at 58% -18%, var(--roast-wash) 0%, transparent 66%);
+    margin-top:-1px;
   }
-  .card{
-    max-width:520px; width:100%; text-align:center;
+  .hero-head{margin-bottom:20px;}
+  /* the figure column is far taller than the badges; centring stops a dead
+     band opening up above them */
+  .hero-grid > .col-7{display:flex; align-items:center;}
+  /* these sit before .hero h1 / .hero p.lede in the cascade, so they need
+     enough specificity to win rather than relying on source order */
+  .hero .hero-head h1{max-width:none;}
+  .hero .hero-head p.lede{max-width:none;}
+  .hero-grid{display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:24px; align-items:end;}
+  @media (max-width:980px){ .hero-grid > [class*="col-"]{grid-column:1 / -1;} }
+  .hero-eyebrow{font-size:14px; color:var(--roast); font-weight:600; margin:0 0 10px 0;}
+  .hero h1{font-size:36px; line-height:1.1; margin:0 0 12px 0; font-weight:700; letter-spacing:-0.015em; max-width:18ch;}
+  .hero p.lede{font-size:15.5px; color:var(--ink-soft); max-width:56ch; margin:0;}
+  .hero-badges{display:flex; gap:10px; flex-wrap:wrap; margin-top:0;}
+  .badge{
+    display:inline-flex; align-items:center; gap:7px;
+    border:1px solid var(--line-strong); border-radius:999px; padding:6px 12px 6px 10px;
+    font-size:12.5px; color:var(--ink-soft); background:var(--surface);
+  }
+  .badge .dot{width:7px; height:7px; border-radius:50%; background:var(--honey); flex:none;}
+  .hero-figure{border-left:1px solid var(--line); padding-left:32px;}
+  @media (max-width:980px){ .hero-figure{border-left:none; padding-left:0; border-top:1px solid var(--line); padding-top:24px;} }
+  .hero-figure .big{font-family:'IBM Plex Mono'; font-size:44px; font-weight:600; color:var(--roast); line-height:1;}
+  .hero-figure .cap{font-size:13px; color:var(--ink-soft); margin-top:8px;}
+  .hero-figure .sub{font-family:'IBM Plex Mono'; font-size:17px; color:var(--ink); margin-top:10px;}
+
+  /* ---------- KPI ledger strip ---------- */
+  .kpi-strip{
+    margin-top:26px; box-shadow:var(--shadow-panel);
+    display:grid; grid-template-columns:repeat(6,1fr);
+    border:1px solid var(--line-strong); border-radius:var(--radius-md);
+    background:var(--surface); overflow:hidden;
+  }
+  @media (max-width:980px){ .kpi-strip{grid-template-columns:repeat(3,1fr);} }
+  @media (max-width:560px){ .kpi-strip{grid-template-columns:repeat(2,1fr);} }
+  .kpi-cell{
+    padding:14px 16px; border-right:1px solid var(--line);
+    border-top:3px solid transparent;
+  }
+  .kpi-cell:nth-child(6n){border-right:none;}
+  .kpi-cell:nth-child(6n+1){border-top-color:var(--leaf);}
+  .kpi-cell:nth-child(6n+2){border-top-color:var(--honey);}
+  .kpi-cell:nth-child(6n+3){border-top-color:var(--roast);}
+  .kpi-cell:nth-child(6n+4){border-top-color:var(--cherry);}
+  .kpi-cell:nth-child(6n+5){border-top-color:var(--teal);}
+  .kpi-cell:nth-child(6n+6){border-top-color:var(--olive);}
+  @media (max-width:980px){
+    .kpi-cell{border-bottom:1px solid var(--line);}
+    .kpi-cell:nth-child(3n){border-right:none;}
+    .kpi-cell:nth-last-child(-n+3){border-bottom:none;}
+  }
+  @media (max-width:560px){
+    .kpi-cell:nth-child(2n){border-right:none;}
+    .kpi-cell:nth-child(3n){border-right:1px solid var(--line);}
+    .kpi-cell:nth-child(2n){border-right:none;}
+    .kpi-cell:nth-last-child(-n+2){border-bottom:none;}
+  }
+  .kpi-label{font-size:12.5px; color:var(--ink-soft); margin:0 0 6px 0;}
+  .kpi-value{font-family:'IBM Plex Mono'; font-size:22px; font-weight:600; color:var(--ink); overflow-wrap:break-word;}
+  @media (max-width:560px){ .kpi-value{font-size:18px;} }
+  .kpi-value small{font-size:13px; font-weight:500; color:var(--ink-faint);}
+  .kpi-delta{font-size:12px; margin-top:5px; display:flex; align-items:center; gap:5px;}
+  .kpi-delta.up{color:var(--leaf);}
+  .kpi-delta.down{color:var(--clay);}
+  .kpi-delta.flat{color:var(--ink-faint);}
+
+  /* ---------- Generic panel ---------- */
+  .panel{
+    border:1px solid var(--line-strong); border-radius:var(--radius-md);
+    background:var(--surface); padding:18px; box-shadow:var(--shadow-panel);
+    display:flex; flex-direction:column; min-width:0;
+  }
+  .panel-title{font-size:14.5px; font-weight:600; margin:0 0 4px 0; min-height:1.4em;}
+  .panel-note{font-size:12.5px; color:var(--ink-faint); margin:0 0 11px 0; min-height:1.5em;}
+
+  /* ---------- Map section ---------- */
+  .map-panel{position:relative; display:flex; flex-direction:column;}
+  .map-svg-wrap{
+    position:relative; width:100%; flex:1 1 0%; min-height:420px;
+    border-radius:var(--radius-sm); overflow:hidden;
+    background:linear-gradient(180deg,#F7EFE1 0%,#EFE3D0 100%);
+  }
+  @media (max-width:980px){ .map-svg-wrap{min-height:340px;} }
+  .map-svg-wrap svg{width:100%; height:100%; display:block;}
+  .map-tooltip{
+    position:absolute; pointer-events:none; z-index:10;
+    background:var(--ink); color:#fff; padding:9px 12px; border-radius:var(--radius-sm);
+    font-size:12.5px; line-height:1.45; box-shadow:var(--shadow-pop);
+    transform:translate(-50%,-115%); white-space:nowrap; opacity:0; transition:opacity .1s ease;
+  }
+  .map-tooltip strong{font-weight:600;}
+  .map-tooltip .num{color:#EBD6BC;}
+  .map-legend{display:flex; gap:18px; margin-top:10px; flex-wrap:wrap; font-size:12px; color:var(--ink-soft);}
+  .map-legend .item{display:flex; align-items:center; gap:6px;}
+  .map-legend .sw{width:11px; height:11px; border-radius:50%; flex:none;}
+
+  .district-ledger{
+    border:1px solid var(--line-strong); border-radius:var(--radius-md); background:var(--surface);
+    overflow:hidden; box-shadow:var(--shadow-panel); display:flex; flex-direction:column;
+  }
+  #districtList{flex:1 1 auto;}
+  .district-ledger-head{padding:14px 16px 10px; border-bottom:1px solid var(--line);}
+  .district-row{
+    display:grid; grid-template-columns:1fr auto auto; gap:12px; align-items:center;
+    padding:6px 16px; border-bottom:1px solid var(--line); cursor:pointer;
+    transition:background .12s ease;
+  }
+  .district-row:last-child{border-bottom:none;}
+  .district-row:hover{background:var(--roast-wash);}
+  .district-row.selected{background:var(--roast-wash); box-shadow:inset 3px 0 0 var(--roast);}
+  .district-row .name{font-size:13.5px; font-weight:500; line-height:1.35;}
+  .district-row .sub{font-size:11.5px; color:var(--ink-faint); margin-top:1px; line-height:1.35;}
+  .district-row .bar-track{width:64px; height:5px; background:var(--surface-sunk); border-radius:3px; overflow:hidden; justify-self:end;}
+  .district-row .bar-fill{height:100%; background:linear-gradient(90deg,var(--roast) 0%,var(--roast-light) 100%);}
+  .district-row .qty{font-family:'IBM Plex Mono'; font-size:13px; text-align:right; min-width:64px;}
+  .district-detail{padding:12px 16px; border-top:1px solid var(--line); background:var(--surface-sunk); font-size:12.5px; color:var(--ink-soft);}
+  .district-detail b{color:var(--ink); font-family:'IBM Plex Mono'; font-weight:600;}
+
+  /* ---------- Chart toggle ---------- */
+  .toggle-row{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:14px;}
+  .seg{display:inline-flex; border:1px solid var(--line-strong); border-radius:var(--radius-sm); overflow:hidden;}
+  .seg button{
+    border:none; background:var(--surface); padding:8px 16px; font-family:'Libre Franklin',sans-serif;
+    font-size:13px; font-weight:500; color:var(--ink-soft); cursor:pointer; border-right:1px solid var(--line-strong);
+  }
+  .seg button:last-child{border-right:none;}
+  .seg button.active{background:var(--roast); color:#fff;}
+  /* flex-basis 0 keeps the canvas from feeding its own height back into the row */
+  .chart-box{position:relative; flex:1 1 0%; min-height:270px;}
+  .chart-box.short{min-height:205px;}
+  .chart-box canvas{position:absolute; left:0; top:0;}
+  .insight-line{
+    margin-top:12px; padding:10px 14px; background:var(--honey-wash); border-radius:var(--radius-sm);
+    font-size:13px; color:#5C3A15; border-left:3px solid var(--honey);
+  }
+  .insight-line b{font-family:'IBM Plex Mono'; font-weight:600;}
+
+  /* ---------- 12-column layout grid ----------
+     Every row on the page sits on the same twelve columns with the same 24px
+     gutter, so panel edges line up vertically all the way down. Two-panel rows
+     split 7/5 (hero, map) or 6/6 (chart pairs); everything else spans 12.
+     minmax(0,1fr) stops a responsive canvas from forcing its column wider. */
+  .grid{
+    display:grid; grid-template-columns:repeat(12,minmax(0,1fr));
+    gap:18px; align-items:stretch;
+  }
+  .col-4{grid-column:span 4;}
+  .col-5{grid-column:span 5;}
+  .col-6{grid-column:span 6;}
+  .col-7{grid-column:span 7;}
+  .col-8{grid-column:span 8;}
+  .col-12{grid-column:span 12;}
+  @media (max-width:980px){ .grid > [class*="col-"]{grid-column:1 / -1;} }
+
+  table.leaderboard{width:100%; border-collapse:collapse; font-size:13.5px; table-layout:fixed;}
+  table.leaderboard th{
+    text-align:left; font-size:11px; font-weight:600; color:var(--ink-faint);
+    padding:0 14px 11px; border-bottom:1px solid var(--line-strong);
+    text-transform:uppercase; letter-spacing:0.07em; white-space:nowrap;
+  }
+  table.leaderboard td{
+    padding:9px 14px; border-bottom:1px solid var(--line);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  table.leaderboard tbody tr:last-child td{border-bottom:none;}
+  table.leaderboard tbody tr:hover{background:var(--roast-wash);}
+  table.leaderboard td.num, table.leaderboard th.num{font-family:'IBM Plex Mono'; text-align:right;}
+  table.leaderboard td.name{font-weight:500;}
+  table.leaderboard td.rank{color:var(--ink-faint); font-family:'IBM Plex Mono';}
+  @media (max-width:820px){ .leaderboard-scroll{overflow-x:auto;} table.leaderboard{min-width:660px;} }
+
+  /* ---------- Footer ---------- */
+  footer{
+    margin-top:34px; padding:32px 0 40px; font-size:12.5px; line-height:1.7;
+    background:var(--roast-deep); color:#BFA98F;
+    border-top:4px solid var(--roast);
+  }
+  footer .fgrid{display:grid; grid-template-columns:2fr 1fr; gap:40px;}
+  @media (max-width:780px){ footer .fgrid{grid-template-columns:1fr;} }
+  footer h4{font-size:12.5px; color:#F0DFC7; font-weight:600; margin:0 0 8px 0; letter-spacing:0.02em;}
+
+  .vis-hidden{display:none !important;}
+
+  /* ---------- boot states (before data.json arrives) ---------- */
+  .boot{
+    max-width:640px; margin:0 auto; padding:96px 24px 120px; text-align:center;
+  }
+  .boot-spinner{
+    width:26px; height:26px; margin:0 auto 18px; border-radius:50%;
+    border:2.5px solid var(--line-strong); border-top-color:var(--roast);
+    animation:boot-spin .8s linear infinite;
+  }
+  @keyframes boot-spin{to{transform:rotate(360deg);}}
+  @media (prefers-reduced-motion:reduce){ .boot-spinner{animation-duration:2.4s;} }
+  .boot p{margin:0; color:var(--ink-soft); font-size:14px;}
+  .boot-title{font-size:16px; font-weight:600; color:var(--ink); margin:0 0 10px 0;}
+  .boot-detail{
+    font-size:13.5px; color:var(--ink-soft); line-height:1.6;
     background:var(--surface); border:1px solid var(--line-strong);
-    border-radius:8px; padding:44px 40px 40px;
-    box-shadow:0 1px 2px rgba(42,26,16,0.04), 0 10px 26px -20px rgba(42,26,16,0.55);
+    border-left:3px solid var(--cherry); border-radius:var(--radius-sm);
+    padding:14px 16px; text-align:left; margin-top:16px;
   }
-  .rule{width:30px; height:3px; border-radius:2px; background:var(--roast); margin:0 auto 18px;}
-  .eyebrow{
-    font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600;
-    letter-spacing:0.13em; text-transform:uppercase; color:var(--ink-faint);
-    margin:0 0 10px;
+
+  /* ---------- Export-only ---------- */
+
+  /* Shipment ledger: one row per lot, aligned on the same columns as the
+     district ledger on the domestic page so the two read the same way. */
+  .lot-row{
+    display:grid; grid-template-columns:2.2rem 1fr auto auto; gap:12px;
+    align-items:center; padding:8px 16px; border-bottom:1px solid var(--line);
   }
-  h1{font-size:27px; line-height:1.18; font-weight:700; letter-spacing:-0.015em; margin:0 0 12px;}
-  .card p{margin:0 0 22px; color:var(--ink-soft); font-size:15px;}
-  .back{
-    display:inline-block; text-decoration:none;
-    background:var(--roast); color:#FFFCF6;
-    font-size:13.5px; font-weight:500; padding:11px 20px; border-radius:5px;
-    transition:background .15s ease;
+  .lot-row:last-child{border-bottom:none;}
+  .lot-row:hover{background:var(--roast-wash);}
+  .lot-row .seq{font-family:'IBM Plex Mono'; font-size:12px; color:var(--ink-faint);}
+  .lot-row .who{min-width:0;}
+  .lot-row .who .name{font-size:13.5px; font-weight:500; line-height:1.35;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .lot-row .who .sub{font-size:11.5px; color:var(--ink-faint); margin-top:1px; line-height:1.35;}
+  .lot-row .qty{font-family:'IBM Plex Mono'; font-size:13px; text-align:right;}
+  .lot-row .screen{
+    font-size:11px; font-weight:600; letter-spacing:0.04em;
+    padding:3px 8px; border-radius:999px; white-space:nowrap;
   }
-  .back:hover{background:#8A5A34;}
-  .back:focus-visible{outline:2px solid var(--roast); outline-offset:2px;}
-  @media (prefers-reduced-motion:reduce){ .back{transition:none;} }
-  @media (max-width:900px){ .stage{min-height:auto; padding:56px 18px 72px;} }
+  .screen-15{background:var(--roast-wash); color:#6B3F1D;}
+  .screen-12{background:var(--leaf-wash);  color:#3B5F22;}
+  .screen-18{background:var(--honey-wash); color:#7A5310;}
+  .screen-na{background:var(--surface-sunk); color:var(--ink-faint);}
+
+  /* A date the workbook records in a later year than the season. Flagged
+     rather than corrected, because the sheet is the record of account. */
+  .flag{
+    display:inline-block; margin-left:6px; font-size:10.5px; font-weight:600;
+    color:var(--clay); border:1px solid var(--clay); border-radius:3px;
+    padding:0 4px; line-height:1.5; cursor:help;
+  }
+
+  .callout{
+    border:1px solid var(--line-strong); border-left:3px solid var(--teal);
+    border-radius:var(--radius-sm); background:var(--surface);
+    padding:14px 16px; font-size:13px; color:var(--ink-soft); line-height:1.6;
+  }
+  .callout b{color:var(--ink); font-family:'IBM Plex Mono'; font-weight:600;}
+  .callout + .callout{margin-top:10px;}
+
+  .flow{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-bottom:14px;}
+  @media (max-width:820px){ .flow{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  .flow-step{
+    border:1px solid var(--line-strong); border-radius:var(--radius-sm);
+    background:var(--surface-sunk); padding:11px 13px; position:relative;
+  }
+  .flow-step .lab{font-size:11.5px; color:var(--ink-soft); margin-bottom:5px;}
+  .flow-step .val{font-family:'IBM Plex Mono'; font-size:18px; font-weight:600; color:var(--ink);}
+  .flow-step .foot{font-size:11.5px; color:var(--ink-faint); margin-top:3px;}
+  .flow-step:nth-child(1){border-top:3px solid var(--leaf);}
+  .flow-step:nth-child(2){border-top:3px solid var(--olive);}
+  .flow-step:nth-child(3){border-top:3px solid var(--honey);}
+  .flow-step:nth-child(4){border-top:3px solid var(--roast);}
 </style>
 </head>
 <body>
 
+<div class="boot" id="bootLoading">
+  <div class="boot-spinner"></div>
+  <p>Loading dashboard data&hellip;</p>
+</div>
+
+<div class="boot" id="bootError" hidden>
+  <p class="boot-title"></p>
+  <p class="boot-detail"></p>
+</div>
+
+<div id="dashboard" hidden>
+
 <div class="layout">
 
 <nav class="sidenav" aria-label="Dashboards">
-  <p class="sidenav-title">Navigation</p>
-  <a class="navbtn" href="index.html">Domestic</a>
-  <a class="navbtn" href="export.html" aria-current="page">Export</a>
-  <a class="navbtn" href="impact.html">Impact</a>
-  <a class="navbtn" href="production.html">Production</a>
-  <a class="navbtn" href="finance.html">Finance</a>
-  <a class="navbtn" href="agritracker.html">Agritracker</a>
-  <a class="navbtn" href="coffee.html">Coffee</a>
-  <a class="navbtn" href="about.html">About us</a>
+  <p class="sidenav-title" data-i18n="navTitle">Navigation</p>
+  <a class="navbtn" href="index.html"       data-i18n="navDomestic">Domestic</a>
+  <a class="navbtn" href="export.html"      aria-current="page" data-i18n="navExport">Export</a>
+  <a class="navbtn" href="eudr.html"        data-i18n="navEudr">EUDR</a>
+  <a class="navbtn" href="impact.html"      data-i18n="navImpact">Impact</a>
+  <a class="navbtn" href="production.html"  data-i18n="navProduction">Production</a>
+  <a class="navbtn" href="finance.html"     data-i18n="navFinance">Finance</a>
+  <a class="navbtn" href="agritracker.html" data-i18n="navAgritracker">Agritracker</a>
+  <a class="navbtn" href="coffee.html"      data-i18n="navCoffee">Coffee</a>
+  <a class="navbtn" href="about.html"       data-i18n="navAbout">About us</a>
 </nav>
 
 <div class="layout-main">
 
 <header class="topbar">
-  <div class="topbar-inner">
-    <svg class="brand-mark" viewBox="0 0 1080 283.07" xmlns="http://www.w3.org/2000/svg" aria-label="Ndugu"><path fill="#347e19" d="M240.49,8.16c23.92,0,77.27,38.63,98.88,117.28,18.77,68.29-39.55,149.46-67.6,149.46-58.41,0-45.53-94.28-43.23-104.85C251.07,79.45,214.74,8.16,240.49,8.16Z"/><path fill="#347e19" d="M211,274.9c-23.92,0-77.27-35.1-98.88-106.55-18.77-62.06,39.55-135.81,67.6-135.81,58.41,0,45.53,85.66,43.23,95.27C200.41,210.13,236.74,274.9,211,274.9Z"/></svg>
-    <div class="brand-text">Export</div>
+  <div class="shell topbar-inner">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 1080 283.07" xmlns="http://www.w3.org/2000/svg"><style>.cls-1{fill:#347e19;}</style><path class="cls-1" d="M469.14,81.5c41.67,0,59.71,16.51,59.71,54.37v74.95H495.56V136.89c0-18.81-7.62-27.19-26.42-27.19-19.06,0-26.94,8.38-26.94,27.19v73.93h-33V135.87C409.17,98,426.7,81.5,469.14,81.5Z"></path><path class="cls-1" d="M593.37,81.5c20.32,0,30,6.6,37.6,13.46h1.78V28.46h33V148.83c0,44.21-20.58,64.28-63.52,64.28S538,193,538,148.83v-3.05C538,100.3,556.78,81.5,593.37,81.5Zm8.89,103.41c21.85,0,30.49-9.91,30.49-37.1v-1c0-27.18-8.64-37.09-30.49-37.09s-31,9.91-31,37.09v1C571.26,175,580.41,184.91,602.26,184.91Z"></path><path class="cls-1" d="M872.33,81.5c42.94,0,63.52,20.83,63.52,65.29V203c0,41.92-16.51,60-65.3,60a216.77,216.77,0,0,1-39.89-3.81V232.42a251.24,251.24,0,0,0,36.84,3.3c26.93,0,35.32-8.38,35.32-26.17v-9.91H901c-7.62,6.86-17.28,13.47-37.6,13.47-36.59,0-55.39-18.8-55.39-64.28v-3.05C808.05,101.57,829.39,81.5,872.33,81.5Zm0,103.41c21.85,0,30.49-9.91,30.49-37.1v-1c0-27.18-8.64-37.09-30.49-37.09s-31,9.91-31,37.09v1C841.33,175,850.48,184.91,872.33,184.91Z"></path><path class="cls-1" d="M948,80.84h33v76.88c0,18.8,7.88,27.19,26.94,27.19,18.8,0,26.42-8.39,26.42-27.19V80.84h33.29v77.9c0,37.85-18,54.37-59.71,54.37-42.44,0-60-16.52-60-54.37Z"></path><path class="cls-1" d="M799.15,80.85v77.9c0,37.85-18,54.36-59.7,54.36-42.42,0-60-16.51-60-54.36V80.85h42.64c-2.25,3.84-4.59,11-7,15.49-.92,1.93-1.78,3.86-2.55,5.77C701,130,702.28,156.31,716,174.48c0,.05,0,.07,0,.1A17.61,17.61,0,0,0,721,180.2a58.17,58.17,0,0,0,15.73,11,72,72,0,0,0,9.46,3.76,38.85,38.85,0,0,1-1.71-3.76,34.06,34.06,0,0,1-1.9-6.37c-4.07-19.62,8.9-37.66,15.57-56.5,2.36-6.62,5.87-14.37,7.78-25.68a142.1,142.1,0,0,0,1.36-19.93c0-.65,0-1.28,0-1.88Z"></path><path class="cls-1" d="M727.74,164.64c-.71-.78-8.53-11.11,9-59.73,1.05-2.93,1.9-5.66,2.63-8.32a48.22,48.22,0,0,0,7.18-1.21,121.65,121.65,0,0,1-4.47,11.82C724.22,147.81,727.46,163.44,727.74,164.64Z"></path><path class="cls-1" d="M240.49,8.16c23.92,0,77.27,38.63,98.88,117.28,18.77,68.29-39.55,149.46-67.6,149.46-58.41,0-45.53-94.28-43.23-104.85C251.07,79.45,214.74,8.16,240.49,8.16Z"></path><path class="cls-1" d="M211,274.9c-23.92,0-77.27-35.1-98.88-106.55-18.77-62.06,39.55-135.81,67.6-135.81,58.41,0,45.53,85.66,43.23,95.27C200.41,210.13,236.74,274.9,211,274.9Z"></path><path class="cls-1" d="M26.3,232.09a1.23,1.23,0,0,1,.21,1.67c-2.34,3.26-4.74,6.56-7.06,9.66-2.53,3.4-4.81,11.58-3.74,15.5s13.52,6.38,14.86,5.51,6.18-12.52,9.21-18.78c5.6-11.56,10.67-23.4,16.91-34.59,3.93-7.06,9.14-13.4,14.22-20.32a1.26,1.26,0,0,0-1.2-2c-12,1.85-20.42,10.16-28.44,18.17-.42.51-1.11.14-1-.28,7.62-14.37,20.45-20.79,35.69-22.2,12.23-1.13,20.52,5.89,26.66,16a1.19,1.19,0,0,1,.15.35A87.14,87.14,0,0,1,105,211.9c1.6,8.2,1,16.38-3.08,23.78C88.2,260.16,66.79,273,39.23,274.86c-6,.42-12.9-2.41-18.38-5.52a17.38,17.38,0,0,1-6.48-23.26c2.67-5,6.53-9.34,10-13.91a1.24,1.24,0,0,1,1.81-.2Zm34.57,24.78C75,245,81.15,230.78,90.41,217.9c5.1-7.09,3.94-20.8,1.35-24.06-2.36-3-5.24-3.55-8.43-4.55a1.24,1.24,0,0,0-1.49.58c-3.94,7.42-8.61,18.78-12.33,21.86-3.88,3.21-10.55,14.84-15.05,22.86-4.67,8.31-21.06,26.12-19.63,32.62S59.72,257.83,60.87,256.87Z"></path></svg>
+      <div class="brand-text">
+        <div class="role" data-i18n="brandRole">Export programme</div>
+      </div>
+    </div>
+    <div class="filterbar">
+      <div class="pillgroup" id="currencyPills">
+        <button class="pill active" data-currency="USD">USD</button>
+        <button class="pill" data-currency="UGX">UGX</button>
+      </div>
+      <div class="pillgroup" id="langPills">
+        <button class="pill active" data-lang="en">EN</button>
+        <button class="pill" data-lang="nl">NL</button>
+      </div>
+      <div class="asof"><span data-i18n="asofLabel">Season</span> <span class="num" id="asOfSeason">-</span></div>
+    </div>
   </div>
 </header>
 
-<main class="stage">
-  <div class="card">
-    <div class="rule"></div>
-    <p class="eyebrow">In development</p>
-    <h1>The Export dashboard is still being built.</h1>
-    <p>This view is not ready yet. The sourcing and operations dashboard is live now, and the rest are being added in turn.</p>
-    <a class="back" href="index.html">Go to the Domestic dashboard</a>
-  </div>
+<main class="shell">
+
+  <section class="hero">
+    <div class="hero-head">
+      <p class="hero-eyebrow" data-i18n="heroEyebrow">Export programme</p>
+      <div class="hero-grid">
+        <div class="col-7">
+          <div>
+            <h1 data-i18n="heroH1">Green coffee shipped direct to roasters and importers</h1>
+            <p class="lede" data-i18n="heroLede">-</p>
+            <div class="hero-badges" style="margin-top:16px;">
+              <span class="badge"><span class="dot"></span><span data-i18n="badgeFairtrade">Fairtrade certified</span></span>
+              <span class="badge"><span class="dot" style="background:var(--leaf);"></span><span data-i18n="badgeScreens">Screen 12, 15 and 18</span></span>
+              <span class="badge"><span class="dot" style="background:var(--teal);"></span><span id="badgeBuyers">-</span></span>
+            </div>
+          </div>
+        </div>
+        <div class="col-5">
+          <div class="hero-figure">
+            <div class="big" id="heroBig">-</div>
+            <div class="cap" data-i18n="heroCap">exported in the 2025 season</div>
+            <div class="sub" id="heroSub">-</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="kpi-strip">
+      <div class="kpi-cell">
+        <p class="kpi-label" data-i18n="kpiVolume">Volume exported</p>
+        <div class="kpi-value" id="kpiVolume">-</div>
+        <div class="kpi-delta flat" id="kpiVolumeSub">-</div>
+      </div>
+      <div class="kpi-cell">
+        <p class="kpi-label" data-i18n="kpiRevenue">Export revenue</p>
+        <div class="kpi-value" id="kpiRevenue">-</div>
+        <div class="kpi-delta flat" data-i18n="kpiRevenueSub">gross sales value</div>
+      </div>
+      <div class="kpi-cell">
+        <p class="kpi-label" data-i18n="kpiPrice">Average realised price</p>
+        <div class="kpi-value" id="kpiPrice">-</div>
+        <div class="kpi-delta flat" data-i18n="kpiPriceSub">per kg, all lots</div>
+      </div>
+      <div class="kpi-cell">
+        <p class="kpi-label" data-i18n="kpiLots">Lots shipped</p>
+        <div class="kpi-value" id="kpiLots">-</div>
+        <div class="kpi-delta flat" id="kpiLotsSub">-</div>
+      </div>
+      <div class="kpi-cell">
+        <p class="kpi-label" data-i18n="kpiBuyers">Buyers</p>
+        <div class="kpi-value" id="kpiBuyers">-</div>
+        <div class="kpi-delta flat" id="kpiBuyersSub">-</div>
+      </div>
+      <div class="kpi-cell">
+        <p class="kpi-label" data-i18n="kpiPurchased">Green coffee purchased</p>
+        <div class="kpi-value" id="kpiPurchased">-</div>
+        <div class="kpi-delta flat" id="kpiPurchasedSub">-</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="secBuyersH">Where the coffee went</h2>
+        <p data-i18n="secBuyersP">-</p>
+      </div>
+      <div class="section-tag" data-i18n="secBuyersTag">Volume by buyer and screen grade</div>
+    </div>
+    <div class="grid">
+      <div class="col-7 panel">
+        <p class="panel-title" data-i18n="panBuyerH">Volume by buyer</p>
+        <p class="panel-note" data-i18n="panBuyerN">Kilograms shipped, all lots in the season.</p>
+        <div class="chart-box"><canvas id="buyerChart"></canvas></div>
+        <div class="insight-line" id="buyerInsight">-</div>
+      </div>
+      <div class="col-5 panel">
+        <p class="panel-title" data-i18n="panScreenH">Screen grade mix</p>
+        <p class="panel-note" data-i18n="panScreenN">Bean size determines which roasters a lot can serve.</p>
+        <div class="chart-box"><canvas id="screenChart"></canvas></div>
+        <div class="insight-line" id="screenInsight">-</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="secLotsH">Shipment ledger</h2>
+        <p data-i18n="secLotsP">-</p>
+      </div>
+      <div class="section-tag" data-i18n="secLotsTag">Every lot dispatched this season</div>
+    </div>
+    <div class="grid">
+      <div class="col-6">
+        <div class="district-ledger">
+          <div class="district-ledger-head">
+            <p class="panel-title" style="margin:0;" data-i18n="panLotsH">Lots dispatched</p>
+            <p class="panel-note" style="margin:2px 0 0;" data-i18n="panLotsN">Date recorded, contract, buyer, screen and volume.</p>
+          </div>
+          <div id="lotList"></div>
+        </div>
+      </div>
+      <div class="col-6 panel">
+        <p class="panel-title" data-i18n="panIntakeH">Purchase intake by month</p>
+        <p class="panel-note" data-i18n="panIntakeN">Green coffee bought in, which the export lots are drawn from.</p>
+        <div class="chart-box"><canvas id="intakeChart"></canvas></div>
+        <div class="insight-line" id="intakeInsight">-</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="secSuppH">Who supplied the season</h2>
+        <p data-i18n="secSuppP">-</p>
+      </div>
+      <div class="section-tag" data-i18n="secSuppTag">Top suppliers by volume delivered</div>
+    </div>
+    <div class="grid">
+      <div class="col-12 panel">
+        <div class="leaderboard-scroll">
+          <table class="leaderboard">
+            <thead>
+              <tr>
+                <th style="width:3rem;">#</th>
+                <th data-i18n="thSupplier">Supplier</th>
+                <th class="num" style="width:8rem;" data-i18n="thDeliveries">Deliveries</th>
+                <th class="num" style="width:9rem;" data-i18n="thNetKg">Net delivered</th>
+                <th class="num" style="width:8rem;" data-i18n="thShare">Share</th>
+              </tr>
+            </thead>
+            <tbody id="supplierBody"></tbody>
+          </table>
+        </div>
+        <p class="panel-note" style="margin:11px 0 0;" id="supplierFoot">-</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="secFlowH">From purchase to shipment</h2>
+        <p data-i18n="secFlowP">-</p>
+      </div>
+      <div class="section-tag" data-i18n="secFlowTag">Volume reconciliation and data notes</div>
+    </div>
+    <div class="grid">
+      <div class="col-12 panel">
+        <div class="flow">
+          <div class="flow-step">
+            <div class="lab" data-i18n="flow1">Bought in, FAQ</div>
+            <div class="val" id="flow1">-</div>
+            <div class="foot" id="flow1sub">-</div>
+          </div>
+          <div class="flow-step">
+            <div class="lab" data-i18n="flow2">Bought in, already graded</div>
+            <div class="val" id="flow2">-</div>
+            <div class="foot" id="flow2sub">-</div>
+          </div>
+          <div class="flow-step">
+            <div class="lab" data-i18n="flow3">Total intake</div>
+            <div class="val" id="flow3">-</div>
+            <div class="foot" data-i18n="flow3sub">before grading losses</div>
+          </div>
+          <div class="flow-step">
+            <div class="lab" data-i18n="flow4">Shipped</div>
+            <div class="val" id="flow4">-</div>
+            <div class="foot" id="flow4sub">-</div>
+          </div>
+        </div>
+        <div id="notesBox"></div>
+      </div>
+    </div>
+  </section>
+
 </main>
+
+<footer>
+  <div class="shell fgrid">
+    <div>
+      <h4 data-i18n="footerAboutH">About this data</h4>
+      <p id="footerAboutP">-</p>
+    </div>
+    <div>
+      <h4 data-i18n="footerDefH">Definitions</h4>
+      <p data-i18n="footerDefP">FAQ: Fair Average Quality, the ungraded green coffee bought from suppliers. Screen: bean size measured over a perforated sieve, so screen 18 is a larger bean than screen 12. Lot: a graded, bulked consignment shipped against one contract. Net delivered: weight after moisture and foreign-matter deductions.</p>
+    </div>
+  </div>
+</footer>
 
 </div><!-- /.layout-main -->
 </div><!-- /.layout -->
 
+</div><!-- /#dashboard -->
+
+<script>
+
+(function(){
+"use strict";
+
+/* ---------------------------------------------------------------------------
+   No figures are typed into this page. Everything is read from
+   ./export-data.json, which scripts/build_export.py regenerates from the
+   export workbook. That script publishes volumes, buyer and screen splits and
+   one total revenue figure; the cost base, per-lot margins and per-buyer unit
+   prices are read there but deliberately never written out, so they cannot
+   appear here.
+   --------------------------------------------------------------------------- */
+var DATA = null;
+var REQUIRED_KEYS = ['meta','sales','lots','by_buyer','by_screen',
+  'purchases','purchases_monthly','top_suppliers','notes'];
+
+function showFatal(title, detail){
+  var el = document.getElementById('bootError');
+  document.getElementById('bootLoading').hidden = true;
+  el.hidden = false;
+  el.querySelector('.boot-title').textContent = title;
+  el.querySelector('.boot-detail').textContent = detail;
+}
+
+function boot(){
+  if (typeof Chart === 'undefined'){
+    showFatal('Charting library could not be loaded',
+      'The page loads Chart.js from cdnjs.cloudflare.com and the request did not complete. ' +
+      'This is usually a network or proxy restriction rather than a problem with the ' +
+      'dashboard itself. Check that cdnjs.cloudflare.com is reachable from this machine.');
+    return;
+  }
+  fetch('./export-data.json?v=' + Date.now(), {cache:'no-store'})
+    .then(function(r){
+      if (!r.ok) throw new Error('HTTP ' + r.status + ' ' + r.statusText);
+      return r.json();
+    })
+    .then(function(json){
+      var missing = REQUIRED_KEYS.filter(function(k){ return !(k in json); });
+      if (missing.length) throw new Error('export-data.json is missing: ' + missing.join(', '));
+      DATA = json;
+      document.getElementById('bootLoading').hidden = true;
+      document.getElementById('dashboard').hidden = false;
+      start();
+    })
+    .catch(function(err){
+      var hint = (location.protocol === 'file:')
+        ? 'The page was opened straight from disk. Browsers block fetch() on file:// URLs. Serve the folder over HTTP instead (python -m http.server 8000) or use the deployed GitHub Pages URL.'
+        : 'Could not load ./export-data.json next to this page. If this is a fresh deploy, check that the build workflow finished and published it.';
+      showFatal('Dashboard data could not be loaded', hint + '  [' + err.message + ']');
+    });
+}
+
+/* ============================= state ============================= */
+var FX_RATE = 3777;
+var state = { currency:'USD', lang:'en' };
+
+/* ============================= formatters ============================= */
+var MONTHS_EN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var MONTHS_NL = ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
+function monthsArr(){ return state.lang==='nl' ? MONTHS_NL : MONTHS_EN; }
+function numLocale(){ return state.lang==='nl' ? 'nl-NL' : 'en-US'; }
+function bigUnit(u){
+  /* NL keeps the Dutch lowercase abbreviations (mln / mrd); EN uses a capital
+     M for millions so it does not read as a stray unit next to the figure. */
+  if (state.lang === 'nl') return u==='bn' ? 'mrd' : (u==='m' ? 'mln' : u);
+  return u==='m' ? 'M' : u;
+}
+function fmtInt(v){ return Math.round(v).toLocaleString(numLocale()); }
+function fmtTonnes(kg){
+  var t = kg/1000;
+  return t.toLocaleString(numLocale(),{maximumFractionDigits: t<10?2:1}) + ' t';
+}
+function fmtKgShort(kg){ return kg >= 1000 ? fmtTonnes(kg) : fmtInt(kg) + ' kg'; }
+/* Axis ticks stay in one unit the whole way up the scale: fmtKgShort would
+   label the zero tick "0 kg" and every other tick in tonnes. */
+function fmtAxisKg(kg){
+  return (kg/1000).toLocaleString(numLocale(),{maximumFractionDigits:1}) + ' t';
+}
+/* Money arrives in USD on this page (the sales sheet records it that way), so
+   the UGX toggle multiplies rather than divides. */
+function fmtMoney(usd){
+  var val = state.currency==='UGX' ? usd*FX_RATE : usd;
+  var sym = state.currency==='UGX' ? 'UGX ' : 'USD ';
+  var abs = Math.abs(val);
+  if (abs >= 1e9) return sym + (val/1e9).toLocaleString(numLocale(),{maximumFractionDigits:2}) + bigUnit('bn');
+  if (abs >= 1e6) return sym + (val/1e6).toLocaleString(numLocale(),{maximumFractionDigits:2}) + bigUnit('m');
+  return sym + fmtInt(val);
+}
+function fmtPerKg(usd){
+  if (usd===null || usd===undefined) return '-';
+  if (state.currency==='UGX') return 'UGX ' + fmtInt(usd*FX_RATE);
+  return 'USD ' + usd.toLocaleString(numLocale(),{minimumFractionDigits:2, maximumFractionDigits:2});
+}
+/* toFixed always emits a full stop, which is wrong in Dutch; the locale
+   formatter gives 61,6% in NL and 61.6% in EN off the same figure. */
+function fmtPct(v){
+  return (v*100).toLocaleString(numLocale(),{minimumFractionDigits:1, maximumFractionDigits:1}) + '%';
+}
+function fmtMonth(m){ var p=m.split('-'); return monthsArr()[parseInt(p[1],10)-1] + " '" + p[0].slice(2); }
+function fmtDate(d){
+  if (!d) return '-';
+  var p = d.split('-');
+  return parseInt(p[2],10) + ' ' + monthsArr()[parseInt(p[1],10)-1] + ' ' + p[0];
+}
+function esc(s){
+  return (s===null||s===undefined) ? '' :
+    String(s).replace(/[&<>]/g, function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});
+}
+
+/* ============================= palette ============================= */
+var COLORS = {
+  roast:'#7B4A24', roastDeep:'#43260F', roastLight:'#A97244', roastWash:'#F4E6D5',
+  leaf:'#4E7C2E', leafLight:'#7FA84A', leafWash:'#E9F1DD',
+  cherry:'#B23A1E', cherryWash:'#F9E3D9',
+  honey:'#D2911F', honeyWash:'#FBEED4',
+  teal:'#2C7A83', olive:'#8C9A3B', clay:'#9C5230',
+  ink:'#2A1A10', inkSoft:'#63483A', inkFaint:'#8A7059', line:'#EADCC7'
+};
+var BUYER_CYCLE = [COLORS.roast, COLORS.honey, COLORS.leaf, COLORS.teal, COLORS.cherry, COLORS.clay, COLORS.olive];
+/* Screen grades keep a fixed colour so the doughnut, the badges in the ledger
+   and the legend all agree. Larger bean, warmer colour. */
+var SCREEN_COLOR = {'Screen 12':COLORS.leaf, 'Screen 15':COLORS.roast, 'Screen 18':COLORS.honey};
+function screenColor(k){ return SCREEN_COLOR[k] || COLORS.inkFaint; }
+function screenClass(s){
+  return s===12 ? 'screen-12' : s===15 ? 'screen-15' : s===18 ? 'screen-18' : 'screen-na';
+}
+
+/* Chart.js comes from a CDN. If a corporate proxy or an offline machine blocks
+   it, `Chart` is simply undefined; touching it at module level would throw and
+   leave the visitor staring at the loading spinner with nothing to explain it.
+   So the defaults are applied from start(), after boot() has checked. */
+function themeCharts(){
+  Chart.defaults.font.family = "'IBM Plex Mono', monospace";
+  Chart.defaults.color = COLORS.inkSoft;
+  Chart.defaults.font.size = 11.5;
+}
+
+/* A <canvas> holds one live Chart at a time; re-rendering on a language or
+   currency switch must destroy the previous instance or Chart.js throws
+   "Canvas is already in use". */
+var CHARTS = {};
+function mountChart(canvasId, cfg){
+  var el = document.getElementById(canvasId);
+  if (!el) return null;
+  var prev = CHARTS[canvasId] || (typeof Chart.getChart === 'function' ? Chart.getChart(el) : null);
+  if (prev) prev.destroy();
+  CHARTS[canvasId] = new Chart(el.getContext('2d'), cfg);
+  return CHARTS[canvasId];
+}
+
+/* ============================= derived facts =============================
+   Figures that appear inside sentences, recomputed whenever the language or
+   currency changes so the prose never disagrees with the charts. */
+var FACTS = {};
+function computeFacts(){
+  var s = DATA.sales, p = DATA.purchases;
+  var top = DATA.by_buyer[0] || {buyer:'-', volume_kg:0};
+  var topScreen = DATA.by_screen[0] || {screen:'-', volume_kg:0};
+  var peak = DATA.purchases_monthly.reduce(function(a,b){
+    return (b.net_kg > a.net_kg) ? b : a;
+  }, DATA.purchases_monthly[0] || {month:'', net_kg:0});
+  var faq = p.net_kg - p.graded_kg;
+  FACTS = {
+    season: DATA.meta.season,
+    volume: fmtTonnes(s.volume_kg),
+    volumeKg: fmtInt(s.volume_kg),
+    revenue: fmtMoney(s.revenue_usd),
+    price: fmtPerKg(s.avg_realised_usd_per_kg),
+    lots: fmtInt(s.n_lots),
+    buyers: fmtInt(s.n_buyers),
+    topBuyer: top.buyer,
+    topBuyerVol: fmtTonnes(top.volume_kg),
+    topBuyerPct: fmtPct(s.volume_kg ? top.volume_kg/s.volume_kg : 0),
+    screenName: topScreen.screen,
+    screenPct: fmtPct(s.volume_kg ? topScreen.volume_kg/s.volume_kg : 0),
+    purchased: fmtTonnes(p.net_kg),
+    suppliers: fmtInt(p.n_suppliers),
+    deliveries: fmtInt(p.n_deliveries),
+    firstBuy: fmtDate(p.date_min),
+    lastBuy: fmtDate(p.date_max),
+    peakMonth: peak.month ? fmtMonth(peak.month) : '-',
+    peakKg: fmtTonnes(peak.net_kg),
+    faq: fmtTonnes(faq),
+    graded: fmtTonnes(p.graded_kg),
+    shipShare: fmtPct(p.net_kg ? s.volume_kg/p.net_kg : 0),
+    generated: fmtDate(DATA.meta.generated),
+    fx: fmtInt(FX_RATE),
+    flagged: DATA.notes.lots_dated_after_season || 0
+  };
+}
+
+/* ============================= i18n ============================= */
+var I18N = {
+  en: {
+    navTitle:'Navigation', navDomestic:'Domestic', navExport:'Export', navImpact:'Impact',
+    navProduction:'Production', navFinance:'Finance', navAgritracker:'Agritracker',
+    navCoffee:'Coffee', navAbout:'About us',
+    brandRole:'Export programme',
+    asofLabel:'Season',
+    heroEyebrow:'Export programme',
+    heroH1:'Green coffee shipped direct to roasters and importers',
+    heroLede:function(f){
+      return 'In the ' + f.season + ' season Ndugu Farmers Ltd bought ' + f.purchased +
+        ' of green coffee from ' + f.suppliers + ' suppliers and shipped ' + f.volume +
+        ' of it as ' + f.lots + ' graded lots to ' + f.buyers +
+        ' buyers. ' + f.topBuyer + ' took ' + f.topBuyerPct + ' of the volume.';
+    },
+    heroCap:'exported in the 2025 season',
+    badgeFairtrade:'Fairtrade certified',
+    badgeScreens:'Screen 12, 15 and 18',
+    kpiVolume:'Volume exported', kpiRevenue:'Export revenue',
+    kpiRevenueSub:'gross sales value',
+    kpiPrice:'Average realised price', kpiPriceSub:'per kg, all lots',
+    kpiLots:'Lots shipped', kpiBuyers:'Buyers', kpiPurchased:'Green coffee purchased',
+    secBuyersH:'Where the coffee went',
+    secBuyersP:function(f){
+      return 'Four buyers took the season’s output. Concentration is worth watching: ' +
+        f.topBuyer + ' alone accounts for ' + f.topBuyerPct + ' of shipped volume.';
+    },
+    secBuyersTag:'Volume by buyer and screen grade',
+    panBuyerH:'Volume by buyer', panBuyerN:'Kilograms shipped, all lots in the season.',
+    panScreenH:'Screen grade mix', panScreenN:'Bean size determines which roasters a lot can serve.',
+    secLotsH:'Shipment ledger',
+    secLotsP:function(f){
+      return 'Every lot dispatched this season, with the date exactly as recorded in the ' +
+        'source workbook. Purchases ran from ' + f.firstBuy + ' to ' + f.lastBuy + '.';
+    },
+    secLotsTag:'Every lot dispatched this season',
+    panLotsH:'Lots dispatched', panLotsN:'Date recorded, contract, buyer, screen and volume.',
+    panIntakeH:'Purchase intake by month',
+    panIntakeN:'Green coffee bought in, which the export lots are drawn from.',
+    secSuppH:'Who supplied the season',
+    secSuppP:function(f){
+      return f.deliveries + ' deliveries from ' + f.suppliers +
+        ' suppliers, a mix of individual farmers, cooperatives and traders. Volume only, no prices.';
+    },
+    secSuppTag:'Top suppliers by volume delivered',
+    thSupplier:'Supplier', thDeliveries:'Deliveries', thNetKg:'Net delivered', thShare:'Share',
+    secFlowH:'From purchase to shipment',
+    secFlowP:function(f){
+      return 'Not everything bought in is shipped in the same season: coffee is graded, ' +
+        'sorted and bulked before it goes out. ' + f.shipShare +
+        ' of the season’s intake left as export lots.';
+    },
+    secFlowTag:'Volume reconciliation and data notes',
+    flow1:'Bought in, FAQ', flow2:'Bought in, already graded',
+    flow3:'Total intake', flow3sub:'before grading losses', flow4:'Shipped',
+    footerAboutH:'About this data',
+    footerDefH:'Definitions',
+    footerDefP:'FAQ: Fair Average Quality, the ungraded green coffee bought from suppliers. Screen: bean size measured over a perforated sieve, so screen 18 is a larger bean than screen 12. Lot: a graded, bulked consignment shipped against one contract. Net delivered: weight after moisture and foreign-matter deductions.',
+    lblLots:'lots', lblDeliveries:'deliveries', lblNetKg:'Net kg', lblVolume:'Volume',
+    lblOfIntake:'of intake', lblNoContract:'no contract recorded',
+    flagTitle:'Recorded in the source workbook with a year later than the season. Shown as recorded.',
+    insBuyer:function(f){
+      return f.topBuyer + ' is the largest destination at ' + f.topBuyerVol + ', ' +
+        f.topBuyerPct + ' of everything shipped.';
+    },
+    insScreen:function(f){
+      return f.screenName + ' is the dominant grade at ' + f.screenPct + ' of shipped volume.';
+    },
+    insIntake:function(f){
+      return 'Intake peaked in ' + f.peakMonth + ' at ' + f.peakKg + '.';
+    },
+    suppFoot:function(f){
+      return 'Top 10 of ' + f.suppliers + ' suppliers, by net weight delivered. ' +
+        'Volumes only: nothing about what any supplier was paid is published here.';
+    },
+    aboutP:function(f){
+      return 'Covers the ' + f.season + ' export season as recorded in the source workbook, ' +
+        'rebuilt on ' + f.generated + '. Purchase dates run from ' + f.firstBuy + ' to ' +
+        f.lastBuy + '. Shipment dates are shown exactly as recorded, without correction. ' +
+        'Volumes are net of moisture and foreign-matter deductions. Revenue is the gross ' +
+        'sales value of the season’s lots. UGX figures use an indicative rate of about ' +
+        f.fx + ' UGX per USD and are not a live conversion. Every figure on this page is ' +
+        'computed from the workbook at page load.';
+    },
+    noteFlagged:function(f){
+      return f.flagged + ' of the ' + f.lots + ' lots carry a shipment date in a later year ' +
+        'than the season. They are shown exactly as recorded rather than corrected here, ' +
+        'and are flagged in the ledger above so they can be fixed at source.';
+    },
+    noteDupe:function(names){
+      return 'The purchase sheet records "' + names[0] + '" and "' + names[1] +
+        '" as separate suppliers. These are almost certainly one person with the name ' +
+        'entered both ways round. They are counted separately here because the sheet is ' +
+        'the record of account; merging them would change the supplier count.';
+    },
+    noteRecon:function(f){
+      return 'Intake and shipment are measured at different points in the process, so they ' +
+        'are not expected to match: ' + f.purchased + ' bought in against ' + f.volume +
+        ' shipped, the difference sitting in stock, grading loss and lots that carry into ' +
+        'the next season.';
+    }
+  },
+  nl: {
+    navTitle:'Navigatie', navDomestic:'Binnenland', navExport:'Export', navImpact:'Impact',
+    navProduction:'Productie', navFinance:'Financiën', navAgritracker:'Agritracker',
+    navCoffee:'Koffie', navAbout:'Over ons',
+    brandRole:'Exportprogramma',
+    asofLabel:'Seizoen',
+    heroEyebrow:'Exportprogramma',
+    heroH1:'Groene koffie rechtstreeks naar branders en importeurs',
+    heroLede:function(f){
+      return 'In het seizoen ' + f.season + ' kocht Ndugu Farmers Ltd ' + f.purchased +
+        ' groene koffie van ' + f.suppliers + ' leveranciers en verscheepte daarvan ' +
+        f.volume + ' als ' + f.lots + ' gesorteerde partijen naar ' + f.buyers +
+        ' afnemers. ' + f.topBuyer + ' nam ' + f.topBuyerPct + ' van het volume af.';
+    },
+    heroCap:'geëxporteerd in seizoen 2025',
+    badgeFairtrade:'Fairtrade-gecertificeerd',
+    badgeScreens:'Screen 12, 15 en 18',
+    kpiVolume:'Geëxporteerd volume', kpiRevenue:'Exportomzet',
+    kpiRevenueSub:'bruto verkoopwaarde',
+    kpiPrice:'Gemiddelde gerealiseerde prijs', kpiPriceSub:'per kg, alle partijen',
+    kpiLots:'Verscheepte partijen', kpiBuyers:'Afnemers', kpiPurchased:'Ingekochte groene koffie',
+    secBuyersH:'Waar de koffie heen ging',
+    secBuyersP:function(f){
+      return 'Vier afnemers namen de productie van het seizoen af. De concentratie verdient ' +
+        'aandacht: ' + f.topBuyer + ' alleen al is goed voor ' + f.topBuyerPct +
+        ' van het verscheepte volume.';
+    },
+    secBuyersTag:'Volume per afnemer en screengrootte',
+    panBuyerH:'Volume per afnemer', panBuyerN:'Verscheepte kilogrammen, alle partijen van het seizoen.',
+    panScreenH:'Verdeling screengrootte', panScreenN:'De boongrootte bepaalt welke branders een partij kan bedienen.',
+    secLotsH:'Verschepingsregister',
+    secLotsP:function(f){
+      return 'Elke partij die dit seizoen is verscheept, met de datum precies zoals ' +
+        'vastgelegd in het bronbestand. De inkoop liep van ' + f.firstBuy + ' tot ' + f.lastBuy + '.';
+    },
+    secLotsTag:'Elke partij die dit seizoen is verscheept',
+    panLotsH:'Verscheepte partijen', panLotsN:'Vastgelegde datum, contract, afnemer, screen en volume.',
+    panIntakeH:'Inkoop per maand',
+    panIntakeN:'Ingekochte groene koffie, waaruit de exportpartijen worden samengesteld.',
+    secSuppH:'Wie het seizoen leverde',
+    secSuppP:function(f){
+      return f.deliveries + ' leveringen van ' + f.suppliers +
+        ' leveranciers: een mix van individuele boeren, coöperaties en handelaren. ' +
+        'Alleen volume, geen prijzen.';
+    },
+    secSuppTag:'Grootste leveranciers naar geleverd volume',
+    thSupplier:'Leverancier', thDeliveries:'Leveringen', thNetKg:'Netto geleverd', thShare:'Aandeel',
+    secFlowH:'Van inkoop naar verscheping',
+    secFlowP:function(f){
+      return 'Niet alles wat wordt ingekocht gaat in hetzelfde seizoen de deur uit: koffie ' +
+        'wordt gesorteerd, geschoond en gebulkt. ' + f.shipShare +
+        ' van de inkoop van dit seizoen vertrok als exportpartij.';
+    },
+    secFlowTag:'Volumeaansluiting en aantekeningen bij de data',
+    flow1:'Ingekocht, FAQ', flow2:'Ingekocht, al gesorteerd',
+    flow3:'Totale inkoop', flow3sub:'vóór sorteerverlies', flow4:'Verscheept',
+    footerAboutH:'Over deze gegevens',
+    footerDefH:'Definities',
+    footerDefP:'FAQ: Fair Average Quality, de ongesorteerde groene koffie die van leveranciers wordt gekocht. Screen: boongrootte gemeten over een geperforeerde zeef, dus screen 18 is een grotere boon dan screen 12. Partij: een gesorteerde, gebulkte zending onder één contract. Netto geleverd: gewicht na aftrek voor vocht en vreemde bestanddelen.',
+    lblLots:'partijen', lblDeliveries:'leveringen', lblNetKg:'Netto kg', lblVolume:'Volume',
+    lblOfIntake:'van de inkoop', lblNoContract:'geen contract vastgelegd',
+    flagTitle:'In het bronbestand vastgelegd met een jaartal na het seizoen. Weergegeven zoals vastgelegd.',
+    insBuyer:function(f){
+      return f.topBuyer + ' is de grootste bestemming met ' + f.topBuyerVol + ', ' +
+        f.topBuyerPct + ' van alles wat is verscheept.';
+    },
+    insScreen:function(f){
+      return f.screenName + ' is de dominante sortering met ' + f.screenPct +
+        ' van het verscheepte volume.';
+    },
+    insIntake:function(f){
+      return 'De inkoop piekte in ' + f.peakMonth + ' met ' + f.peakKg + '.';
+    },
+    suppFoot:function(f){
+      return 'Top 10 van ' + f.suppliers + ' leveranciers, naar netto geleverd gewicht. ' +
+        'Alleen volumes: wat een leverancier betaald kreeg wordt hier niet gepubliceerd.';
+    },
+    aboutP:function(f){
+      return 'Betreft het exportseizoen ' + f.season + ' zoals vastgelegd in het bronbestand, ' +
+        'opnieuw opgebouwd op ' + f.generated + '. De inkoopdata lopen van ' + f.firstBuy +
+        ' tot ' + f.lastBuy + '. Verschepingsdata worden precies zo weergegeven als ze zijn ' +
+        'vastgelegd, zonder correctie. Volumes zijn netto na aftrek voor vocht en vreemde ' +
+        'bestanddelen. De omzet is de bruto verkoopwaarde van de partijen van het seizoen. ' +
+        'UGX-bedragen gebruiken een indicatieve koers van ongeveer ' + f.fx +
+        ' UGX per USD en zijn geen actuele omrekening. Elk cijfer op deze pagina wordt bij ' +
+        'het laden van de pagina uit het bronbestand berekend.';
+    },
+    noteFlagged:function(f){
+      return f.flagged + ' van de ' + f.lots + ' partijen heeft een verschepingsdatum in een ' +
+        'later jaar dan het seizoen. Ze worden hier precies zo weergegeven als ze zijn ' +
+        'vastgelegd in plaats van gecorrigeerd, en zijn in het register hierboven gemarkeerd ' +
+        'zodat ze bij de bron kunnen worden hersteld.';
+    },
+    noteDupe:function(names){
+      return 'Het inkoopblad registreert "' + names[0] + '" en "' + names[1] +
+        '" als afzonderlijke leveranciers. Vrijwel zeker gaat het om één persoon van ' +
+        'wie de naam twee keer andersom is ingevoerd. Ze worden hier apart geteld omdat het ' +
+        'blad de administratie is; samenvoegen zou het aantal leveranciers veranderen.';
+    },
+    noteRecon:function(f){
+      return 'Inkoop en verscheping worden op verschillende momenten in het proces gemeten en ' +
+        'hoeven dus niet gelijk te zijn: ' + f.purchased + ' ingekocht tegenover ' + f.volume +
+        ' verscheept, met het verschil in voorraad, sorteerverlies en partijen die doorlopen ' +
+        'naar het volgende seizoen.';
+    }
+  }
+};
+function t(key){
+  var v = I18N[state.lang][key];
+  if (v === undefined) v = I18N.en[key];
+  return (typeof v === 'function') ? v(FACTS) : v;
+}
+
+function applyStaticI18n(){
+  document.querySelectorAll('[data-i18n]').forEach(function(el){
+    var v = t(el.getAttribute('data-i18n'));
+    if (v !== undefined && v !== null) el.textContent = v;
+  });
+  document.documentElement.lang = state.lang;
+}
+
+/* ============================= renderers ============================= */
+function renderHeader(){
+  var s = DATA.sales, p = DATA.purchases;
+  document.getElementById('asOfSeason').textContent = DATA.meta.season;
+  document.getElementById('heroBig').textContent = fmtTonnes(s.volume_kg);
+  document.getElementById('heroSub').textContent = fmtMoney(s.revenue_usd);
+  document.getElementById('badgeBuyers').textContent =
+    fmtInt(s.n_buyers) + ' ' + (state.lang==='nl' ? 'afnemers' : 'buyers') +
+    ', ' + fmtInt(s.n_lots) + ' ' + t('lblLots');
+
+  document.getElementById('kpiVolume').textContent = fmtTonnes(s.volume_kg);
+  document.getElementById('kpiVolumeSub').textContent = fmtInt(s.volume_kg) + ' kg';
+  document.getElementById('kpiRevenue').textContent = fmtMoney(s.revenue_usd);
+  document.getElementById('kpiPrice').textContent = fmtPerKg(s.avg_realised_usd_per_kg);
+  document.getElementById('kpiLots').textContent = fmtInt(s.n_lots);
+  document.getElementById('kpiLotsSub').textContent =
+    fmtDate(s.date_min) + ' – ' + fmtDate(s.date_max);
+  document.getElementById('kpiBuyers').textContent = fmtInt(s.n_buyers);
+  document.getElementById('kpiBuyersSub').textContent =
+    DATA.by_buyer[0].buyer + ' ' + fmtPct(s.volume_kg ? DATA.by_buyer[0].volume_kg/s.volume_kg : 0);
+  document.getElementById('kpiPurchased').textContent = fmtTonnes(p.net_kg);
+  document.getElementById('kpiPurchasedSub').textContent =
+    fmtInt(p.n_suppliers) + ' ' + (state.lang==='nl' ? 'leveranciers' : 'suppliers');
+}
+
+function renderBuyerChart(){
+  var rows = DATA.by_buyer;
+  mountChart('buyerChart', {
+    type:'bar',
+    data:{
+      labels: rows.map(function(r){ return r.buyer; }),
+      datasets:[{
+        label: t('lblVolume'),
+        data: rows.map(function(r){ return r.volume_kg; }),
+        backgroundColor: rows.map(function(_, i){ return BUYER_CYCLE[i % BUYER_CYCLE.length]; }),
+        borderRadius:3, borderSkipped:false, barPercentage:0.72
+      }]
+    },
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      layout:{padding:{right:6}},
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:function(c){
+          var r = rows[c.dataIndex];
+          return fmtKgShort(r.volume_kg) + '  (' + r.lots + ' ' + t('lblLots') + ')';
+        }}}
+      },
+      scales:{
+        x:{grid:{color:COLORS.line}, border:{display:false},
+           ticks:{callback:function(v){ return fmtAxisKg(v); }}},
+        y:{grid:{display:false}, border:{display:false},
+           ticks:{font:{family:"'Libre Franklin', sans-serif", size:12}, color:COLORS.ink}}
+      }
+    }
+  });
+  document.getElementById('buyerInsight').innerHTML = t('insBuyer');
+}
+
+function renderScreenChart(){
+  var rows = DATA.by_screen;
+  mountChart('screenChart', {
+    type:'doughnut',
+    data:{
+      labels: rows.map(function(r){ return r.screen; }),
+      datasets:[{
+        data: rows.map(function(r){ return r.volume_kg; }),
+        backgroundColor: rows.map(function(r){ return screenColor(r.screen); }),
+        borderColor:'#FFFCF6', borderWidth:2
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false, cutout:'56%',
+      plugins:{
+        legend:{position:'bottom', labels:{boxWidth:11, boxHeight:11, padding:12,
+          font:{family:"'Libre Franklin', sans-serif", size:12}, color:COLORS.inkSoft}},
+        tooltip:{callbacks:{label:function(c){
+          var r = rows[c.dataIndex], tot = DATA.sales.volume_kg;
+          return ' ' + fmtKgShort(r.volume_kg) + '  ' + fmtPct(tot ? r.volume_kg/tot : 0);
+        }}}
+      }
+    }
+  });
+  document.getElementById('screenInsight').innerHTML = t('insScreen');
+}
+
+function renderLots(){
+  var host = document.getElementById('lotList');
+  var seasonYear = parseInt(DATA.meta.season, 10);
+  host.innerHTML = DATA.lots.map(function(l){
+    var late = l.date && parseInt(l.date.slice(0,4), 10) > seasonYear;
+    var sub = l.contract ? esc(l.contract) : t('lblNoContract');
+    return '<div class="lot-row">' +
+      '<div class="seq">' + l.seq + '</div>' +
+      '<div class="who">' +
+        '<div class="name">' + esc(l.buyer) + '</div>' +
+        '<div class="sub">' + fmtDate(l.date) +
+          (late ? '<span class="flag" title="' + esc(t('flagTitle')) + '">!</span>' : '') +
+          ' · ' + sub +
+        '</div>' +
+      '</div>' +
+      '<div class="screen ' + screenClass(l.screen) + '">' +
+        (l.screen ? 'S' + l.screen : '–') + '</div>' +
+      '<div class="qty">' + fmtKgShort(l.volume_kg) + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function renderIntake(){
+  var rows = DATA.purchases_monthly;
+  mountChart('intakeChart', {
+    data:{
+      labels: rows.map(function(r){ return fmtMonth(r.month); }),
+      datasets:[
+        {
+          type:'bar', label:t('lblNetKg'),
+          data: rows.map(function(r){ return r.net_kg; }),
+          backgroundColor:COLORS.roast, borderRadius:3, borderSkipped:false, barPercentage:0.68, order:2
+        },
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index', intersect:false},
+      plugins:{
+        /* One series, so the panel title names it and no legend box is needed.
+           The delivery count used to be a second line on its own right-hand
+           axis; two y-scales in one frame invite a comparison between the two
+           shapes that the scales make meaningless, so it moved to the tooltip
+           where it is still available but cannot be misread. */
+        legend:{display:false},
+        tooltip:{callbacks:{
+          label:function(c){ return ' ' + t('lblNetKg') + ': ' + fmtKgShort(c.parsed.y); },
+          footer:function(c){
+            var r = rows[c[0].dataIndex];
+            return t('lblDeliveries') + ': ' + fmtInt(r.deliveries);
+          }
+        }}
+      },
+      scales:{
+        x:{grid:{display:false}, border:{display:false}},
+        y:{grid:{color:COLORS.line}, border:{display:false},
+           ticks:{callback:function(v){ return fmtAxisKg(v); }}}
+      }
+    }
+  });
+  document.getElementById('intakeInsight').innerHTML = t('insIntake');
+}
+
+function renderSuppliers(){
+  var total = DATA.purchases.net_kg;
+  document.getElementById('supplierBody').innerHTML = DATA.top_suppliers.map(function(s, i){
+    return '<tr>' +
+      '<td class="rank">' + (i+1) + '</td>' +
+      '<td class="name">' + esc(s.name) + '</td>' +
+      '<td class="num">' + fmtInt(s.deliveries) + '</td>' +
+      '<td class="num">' + fmtKgShort(s.net_kg) + '</td>' +
+      '<td class="num">' + fmtPct(total ? s.net_kg/total : 0) + '</td>' +
+    '</tr>';
+  }).join('');
+  document.getElementById('supplierFoot').textContent = t('suppFoot');
+}
+
+function renderFlow(){
+  var p = DATA.purchases, s = DATA.sales;
+  var faq = p.net_kg - p.graded_kg;
+  var byType = p.graded_by_supplier_type || {};
+  var typeBits = Object.keys(byType).sort(function(a,b){ return byType[b]-byType[a]; })
+    .map(function(k){ return k + ' ' + fmtKgShort(byType[k]); }).join(', ');
+
+  document.getElementById('flow1').textContent = fmtTonnes(faq);
+  document.getElementById('flow1sub').textContent =
+    fmtInt(p.n_deliveries) + ' ' + t('lblDeliveries');
+  document.getElementById('flow2').textContent = fmtTonnes(p.graded_kg);
+  document.getElementById('flow2sub').textContent = typeBits || '–';
+  document.getElementById('flow3').textContent = fmtTonnes(p.net_kg);
+  document.getElementById('flow4').textContent = fmtTonnes(s.volume_kg);
+  document.getElementById('flow4sub').textContent =
+    fmtPct(p.net_kg ? s.volume_kg/p.net_kg : 0) + ' ' + t('lblOfIntake');
+
+  var notes = ['<div class="callout">' + t('noteRecon') + '</div>'];
+  if (FACTS.flagged) notes.push('<div class="callout">' + t('noteFlagged') + '</div>');
+  (DATA.notes.duplicate_supplier_names || []).forEach(function(pair){
+    notes.push('<div class="callout">' + esc(I18N[state.lang].noteDupe(pair)) + '</div>');
+  });
+  document.getElementById('notesBox').innerHTML = notes.join('');
+}
+
+function renderAll(){
+  computeFacts();
+  applyStaticI18n();
+  document.getElementById('footerAboutP').textContent = t('aboutP');
+  renderHeader();
+  renderBuyerChart();
+  renderScreenChart();
+  renderLots();
+  renderIntake();
+  renderSuppliers();
+  renderFlow();
+}
+
+/* ============================= controls ============================= */
+function bindControls(){
+  document.getElementById('currencyPills').addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    state.currency = b.dataset.currency;
+    this.querySelectorAll('.pill').forEach(function(p){ p.classList.toggle('active', p === b); });
+    renderAll();
+  });
+  document.getElementById('langPills').addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    state.lang = b.dataset.lang;
+    this.querySelectorAll('.pill').forEach(function(p){ p.classList.toggle('active', p === b); });
+    renderAll();
+  });
+}
+
+function start(){
+  if (DATA.meta && DATA.meta.fx_ugx_per_usd > 0) FX_RATE = DATA.meta.fx_ugx_per_usd;
+  themeCharts();
+  bindControls();
+  renderAll();
+}
+
+boot();
+})();
+
+</script>
 </body>
 </html>
