@@ -66,7 +66,7 @@
     --shadow-panel:0 1px 2px rgba(42,26,16,0.04), 0 10px 26px -20px rgba(42,26,16,0.55);
   }
   *{box-sizing:border-box;}
-  .kpi-value,.hero-figure .big,.hero-figure .sub,.badge .bv,
+  .kpi-value,.tile-value,.tile-foot,
   table.leaderboard td.num,table.leaderboard th.num,
   .district-row .qty,.district-detail b
   {font-variant-numeric:tabular-nums; font-feature-settings:'tnum' 1;}
@@ -207,48 +207,66 @@
   .hero-head{margin-bottom:14px;}
   /* the figure column is far taller than the badges; centring stops a dead
      band opening up above them */
-  .hero-grid > .col-7{display:flex; align-items:center;}
   /* these sit before .hero h1 / .hero p.lede in the cascade, so they need
      enough specificity to win rather than relying on source order */
   .hero .hero-head h1{max-width:none;}
   .hero .hero-head p.lede{max-width:none;}
-  .hero-grid{display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:24px; align-items:end;}
-  @media (max-width:980px){ .hero-grid > [class*="col-"]{grid-column:1 / -1;} }
   .hero-eyebrow{font-size:14px; color:var(--roast); font-weight:600; margin:0 0 10px 0;}
   .hero h1{font-size:29px; line-height:1.12; margin:0 0 9px 0; font-weight:700; letter-spacing:-0.015em; max-width:18ch;}
   .hero p.lede{font-size:14.5px; color:var(--ink-soft); max-width:56ch; margin:0;}
-  /* ---------- Hero stat cards ----------
-     These were pill badges. As cards the figure leads and the wording explains
-     it, which is the way round a reader actually wants them. */
-  .hero-badges{
-    display:grid; grid-template-columns:repeat(3,minmax(0,1fr));
+
+
+  /* ---------- Tile rows ----------
+     Row one (context) and row two (metrics) share one tile component so the
+     head of the page reads as a single grid. Row one runs deeper in tone than
+     row two, which gives the hierarchy without introducing another shape. */
+  .tilerow{
+    display:grid; grid-template-columns:repeat(12,minmax(0,1fr));
     gap:10px; margin-top:14px;
   }
-  @media (max-width:700px){ .hero-badges{grid-template-columns:1fr;} }
-  .badge{
-    display:block; position:relative; overflow:hidden;
-    border:1px solid var(--line-strong); border-radius:var(--radius-md);
-    background:var(--surface); padding:10px 13px 11px 16px;
-    box-shadow:var(--shadow-panel); min-width:0;
+  @media (max-width:1100px){ .tilerow{grid-template-columns:repeat(6,minmax(0,1fr));} }
+  @media (max-width:640px){ .tilerow{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  /* Four-tile pages (export, EUDR) spread across the same twelve columns. */
+  .tilerow-4 .tile{grid-column:span 3;}
+  @media (max-width:1100px){ .tilerow-4 .tile{grid-column:span 3;} }
+  @media (max-width:640px){ .tilerow-4 .tile{grid-column:span 2;} }
+  .tile{
+    grid-column:span 2; min-width:0;
+    padding:11px 13px 12px; border-radius:var(--radius-md);
+    background:var(--tile-roast); color:#fff;
+    box-shadow:0 1px 2px rgba(42,26,16,.10), 0 8px 18px -14px rgba(42,26,16,.55);
+    display:flex; flex-direction:column; justify-content:center;
   }
-  /* the accent bar replaces the old coloured dot */
-  .badge .dot{
-    position:absolute; left:0; top:0; bottom:0; width:4px;
-    border-radius:0; background:var(--honey);
+  /* Row one is the deep end of the same palette, so it frames the bright row
+     below rather than competing with it. All four clear 4.5:1 on white text. */
+  .tile-lead{background:linear-gradient(135deg,#5F391C 0%,#2A1A10 100%);} /* 10.1:1 */
+  .tile-a{background:linear-gradient(135deg,#8D4E1D 0%,#6B3A15 100%);}    /* 6.5:1  */
+  .tile-b{background:linear-gradient(135deg,#30610F 0%,#22470A 100%);}    /* 7.4:1  */
+  .tile-c{background:linear-gradient(135deg,#0D606A 0%,#08454C 100%);}    /* 7.3:1  */
+  .tile-d{background:linear-gradient(135deg,#8A2D17 0%,#66200F 100%);}    /* 8.5:1  */
+  .tile-e{background:linear-gradient(135deg,#4F5A0D 0%,#3A4209 100%);}    /* 9.4:1  */
+  .tile{position:relative;}
+  /* Top-right, low opacity: it should read as texture on the tile, not as a
+     second thing to look at. aria-hidden, because the label already says what
+     the tile is and a screen reader repeating it adds nothing. */
+  .tile-icon{
+    position:absolute; top:10px; right:11px; width:22px; height:22px;
+    color:#fff; opacity:.30; pointer-events:none;
   }
-  .badge .bv{
-    display:block; font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-size:19px; font-weight:600;
-    color:var(--ink); line-height:1.15;
+  .kpi-cell{position:relative;}
+  .kpi-cell .tile-icon{top:9px; right:10px; width:20px; height:20px; opacity:.28;}
+  .tile-label, .kpi-label{padding-right:26px; min-height:2.7em;}
+  .tile-label{
+    font-size:11.5px; font-weight:500; margin:0 0 3px 0;
+    color:rgba(255,255,255,.88); line-height:1.35;
   }
-  .badge .bl{
-    display:block; font-size:12px; color:var(--ink-soft); margin-top:2px;
-    line-height:1.35;
+  .tile-value{
+    font-size:23px; font-weight:600; color:#fff; line-height:1.12;
+    font-variant-numeric:tabular-nums; overflow-wrap:break-word;
   }
-  .hero-figure{border-left:1px solid var(--line); padding-left:26px;}
-  @media (max-width:980px){ .hero-figure{border-left:none; padding-left:0; border-top:1px solid var(--line); padding-top:24px;} }
-  .hero-figure .big{font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-size:37px; font-weight:600; color:var(--roast); line-height:1;}
-  .hero-figure .cap{font-size:13px; color:var(--ink-soft); margin-top:8px;}
-  .hero-figure .sub{font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-size:17px; color:var(--ink); margin-top:10px;}
+  .tile-lead .tile-value{font-size:26px;}
+  .tile-value-sm{font-size:15px; line-height:1.3;}
+  .tile-foot{font-size:12.5px; color:rgba(255,255,255,.82); margin-top:4px;}
 
   /* ---------- KPI tiles ----------
      Six saturated tiles rather than one bordered ledger strip. Each is its own
@@ -256,7 +274,7 @@
      dashboard's headline numbers are for. Padding is deliberately tight: the
      whole point of the change was to get more of the page above the fold. */
   .kpi-strip{
-    margin-top:16px;
+    margin-top:10px;
     display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:10px;
   }
   @media (max-width:1100px){ .kpi-strip{grid-template-columns:repeat(3,minmax(0,1fr));} }
@@ -316,7 +334,7 @@
      map draws about 450 wide, which a 6-column track fits with far less waste
      than a 7-column one (124px of dead space per side became 73). */
   .map-svg-wrap{
-    position:relative; width:100%; flex:0 0 auto; height:470px;
+    position:relative; width:100%; flex:0 0 auto; height:420px;
     border-radius:var(--radius-sm); overflow:hidden;
     background:linear-gradient(180deg,#F7EFE1 0%,#EFE3D0 100%);
   }
@@ -337,9 +355,16 @@
   .district-ledger{
     border:1px solid var(--line-strong); border-radius:var(--radius-md); background:var(--surface);
     overflow:hidden; box-shadow:var(--shadow-panel); display:flex; flex-direction:column;
+    /* min-height:0 lets the list inside scroll instead of pushing this panel
+       taller than the map it sits beside; the two then end level. */
+    min-height:0;
   }
   /* Scrolls instead of setting the height of the whole row. */
-  #districtList{flex:1 1 auto; overflow-y:auto; max-height:432px;}
+    /* Capped so the list scrolls rather than setting the height of the whole
+     row. Kept in step with the map's height above: the two panels are grid
+     items that stretch to each other, so whichever is taller wins, and an
+     uncapped eleven-row list is taller than any map worth looking at. */
+  #districtList{flex:1 1 auto; overflow-y:auto; min-height:0; max-height:382px;}
   .district-ledger-head{padding:14px 16px 10px; border-bottom:1px solid var(--line);}
   .district-row{
     display:grid; grid-template-columns:1fr auto auto; gap:12px; align-items:center;
@@ -347,6 +372,7 @@
     transition:background .12s ease;
   }
   .district-row:last-child{border-bottom:none;}
+  .district-row:nth-child(even){background:var(--surface-sunk);}
   .district-row:hover{background:var(--roast-wash);}
   .district-row.selected{background:var(--roast-wash); box-shadow:inset 3px 0 0 var(--roast);}
   .district-row .name{font-size:13.5px; font-weight:500; line-height:1.35;}
@@ -397,21 +423,40 @@
   .grid > [class*="col-"]{min-width:0;}
   @media (max-width:980px){ .grid > [class*="col-"]{grid-column:1 / -1;} }
 
-  table.leaderboard{width:100%; border-collapse:collapse; font-size:13.5px; table-layout:fixed;}
+  table.leaderboard{
+    width:100%; border-collapse:separate; border-spacing:0; font-size:13.5px;
+    table-layout:fixed; border:1px solid var(--line-strong);
+    border-radius:var(--radius-sm); overflow:hidden;
+  }
   table.leaderboard th{
-    text-align:left; font-size:11px; font-weight:600; color:var(--ink-faint);
-    padding:0 14px 11px; border-bottom:1px solid var(--line-strong);
-    text-transform:uppercase; letter-spacing:0.07em; white-space:nowrap;
+    text-align:left; font-size:11px; font-weight:600; color:#F0DFC7;
+    background:var(--roast-deep);
+    padding:9px 14px; text-transform:uppercase; letter-spacing:0.07em; white-space:nowrap;
   }
   table.leaderboard td{
-    padding:9px 14px; border-bottom:1px solid var(--line);
+    padding:8px 14px; border-bottom:1px solid var(--line);
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
+  /* Alternating rows. The stripe is the palette's own parchment rather than a
+     grey, so it reads as part of the theme instead of a browser default. */
+  table.leaderboard tbody tr:nth-child(odd){background:var(--surface);}
+  table.leaderboard tbody tr:nth-child(even){background:var(--surface-sunk);}
   table.leaderboard tbody tr:last-child td{border-bottom:none;}
   table.leaderboard tbody tr:hover{background:var(--roast-wash);}
-  table.leaderboard td.num, table.leaderboard th.num{font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; text-align:right;}
+  table.leaderboard td.num, table.leaderboard th.num{text-align:right; font-variant-numeric:tabular-nums;}
   table.leaderboard td.name{font-weight:500;}
-  table.leaderboard td.rank{color:var(--ink-faint); font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;}
+  /* A code is an identifier, not a quantity, so it stays left-aligned under a
+     left-aligned header. It keeps tabular figures so the codes stack evenly. */
+  table.leaderboard td.code{
+    text-align:left; font-variant-numeric:tabular-nums; letter-spacing:.01em;
+  }
+  /* A rule down the left of the first data column, so the eye has a rail to
+     follow across a wide row. */
+  table.leaderboard td.rank{
+    color:var(--ink-faint); font-variant-numeric:tabular-nums;
+    box-shadow:inset 3px 0 0 var(--roast-wash);
+  }
+  table.leaderboard tbody tr:hover td.rank{box-shadow:inset 3px 0 0 var(--roast);}
   /* Unconditional rather than only under 820px: the table has a 660px floor,
      so any container narrower than that has to scroll it, and min-width:0 lets
      the container shrink far enough for that to happen. */
@@ -660,25 +705,25 @@
   <section class="hero">
     <div class="hero-head">
       <p class="hero-eyebrow" data-i18n="heroEyebrow">EU Deforestation Regulation</p>
-      <div class="hero-grid">
-        <div class="col-7">
-          <div>
-            <h1 data-i18n="heroH1">Every kilogram sold into Europe needs the location of the plot it grew on</h1>
-            <p class="lede" data-i18n="heroLede">-</p>
-            <div class="hero-badges" style="margin-top:16px;">
-              <span class="badge"><span class="dot"></span><span class="bv" id="badgeRegV">-</span><span class="bl" id="badgeReg">-</span></span>
-              <span class="badge"><span class="dot" style="background:var(--leaf);"></span><span class="bv num" id="badgeCutoffV">-</span><span class="bl" id="badgeCutoff">-</span></span>
-              <span class="badge"><span class="dot" style="background:var(--teal);"></span><span class="bv num" id="badgePrecisionV">-</span><span class="bl" id="badgePrecision">-</span></span>
-            </div>
-          </div>
-        </div>
-        <div class="col-5">
-          <div class="hero-figure">
-            <div class="big" id="heroBig">-</div>
-            <div class="cap" data-i18n="heroCap">of volume meets the geolocation standard</div>
-            <div class="sub" id="heroSub">-</div>
-          </div>
-        </div>
+    </div>
+
+    <div class="tilerow tilerow-4">
+      <div class="tile tile-lead" id="tileLead">
+        <p class="tile-label" data-i18n="heroCap">of volume meets the geolocation standard</p>
+        <div class="tile-value num" id="heroBig">-</div>
+        <div class="tile-foot num" id="heroSub">-</div>
+      </div>
+      <div class="tile tile-a" id="tileReg">
+        <p class="tile-label" id="badgeReg">-</p>
+        <div class="tile-value tile-value-sm" id="badgeRegV">-</div>
+      </div>
+      <div class="tile tile-b" id="tileCutoff">
+        <p class="tile-label" id="badgeCutoff">-</p>
+        <div class="tile-value num" id="badgeCutoffV">-</div>
+      </div>
+      <div class="tile tile-c" id="tilePrec">
+        <p class="tile-label" id="badgePrecision">-</p>
+        <div class="tile-value num" id="badgePrecisionV">-</div>
       </div>
     </div>
 
@@ -690,32 +735,32 @@
     </div>
 
     <div class="kpi-strip">
-      <div class="kpi-cell">
+      <div class="kpi-cell"><span class="kpi-icon-slot" data-icon="plot"></span>
         <p class="kpi-label" data-i18n="kpiCompliant">Volume that qualifies</p>
         <div class="kpi-value" id="kpiCompliant">-</div>
         <div class="kpi-delta flat" id="kpiCompliantSub">-</div>
       </div>
-      <div class="kpi-cell">
+      <div class="kpi-cell"><span class="kpi-icon-slot" data-icon="tag"></span>
         <p class="kpi-label" data-i18n="kpiAtRisk">Volume at risk</p>
         <div class="kpi-value" id="kpiAtRisk">-</div>
         <div class="kpi-delta down" id="kpiAtRiskSub">-</div>
       </div>
-      <div class="kpi-cell">
+      <div class="kpi-cell"><span class="kpi-icon-slot" data-icon="person"></span>
         <p class="kpi-label" data-i18n="kpiVisits">Farmers needing a visit</p>
         <div class="kpi-value" id="kpiVisits">-</div>
         <div class="kpi-delta flat" id="kpiVisitsSub">-</div>
       </div>
-      <div class="kpi-cell">
+      <div class="kpi-cell"><span class="kpi-icon-slot" data-icon="crate"></span>
         <p class="kpi-label" data-i18n="kpiMappedPlots">Plot boundaries walked</p>
         <div class="kpi-value" id="kpiPolygon">-</div>
         <div class="kpi-delta up" id="kpiPolygonSub">-</div>
       </div>
-      <div class="kpi-cell">
+      <div class="kpi-cell"><span class="kpi-icon-slot" data-icon="pin"></span>
         <p class="kpi-label" data-i18n="kpiMapped">Farmers with a usable point</p>
         <div class="kpi-value" id="kpiMapped">-</div>
         <div class="kpi-delta flat" id="kpiMappedSub">-</div>
       </div>
-      <div class="kpi-cell">
+      <div class="kpi-cell"><span class="kpi-icon-slot" data-icon="seal"></span>
         <p class="kpi-label" data-i18n="kpiChain">Chain intact</p>
         <div class="kpi-value" id="kpiChain">-</div>
         <div class="kpi-delta up" data-i18n="kpiChainSub">every kg links to a farmer</div>
@@ -1041,6 +1086,59 @@ function esc(s){
 }
 
 /* ============================= palette ============================= */
+/* Dotted grid lines, matching index.html. Set through Chart.defaults so
+   any chart added later inherits it. */
+/* ============================= tile icons =============================
+   Hand-drawn glyphs rather than an icon library: no extra request, no
+   dependency, and nothing here resembles anyone's logo or brand mark. Each is
+   a 24x24 stroke path so they share a weight, and they sit at low opacity so
+   they decorate the tile without competing with the figure on it. */
+var ICONS = {
+  /* coffee bean: an ellipse with the crease down it */
+  bean:'<ellipse cx="12" cy="12" rx="6.5" ry="9" transform="rotate(-35 12 12)"/>'+
+       '<path d="M8 16c2.5-2.6 5.5-5.6 8-8"/>',
+  /* rosette seal for certification */
+  seal:'<circle cx="12" cy="9.5" r="5.5"/><path d="M9 14.5 7.5 21l4.5-2.4 4.5 2.4L15 14.5"/>',
+  /* one person */
+  person:'<circle cx="12" cy="8" r="3.5"/><path d="M5.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/>',
+  /* several people, for a cooperative */
+  group:'<circle cx="9" cy="8.5" r="3"/><path d="M3 19c0-3.1 2.7-5.2 6-5.2s6 2.1 6 5.2"/>'+
+        '<path d="M16 6.4a3 3 0 0 1 0 5.7"/><path d="M17.5 13.9c2.1.5 3.5 2.2 3.5 4.4"/>',
+  /* map pin */
+  pin:'<path d="M12 21s6.5-6.2 6.5-11a6.5 6.5 0 1 0-13 0C5.5 14.8 12 21 12 21Z"/>'+
+      '<circle cx="12" cy="10" r="2.4"/>',
+  /* banknote */
+  cash:'<rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.8"/>'+
+       '<path d="M6 9.5v5M18 9.5v5"/>',
+  /* price tag */
+  tag:'<path d="M11 3.5H4.5A1.5 1.5 0 0 0 3 5v6.4c0 .4.2.8.4 1l8.6 8.6a1.5 1.5 0 0 0 2.1 0l6-6a1.5 1.5 0 0 0 0-2.1L11.6 4a1.5 1.5 0 0 0-1-.5Z"/>'+
+      '<circle cx="7.5" cy="8.5" r="1.4"/>',
+  /* stacked crate, for a dispatched batch */
+  crate:'<path d="M3 8.2 12 4l9 4.2v7.6L12 20l-9-4.2Z"/><path d="M3 8.2 12 12.4l9-4.2M12 12.4V20"/>',
+  /* surveyed plot boundary */
+  plot:'<path d="M4 6.5 10 4l4.5 2.5L20 4.4v13.2L14.5 20 10 17.5 4 20Z"/><path d="M10 4v13.5M14.5 6.5V20"/>',
+  /* calendar window */
+  window:'<rect x="3.5" y="5.5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3.5v4M16 3.5v4"/>',
+  /* leaf, for the growing side */
+  leaf:'<path d="M20 4C10 4 4 9 4 15.5A4.5 4.5 0 0 0 8.5 20C15 20 20 14 20 4Z"/><path d="M15 9C10.5 11 8 14.5 7 19"/>'
+};
+function icon(name){
+  var d = ICONS[name];
+  if (!d) return '';
+  return '<svg class="tile-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" ' +
+         'fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" ' +
+         'stroke-linejoin="round">' + d + '</svg>';
+}
+
+function icon(name){
+  var d = ICONS[name];
+  if (!d) return '';
+  return '<svg class="tile-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" ' +
+         'fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" ' +
+         'stroke-linejoin="round">' + d + '</svg>';
+}
+
+var GRID_DASH = [2, 3];
 var CHART_FONT = '"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif';
 var COLORS = {
   roast:'#7B4A24', roastDeep:'#43260F', roastLight:'#A97244', roastWash:'#F4E6D5',
@@ -1061,6 +1159,9 @@ function themeCharts(){
   Chart.defaults.font.family = '"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif';
   Chart.defaults.color = COLORS.inkSoft;
   Chart.defaults.font.size = 11.5;
+  Chart.defaults.scale.grid.borderDash = GRID_DASH;
+  Chart.defaults.scale.grid.color = COLORS.line;
+  Chart.defaults.scale.grid.tickBorderDash = GRID_DASH;
 }
 
 var CHARTS = {};
@@ -1996,7 +2097,7 @@ function renderGap(){
         }}}
       },
       scales:{
-        x:{grid:{color:COLORS.line}, border:{display:false},
+        x:{grid:{color:COLORS.line, borderDash:GRID_DASH}, border:{display:false},
            ticks:{maxTicksLimit:6, callback:function(v){ return fmtAxisT(v); }}},
         y:{grid:{display:false}, border:{display:false},
            ticks:{font:{family:CHART_FONT, size:12}, color:COLORS.ink}}
@@ -2050,7 +2151,7 @@ function renderCurve(){
            min:0, ticks:{maxTicksLimit:7, callback:function(v){ return fmtInt(v); }},
            title:{display:true, text:t('lblVisits'), color:COLORS.inkFaint,
                   font:{family:CHART_FONT, size:11.5}}},
-        y:{grid:{color:COLORS.line}, border:{display:false},
+        y:{grid:{color:COLORS.line, borderDash:GRID_DASH}, border:{display:false},
            min:60, max:100,
            ticks:{callback:function(v){ return v + '%'; }}}
       }
@@ -2108,7 +2209,7 @@ function renderBuyers(){
         }}
       },
       scales:{
-        x:{stacked:true, grid:{color:COLORS.line}, border:{display:false},
+        x:{stacked:true, grid:{color:COLORS.line, borderDash:GRID_DASH}, border:{display:false},
            ticks:{callback:function(v){ return fmtAxisT(v); }}},
         y:{stacked:true, grid:{display:false}, border:{display:false},
            ticks:{font:{family:CHART_FONT, size:12}, color:COLORS.ink}}
@@ -2151,7 +2252,23 @@ function renderOther(){
     '<div class="callout act">' + t('noteOther') + '</div>';
 }
 
+var TILE_ICONS = {'tileLead': 'plot', 'tileReg': 'seal', 'tileCutoff': 'leaf', 'tilePrec': 'pin'};
+function paintTileIcons(){
+  /* KPI tiles carry their glyph name on the element, so the markup stays
+     declarative and the SVG is built in one place. */
+  document.querySelectorAll('.kpi-icon-slot').forEach(function(slot){
+    if (slot.dataset.done) return;
+    slot.outerHTML = icon(slot.dataset.icon);
+  });
+  Object.keys(TILE_ICONS).forEach(function(id){
+    var el = document.getElementById(id);
+    if (!el || el.querySelector('.tile-icon')) return;
+    el.insertAdjacentHTML('afterbegin', icon(TILE_ICONS[id]));
+  });
+}
+
 function renderAll(){
+  paintTileIcons();
   computeFacts();
   applyStaticI18n();
   document.getElementById('footerAboutP').textContent = t('aboutP');
