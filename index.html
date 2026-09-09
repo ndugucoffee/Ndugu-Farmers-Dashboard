@@ -576,7 +576,7 @@
       <div class="tile tile-lead" id="tileLead">
         <p class="tile-label" data-i18n="heroCap">Coffee purchased</p>
         <div class="tile-value num" id="heroQty">-</div>
-        <div class="tile-foot num"><span id="heroAmount">-</span> · <span id="heroWindow">May 2024 – Aug 2026</span></div>
+        <div class="tile-foot num" id="heroWindow">May 2024 – Aug 2026</div>
       </div>
       <div class="tile tile-a" id="tileCert">
         <p class="tile-label" data-i18n="badge1l">Certifications</p>
@@ -1009,7 +1009,6 @@ en:{
   badge2l:'Farmers registered',
   badge3l:function(f){ return 'Sourcing districts' + (f.emerging ? ', '+f.emerging+' emerging' : ''); },
   heroCap:'Coffee purchased',
-  heroAmountSuffix:'paid to farmers',
   mapH2:'Area of operation',
   mapP:'Every dot is a real farmer location. Bubbles mark district-level volume; click one for the detail.',
   mapTagAll:'Showing all districts',
@@ -1049,7 +1048,7 @@ en:{
   footerAboutP:function(f){ return 'Covers transactions from '+f.dateMinHuman+' through '+f.dateMaxHuman+'. "Season" follows Ndugu\'s coffee-year convention rather than the calendar year, so a season typically runs from one year\'s harvest into the next. District is taken from each farmer\'s registered location. The map plots farmers whose registered coordinates fall inside the mapped area; records without a usable coordinate are included in every total but are not plotted. Age bands are derived from recorded dates of birth and exclude records where that date falls outside a plausible range. USD figures use an indicative rate of about '+fmtInt(f.fx)+' UGX per USD and are not a live conversion. Every chart and total on this page is computed over the complete dataset of '+fmtInt(f.transactions)+' transactions, rebuilt from source on '+f.generated+'.'; },
   footerDefH:'Definitions',
   footerDefP:'FAQ: Fair Average Quality. Certification: Rainforest Alliance, Fairtrade and 4C. Active supplier: a registered farmer with at least one recorded delivery in this window. Batch: a bulked, graded lot dispatched to a buyer.',
-  kpiVolume:'Volume purchased', kpiValue:'Value paid to farmers', kpiActive:'Active suppliers',
+  kpiPerSupplier:'Avg per supplier', kpiPerSupplierSub:'delivered per active farmer', kpiValue:'Value paid to farmers', kpiActive:'Active suppliers',
   kpiDistricts:'Districts covered', kpiAvgPrice:'Avg. price paid', kpiBatches:'Batches dispatched',
   kpiSeasonWindow:'Season window', kpiToExporters:'to exporters', kpiTo:'to', kpiInProgress:'in progress',
   vsPriorSeason:'vs prior season',
@@ -1081,7 +1080,6 @@ nl:{
   badge2l:'Geregistreerde boeren',
   badge3l:function(f){ return 'Inkoopdistricten' + (f.emerging ? ', '+f.emerging+' opkomend' : ''); },
   heroCap:'Ingekochte koffie',
-  heroAmountSuffix:'uitbetaald aan boeren',
   mapH2:'Werkgebied',
   mapP:'Elke stip is een echte boerderijlocatie. Bubbels tonen het volume per district; klik voor details.',
   mapTagAll:'Alle districten getoond',
@@ -1121,7 +1119,7 @@ nl:{
   footerAboutP:function(f){ return 'Omvat transacties van '+f.dateMinHuman+' tot en met '+f.dateMaxHuman+'. "Seizoen" volgt Ndugu\'s koffiejaar-conventie in plaats van het kalenderjaar, dus een seizoen loopt doorgaans van de ene oogst tot in de volgende. Het district komt uit de geregistreerde locatie van elke boer. De kaart toont boeren met geregistreerde coördinaten binnen het kaartgebied; records zonder bruikbare coördinaat tellen mee in alle totalen maar worden niet geplot. Leeftijdsgroepen zijn afgeleid van geregistreerde geboortedata en sluiten records uit waarvan die datum buiten een plausibel bereik valt. USD-bedragen gebruiken een indicatieve koers van ongeveer '+fmtInt(f.fx)+' UGX per USD en zijn geen live omrekening. Elke grafiek en elk totaal op deze pagina is berekend over de volledige dataset van '+fmtInt(f.transactions)+' transacties, opnieuw opgebouwd op '+f.generated+'.'; },
   footerDefH:'Definities',
   footerDefP:'FAQ: Fair Average Quality. Certificering: Rainforest Alliance, Fairtrade en 4C. Actieve leverancier: een geregistreerde boer met minstens één geregistreerde levering in deze periode. Partij: een gebundelde, gesorteerde lading verzonden naar een koper.',
-  kpiVolume:'Ingekocht volume', kpiValue:'Uitbetaald aan boeren', kpiActive:'Actieve leveranciers',
+  kpiPerSupplier:'Gem. per leverancier', kpiPerSupplierSub:'geleverd per actieve boer', kpiValue:'Uitbetaald aan boeren', kpiActive:'Actieve leveranciers',
   kpiDistricts:'Districten gedekt', kpiAvgPrice:'Gem. betaalde prijs', kpiBatches:'Verzonden partijen',
   kpiSeasonWindow:'Seizoensvenster', kpiToExporters:'naar exporteurs', kpiTo:'tot', kpiInProgress:'loopt nog',
   vsPriorSeason:'t.o.v. vorig seizoen',
@@ -1157,10 +1155,14 @@ function applyStaticI18n(){
 function renderHero(){
   document.title = T('docTitle');
   document.getElementById('asOfDate').textContent = fmtDateHuman(DATA.kpis.date_max);
-  document.getElementById('heroQty').textContent = fmtTonnes(DATA.kpis.total_qty_kg);
+  /* The lead tile now follows the season pills like the KPI row does. It used
+     to be fixed at the all-time total, which meant that selecting a season left
+     it showing a different number from every other figure on the page, and made
+     it an exact repeat of the first KPI in the default view. */
+  var d = seasonData(state.season);
+  document.getElementById('heroQty').textContent = fmtTonnes(d.qty_kg);
   document.getElementById('heroWindow').textContent =
-    fmtMonthYear(DATA.kpis.date_min) + ' – ' + fmtMonthYear(DATA.kpis.date_max);
-  document.getElementById('heroAmount').textContent = fmtUGX(DATA.kpis.total_amount_ugx) + ' ' + T('heroAmountSuffix');
+    fmtMonthYear(d.date_min) + ' – ' + fmtMonthYear(d.date_max);
 }
 
 /* ============================= KPI strip ============================= */
@@ -1202,7 +1204,12 @@ function renderKPIs(){
   var batchesN = isAll ? DATA.kpis.n_batches : null;
 
   var cells = [];
-  cells.push({icon:'bean',   label:T('kpiVolume'), value:fmtTonnes(d.qty_kg), delta: isAll?'':deltaHTML(d,prev,'qty_kg')});
+  /* Volume lives on the lead tile above, which now tracks the same season, so
+     repeating it here bought nothing. Average delivered per supplier is the
+     figure the trend commentary already turns on and nothing else showed it. */
+  var perSupplier = (d.n_farmers > 0) ? (d.qty_kg / d.n_farmers) : 0;
+  cells.push({icon:'person', label:T('kpiPerSupplier'), value:fmtKgShort(perSupplier),
+              delta:'<div class="kpi-delta flat">'+T('kpiPerSupplierSub')+'</div>'});
   cells.push({icon:'cash',   label:T('kpiValue'), value:fmtUGX(d.amount_ugx), delta: isAll?'':deltaHTML(d,prev,'amount_ugx')});
   cells.push({icon:'group',  label:T('kpiActive'), value:fmtInt(farmers)+' <small>/ '+fmtInt(registered)+'</small>', delta:''});
   cells.push({icon:'pin',    label:T('kpiDistricts'), value:fmtInt(districts), delta:''});
@@ -1227,6 +1234,7 @@ document.getElementById('seasonPills').addEventListener('click', function(e){
   document.querySelectorAll('#seasonPills .pill').forEach(function(p){ p.classList.remove('active'); });
   btn.classList.add('active');
   state.season = btn.getAttribute('data-season');
+  renderHero();
   renderKPIs();
   renderDistrictList();
   renderMapBubbles();
@@ -1853,7 +1861,7 @@ function renderCoopChart(){
 function renderLeaderboard(){
   var html = DATA.top_farmers.map(function(f, i){
     var loc = [f.village, f.district].filter(Boolean).join(', ');
-    return '<tr><td class="rank">'+(i+1)+'</td><td class="name num">'+esc(f.code)+'</td><td>'+esc(loc)+'</td>'+
+    return '<tr><td class="rank">'+(i+1)+'</td><td class="name code">'+esc(f.code)+'</td><td>'+esc(loc)+'</td>'+
       '<td class="num">'+fmtInt(f.n_deliveries)+'</td><td class="num">'+fmtKgShort(f.qty_kg)+'</td></tr>';
   }).join('');
   document.getElementById('leaderboardBody').innerHTML = html;
