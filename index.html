@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ndugu Farmers Ltd | Domestic Trade</title>
+<title>Ndugu Farmers Ltd | Sourcing &amp; Operations</title>
 <!-- No webfont is loaded. Power BI's typeface is Segoe UI, which Microsoft
      licenses with Windows and does not publish to Google Fonts, so it cannot
      lawfully be served from here; it is named in the stack instead and falls
@@ -184,6 +184,18 @@
   /* ---------- Section scaffolding ---------- */
   section{padding:22px 0;}
   section + section{border-top:1px solid var(--line);}
+  /* Part rails split the page into the two runs it actually serves: the
+     scale-and-impact read at the top, the operating detail below it. */
+  .part-rail{
+    display:flex; align-items:center; gap:12px;
+    margin:26px 0 0 0; padding-top:20px; border-top:2px solid var(--ink);
+  }
+  .part-rail span{
+    font-size:11.5px; font-weight:700; letter-spacing:.09em;
+    text-transform:uppercase; color:var(--ink); white-space:nowrap;
+  }
+  .part-rail::after{content:''; flex:1 1 auto; height:1px; background:var(--line);}
+  .part-rail + section{border-top:none; padding-top:10px;}
   .section-head{
     display:grid; grid-template-columns:repeat(12,minmax(0,1fr));
     gap:24px; align-items:end; margin-bottom:12px;
@@ -566,7 +578,7 @@
   <section class="hero">
     <div class="hero-head">
       <h1 data-i18n="heroH1">Greater Masaka's coffee, tracked from farm gate to export.</h1>
-      <p class="lede" data-i18n="heroLede">Ndugu Coop buys FAQ-grade robusta, certified under Rainforest Alliance, Fairtrade and 4C, from smallholder farmers across seven Ugandan districts, bulks it into export-ready lots, and hands it off to UGACOF, ETG and other buyers.</p>
+      <p class="lede" data-i18n="heroLede">Ndugu Coop buys FAQ-grade robusta, certified under Rainforest Alliance, Fairtrade and 4C, from smallholder farmers across seven Ugandan districts, bulks it into export-ready lots, and hands it off to UGACOF, ETG and other buyers. This is where that pipeline stands today.</p>
     </div>
 
     <!-- Row one. Six equal tiles, matching the KPI row below, so the head of
@@ -605,79 +617,7 @@
     <div class="kpi-strip" id="kpiStrip"></div>
   </section>
 
-  <section id="sec-map">
-    <div class="section-head">
-      <div>
-        <h2 data-i18n="mapH2">Area of operation</h2>
-        <p data-i18n="mapP">Click a district for its detail.</p>
-      </div>
-      <div class="section-tag" id="mapSelectedTag" data-i18n="mapTagAll">Showing all districts</div>
-    </div>
-    <div class="grid">
-      <div class="map-panel col-6">
-        <div class="map-svg-wrap" id="mapSvgWrap">
-          <div class="map-tooltip" id="mapTooltip"></div>
-        </div>
-        <div class="map-legend">
-          <span class="item"><span class="sw" style="background:var(--roast);"></span><span data-i18n="legendActive">Active sourcing (bubble size = volume)</span></span>
-          <span class="item"><span class="sw" style="background:transparent;border:1.5px dashed var(--honey);"></span><span data-i18n="legendRegistered">Registered, not yet active</span></span>
-          <span class="item"><span class="sw" style="background:var(--leaf); opacity:.4; width:6px; height:6px;"></span><span data-i18n="legendFarmer">Individual farmer</span></span>
-        </div>
-      </div>
-      <div class="district-ledger col-6">
-        <div class="district-ledger-head">
-          <div class="panel-title" data-i18n="districtLedgerTitle">Districts, ranked by volume</div>
-          <div class="panel-note" data-i18n="districtLedgerNote">Active farmers / registered farmers</div>
-        </div>
-        <div id="districtList"></div>
-        <div class="district-detail vis-hidden" id="districtDetail"></div>
-      </div>
-    </div>
-  </section>
-
-  <section id="sec-trend">
-    <div class="section-head">
-      <div>
-        <h2 data-i18n="trendH2">Volume, value &amp; price over time</h2>
-      </div>
-    </div>
-    <div class="panel">
-      <div class="toggle-row">
-        <div class="seg" id="trendToggle">
-          <button class="active" data-metric="qty" data-i18n="metricQty">Volume (kg)</button>
-          <button data-metric="amount" id="btnMetricAmount">Value (UGX)</button>
-          <button data-metric="price" data-i18n="metricPrice">Price per kg</button>
-        </div>
-        <div class="map-legend" style="margin-top:0;">
-          <span class="item"><span class="sw" style="background:var(--leaf); border-radius:2px; width:11px; height:11px;"></span><span data-i18n="season2024">Season 2024</span></span>
-          <span class="item"><span class="sw" style="background:var(--roast); border-radius:2px; width:11px; height:11px;"></span><span data-i18n="season2025">Season 2025</span></span>
-          <span class="item"><span class="sw" style="background:var(--honey); border-radius:2px; width:11px; height:11px;"></span><span data-i18n="season2026">Season 2026</span></span>
-        </div>
-      </div>
-      <div class="chart-box"><canvas id="trendChart"></canvas></div>
-      <div class="insight-line" id="trendInsight"></div>
-    </div>
-  </section>
-
-  <section id="sec-route">
-    <div class="section-head">
-      <div>
-        <h2 data-i18n="routeH2">Route to market &amp; field team</h2>
-      </div>
-    </div>
-    <div class="grid">
-      <div class="panel col-6">
-        <div class="panel-title" data-i18n="buyerMixTitle">Buyer mix by month</div>
-        <div class="panel-note" data-i18n="buyerMixNote">1,079 batches, 8,494 t dispatched all-time</div>
-        <div class="chart-box short"><canvas id="buyerChart"></canvas></div>
-      </div>
-      <div class="panel col-6">
-        <div class="panel-title" data-i18n="fmTitle">Field manager performance</div>
-        <div class="panel-note" id="fmSelectedNote" data-i18n="fmNote">Volume sourced, current filter</div>
-        <div class="chart-box short"><canvas id="fmChart"></canvas></div>
-      </div>
-    </div>
-  </section>
+  <div class="part-rail"><span data-i18n="partScale">Scale and impact</span></div>
 
   <section id="sec-network">
     <div class="section-head">
@@ -710,6 +650,62 @@
     </div>
   </section>
 
+  <section id="sec-map">
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="mapH2">Area of operation</h2>
+        <p data-i18n="mapP">Click a district for its detail.</p>
+      </div>
+      <div class="section-tag" id="mapSelectedTag" data-i18n="mapTagAll">Showing all districts</div>
+    </div>
+    <div class="grid">
+      <div class="map-panel col-6">
+        <div class="map-svg-wrap" id="mapSvgWrap">
+          <div class="map-tooltip" id="mapTooltip"></div>
+        </div>
+        <div class="map-legend">
+          <span class="item"><span class="sw" style="background:var(--roast);"></span><span data-i18n="legendActive">Active sourcing (bubble size = volume)</span></span>
+          <span class="item"><span class="sw" style="background:transparent;border:1.5px dashed var(--honey);"></span><span data-i18n="legendRegistered">Registered, not yet active</span></span>
+          <span class="item"><span class="sw" style="background:var(--leaf); opacity:.4; width:6px; height:6px;"></span><span data-i18n="legendFarmer">Individual farmer</span></span>
+        </div>
+      </div>
+      <div class="district-ledger col-6">
+        <div class="district-ledger-head">
+          <div class="panel-title" data-i18n="districtLedgerTitle">Districts, ranked by volume</div>
+          <div class="panel-note" data-i18n="districtLedgerNote">Active farmers / registered farmers</div>
+        </div>
+        <div id="districtList"></div>
+        <div class="district-detail vis-hidden" id="districtDetail"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="part-rail"><span data-i18n="partOps">Operations</span></div>
+
+  <section id="sec-trend">
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="trendH2">Volume, value &amp; price over time</h2>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="toggle-row">
+        <div class="seg" id="trendToggle">
+          <button class="active" data-metric="qty" data-i18n="metricQty">Volume (kg)</button>
+          <button data-metric="amount" id="btnMetricAmount">Value (UGX)</button>
+          <button data-metric="price" data-i18n="metricPrice">Price per kg</button>
+        </div>
+        <div class="map-legend" style="margin-top:0;">
+          <span class="item"><span class="sw" style="background:var(--leaf); border-radius:2px; width:11px; height:11px;"></span><span data-i18n="season2024">Season 2024</span></span>
+          <span class="item"><span class="sw" style="background:var(--roast); border-radius:2px; width:11px; height:11px;"></span><span data-i18n="season2025">Season 2025</span></span>
+          <span class="item"><span class="sw" style="background:var(--honey); border-radius:2px; width:11px; height:11px;"></span><span data-i18n="season2026">Season 2026</span></span>
+        </div>
+      </div>
+      <div class="chart-box"><canvas id="trendChart"></canvas></div>
+      <div class="insight-line" id="trendInsight"></div>
+    </div>
+  </section>
+
   <section id="sec-suppliers">
     <div class="section-head">
       <div>
@@ -735,6 +731,26 @@
           </thead>
           <tbody id="leaderboardBody"></tbody>
         </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="sec-route">
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="routeH2">Field team &amp; route to market</h2>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="panel col-6">
+        <div class="panel-title" data-i18n="fmTitle">Field manager performance</div>
+        <div class="panel-note" id="fmSelectedNote" data-i18n="fmNote">Volume sourced, current filter</div>
+        <div class="chart-box short"><canvas id="fmChart"></canvas></div>
+      </div>
+      <div class="panel col-6">
+        <div class="panel-title" data-i18n="buyerMixTitle">Buyer mix by month</div>
+        <div class="panel-note" data-i18n="buyerMixNote">1,079 batches, 8,494 t dispatched all-time</div>
+        <div class="chart-box short"><canvas id="buyerChart"></canvas></div>
       </div>
     </div>
   </section>
@@ -1018,7 +1034,9 @@ en:{
   metricQty:'Volume (kg)', metricAmount:'Value', metricPrice:'Price per kg',
   chartLabelQty:'Volume (kg)', chartLabelAmount:'Value', chartLabelPrice:'Avg price /kg',
   season2024:'Season 2024', season2025:'Season 2025', season2026:'Season 2026',
-  routeH2:'Route to market &amp; field team',
+  partScale:'Scale and impact',
+  partOps:'Operations',
+  routeH2:'Field team &amp; route to market',
   buyerMixTitle:'Buyer mix by month',
   buyerMixNote:function(f){ return fmtInt(f.batches)+' batches, '+fmtTonnes(f.batchQty)+' dispatched all-time'; },
   fmTitle:'Field manager performance',
@@ -1085,7 +1103,9 @@ nl:{
   metricQty:'Volume (kg)', metricAmount:'Waarde', metricPrice:'Prijs per kg',
   chartLabelQty:'Volume (kg)', chartLabelAmount:'Waarde', chartLabelPrice:'Gem. prijs/kg',
   season2024:'Seizoen 2024', season2025:'Seizoen 2025', season2026:'Seizoen 2026',
-  routeH2:'Route naar de markt &amp; veldteam',
+  partScale:'Omvang en impact',
+  partOps:'Bedrijfsvoering',
+  routeH2:'Veldteam &amp; route naar de markt',
   buyerMixTitle:'Kopersmix per maand',
   buyerMixNote:function(f){ return fmtInt(f.batches)+' partijen, '+fmtTonnes(f.batchQty)+' verzonden (totaal)'; },
   fmTitle:'Prestaties veldmedewerkers',
