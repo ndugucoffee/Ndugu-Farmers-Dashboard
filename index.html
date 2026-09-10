@@ -609,7 +609,7 @@
     <div class="section-head">
       <div>
         <h2 data-i18n="mapH2">Area of operation</h2>
-        <p data-i18n="mapP">Every dot is a real farmer location. Bubbles mark district-level volume; click one for the detail.</p>
+        <p data-i18n="mapP">Click a district for its detail.</p>
       </div>
       <div class="section-tag" id="mapSelectedTag" data-i18n="mapTagAll">Showing all districts</div>
     </div>
@@ -639,7 +639,6 @@
     <div class="section-head">
       <div>
         <h2 data-i18n="trendH2">Volume, value &amp; price over time</h2>
-        <p data-i18n="trendP">Monthly purchases from farmers since the first delivery in May 2024.</p>
       </div>
     </div>
     <div class="panel">
@@ -664,7 +663,6 @@
     <div class="section-head">
       <div>
         <h2 data-i18n="routeH2">Route to market &amp; field team</h2>
-        <p data-i18n="routeP">All-time totals: how dispatched volume splits across buyers, and who's sourcing it.</p>
       </div>
     </div>
     <div class="grid">
@@ -685,7 +683,6 @@
     <div class="section-head">
       <div>
         <h2 data-i18n="networkH2">Farmer network</h2>
-        <p data-i18n="networkP">Who's registered, how their land is split, and which cooperatives they organize through.</p>
       </div>
       <div class="section-tag" data-i18n="networkTag">11,375 registered · 4,536 have delivered</div>
     </div>
@@ -717,7 +714,6 @@
     <div class="section-head">
       <div>
         <h2 data-i18n="leaderTitle">Top suppliers, all-time</h2>
-        <p data-i18n="leaderNote">The fifteen farmers who have delivered the most volume since the first purchase in May 2024.</p>
       </div>
       <div class="section-tag" id="leaderTag"></div>
     </div>
@@ -1002,7 +998,7 @@ en:{
   brandRole:'Sourcing & operations',
   asofLabel:'Data through',
   heroH1:"Greater Masaka's coffee, tracked from farm gate to export.",
-  heroLede:function(f){ return 'Ndugu Coop buys FAQ-grade robusta, certified under Rainforest Alliance, Fairtrade and 4C, from smallholder farmers across '+f.activeDistricts+' Ugandan districts, bulks it into export-ready lots, and hands it off to '+f.buyer1+', '+f.buyer2+' and other buyers. This is where that pipeline stands today.'; },
+  heroLede:function(f){ return 'FAQ-grade robusta from smallholders across '+f.activeDistricts+' districts, bulked into export lots for '+f.buyer1+', '+f.buyer2+' and others.'; },
   badge1v:'RFA · Fairtrade · 4C · EUDR', badge1l:'Certifications',
   badge4l:'Cooperatives', badge5l:'Women in the registry', ofRegistry:'of the registry',
   badge3l2:'Deliveries recorded', acrossDistricts:'districts',
@@ -1010,7 +1006,7 @@ en:{
   badge3l:function(f){ return 'Sourcing districts' + (f.emerging ? ', '+f.emerging+' emerging' : ''); },
   heroCap:'Coffee purchased',
   mapH2:'Area of operation',
-  mapP:'Every dot is a real farmer location. Bubbles mark district-level volume; click one for the detail.',
+  mapP:'Click a district for its detail.',
   mapTagAll:'Showing all districts',
   legendActive:'Active sourcing (bubble size = volume)',
   legendRegistered:'Registered, not yet active',
@@ -1019,19 +1015,16 @@ en:{
   districtLedgerNote:'Active farmers / registered farmers',
   farmersWord:'farmers',
   trendH2:'Volume, value &amp; price over time',
-  trendP:function(f){ return 'Monthly purchases from farmers since the first delivery in '+f.firstMonth+'.'; },
   metricQty:'Volume (kg)', metricAmount:'Value', metricPrice:'Price per kg',
   chartLabelQty:'Volume (kg)', chartLabelAmount:'Value', chartLabelPrice:'Avg price /kg',
   season2024:'Season 2024', season2025:'Season 2025', season2026:'Season 2026',
   routeH2:'Route to market &amp; field team',
-  routeP:"All-time totals: how dispatched volume splits across buyers, and who's sourcing it.",
   buyerMixTitle:'Buyer mix by month',
   buyerMixNote:function(f){ return fmtInt(f.batches)+' batches, '+fmtTonnes(f.batchQty)+' dispatched all-time'; },
   fmTitle:'Field manager performance',
   fmNote:'Volume sourced, current filter',
   fmFarmersAvg:'farmers', fmAvgSuffix:'/kg avg',
   networkH2:'Farmer network',
-  networkP:"Who's registered, how their land is split, and which cooperatives they organize through.",
   networkTag:function(f){ return fmtInt(f.registered)+' registered · '+fmtInt(f.activeFarmers)+' have delivered'; },
   genderTitle:'Gender', genderNote:'Registered network vs. volume delivered, all-time',
   youthTitle:'Youth involvement', youthNote:'Registered network vs. volume delivered, by age group',
@@ -1041,7 +1034,6 @@ en:{
   shareRegistry:'Share of registry', shareVolume:'Share of volume',
   youthSenior:'Senior 60+', youthAdult:'Adult 36–59', youthYouth:'Youth 18–35',
   leaderTitle:'Top suppliers, all-time',
-  leaderNote:function(f){ return 'The '+f.topN+' farmers who have delivered the most volume since the first purchase in '+f.firstMonth+'.'; },
   leaderTag:function(n,total){ return 'Top '+n+' of '+total+' active suppliers'; },
   thRank:'#', thFarmer:'Farmer code', thDistrictVillage:'District / village', thDeliveries:'Deliveries', thVolume:'Volume',
   footerAboutH:'About this data',
@@ -1073,7 +1065,7 @@ nl:{
   brandRole:'Inkoop &amp; operaties',
   asofLabel:'Gegevens tot',
   heroH1:'Koffie uit Groot-Masaka, gevolgd van boerderij tot export.',
-  heroLede:function(f){ return 'Ndugu Coop koopt FAQ-kwaliteit robusta, gecertificeerd volgens Rainforest Alliance, Fairtrade en 4C, van kleine boeren in '+f.activeDistricts+' Ugandese districten, bundelt dit tot exportklare partijen en levert het aan '+f.buyer1+', '+f.buyer2+' en andere kopers. Dit is de actuele stand van die keten.'; },
+  heroLede:function(f){ return 'FAQ-kwaliteit robusta van kleine boeren in '+f.activeDistricts+' districten, gebundeld tot exportpartijen voor '+f.buyer1+', '+f.buyer2+' en anderen.'; },
   badge1v:'RFA · Fairtrade · 4C · EUDR', badge1l:'Certificeringen',
   badge4l:'Coöperaties', badge5l:'Vrouwen in het register', ofRegistry:'van het register',
   badge3l2:'Geregistreerde leveringen', acrossDistricts:'districten',
@@ -1081,7 +1073,7 @@ nl:{
   badge3l:function(f){ return 'Inkoopdistricten' + (f.emerging ? ', '+f.emerging+' opkomend' : ''); },
   heroCap:'Ingekochte koffie',
   mapH2:'Werkgebied',
-  mapP:'Elke stip is een echte boerderijlocatie. Bubbels tonen het volume per district; klik voor details.',
+  mapP:'Klik op een district voor details.',
   mapTagAll:'Alle districten getoond',
   legendActive:'Actieve inkoop (bubbelgrootte = volume)',
   legendRegistered:'Geregistreerd, nog niet actief',
@@ -1090,19 +1082,16 @@ nl:{
   districtLedgerNote:'Actieve boeren / geregistreerde boeren',
   farmersWord:'boeren',
   trendH2:'Volume, waarde &amp; prijs in de tijd',
-  trendP:function(f){ return 'Maandelijkse inkoop bij boeren sinds de eerste levering in '+f.firstMonth+'.'; },
   metricQty:'Volume (kg)', metricAmount:'Waarde', metricPrice:'Prijs per kg',
   chartLabelQty:'Volume (kg)', chartLabelAmount:'Waarde', chartLabelPrice:'Gem. prijs/kg',
   season2024:'Seizoen 2024', season2025:'Seizoen 2025', season2026:'Seizoen 2026',
   routeH2:'Route naar de markt &amp; veldteam',
-  routeP:'Totalen aller tijden: hoe het verzonden volume zich verdeelt over kopers, en wie het inkoopt.',
   buyerMixTitle:'Kopersmix per maand',
   buyerMixNote:function(f){ return fmtInt(f.batches)+' partijen, '+fmtTonnes(f.batchQty)+' verzonden (totaal)'; },
   fmTitle:'Prestaties veldmedewerkers',
   fmNote:'Ingekocht volume, huidig filter',
   fmFarmersAvg:'boeren', fmAvgSuffix:'/kg gem.',
   networkH2:'Boerennetwerk',
-  networkP:'Wie er geregistreerd is, hoe het land verdeeld is, en via welke coöperaties zij zich organiseren.',
   networkTag:function(f){ return fmtInt(f.registered)+' geregistreerd · '+fmtInt(f.activeFarmers)+' hebben geleverd'; },
   genderTitle:'Geslacht', genderNote:'Geregistreerd netwerk vs. geleverd volume, aller tijden',
   youthTitle:'Betrokkenheid van jongeren', youthNote:'Geregistreerd netwerk vs. geleverd volume, per leeftijdsgroep',
@@ -1112,7 +1101,6 @@ nl:{
   shareRegistry:'Aandeel register', shareVolume:'Aandeel volume',
   youthSenior:'Senior 60+', youthAdult:'Volwassen 36–59', youthYouth:'Jongeren 18–35',
   leaderTitle:'Grootste leveranciers, aller tijden',
-  leaderNote:function(f){ return 'De '+f.topN+' boeren die sinds de eerste inkoop in '+f.firstMonth+' het meeste volume hebben geleverd.'; },
   leaderTag:function(n,total){ return 'Top '+n+' van '+total+' actieve leveranciers'; },
   thRank:'#', thFarmer:'Boerencode', thDistrictVillage:'District / dorp', thDeliveries:'Leveringen', thVolume:'Volume',
   footerAboutH:'Over deze gegevens',
