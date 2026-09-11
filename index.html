@@ -425,8 +425,8 @@
   .seg button:last-child{border-right:none;}
   .seg button.active{background:var(--roast); color:#fff;}
   /* flex-basis 0 keeps the canvas from feeding its own height back into the row */
-  .chart-box{position:relative; flex:1 1 0%; min-height:225px;}
-  .chart-box.short{min-height:180px;}
+  .chart-box{position:relative; flex:1 1 0%; min-height:300px;}
+  .chart-box.short{min-height:240px;}
   .chart-box canvas{position:absolute; left:0; top:0;}
   .insight-line{
     margin-top:9px; padding:8px 12px; background:var(--honey-wash); border-radius:var(--radius-sm);
@@ -532,7 +532,7 @@
     .layout-main{ max-width:100%; }
     .shell{ padding:0 12mm; max-width:none; }
     .panel, .district-ledger, .tile, .kpi-cell{ box-shadow:none !important; border:1px solid #ccc !important; break-inside:avoid; }
-    .chart-box canvas{ max-height:220px; }
+    .chart-box canvas{ max-height:280px; }
     section{ padding:10px 0; page-break-inside:avoid; }
     .part-rail{ border-top-color:#000; }
     footer{ background:#fff !important; color:#333 !important; border-top:1px solid #ccc; }
@@ -1060,7 +1060,7 @@ var STR = {
 en:{
   docTitle:'Ndugu Farmers Ltd | Sourcing & Operations',
   navTitle:'Navigation',
-  navDomestic:'Domestic', navExport:'Export', navEudr:'EUDR', navImpact:'Impact',
+  navDomestic:'Domestic Trade', navExport:'Export', navEudr:'EUDR', navImpact:'Impact',
   navProduction:'Production', navFinance:'Finance', navAgritracker:'Agritracker',
   navCoffee:'coffee Minds', navAbout:'About us',
   brandRole:'Sourcing & operations',
@@ -1129,7 +1129,7 @@ en:{
 nl:{
   docTitle:'Ndugu Farmers Ltd | Inkoop & operaties',
   navTitle:'Navigatie',
-  navDomestic:'Binnenland', navExport:'Export', navImpact:'Impact',
+  navDomestic:'Domestic Trade', navExport:'Export', navImpact:'Impact',
   navProduction:'Productie', navFinance:'Financiën', navAgritracker:'Agritracker',
   navCoffee:'coffee Minds', navAbout:'Over ons',
   brandRole:'Inkoop &amp; operaties',

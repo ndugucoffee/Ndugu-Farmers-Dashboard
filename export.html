@@ -419,8 +419,8 @@
   .seg button:last-child{border-right:none;}
   .seg button.active{background:var(--roast); color:#fff;}
   /* flex-basis 0 keeps the canvas from feeding its own height back into the row */
-  .chart-box{position:relative; flex:1 1 0%; min-height:225px;}
-  .chart-box.short{min-height:180px;}
+  .chart-box{position:relative; flex:1 1 0%; min-height:300px;}
+  .chart-box.short{min-height:240px;}
   .chart-box canvas{position:absolute; left:0; top:0;}
   .insight-line{
     margin-top:9px; padding:8px 12px; background:var(--honey-wash); border-radius:var(--radius-sm);
@@ -521,7 +521,7 @@
     .layout-main{ max-width:100%; }
     .shell{ padding:0 12mm; max-width:none; }
     .panel, .tile, .kpi-cell, .flow-step, .district-ledger{ box-shadow:none !important; border:1px solid #ccc !important; break-inside:avoid; }
-    .chart-box canvas{ max-height:220px; }
+    .chart-box canvas{ max-height:280px; }
     section{ padding:10px 0; page-break-inside:avoid; }
     footer{ background:#fff !important; color:#333 !important; border-top:1px solid #ccc; }
     footer h4{ color:#000 !important; }
@@ -711,11 +711,11 @@
 <nav class="sidenav" aria-label="Dashboards">
   <p class="sidenav-title">Navigation</p>
   <a class="navbtn" href="index.html">Domestic Trade</a>
-  <a class="navbtn" href="export.html">Ndugu Export</a>
+  <a class="navbtn" href="export.html"aria-current="page">Ndugu Export</a>
   <a class="navbtn" href="eudr.html">EUDR Compliance</a>
   <a class="navbtn" href="impact.html">Impact Projects</a>
   <a class="navbtn" href="production.html">Production</a>
-  <a class="navbtn" href="finance.html" aria-current="page">Financial Services</a>
+  <a class="navbtn" href="finance.html">Financial Services</a>
   <a class="navbtn" href="agritracker.html">Agritracker</a>
   <a class="navbtn" href="coffee.html">Coffee Minds</a>
   <a class="navbtn" href="about.html">About us</a>
@@ -1276,7 +1276,7 @@ function dirWord(d){ return d >= 0 ? t('wordUp') : t('wordDown'); }
 /* ============================= i18n ============================= */
 var I18N = {
   en: {
-    navTitle:'Navigation', navDomestic:'Domestic', navExport:'Export', navImpact:'Impact',
+    navTitle:'Navigation', navDomestic:'Domestic Trade', navExport:'Export', navImpact:'Impact',
     navProduction:'Production', navFinance:'Finance', navAgritracker:'Agritracker',
     navCoffee:'coffee Minds', navAbout:'About us',
     brandRole:'Export programme',
@@ -1417,7 +1417,7 @@ var I18N = {
     }
   },
   nl: {
-    navTitle:'Navigatie', navDomestic:'Binnenland', navExport:'Export', navImpact:'Impact',
+    navTitle:'Navigatie', navDomestic:'Domestic Trade', navExport:'Export', navImpact:'Impact',
     navProduction:'Productie', navFinance:'Financiën', navAgritracker:'Agritracker',
     navCoffee:'coffee Minds', navAbout:'Over ons',
     brandRole:'Exportprogramma',
