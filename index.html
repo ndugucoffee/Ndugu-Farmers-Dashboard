@@ -583,16 +583,16 @@
 <div class="layout">
 
 <nav class="sidenav" aria-label="Dashboards">
-  <p class="sidenav-title">Navigation</p>
-  <a class="navbtn" href="index.html"aria-current="page">Domestic Trade</a>
-  <a class="navbtn" href="export.html">Ndugu Export</a>
-  <a class="navbtn" href="eudr.html">EUDR Compliance</a>
-  <a class="navbtn" href="impact.html">Impact Projects</a>
-  <a class="navbtn" href="production.html">Production</a>
-  <a class="navbtn" href="finance.html">Financial Services</a>
-  <a class="navbtn" href="agritracker.html">Agritracker</a>
-  <a class="navbtn" href="coffee.html">Coffee Minds</a>
-  <a class="navbtn" href="about.html">About us</a>
+  <p class="sidenav-title" data-i18n="navTitle">Navigation</p>
+  <a class="navbtn" href="index.html"       aria-current="page" data-i18n="navDomestic">Domestic Trade</a>
+  <a class="navbtn" href="export.html"      data-i18n="navExport">Export</a>
+  <a class="navbtn" href="eudr.html"        data-i18n="navEudr">EUDR</a>
+  <a class="navbtn" href="impact.html"      data-i18n="navImpact">Impact</a>
+  <a class="navbtn" href="production.html"  data-i18n="navProduction">Production</a>
+  <a class="navbtn" href="finance.html"     data-i18n="navFinance">Finance</a>
+  <a class="navbtn" href="agritracker.html" data-i18n="navAgritracker">Agritracker</a>
+  <a class="navbtn" href="coffee.html"      data-i18n="navCoffee">coffee Minds</a>
+  <a class="navbtn" href="about.html"       data-i18n="navAbout">About us</a>
 </nav>
 
 <div class="layout-main">
@@ -718,7 +718,7 @@
         <div class="map-legend">
           <span class="item"><span class="sw" style="background:var(--roast);"></span><span data-i18n="legendActive">Active sourcing (bubble size = volume)</span></span>
           <span class="item"><span class="sw" style="background:transparent;border:1.5px dashed var(--honey);"></span><span data-i18n="legendRegistered">Registered, not yet active</span></span>
-          <span class="item"><span class="sw" style="background:var(--leaf); opacity:.4; width:6px; height:6px;"></span><span data-i18n="legendFarmer">Individual farmer</span></span>
+          <span class="item"><span class="sw" style="background:#0D4D45; opacity:.4; width:6px; height:6px;"></span><span data-i18n="legendFarmer">Individual farmer</span></span>
         </div>
       </div>
       <div class="district-ledger col-6">
@@ -748,7 +748,7 @@
           <button data-metric="price" data-i18n="metricPrice">Price per kg</button>
         </div>
         <div class="map-legend" style="margin-top:0;">
-          <span class="item"><span class="sw" style="background:var(--leaf); border-radius:2px; width:11px; height:11px;"></span><span data-i18n="season2024">Season 2024</span></span>
+          <span class="item"><span class="sw" style="background:#0D4D45; border-radius:2px; width:11px; height:11px;"></span><span data-i18n="season2024">Season 2024</span></span>
           <span class="item"><span class="sw" style="background:var(--roast); border-radius:2px; width:11px; height:11px;"></span><span data-i18n="season2025">Season 2025</span></span>
           <span class="item"><span class="sw" style="background:var(--honey); border-radius:2px; width:11px; height:11px;"></span><span data-i18n="season2026">Season 2026</span></span>
         </div>
@@ -971,11 +971,12 @@ var COLORS = {
   cherry:'#B23A1E', cherryWash:'#F9E3D9',
   honey:'#D2911F', honeyWash:'#FBEED4',
   teal:'#2C7A83', olive:'#8C9A3B', clay:'#9C5230',
-  ink:'#2A1A10', inkSoft:'#63483A', inkFaint:'#8A7059', line:'#EADCC7'
+  ink:'#2A1A10', inkSoft:'#63483A', inkFaint:'#8A7059', line:'#EADCC7',
+  kpiGreen:'#0D4D45'   /* first KPI cell gradient start — used for all green chart bars */
 };
 /* Seasons read as a roast progression: green cherry -> roasted -> golden. */
-var SEASON_COLOR = {2024:COLORS.leaf, 2025:COLORS.roast, 2026:COLORS.honey};
-var BUYER_COLOR = {UGACOF:COLORS.roast, ETG:COLORS.cherry, NDUGUEXPORT:COLORS.honey, OLAM:COLORS.teal, SUPERBIA:COLORS.leaf, TOPOFTHECROP:COLORS.clay};
+var SEASON_COLOR = {2024:COLORS.kpiGreen, 2025:COLORS.roast, 2026:COLORS.honey};
+var BUYER_COLOR = {UGACOF:COLORS.roast, ETG:COLORS.cherry, NDUGUEXPORT:COLORS.honey, OLAM:COLORS.teal, SUPERBIA:COLORS.kpiGreen, TOPOFTHECROP:COLORS.clay};
 
 Chart.defaults.font.family = '"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif';
 Chart.defaults.color = COLORS.inkSoft;
@@ -1467,7 +1468,7 @@ function proj(lat,lon){
     y: (LAT_MAX-lat)/(LAT_MAX-LAT_MIN)*MAP_H
   };
 }
-var DISTRICT_COLOR_ORDER = [COLORS.roast, COLORS.cherry, COLORS.leaf, COLORS.honey, COLORS.teal, COLORS.olive, COLORS.clay, COLORS.roastLight];
+var DISTRICT_COLOR_ORDER = [COLORS.roast, COLORS.cherry, COLORS.kpiGreen, COLORS.honey, COLORS.teal, COLORS.olive, COLORS.clay, COLORS.roastLight];
 var districtColorMap = {};
 
 // "Emerging" (registered but never active) is an ALL-TIME property of a district, e.g. Kiboga.
@@ -1525,7 +1526,7 @@ function buildStaticMapSVG(){
     if (pt.lat<LAT_MIN || pt.lat>LAT_MAX || pt.lon<LON_MIN || pt.lon>LON_MAX) return;
     if (pointInLake(pt.lat, pt.lon)) return;
     var p = proj(pt.lat, pt.lon);
-    var col = districtColorMap[pt.district] || COLORS.leaf;
+    var col = districtColorMap[pt.district] || COLORS.kpiGreen;
     var r = 1.1 + Math.min(pt.n,8)*0.18;
     svgParts.push('<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="'+r.toFixed(1)+'" fill="'+col+'" opacity="0.34"/>');
   });
@@ -1892,7 +1893,7 @@ function renderFarmsizeChart(){
   var values = labels.map(function(k){return DATA.farm_size[k];});
   mountChart('farmsizeChart', {
     type:'bar',
-    data:{ labels: labels.map(fmtFarmSize), datasets:[{ data: values, backgroundColor: COLORS.leaf, maxBarThickness:34, borderRadius:2 }] },
+    data:{ labels: labels.map(fmtFarmSize), datasets:[{ data: values, backgroundColor: COLORS.kpiGreen, maxBarThickness:34, borderRadius:2 }] },
     options:{
       responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{display:false}, tooltip:{ backgroundColor:COLORS.ink, callbacks:{label:function(c){return fmtInt(c.parsed.y)+' '+T('farmersWord');}} } },
