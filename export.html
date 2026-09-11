@@ -509,25 +509,63 @@
 
   /* ---------- Export-only ---------- */
 
-  /* .grid and .panel set a display value, and a class rule outranks the user
-     agent's [hidden]{display:none}. Without this a panel hidden for a season
-     that has no such data keeps its space and draws an empty chart. */
+  /* .grid and .panel set a display value, which outranks the user agent's
+     [hidden] rule. Without this a panel hidden for a season with no such data
+     keeps its space and draws an empty chart. */
   [hidden]{display:none !important;}
 
-  /* Shipment ledger: one row per lot, aligned on the same columns as the
-     district ledger on the domestic page so the two read the same way. */
+  /* Ten headline tiles, five to a row: sourcing above, market below. Each row
+     runs dark to light left to right within one colour family, so the reading
+     order is carried by tone as well as position. Every tone is chosen against
+     a 4.5:1 contrast floor for white text. */
+  .tilegrid{
+    display:grid; grid-template-columns:repeat(5,minmax(0,1fr));
+    gap:10px; margin-top:16px;
+  }
+  @media (max-width:1100px){ .tilegrid{grid-template-columns:repeat(3,minmax(0,1fr));} }
+  @media (max-width:640px){ .tilegrid{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  /* .tile carries grid-column:span 2 for index.html's 12-column tile row.
+     This grid is five columns wide, so each tile takes one of them. */
+  .tilegrid .tile{grid-column:auto; min-width:0;}
+
+  .tone-s1{background:linear-gradient(135deg,#663A18 0%,#4A2A11 100%);}
+  .tone-s2{background:linear-gradient(135deg,#77431C 0%,#563114 100%);}
+  .tone-s3{background:linear-gradient(135deg,#884D20 0%,#623817 100%);}
+  .tone-s4{background:linear-gradient(135deg,#995724 0%,#6F3F1A 100%);}
+  .tone-s5{background:linear-gradient(135deg,#AA6128 0%,#7B461D 100%);}
+  .tone-m1{background:linear-gradient(135deg,#0D4D45 0%,#093832 100%);}
+  .tone-m2{background:linear-gradient(135deg,#0F5A50 0%,#0B413A 100%);}
+  .tone-m3{background:linear-gradient(135deg,#11675C 0%,#0C4B42 100%);}
+  .tone-m4{background:linear-gradient(135deg,#137467 0%,#0E544B 100%);}
+  .tone-m5{background:linear-gradient(135deg,#158173 0%,#0F5D53 100%);}
+
+  .tilegrid-legend{
+    display:flex; flex-wrap:wrap; gap:8px 26px; margin:10px 0 0;
+    font-size:11.5px; color:var(--ink-soft);
+  }
+  .tilegrid-legend b{color:var(--ink); font-weight:600;}
+  .tilegrid-legend > span{display:flex; gap:6px; align-items:baseline;}
+  .tilegrid-legend > span::before{
+    content:''; width:9px; height:9px; border-radius:2px; flex:0 0 auto;
+    position:relative; top:1px;
+  }
+  .tilegrid-legend > span:nth-child(1)::before{background:#884D20;}
+  .tilegrid-legend > span:nth-child(2)::before{background:#11675C;}
+
+  /* Shipment ledger: one row per lot, on the same columns as the district
+     ledger on the domestic page. */
   .lot-row{
     display:grid; grid-template-columns:2.2rem 1fr auto auto; gap:12px;
     align-items:center; padding:8px 16px; border-bottom:1px solid var(--line);
   }
   .lot-row:last-child{border-bottom:none;}
   .lot-row:hover{background:var(--roast-wash);}
-  .lot-row .seq{font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-size:12px; color:var(--ink-faint);}
+  .lot-row .seq{font-size:12px; color:var(--ink-faint); font-variant-numeric:tabular-nums;}
   .lot-row .who{min-width:0;}
   .lot-row .who .name{font-size:13.5px; font-weight:500; line-height:1.35;
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .lot-row .who .sub{font-size:11.5px; color:var(--ink-faint); margin-top:1px; line-height:1.35;}
-  .lot-row .qty{font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-size:13px; text-align:right;}
+  .lot-row .qty{font-size:13px; text-align:right; font-variant-numeric:tabular-nums;}
   .lot-row .screen{
     font-size:11px; font-weight:600; letter-spacing:0.04em;
     padding:3px 8px; border-radius:999px; white-space:nowrap;
@@ -537,8 +575,7 @@
   .screen-18{background:var(--honey-wash); color:#7A5310;}
   .screen-na{background:var(--surface-sunk); color:var(--ink-faint);}
 
-  /* A date the workbook records in a later year than the season. Flagged
-     rather than corrected, because the sheet is the record of account. */
+  /* Marks a value shown as recorded rather than corrected. */
   .flag{
     display:inline-block; margin-left:6px; font-size:10.5px; font-weight:600;
     color:var(--clay); border:1px solid var(--clay); border-radius:3px;
@@ -550,7 +587,7 @@
     border-radius:var(--radius-sm); background:var(--surface);
     padding:14px 16px; font-size:13px; color:var(--ink-soft); line-height:1.6;
   }
-  .callout b{color:var(--ink); font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-weight:600;}
+  .callout b{color:var(--ink); font-weight:600;}
   .callout + .callout{margin-top:10px;}
 
   .flow{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-bottom:14px;}
@@ -560,19 +597,19 @@
     background:var(--surface-sunk); padding:11px 13px; position:relative;
   }
   .flow-step .lab{font-size:11.5px; color:var(--ink-soft); margin-bottom:5px;}
-  .flow-step .val{font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-size:18px; font-weight:600; color:var(--ink);}
+  .flow-step .val{font-size:18px; font-weight:600; color:var(--ink);
+    font-variant-numeric:tabular-nums;}
   .flow-step .foot{font-size:11.5px; color:var(--ink-faint); margin-top:3px;}
-  .flow-step:nth-child(1){border-top:3px solid var(--leaf);}
-  .flow-step:nth-child(2){border-top:3px solid var(--olive);}
-  .flow-step:nth-child(3){border-top:3px solid var(--honey);}
-  .flow-step:nth-child(4){border-top:3px solid var(--roast);}
+  .flow-step:nth-child(1){border-top:3px solid #663A18;}
+  .flow-step:nth-child(2){border-top:3px solid #884D20;}
+  .flow-step:nth-child(3){border-top:3px solid #AA6128;}
+  .flow-step:nth-child(4){border-top:3px solid #11675C;}
 
-  /* Contract ledger: contracted volume against what shipped against it. The
-     bar is the fulfilment share, so the eye can run down the column and find
-     the short ones without reading a single number. */
+  /* Contract ledger. The bar is the fulfilment share, so the column can be
+     scanned for short contracts without reading the figures. */
   .con-row{
-    display:grid; grid-template-columns:1fr 7.5rem 8.5rem; gap:12px;
-    align-items:center; padding:9px 16px; border-bottom:1px solid var(--line);
+    display:grid; grid-template-columns:minmax(0,5fr) minmax(0,6fr) 9.5rem; gap:18px;
+    align-items:center; padding:10px 16px; border-bottom:1px solid var(--line);
   }
   .con-row:last-child{border-bottom:none;}
   .con-row:hover{background:var(--roast-wash);}
@@ -580,25 +617,23 @@
   .con-row .who .name{font-size:13.5px; font-weight:600; line-height:1.35;
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .con-row .who .sub{font-size:11.5px; color:var(--ink-faint); margin-top:1px; line-height:1.4;}
-  .con-row .bar{height:7px; border-radius:4px; background:var(--surface-sunk); overflow:hidden;}
-  .con-row .bar span{display:block; height:100%; border-radius:4px; background:var(--leaf);}
-  .con-row .bar.short span{background:var(--honey);}
+  .con-row .bar{height:8px; border-radius:4px; background:var(--surface-sunk); overflow:hidden;}
+  .con-row .bar span{display:block; height:100%; border-radius:4px; background:#11675C;}
+  .con-row .bar.short span{background:#AA6128;}
   .con-row .bar.none span{background:var(--clay);}
   .con-row .qty{font-size:12.5px; text-align:right; color:var(--ink-soft);
     font-variant-numeric:tabular-nums;}
   .con-row .qty b{display:block; font-size:13px; color:var(--ink); font-weight:600;}
   @media (max-width:640px){
-    .con-row{grid-template-columns:1fr 5rem; }
+    .con-row{grid-template-columns:1fr 5rem;}
     .con-row .bar{grid-column:1 / -1;}
   }
 
-  /* A ledger sets the height of the row it sits in, and 27 lots stretched the
-     chart next to it to over a thousand pixels. Both scroll instead, at a
-     height that matches the chart beside them. */
-  #lotList{max-height:432px; overflow-y:auto;}
-  #contractList{max-height:300px; overflow-y:auto;}
+  /* A ledger sets the height of its row, so both scroll rather than stretch. */
+  #lotList{max-height:520px; overflow-y:auto;}
+  #contractList{max-height:420px; overflow-y:auto;}
 
-  /* Two figures side by side under a chart, for intake quality. */
+  /* Two figures side by side under a chart. */
   .statpair{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:12px;}
   .statpair > div{
     border:1px solid var(--line-strong); border-radius:var(--radius-sm);
@@ -672,32 +707,81 @@
       <p class="lede" data-i18n="heroLede">-</p>
     </div>
 
-    <div class="tilerow tilerow-4">
-      <div class="tile tile-lead" id="tileLead">
-        <p class="tile-label" data-i18n="heroCap">exported in the 2025 season</p>
-        <div class="tile-value num" id="heroBig">-</div>
-        <div class="tile-foot num" id="heroSub">-</div>
+    <!-- Ten tiles, five to a row. The top row is the sourcing side and the
+         bottom row the market side, each running dark to light left to right
+         in its own colour family. Built in script so the cells can report
+         "not recorded" for a season whose sheet lacks the field. -->
+    <div class="tilegrid" id="tileGrid"></div>
+    <p class="tilegrid-legend">
+      <span><b data-i18n="rowSourcingH">Sourcing</b> <span data-i18n="rowSourcingN">what was bought, from whom, at what quality</span></span>
+      <span><b data-i18n="rowMarketH">Market</b> <span data-i18n="rowMarketN">what shipped, to whom, at what price, and what was collected</span></span>
+    </p>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="secSourceH">Where the coffee came from</h2>
+        <p data-i18n="secSourceP">-</p>
       </div>
-      <div class="tile tile-a" id="tileCert">
-        <p class="tile-label" data-i18n="badgeCertL">RFA certified volume</p>
-        <div class="tile-value num" id="badgeCert">-</div>
-        <div class="tile-foot num" id="badgeCertSub">-</div>
+      <div class="section-tag" data-i18n="secSourceTag">Intake by buying site, quality and supplier</div>
+    </div>
+    <div class="grid" id="intakeQualityGrid">
+      <div class="col-7 panel" id="sitePanel">
+        <p class="panel-title" data-i18n="panSiteH">Intake by buying site</p>
+        <p class="panel-note" data-i18n="panSiteN">Net kilograms bought in, by recorded site.</p>
+        <div class="chart-box"><canvas id="siteChart"></canvas></div>
+        <div class="insight-line" id="siteInsight">-</div>
       </div>
-      <div class="tile tile-b" id="tileScreens">
-        <p class="tile-label" data-i18n="badgeScreensL">Screen grades shipped</p>
-        <div class="tile-value tile-value-sm" id="badgeScreens">-</div>
-        <div class="tile-foot num" id="badgeScreensSub">-</div>
-      </div>
-      <div class="tile tile-c" id="tileBuyers">
-        <p class="tile-label" id="badgeBuyersL">-</p>
-        <div class="tile-value num" id="badgeBuyers">-</div>
+      <div class="col-5 panel" id="moisturePanel">
+        <p class="panel-title" data-i18n="panMoistH">Moisture at intake</p>
+        <p class="panel-note" data-i18n="panMoistN">Deliveries by recorded moisture, one bar per percentage point.</p>
+        <div class="chart-box"><canvas id="moistChart"></canvas></div>
+        <div class="statpair">
+          <div><div class="lab" data-i18n="lblMoistMean">Mean moisture</div><div class="val" id="moistMean">-</div></div>
+          <div><div class="lab" data-i18n="lblMoistIn">At or below 14%</div><div class="val" id="moistIn">-</div></div>
+        </div>
       </div>
     </div>
+    <div class="grid">
+      <div class="col-12 panel">
+        <p class="panel-title" data-i18n="panSuppH">Largest suppliers</p>
+        <p class="panel-note" data-i18n="panSuppN">Ranked by net weight delivered within the season.</p>
+        <div class="leaderboard-scroll">
+          <table class="leaderboard">
+            <thead>
+              <tr>
+                <th style="width:3rem;">#</th>
+                <th data-i18n="thSupplier">Supplier ref</th>
+                <th class="num" style="width:8rem;" data-i18n="thDeliveries">Deliveries</th>
+                <th class="num" style="width:9rem;" data-i18n="thNetKg">Net delivered</th>
+                <th class="num" style="width:8rem;" data-i18n="thShare">Share</th>
+              </tr>
+            </thead>
+            <tbody id="supplierBody"></tbody>
+          </table>
+        </div>
+        <p class="panel-note" style="margin:11px 0 0;" id="supplierFoot">-</p>
+      </div>
+    </div>
+  </section>
 
-    <!-- Built in script: the cells change with the season, because the 2025
-         sheet records no receipts and a settlement tile would read as zero
-         collected rather than as not recorded. -->
-    <div class="kpi-strip" id="kpiStrip"></div>
+  <section>
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="secMonthH">Intake and shipment through the season</h2>
+        <p data-i18n="secMonthP">-</p>
+      </div>
+      <div class="section-tag" data-i18n="secMonthTag">Net kilograms by month</div>
+    </div>
+    <div class="grid">
+      <div class="col-12 panel">
+        <p class="panel-title" data-i18n="panShipH">Bought in against shipped out</p>
+        <p class="panel-note" data-i18n="panShipN">Net kilograms bought in and net kilograms shipped, by month.</p>
+        <div class="chart-box"><canvas id="shipChart"></canvas></div>
+        <div class="insight-line" id="shipInsight">-</div>
+      </div>
+    </div>
   </section>
 
   <section>
@@ -733,7 +817,7 @@
       <div class="section-tag" data-i18n="secConTag">Every contract on file</div>
     </div>
     <div class="grid">
-      <div class="col-7">
+      <div class="col-12">
         <div class="district-ledger">
           <div class="district-ledger-head">
             <p class="panel-title" style="margin:0;" data-i18n="panConH">Contract fulfilment</p>
@@ -741,12 +825,6 @@
           </div>
           <div id="contractList"></div>
         </div>
-      </div>
-      <div class="col-5 panel">
-        <p class="panel-title" data-i18n="panShipH">Shipped by month</p>
-        <p class="panel-note" data-i18n="panShipN">When lots actually left, against the intake that fed them.</p>
-        <div class="chart-box"><canvas id="shipChart"></canvas></div>
-        <div class="insight-line" id="shipInsight">-</div>
       </div>
     </div>
   </section>
@@ -760,7 +838,7 @@
       <div class="section-tag" data-i18n="secLotsTag">Every lot dispatched this season</div>
     </div>
     <div class="grid">
-      <div class="col-6">
+      <div class="col-12">
         <div class="district-ledger">
           <div class="district-ledger-head">
             <p class="panel-title" style="margin:0;" data-i18n="panLotsH">Lots dispatched</p>
@@ -768,58 +846,6 @@
           </div>
           <div id="lotList"></div>
         </div>
-      </div>
-      <div class="col-6 panel">
-        <p class="panel-title" data-i18n="panIntakeH">Purchase intake by month</p>
-        <p class="panel-note" data-i18n="panIntakeN">Green coffee bought in, which the export lots are drawn from.</p>
-        <div class="chart-box"><canvas id="intakeChart"></canvas></div>
-        <div class="insight-line" id="intakeInsight">-</div>
-      </div>
-    </div>
-  </section>
-
-  <section>
-    <div class="section-head">
-      <div>
-        <h2 data-i18n="secSuppH">Who supplied the season</h2>
-        <p data-i18n="secSuppP">-</p>
-      </div>
-      <div class="section-tag" data-i18n="secSuppTag">Top suppliers by volume delivered</div>
-    </div>
-    <div class="grid" id="intakeQualityGrid">
-      <div class="col-7 panel" id="sitePanel">
-        <p class="panel-title" data-i18n="panSiteH">Where the intake came from</p>
-        <p class="panel-note" data-i18n="panSiteN">Net kilograms bought in, by recorded buying site.</p>
-        <div class="chart-box"><canvas id="siteChart"></canvas></div>
-        <div class="insight-line" id="siteInsight">-</div>
-      </div>
-      <div class="col-5 panel" id="moisturePanel">
-        <p class="panel-title" data-i18n="panMoistH">Moisture at intake</p>
-        <p class="panel-note" data-i18n="panMoistN">Recorded on delivery, one bar per percentage point.</p>
-        <div class="chart-box"><canvas id="moistChart"></canvas></div>
-        <div class="statpair">
-          <div><div class="lab" data-i18n="lblMoistMean">Mean moisture</div><div class="val" id="moistMean">-</div></div>
-          <div><div class="lab" data-i18n="lblMoistIn">At or below 14%</div><div class="val" id="moistIn">-</div></div>
-        </div>
-      </div>
-    </div>
-    <div class="grid">
-      <div class="col-12 panel">
-        <div class="leaderboard-scroll">
-          <table class="leaderboard">
-            <thead>
-              <tr>
-                <th style="width:3rem;">#</th>
-                <th data-i18n="thSupplier">Supplier</th>
-                <th class="num" style="width:8rem;" data-i18n="thDeliveries">Deliveries</th>
-                <th class="num" style="width:9rem;" data-i18n="thNetKg">Net delivered</th>
-                <th class="num" style="width:8rem;" data-i18n="thShare">Share</th>
-              </tr>
-            </thead>
-            <tbody id="supplierBody"></tbody>
-          </table>
-        </div>
-        <p class="panel-note" style="margin:11px 0 0;" id="supplierFoot">-</p>
       </div>
     </div>
   </section>
@@ -871,7 +897,7 @@
     </div>
     <div>
       <h4 data-i18n="footerDefH">Definitions</h4>
-      <p data-i18n="footerDefP">FAQ: Fair Average Quality, the ungraded green coffee bought from suppliers. Screen: bean size measured over a perforated sieve, so screen 18 is a larger bean than screen 12. Lot: a graded, bulked consignment shipped against one contract. Net delivered: weight after moisture and foreign-matter deductions.</p>
+      <p data-i18n="footerDefP">-</p>
     </div>
   </div>
 </footer>
@@ -886,18 +912,14 @@
 (function(){
 "use strict";
 
-/* ---------------------------------------------------------------------------
-   No figures are typed into this page. Everything is read from
-   ./export-data.json, which scripts/build_export.py regenerates from the
-   export workbook. That script publishes volumes, buyer and screen splits and
-   one total revenue figure; the cost base, per-lot margins and per-buyer unit
-   prices are read there but deliberately never written out, so they cannot
-   appear here.
-   --------------------------------------------------------------------------- */
+/* Every figure on this page is read from ./export-data.json, which
+   scripts/build_export.py regenerates from the export workbook. The cost base,
+   per-lot margins, per-buyer unit prices and supplier pay are read by that
+   script and are not written to the payload, so they cannot appear here. */
 var DATA = null;
 var REQUIRED_KEYS = ['meta','seasons'];
-/* Everything below reads the selected season's block rather than the payload
-   root, so adding a season to the workbook adds a pill and nothing else. */
+/* Every renderer reads the selected season's block rather than the payload
+   root, so a new season in the workbook adds a pill and nothing else. */
 function D(){ return DATA.seasons[state.season]; }
 function seasonList(){ return DATA.meta.seasons.slice(); }
 function prevSeason(){
@@ -1020,40 +1042,37 @@ function esc(s){
 }
 
 /* ============================= palette ============================= */
-/* Dotted grid lines, matching index.html. Set through Chart.defaults so
-   any chart added later inherits it. */
+/* Dotted grid lines, matching index.html, set through Chart.defaults so any
+   chart added later inherits them. */
 /* ============================= tile icons =============================
-   Hand-drawn glyphs rather than an icon library: no extra request, no
-   dependency, and nothing here resembles anyone's logo or brand mark. Each is
-   a 24x24 stroke path so they share a weight, and they sit at low opacity so
-   they decorate the tile without competing with the figure on it. */
+   Inline 24x24 stroke paths, so the page carries no icon dependency. */
 var ICONS = {
-  /* coffee bean: an ellipse with the crease down it */
+  /* coffee bean */
   bean:'<ellipse cx="12" cy="12" rx="6.5" ry="9" transform="rotate(-35 12 12)"/>'+
        '<path d="M8 16c2.5-2.6 5.5-5.6 8-8"/>',
-  /* rosette seal for certification */
+  /* certification seal */
   seal:'<circle cx="12" cy="9.5" r="5.5"/><path d="M9 14.5 7.5 21l4.5-2.4 4.5 2.4L15 14.5"/>',
-  /* one person */
+  /* supplier */
   person:'<circle cx="12" cy="8" r="3.5"/><path d="M5.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/>',
-  /* several people, for a cooperative */
+  /* group of suppliers */
   group:'<circle cx="9" cy="8.5" r="3"/><path d="M3 19c0-3.1 2.7-5.2 6-5.2s6 2.1 6 5.2"/>'+
         '<path d="M16 6.4a3 3 0 0 1 0 5.7"/><path d="M17.5 13.9c2.1.5 3.5 2.2 3.5 4.4"/>',
-  /* map pin */
+  /* buying site */
   pin:'<path d="M12 21s6.5-6.2 6.5-11a6.5 6.5 0 1 0-13 0C5.5 14.8 12 21 12 21Z"/>'+
       '<circle cx="12" cy="10" r="2.4"/>',
-  /* banknote */
+  /* revenue */
   cash:'<rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.8"/>'+
        '<path d="M6 9.5v5M18 9.5v5"/>',
-  /* price tag */
+  /* price */
   tag:'<path d="M11 3.5H4.5A1.5 1.5 0 0 0 3 5v6.4c0 .4.2.8.4 1l8.6 8.6a1.5 1.5 0 0 0 2.1 0l6-6a1.5 1.5 0 0 0 0-2.1L11.6 4a1.5 1.5 0 0 0-1-.5Z"/>'+
       '<circle cx="7.5" cy="8.5" r="1.4"/>',
-  /* stacked crate, for a dispatched batch */
+  /* dispatched lot */
   crate:'<path d="M3 8.2 12 4l9 4.2v7.6L12 20l-9-4.2Z"/><path d="M3 8.2 12 12.4l9-4.2M12 12.4V20"/>',
-  /* surveyed plot boundary */
+  /* intake */
   plot:'<path d="M4 6.5 10 4l4.5 2.5L20 4.4v13.2L14.5 20 10 17.5 4 20Z"/><path d="M10 4v13.5M14.5 6.5V20"/>',
-  /* calendar window */
+  /* buyers */
   window:'<rect x="3.5" y="5.5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3.5v4M16 3.5v4"/>',
-  /* leaf, for the growing side */
+  /* quality */
   leaf:'<path d="M20 4C10 4 4 9 4 15.5A4.5 4.5 0 0 0 8.5 20C15 20 20 14 20 4Z"/><path d="M15 9C10.5 11 8 14.5 7 19"/>'
 };
 function icon(name){
@@ -1083,13 +1102,12 @@ var COLORS = {
   ink:'#2A1A10', inkSoft:'#63483A', inkFaint:'#8A7059', line:'#EADCC7'
 };
 var BUYER_CYCLE = [COLORS.roast, COLORS.honey, COLORS.leaf, COLORS.teal, COLORS.cherry, COLORS.clay, COLORS.olive];
-/* Screen grades keep a fixed colour so the doughnut, the badges in the ledger
-   and the legend all agree. Larger bean, warmer colour. */
+/* Screen grades keep a fixed colour so the doughnut, the ledger badges and the
+   legend agree. */
 var SCREEN_COLOR = {'Screen 12':COLORS.leaf, 'Screen 15':COLORS.roast, 'Screen 18':COLORS.honey,
   'Low grades':COLORS.clay, 'AA Arabica':COLORS.teal, 'FAQ':COLORS.olive};
 function screenColor(k){ return SCREEN_COLOR[k] || COLORS.inkFaint; }
-/* The workbook types the grade freehand; build_export.py folds every spelling
-   into this small set, so the badge only has to switch on the label. */
+/* build_export.py folds every recorded spelling into this fixed set. */
 function screenClass(s){
   return s==='Screen 12' ? 'screen-12' : s==='Screen 15' ? 'screen-15'
        : s==='Screen 18' ? 'screen-18' : 'screen-na';
@@ -1100,10 +1118,9 @@ function screenShort(s){
   return (s === 'Low grades') ? 'LG' : (s === 'AA Arabica') ? 'AA' : (s === 'FAQ') ? 'FAQ' : '\u2013';
 }
 
-/* Chart.js comes from a CDN. If a corporate proxy or an offline machine blocks
-   it, `Chart` is simply undefined; touching it at module level would throw and
-   leave the visitor staring at the loading spinner with nothing to explain it.
-   So the defaults are applied from start(), after boot() has checked. */
+/* Chart.js is loaded from a CDN. If that request is blocked, `Chart` is
+   undefined, so the defaults are applied from start() after boot() has checked
+   for it rather than at module level. */
 function themeCharts(){
   Chart.defaults.font.family = '"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif';
   Chart.defaults.color = COLORS.inkSoft;
@@ -1113,9 +1130,8 @@ function themeCharts(){
   Chart.defaults.scale.grid.tickBorderDash = GRID_DASH;
 }
 
-/* A <canvas> holds one live Chart at a time; re-rendering on a language or
-   currency switch must destroy the previous instance or Chart.js throws
-   "Canvas is already in use". */
+/* A canvas holds one live Chart at a time, so a re-render on a season,
+   currency or language switch destroys the previous instance first. */
 var CHARTS = {};
 function mountChart(canvasId, cfg){
   var el = document.getElementById(canvasId);
@@ -1127,8 +1143,8 @@ function mountChart(canvasId, cfg){
 }
 
 /* ============================= derived facts =============================
-   Figures that appear inside sentences, recomputed whenever the language or
-   currency changes so the prose never disagrees with the charts. */
+   Figures used inside sentences, recomputed on every season, currency and
+   language change so the prose agrees with the charts. */
 var FACTS = {};
 function computeFacts(){
   var d = D(), s = d.sales, p = d.purchases;
@@ -1210,36 +1226,60 @@ var I18N = {
     navCoffee:'Coffee', navAbout:'About us',
     brandRole:'Export programme',
     asofLabel:'Season',
-    seasonAll:'All', wordUp:'up', wordDown:'down',
+    seasonAll:'All', wordUp:'above', wordDown:'below',
     vsPriorSeason:'vs prior season',
     heroEyebrow:'Export programme',
     heroH1:'Green coffee shipped direct to roasters and importers',
     heroLede:function(f){
-      var base = 'In ' + f.season + ' Ndugu Farmers Ltd bought ' + f.purchased +
-        ' of green coffee from ' + f.suppliers + ' suppliers and shipped ' + f.volume +
-        ' as ' + f.lots + ' graded lots to ' + f.buyers + ' buyers. ' +
-        f.topBuyer + ' took ' + f.topBuyerPct + ' of the volume';
-      base += f.prevSeason
-        ? ', and shipped volume is ' + f.volumeDelta + ' ' + f.volumeDir + ' on ' + f.prevSeason + '.'
-        : '.';
-      return base;
+      var open = (state.season === 'all') ? 'Altogether, Ndugu Farmers Ltd bought '
+                                          : 'In ' + f.season + ' Ndugu Farmers Ltd bought ';
+      var base = open + f.purchased + ' of green coffee from ' + f.suppliers +
+        ' suppliers and shipped ' + f.volume + ' as ' + f.lots + ' graded lots to ' +
+        f.buyers + ' buyers. ' + f.topBuyer + ' took ' + f.topBuyerPct + ' of the volume';
+      return base + (f.prevSeason
+        ? ', and shipped volume is ' + f.volumeDelta + ' ' + f.volumeDir + ' ' + f.prevSeason + '.'
+        : '.');
     },
-    heroCap:'exported this season',
-    badgeCertL:'RFA certified volume', badgeScreensL:'Screen grades shipped',
-    lblOfShipped:'of shipped volume', lblNotRecorded:'Not recorded',
-    lblNotOnSheet:'no contract type on this season’s sheet',
-    lblScreensOnly:'screen grades only',
-    lblLotsShipped:'lots shipped to buyers',
-    kpiVolume:'Volume exported', kpiRevenue:'Export revenue',
-    kpiRevenueSub:'invoiced sales value',
+    rowSourcingH:'Sourcing', rowSourcingN:'what was bought, from whom, at what quality',
+    rowMarketH:'Market', rowMarketN:'what shipped, to whom, at what price, and what was collected',
+    kpiPurchased:'Green coffee purchased',
+    kpiSuppliers:'Suppliers', kpiSuppliersSub:'largest supplier',
+    kpiTopSite:'Largest buying site',
+    kpiMoisture:'Mean moisture at intake', lblAtOrBelow:'at or below 14%',
+    kpiCert:'RFA certified volume',
+    kpiVolume:'Volume exported',
+    kpiLots:'Lots shipped', lblScreens:'screens',
+    kpiBuyers:'Buyers',
     kpiPrice:'Average realised price', kpiPriceSub:'per kg, priced lots',
-    kpiLots:'Lots shipped', kpiBuyers:'Buyers', kpiPurchased:'Green coffee purchased',
-    kpiSettled:'Revenue collected', kpiSettledSub:'of what was invoiced',
-    lblSuppliers:'suppliers',
+    kpiRevenue:'Export revenue', kpiRevenueSub:'invoiced sales value',
+    lblCollected:'collected',
+    lblOfShipped:'of shipped volume', lblNotRecorded:'Not recorded',
+    lblNotOnSheet:'not on this season’s sheet',
+    secSourceH:'Where the coffee came from',
+    secSourceP:function(f){
+      return f.deliveries + ' deliveries from ' + f.suppliers + ' suppliers. The largest ' +
+        'supplier accounts for ' + f.topSupplierPct + ' of intake by weight.';
+    },
+    secSourceTag:'Intake by buying site, quality and supplier',
+    panSiteH:'Intake by buying site', panSiteN:'Net kilograms bought in, by recorded site.',
+    panMoistH:'Moisture at intake',
+    panMoistN:'Deliveries by recorded moisture, one bar per percentage point.',
+    lblMoistMean:'Mean moisture', lblMoistIn:'At or below 14%',
+    panSuppH:'Largest suppliers', panSuppN:'Ranked by net weight delivered within the season.',
+    thSupplier:'Supplier ref', thDeliveries:'Deliveries', thNetKg:'Net delivered', thShare:'Share',
+    secMonthH:'Intake and shipment through the season',
+    secMonthP:function(f){
+      return 'Intake ran ' + f.firstBuy + ' to ' + f.lastBuy + ' and shipments ' +
+        f.firstShip + ' to ' + f.lastShip + '. Intake peaked in ' + f.peakMonth +
+        ' at ' + f.peakKg + '.';
+    },
+    secMonthTag:'Net kilograms by month',
+    panShipH:'Bought in against shipped out',
+    panShipN:'Net kilograms bought in and net kilograms shipped, by month.',
     secBuyersH:'Where the coffee went',
     secBuyersP:function(f){
-      return 'Concentration is the thing to watch: ' + f.topBuyer + ' alone accounts for ' +
-        f.topBuyerPct + ' of shipped volume across ' + f.buyers + ' buyers.';
+      return f.topBuyer + ' accounts for ' + f.topBuyerPct + ' of shipped volume across ' +
+        f.buyers + ' buyers, and ' + f.screenName + ' for ' + f.screenPct + ' of the grade mix.';
     },
     secBuyersTag:'Volume by buyer and screen grade',
     panBuyerH:'Volume by buyer', panBuyerN:'Kilograms shipped, all lots in the season.',
@@ -1247,38 +1287,22 @@ var I18N = {
     secConH:'Contracted against shipped',
     secConP:function(f){
       return f.nContracts + ' contracts on file for ' + f.contracted +
-        '. The bar is the share of each one that has shipped under its own reference.';
+        '. The bar shows the share of each contract shipped under its own reference.';
     },
     secConTag:'Every contract on file',
     panConH:'Contract fulfilment',
     panConN:'Contracted volume against volume shipped under that reference.',
-    panShipH:'Bought in against shipped out',
-    panShipN:'Both series are net kilograms, so the gap is the lag between buying and shipping.',
     secLotsH:'Shipment ledger',
     secLotsP:function(f){
-      return 'Every lot dispatched, dated as recorded. Shipments ran ' + f.firstShip +
-        ' to ' + f.lastShip + ', purchases ' + f.firstBuy + ' to ' + f.lastBuy + '.';
+      return f.lots + ' lots dispatched between ' + f.firstShip + ' and ' + f.lastShip +
+        ', dated as recorded in the source workbook.';
     },
     secLotsTag:'Every lot dispatched this season',
     panLotsH:'Lots dispatched', panLotsN:'Date recorded, contract, buyer, screen and volume.',
-    panIntakeH:'Purchase intake by month',
-    panIntakeN:'Green coffee bought in, which the export lots are drawn from.',
-    secSuppH:'Who supplied the season',
-    secSuppP:function(f){
-      return f.deliveries + ' deliveries from ' + f.suppliers + ' suppliers. The largest ' +
-        'single supplier accounts for ' + f.topSupplierPct + ' of intake by weight.';
-    },
-    secSuppTag:'Top suppliers by volume delivered',
-    panSiteH:'Where the intake came from',
-    panSiteN:'Net kilograms bought in, by recorded buying site.',
-    panMoistH:'Moisture at intake',
-    panMoistN:'Recorded on delivery, one bar per percentage point.',
-    lblMoistMean:'Mean moisture', lblMoistIn:'At or below 14%',
-    thSupplier:'Supplier ref', thDeliveries:'Deliveries', thNetKg:'Net delivered', thShare:'Share',
     secFlowH:'From purchase to shipment',
     secFlowP:function(f){
-      return 'Coffee is graded, sorted and bulked before it goes out, so intake and ' +
-        'shipment are never equal. ' + f.shipShare + ' of intake left as export lots.';
+      return 'Coffee is graded, sorted and bulked before dispatch, so intake and shipment ' +
+        'are measured at different points. ' + f.shipShare + ' of intake left as export lots.';
     },
     secFlowTag:'Volume reconciliation and data notes',
     flow1:'Bought in, FAQ', flow2:'Bought in, already graded',
@@ -1286,71 +1310,62 @@ var I18N = {
     footerAboutH:'About this data',
     footerDefH:'Definitions',
     footerDefP:'FAQ: Fair Average Quality, the ungraded green coffee bought from suppliers. Screen: bean size measured over a perforated sieve, so screen 18 is a larger bean than screen 12. Lot: a graded, bulked consignment shipped against one contract. Net delivered: weight after moisture and foreign-matter deductions. Invoiced: the value billed against a lot. Collected: the value received against it.',
-    lblLots:'lots', lblDeliveries:'deliveries', lblNetKg:'Net kg', lblVolume:'Volume',
+    lblLots:'lots', lblDeliveries:'deliveries', lblVolume:'Volume',
     lblOfIntake:'of intake', lblNoContract:'no contract recorded',
-    lblShipBy:'ship by', lblOf:'\u00a0of', lblIntake:'Bought in', lblShipped:'Shipped',
-    conFull:'shipped in full', conNothing:'nothing shipped under this reference',
+    lblShipBy:'ship by', lblOf:' of', lblIntake:'Bought in', lblShipped:'Shipped',
+    conFull:'shipped in full', conNothing:'no shipment under this reference',
     conShortBy:'short by', conReused:'reference also used in',
     conProbable:'probably shipped as',
-    conProbableTitle:'No lot carries this contract reference, but a lot of exactly the contracted volume went to the same buyer within eight weeks of the ship-by date. Most likely the same shipment filed under a different reference.',
+    conProbableTitle:'No lot carries this reference. A lot of exactly the contracted volume went to the same buyer within eight weeks of the ship-by date, which is consistent with the same shipment filed under a different reference.',
     insBuyer:function(f){
       return f.topBuyer + ' is the largest destination at ' + f.topBuyerVol + ', ' +
-        f.topBuyerPct + ' of everything shipped.';
+        f.topBuyerPct + ' of shipped volume.';
     },
     insScreen:function(f){
       return f.screenName + ' is the dominant grade at ' + f.screenPct + ' of shipped volume.';
     },
-    insIntake:function(f){
-      return 'Intake peaked in ' + f.peakMonth + ' at ' + f.peakKg + '.';
-    },
     insShip:function(f){
-      return 'Intake ran ' + f.firstBuy + ' to ' + f.lastBuy + '; shipments ' +
-        f.firstShip + ' to ' + f.lastShip + '.';
+      return 'Intake peaked in ' + f.peakMonth + ' at ' + f.peakKg + '. ' + f.shipShare +
+        ' of the season’s intake has shipped.';
     },
     insSite:function(f){
       return f.topSite + ' is the largest source at ' + f.topSitePct + ' of intake by weight.';
     },
     suppFoot:function(f){
-      return 'Top 10 of ' + f.suppliers + ' suppliers, by net weight delivered within the ' +
-        'season. References only, no names, and nothing about what any supplier was paid.';
+      return 'Top 10 of ' + f.suppliers + ' suppliers, by net weight delivered within the season.';
     },
     aboutP:function(f){
       return 'Covers ' + f.season + ' as recorded in the combined export workbook, rebuilt on ' +
         f.generated + '. Purchase dates run ' + f.firstBuy + ' to ' + f.lastBuy +
         ' and shipment dates ' + f.firstShip + ' to ' + f.lastShip +
         '. Volumes are net of moisture and foreign-matter deductions. Export revenue is the ' +
-        'value invoiced against the season’s lots. USD figures use each lot’s own recorded ' +
+        'value invoiced against the season’s lots. USD figures use each lot’s recorded ' +
         'exchange rate where the workbook holds one, and an indicative ' + f.fx +
-        ' UGX per USD otherwise. Supplier references are ranks within the season, not codes ' +
-        'in any Ndugu system. Every figure on this page is computed from the workbook at page load.';
+        ' UGX per USD otherwise. Supplier references are ranks within the season. Every figure ' +
+        'on this page is computed from the workbook at page load.';
     },
     noteSettle:function(f){
-      return 'Of the value invoiced against lots where the workbook records a receipt, ' +
-        f.settled + ' has been collected. That covers ' + f.settledLots + ' of ' + f.settledOf +
-        ' lots; the rest carry no receipt line either way. Shown as one season figure: no ' +
-        'buyer is named against it and no per-lot amount is published.';
+      return 'Collection: ' + f.settled + ' of the value invoiced has been received, across the ' +
+        f.settledLots + ' of ' + f.settledOf + ' lots that carry a receipt line. The remaining ' +
+        'lots record no receipt either way.';
     },
     noteNoRevenue:function(f){
-      return f.noRevenue + ' lot(s) shipped with no price or revenue recorded at all. Their ' +
-        'volume counts towards the season total, but they are left out of revenue and of the ' +
-        'average realised price rather than counted as a sale at zero.';
+      return f.noRevenue + ' lot(s) shipped with no price or revenue recorded. Their volume is ' +
+        'included in the season total and excluded from revenue and from the average realised ' +
+        'price.';
     },
     noteDupe:function(n){
-      return n + ' pair(s) of suppliers on the purchase sheet are recorded under the ' +
-        'same name entered both ways round, and are almost certainly one person each. ' +
-        'They are counted separately here because the sheet is the record of account; ' +
-        'merging them would change the supplier count. The names are not published.';
+      return n + ' pair(s) of suppliers appear under the same name entered in both word orders. ' +
+        'They are counted separately here, in line with the source sheet, so the supplier count ' +
+        'is an upper bound.';
     },
     noteMerge:function(list){
-      return 'Buyers recorded under more than one spelling are drawn as one on this page, ' +
-        'because splitting them understates concentration: ' + list + '. The purchase sheet’s ' +
-        'own duplicate names are left unmerged, as above.';
+      return 'Buyers recorded under more than one spelling are combined on this page: ' + list + '.';
     },
     noteRecon:function(f){
-      return 'Intake and shipment are measured at different points in the process, so they ' +
-        'are not expected to match: ' + f.purchased + ' bought in against ' + f.volume +
-        ' shipped, the difference sitting in stock, grading loss and lots that carry into ' +
-        'the next season.';
+      return 'Intake and shipment are measured at different points in the process: ' +
+        f.purchased + ' bought in against ' + f.volume + ' shipped, with the difference in ' +
+        'stock, grading loss and lots carrying into the next season.';
     }
   },
   nl: {
@@ -1359,37 +1374,62 @@ var I18N = {
     navCoffee:'Koffie', navAbout:'Over ons',
     brandRole:'Exportprogramma',
     asofLabel:'Seizoen',
-    seasonAll:'Alle', wordUp:'hoger', wordDown:'lager',
+    seasonAll:'Alle', wordUp:'hoger dan', wordDown:'lager dan',
     vsPriorSeason:'t.o.v. vorig seizoen',
     heroEyebrow:'Exportprogramma',
     heroH1:'Groene koffie rechtstreeks naar branders en importeurs',
     heroLede:function(f){
-      var base = 'In ' + f.season + ' kocht Ndugu Farmers Ltd ' + f.purchased +
-        ' groene koffie van ' + f.suppliers + ' leveranciers en verscheepte daarvan ' +
-        f.volume + ' als ' + f.lots + ' gesorteerde partijen naar ' + f.buyers +
-        ' afnemers. ' + f.topBuyer + ' nam ' + f.topBuyerPct + ' van het volume af';
-      base += f.prevSeason
-        ? ', en het verscheepte volume ligt ' + f.volumeDelta + ' ' + f.volumeDir +
-          ' dan in ' + f.prevSeason + '.'
-        : '.';
-      return base;
+      var open = (state.season === 'all') ? 'In totaal kocht Ndugu Farmers Ltd '
+                                          : 'In ' + f.season + ' kocht Ndugu Farmers Ltd ';
+      var base = open + f.purchased + ' groene koffie van ' + f.suppliers +
+        ' leveranciers en verscheepte daarvan ' + f.volume + ' als ' + f.lots +
+        ' gesorteerde partijen naar ' + f.buyers + ' afnemers. ' + f.topBuyer + ' nam ' +
+        f.topBuyerPct + ' van het volume af';
+      return base + (f.prevSeason
+        ? ', en het verscheepte volume ligt ' + f.volumeDelta + ' ' + f.volumeDir + ' ' +
+          f.prevSeason + '.'
+        : '.');
     },
-    heroCap:'dit seizoen geëxporteerd',
-    badgeCertL:'RFA-gecertificeerd volume', badgeScreensL:'Verscheepte screengroottes',
-    lblOfShipped:'van het verscheepte volume', lblNotRecorded:'Niet vastgelegd',
-    lblNotOnSheet:'geen contracttype op het blad van dit seizoen',
-    lblScreensOnly:'alleen screengroottes',
-    lblLotsShipped:'partijen naar afnemers',
-    kpiVolume:'Geëxporteerd volume', kpiRevenue:'Exportomzet',
-    kpiRevenueSub:'gefactureerde verkoopwaarde',
+    rowSourcingH:'Inkoop', rowSourcingN:'wat is gekocht, van wie, en met welke kwaliteit',
+    rowMarketH:'Markt', rowMarketN:'wat is verscheept, aan wie, tegen welke prijs, en wat is ontvangen',
+    kpiPurchased:'Ingekochte groene koffie',
+    kpiSuppliers:'Leveranciers', kpiSuppliersSub:'grootste leverancier',
+    kpiTopSite:'Grootste inkooppunt',
+    kpiMoisture:'Gemiddeld vochtgehalte', lblAtOrBelow:'14% of lager',
+    kpiCert:'RFA-gecertificeerd volume',
+    kpiVolume:'Geëxporteerd volume',
+    kpiLots:'Verscheepte partijen', lblScreens:'screens',
+    kpiBuyers:'Afnemers',
     kpiPrice:'Gemiddelde gerealiseerde prijs', kpiPriceSub:'per kg, geprijsde partijen',
-    kpiLots:'Verscheepte partijen', kpiBuyers:'Afnemers', kpiPurchased:'Ingekochte groene koffie',
-    kpiSettled:'Omzet ontvangen', kpiSettledSub:'van wat is gefactureerd',
-    lblSuppliers:'leveranciers',
+    kpiRevenue:'Exportomzet', kpiRevenueSub:'gefactureerde verkoopwaarde',
+    lblCollected:'ontvangen',
+    lblOfShipped:'van het verscheepte volume', lblNotRecorded:'Niet vastgelegd',
+    lblNotOnSheet:'niet op het blad van dit seizoen',
+    secSourceH:'Waar de koffie vandaan kwam',
+    secSourceP:function(f){
+      return f.deliveries + ' leveringen van ' + f.suppliers + ' leveranciers. De grootste ' +
+        'leverancier is goed voor ' + f.topSupplierPct + ' van de inkoop naar gewicht.';
+    },
+    secSourceTag:'Inkoop per inkooppunt, kwaliteit en leverancier',
+    panSiteH:'Inkoop per inkooppunt', panSiteN:'Netto ingekochte kilogrammen, per vastgelegd punt.',
+    panMoistH:'Vochtgehalte bij inname',
+    panMoistN:'Leveringen naar vastgelegd vochtgehalte, één balk per procentpunt.',
+    lblMoistMean:'Gemiddeld vochtgehalte', lblMoistIn:'14% of lager',
+    panSuppH:'Grootste leveranciers', panSuppN:'Gerangschikt naar netto geleverd gewicht binnen het seizoen.',
+    thSupplier:'Leverancierscode', thDeliveries:'Leveringen', thNetKg:'Netto geleverd', thShare:'Aandeel',
+    secMonthH:'Inkoop en verscheping door het seizoen',
+    secMonthP:function(f){
+      return 'De inkoop liep van ' + f.firstBuy + ' tot ' + f.lastBuy + ' en de verschepingen van ' +
+        f.firstShip + ' tot ' + f.lastShip + '. De inkoop piekte in ' + f.peakMonth +
+        ' met ' + f.peakKg + '.';
+    },
+    secMonthTag:'Netto kilogrammen per maand',
+    panShipH:'Ingekocht tegenover verscheept',
+    panShipN:'Netto ingekochte en netto verscheepte kilogrammen, per maand.',
     secBuyersH:'Waar de koffie heen ging',
     secBuyersP:function(f){
-      return 'De concentratie verdient aandacht: ' + f.topBuyer + ' alleen al is goed voor ' +
-        f.topBuyerPct + ' van het verscheepte volume, verdeeld over ' + f.buyers + ' afnemers.';
+      return f.topBuyer + ' is goed voor ' + f.topBuyerPct + ' van het verscheepte volume over ' +
+        f.buyers + ' afnemers, en ' + f.screenName + ' voor ' + f.screenPct + ' van de sorteringen.';
     },
     secBuyersTag:'Volume per afnemer en screengrootte',
     panBuyerH:'Volume per afnemer', panBuyerN:'Verscheepte kilogrammen, alle partijen van het seizoen.',
@@ -1397,38 +1437,23 @@ var I18N = {
     secConH:'Gecontracteerd tegenover verscheept',
     secConP:function(f){
       return f.nContracts + ' contracten vastgelegd voor ' + f.contracted +
-        '. De balk toont het deel dat onder de eigen contractreferentie is verscheept.';
+        '. De balk toont het deel van elk contract dat onder de eigen referentie is verscheept.';
     },
     secConTag:'Alle vastgelegde contracten',
     panConH:'Contractafwikkeling',
     panConN:'Gecontracteerd volume tegenover het volume dat onder die referentie is verscheept.',
-    panShipH:'Ingekocht tegenover verscheept',
-    panShipN:'Beide reeksen zijn netto kilogrammen; het verschil is de vertraging tussen inkoop en verscheping.',
     secLotsH:'Verschepingsregister',
     secLotsP:function(f){
-      return 'Elke verscheepte partij, gedateerd zoals vastgelegd. Verschepingen liepen van ' +
-        f.firstShip + ' tot ' + f.lastShip + ', de inkoop van ' + f.firstBuy + ' tot ' + f.lastBuy + '.';
+      return f.lots + ' partijen verscheept tussen ' + f.firstShip + ' en ' + f.lastShip +
+        ', gedateerd zoals vastgelegd in het bronbestand.';
     },
     secLotsTag:'Elke partij die dit seizoen is verscheept',
     panLotsH:'Verscheepte partijen', panLotsN:'Vastgelegde datum, contract, afnemer, screen en volume.',
-    panIntakeH:'Inkoop per maand',
-    panIntakeN:'Ingekochte groene koffie, waaruit de exportpartijen worden samengesteld.',
-    secSuppH:'Wie het seizoen leverde',
-    secSuppP:function(f){
-      return f.deliveries + ' leveringen van ' + f.suppliers + ' leveranciers. De grootste ' +
-        'afzonderlijke leverancier is goed voor ' + f.topSupplierPct + ' van de inkoop naar gewicht.';
-    },
-    secSuppTag:'Grootste leveranciers naar geleverd volume',
-    panSiteH:'Waar de inkoop vandaan kwam',
-    panSiteN:'Netto ingekochte kilogrammen, per vastgelegd inkooppunt.',
-    panMoistH:'Vochtgehalte bij inname',
-    panMoistN:'Vastgelegd bij levering, één balk per procentpunt.',
-    lblMoistMean:'Gemiddeld vochtgehalte', lblMoistIn:'14% of lager',
-    thSupplier:'Leverancierscode', thDeliveries:'Leveringen', thNetKg:'Netto geleverd', thShare:'Aandeel',
     secFlowH:'Van inkoop naar verscheping',
     secFlowP:function(f){
-      return 'Koffie wordt gesorteerd, geschoond en gebulkt voordat zij vertrekt, dus inkoop ' +
-        'en verscheping zijn nooit gelijk. ' + f.shipShare + ' van de inkoop vertrok als exportpartij.';
+      return 'Koffie wordt gesorteerd, geschoond en gebulkt vóór verzending, dus inkoop en ' +
+        'verscheping worden op verschillende momenten gemeten. ' + f.shipShare +
+        ' van de inkoop vertrok als exportpartij.';
     },
     secFlowTag:'Volumeaansluiting en aantekeningen bij de data',
     flow1:'Ingekocht, FAQ', flow2:'Ingekocht, al gesorteerd',
@@ -1436,34 +1461,30 @@ var I18N = {
     footerAboutH:'Over deze gegevens',
     footerDefH:'Definities',
     footerDefP:'FAQ: Fair Average Quality, de ongesorteerde groene koffie die van leveranciers wordt gekocht. Screen: boongrootte gemeten over een geperforeerde zeef, dus screen 18 is een grotere boon dan screen 12. Partij: een gesorteerde, gebulkte zending onder één contract. Netto geleverd: gewicht na aftrek voor vocht en vreemde bestanddelen. Gefactureerd: de waarde die voor een partij in rekening is gebracht. Ontvangen: de waarde die daarvoor is binnengekomen.',
-    lblLots:'partijen', lblDeliveries:'leveringen', lblNetKg:'Netto kg', lblVolume:'Volume',
+    lblLots:'partijen', lblDeliveries:'leveringen', lblVolume:'Volume',
     lblOfIntake:'van de inkoop', lblNoContract:'geen contract vastgelegd',
-    lblShipBy:'verschepen vóór', lblOf:'\u00a0van', lblIntake:'Ingekocht', lblShipped:'Verscheept',
-    conFull:'volledig verscheept', conNothing:'niets verscheept onder deze referentie',
+    lblShipBy:'verschepen vóór', lblOf:' van', lblIntake:'Ingekocht', lblShipped:'Verscheept',
+    conFull:'volledig verscheept', conNothing:'geen verscheping onder deze referentie',
     conShortBy:'tekort van', conReused:'referentie ook gebruikt in',
     conProbable:'waarschijnlijk verscheept als',
-    conProbableTitle:'Geen enkele partij draagt deze contractreferentie, maar een partij met exact het gecontracteerde volume ging binnen acht weken van de uiterste verschepingsdatum naar dezelfde afnemer. Waarschijnlijk dezelfde zending, vastgelegd onder een andere referentie.',
+    conProbableTitle:'Geen enkele partij draagt deze referentie. Een partij met exact het gecontracteerde volume ging binnen acht weken van de uiterste verschepingsdatum naar dezelfde afnemer, wat past bij dezelfde zending onder een andere referentie.',
     insBuyer:function(f){
       return f.topBuyer + ' is de grootste bestemming met ' + f.topBuyerVol + ', ' +
-        f.topBuyerPct + ' van alles wat is verscheept.';
+        f.topBuyerPct + ' van het verscheepte volume.';
     },
     insScreen:function(f){
       return f.screenName + ' is de dominante sortering met ' + f.screenPct +
         ' van het verscheepte volume.';
     },
-    insIntake:function(f){
-      return 'De inkoop piekte in ' + f.peakMonth + ' met ' + f.peakKg + '.';
-    },
     insShip:function(f){
-      return 'De inkoop liep van ' + f.firstBuy + ' tot ' + f.lastBuy + '; de verschepingen van ' +
-        f.firstShip + ' tot ' + f.lastShip + '.';
+      return 'De inkoop piekte in ' + f.peakMonth + ' met ' + f.peakKg + '. ' + f.shipShare +
+        ' van de inkoop van het seizoen is verscheept.';
     },
     insSite:function(f){
       return f.topSite + ' is de grootste bron met ' + f.topSitePct + ' van de inkoop naar gewicht.';
     },
     suppFoot:function(f){
-      return 'Top 10 van ' + f.suppliers + ' leveranciers, naar netto geleverd gewicht binnen ' +
-        'het seizoen. Alleen codes, geen namen, en niets over wat een leverancier betaald kreeg.';
+      return 'Top 10 van ' + f.suppliers + ' leveranciers, naar netto geleverd gewicht binnen het seizoen.';
     },
     aboutP:function(f){
       return 'Betreft ' + f.season + ' zoals vastgelegd in het gecombineerde exportbestand, ' +
@@ -1471,38 +1492,33 @@ var I18N = {
         ' tot ' + f.lastBuy + ' en de verschepingsdata van ' + f.firstShip + ' tot ' + f.lastShip +
         '. Volumes zijn netto na aftrek voor vocht en vreemde bestanddelen. De exportomzet is de ' +
         'waarde die voor de partijen van het seizoen in rekening is gebracht. USD-bedragen ' +
-        'gebruiken de bij de partij vastgelegde wisselkoers waar het bestand die heeft, en ' +
-        'anders een indicatieve ' + f.fx + ' UGX per USD. Leverancierscodes zijn rangnummers ' +
-        'binnen het seizoen, geen codes in enig systeem van Ndugu. Elk cijfer op deze pagina ' +
-        'wordt bij het laden van de pagina uit het bronbestand berekend.';
+        'gebruiken de bij de partij vastgelegde wisselkoers waar het bestand die heeft, en anders ' +
+        'een indicatieve ' + f.fx + ' UGX per USD. Leverancierscodes zijn rangnummers binnen het ' +
+        'seizoen. Elk cijfer op deze pagina wordt bij het laden van de pagina uit het bronbestand ' +
+        'berekend.';
     },
     noteSettle:function(f){
-      return 'Van de waarde die is gefactureerd voor partijen waarbij het bestand een ontvangst ' +
-        'vastlegt, is ' + f.settled + ' binnengekomen. Dat betreft ' + f.settledLots + ' van ' +
-        f.settledOf + ' partijen; bij de rest ontbreekt een ontvangstregel. Weergegeven als één ' +
-        'seizoenscijfer: er wordt geen afnemer bij genoemd en geen bedrag per partij gepubliceerd.';
+      return 'Ontvangsten: ' + f.settled + ' van de gefactureerde waarde is binnengekomen, over de ' +
+        f.settledLots + ' van ' + f.settledOf + ' partijen met een ontvangstregel. Bij de overige ' +
+        'partijen is geen ontvangst vastgelegd.';
     },
     noteNoRevenue:function(f){
-      return f.noRevenue + ' partij(en) is verscheept zonder enige vastgelegde prijs of omzet. ' +
-        'Het volume telt mee in het seizoenstotaal, maar zij blijven buiten de omzet en buiten ' +
-        'de gemiddelde gerealiseerde prijs in plaats van als verkoop tegen nul te tellen.';
+      return f.noRevenue + ' partij(en) is verscheept zonder vastgelegde prijs of omzet. Het volume ' +
+        'telt mee in het seizoenstotaal en blijft buiten de omzet en buiten de gemiddelde ' +
+        'gerealiseerde prijs.';
     },
     noteDupe:function(n){
-      return n + ' paar leveranciers op het inkoopblad staan onder dezelfde naam, twee ' +
-        'keer andersom ingevoerd, en zijn vrijwel zeker telkens één persoon. Ze worden ' +
-        'hier apart geteld omdat het blad de administratie is; samenvoegen zou het aantal ' +
-        'leveranciers veranderen. De namen worden niet gepubliceerd.';
+      return n + ' paar leveranciers staan onder dezelfde naam in beide woordvolgordes. Zij worden ' +
+        'hier apart geteld, in lijn met het bronblad, dus het aantal leveranciers is een bovengrens.';
     },
     noteMerge:function(list){
-      return 'Afnemers die onder meer dan één schrijfwijze zijn vastgelegd, worden op deze ' +
-        'pagina als één getoond, omdat splitsen de concentratie onderschat: ' + list +
-        '. De dubbele namen op het inkoopblad blijven ongewijzigd, zoals hierboven.';
+      return 'Afnemers die onder meer dan één schrijfwijze zijn vastgelegd, worden op deze pagina ' +
+        'samengevoegd: ' + list + '.';
     },
     noteRecon:function(f){
-      return 'Inkoop en verscheping worden op verschillende momenten in het proces gemeten en ' +
-        'hoeven dus niet gelijk te zijn: ' + f.purchased + ' ingekocht tegenover ' + f.volume +
-        ' verscheept, met het verschil in voorraad, sorteerverlies en partijen die doorlopen ' +
-        'naar het volgende seizoen.';
+      return 'Inkoop en verscheping worden op verschillende momenten in het proces gemeten: ' +
+        f.purchased + ' ingekocht tegenover ' + f.volume + ' verscheept, met het verschil in ' +
+        'voorraad, sorteerverlies en partijen die doorlopen naar het volgende seizoen.';
     }
   }
 };
@@ -1540,68 +1556,74 @@ function deltaHTML(curr, prev, higherIsBetter){
 }
 function flatDelta(text){ return '<div class="kpi-delta flat">' + text + '</div>'; }
 
-function renderHeader(){
+/* Ten tiles in one 2x5 grid. Row one is the sourcing side, row two the market
+   side; within each row the tone runs dark to light in reading order. A season
+   whose sheet does not carry a field reports that rather than showing zero. */
+function renderTiles(){
   var d = D(), s = d.sales, p = d.purchases, prev = prevSeason();
   document.getElementById('asOfSeason').textContent = seasonLabel(state.season);
-  document.getElementById('heroBig').textContent = fmtTonnes(s.volume_kg);
-  document.getElementById('heroSub').textContent = fmtRevenue(s);
-  document.getElementById('badgeBuyers').textContent = fmtInt(s.n_lots);
-  document.getElementById('badgeBuyersL').textContent =
-    t('lblLotsShipped') + ' (' + fmtInt(s.n_buyers) + ')';
 
-  /* Certification used to be asserted on the tile. The 2026 sheet records a
-     contract type per lot, so it is measured instead, and a season that does
-     not record it says so rather than claiming a share of zero. */
   var cert = (d.by_type || []).filter(function(r){ return r.type === 'RFA certified'; })[0];
-  var unrec = (d.by_type || []).filter(function(r){ return r.type === 'Unrecorded'; })[0];
-  var certAll = unrec && unrec.volume_kg === s.volume_kg;
-  document.getElementById('badgeCert').textContent =
-    certAll ? t('lblNotRecorded') : fmtTonnes(cert ? cert.volume_kg : 0);
-  document.getElementById('badgeCertSub').textContent = certAll ? t('lblNotOnSheet')
-    : fmtPct(s.volume_kg ? (cert ? cert.volume_kg : 0)/s.volume_kg : 0) + ' ' + t('lblOfShipped');
-
-  var screens = d.by_screen
-    .filter(function(r){ return /^Screen /.test(r.screen); })
-    .map(function(r){ return r.screen.replace('Screen ', ''); });
+  var typed = (d.by_type || []).some(function(r){ return r.type !== 'Unrecorded'; });
+  var screens = d.by_screen.filter(function(r){ return /^Screen /.test(r.screen); })
+                           .map(function(r){ return r.screen.replace('Screen ', ''); });
   var others = d.by_screen.filter(function(r){ return !/^Screen /.test(r.screen); });
-  document.getElementById('badgeScreens').textContent = screens.join(' · ') || '-';
-  document.getElementById('badgeScreensSub').textContent = others.length
-    ? '+ ' + others.map(function(r){ return r.screen.toLowerCase(); }).join(', ')
-    : t('lblScreensOnly');
 
-  var cells = [];
-  cells.push({icon:'bean', label:t('kpiVolume'), value:fmtTonnes(s.volume_kg),
-              delta: prev ? deltaHTML(s.volume_kg, prev.sales.volume_kg) : flatDelta(fmtInt(s.volume_kg) + ' kg')});
-  cells.push({icon:'cash', label:t('kpiRevenue'), value:fmtRevenue(s),
-              delta: prev ? deltaHTML(s.revenue_usd, prev.sales.revenue_usd) : flatDelta(t('kpiRevenueSub'))});
-  cells.push({icon:'tag', label:t('kpiPrice'), value:fmtPrice(s),
-              delta: prev ? deltaHTML(s.avg_realised_usd_per_kg, prev.sales.avg_realised_usd_per_kg)
-                          : flatDelta(t('kpiPriceSub'))});
-  cells.push({icon:'crate', label:t('kpiLots'), value:fmtInt(s.n_lots),
-              delta: flatDelta(fmtDate(s.date_min) + ' – ' + fmtDate(s.date_max))});
-  /* Settlement only where the sheet records receipts. The 2025 sheet has no
-     such column, so that season shows buyers instead: a nil-collected tile
-     would read as an alarm about a figure that was never recorded. */
-  if (d.settlement){
-    cells.push({icon:'seal', label:t('kpiSettled'),
-                value:fmtPct(d.settlement.pct_collected),
-                delta: flatDelta(t('kpiSettledSub') + ', ' +
-                  fmtInt(d.settlement.n_lots_covered) + '/' + fmtInt(d.settlement.n_lots) +
-                  ' ' + t('lblLots'))});
-  } else {
-    cells.push({icon:'group', label:t('kpiBuyers'), value:fmtInt(s.n_buyers),
-                delta: flatDelta(d.by_buyer.length ? d.by_buyer[0].buyer + ' ' +
-                  fmtPct(s.volume_kg ? d.by_buyer[0].volume_kg/s.volume_kg : 0) : '')});
-  }
-  cells.push({icon:'plot', label:t('kpiPurchased'), value:fmtTonnes(p.net_kg),
-              delta: prev ? deltaHTML(p.net_kg, prev.purchases.net_kg)
-                          : flatDelta(fmtInt(p.n_suppliers) + ' ' + t('lblSuppliers'))});
+  var cells = [
+    /* Sourcing */
+    {tone:'tone-s1', icon:'plot', label:t('kpiPurchased'), value:fmtTonnes(p.net_kg),
+     sub: prev ? delta(p.net_kg, prev.purchases.net_kg)
+               : flat(fmtInt(p.n_deliveries) + ' ' + t('lblDeliveries'))},
+    {tone:'tone-s2', icon:'group', label:t('kpiSuppliers'), value:fmtInt(p.n_suppliers),
+     sub: flat(t('kpiSuppliersSub') + ' ' + FACTS.topSupplierPct)},
+    {tone:'tone-s3', icon:'pin', label:t('kpiTopSite'),
+     value: d.by_site && d.by_site.length
+       ? '<span style="font-size:17px">' + esc(d.by_site[0].site) + '</span>' : t('lblNotRecorded'),
+     sub: d.by_site && d.by_site.length
+       ? flat(FACTS.topSitePct + ' ' + t('lblOfIntake')) : flat(t('lblNotOnSheet'))},
+    {tone:'tone-s4', icon:'leaf', label:t('kpiMoisture'),
+     value: d.moisture ? FACTS.moistMean : t('lblNotRecorded'),
+     sub: d.moisture ? flat(FACTS.moistIn + ' ' + t('lblAtOrBelow'))
+                     : flat(t('lblNotOnSheet'))},
+    {tone:'tone-s5', icon:'seal', label:t('kpiCert'),
+     value: typed ? fmtTonnes(cert ? cert.volume_kg : 0) : t('lblNotRecorded'),
+     sub: typed
+       ? flat(fmtPct(s.volume_kg ? (cert ? cert.volume_kg : 0)/s.volume_kg : 0) + ' ' + t('lblOfShipped'))
+       : flat(t('lblNotOnSheet'))},
+    /* Market */
+    {tone:'tone-m1', icon:'bean', label:t('kpiVolume'), value:fmtTonnes(s.volume_kg),
+     sub: prev ? delta(s.volume_kg, prev.sales.volume_kg) : flat(fmtInt(s.volume_kg) + ' kg')},
+    {tone:'tone-m2', icon:'crate', label:t('kpiLots'), value:fmtInt(s.n_lots),
+     sub: flat(screens.length ? t('lblScreens') + ' ' + screens.join(' · ') +
+               (others.length ? ' + ' + others.length : '') : '')},
+    {tone:'tone-m3', icon:'window', label:t('kpiBuyers'), value:fmtInt(s.n_buyers),
+     sub: flat(d.by_buyer.length
+       ? d.by_buyer[0].buyer + ' ' + fmtPct(s.volume_kg ? d.by_buyer[0].volume_kg/s.volume_kg : 0) : '')},
+    {tone:'tone-m4', icon:'tag', label:t('kpiPrice'), value:fmtPrice(s),
+     sub: prev ? delta(s.avg_realised_usd_per_kg, prev.sales.avg_realised_usd_per_kg)
+               : flat(t('kpiPriceSub'))},
+    {tone:'tone-m5', icon:'cash', label:t('kpiRevenue'), value:fmtRevenue(s),
+     sub: d.settlement
+       ? flat(fmtPct(d.settlement.pct_collected) + ' ' + t('lblCollected'))
+       : (prev ? delta(s.revenue_usd, prev.sales.revenue_usd) : flat(t('kpiRevenueSub')))}
+  ];
 
-  document.getElementById('kpiStrip').innerHTML = cells.map(function(c){
-    return '<div class="kpi-cell">' + icon(c.icon) + '<div class="kpi-label">' + c.label +
-           '</div><div class="kpi-value num">' + c.value + '</div>' + c.delta + '</div>';
+  document.getElementById('tileGrid').innerHTML = cells.map(function(c){
+    return '<div class="tile ' + c.tone + '">' + icon(c.icon) +
+           '<p class="tile-label">' + c.label + '</p>' +
+           '<div class="tile-value num">' + c.value + '</div>' + c.sub + '</div>';
   }).join('');
 }
+
+function delta(curr, prior){
+  if (!prior) return '';
+  var v = (curr - prior) / prior;
+  var cls = Math.abs(v) < 0.01 ? 'flat' : (v > 0 ? 'up' : 'down');
+  var arrow = v > 0 ? '▲' : (v < 0 ? '▼' : '=');
+  return '<div class="tile-foot kpi-delta ' + cls + '"><span>' + arrow + '</span><span>' +
+         fmtPct(Math.abs(v)) + ' ' + t('vsPriorSeason') + '</span></div>';
+}
+function flat(text){ return text ? '<div class="tile-foot kpi-delta flat">' + text + '</div>' : ''; }
 
 function renderBuyerChart(){
   var rows = D().by_buyer;
@@ -1664,11 +1686,10 @@ function renderScreenChart(){
   document.getElementById('screenInsight').innerHTML = t('insScreen');
 }
 
-/* Contracted volume against what shipped under that reference. A contract with
-   nothing against its own reference but an exact-volume lot to the same buyer
-   near the ship-by date is shown as a probable rename, not as a miss: the
-   difference between a filing error and an unshipped contract matters to
-   anyone reading this page, and the data cannot tell them apart. */
+/* Contracted volume against volume shipped under that reference. Where a
+   contract has no shipment of its own but an exact-volume lot went to the same
+   buyer near the ship-by date, it is reported as a probable rename rather than
+   as an unshipped contract. */
 function renderContracts(){
   var host = document.getElementById('contractList');
   var rows = D().contracts || [];
@@ -1706,14 +1727,21 @@ function renderContracts(){
   }).join('');
 }
 
-/* Intake and shipment on one frame. They are the same unit and the same
-   months, so the comparison is legitimate; the point of the panel is the lag
-   between buying and shipping, which no single series shows. */
+/* Intake and shipment share a unit and a time axis, so they sit on one frame.
+   The panel exists to show the lag between buying and shipping. */
 function renderShipChart(){
   var d = D();
   var months = {};
-  d.purchases_monthly.forEach(function(r){ months[r.month] = months[r.month] || {}; months[r.month].in = r.net_kg; });
-  (d.shipments_monthly || []).forEach(function(r){ months[r.month] = months[r.month] || {}; months[r.month].out = r.volume_kg; });
+  d.purchases_monthly.forEach(function(r){
+    months[r.month] = months[r.month] || {};
+    months[r.month].in = r.net_kg;
+    months[r.month].deliveries = r.deliveries;
+  });
+  (d.shipments_monthly || []).forEach(function(r){
+    months[r.month] = months[r.month] || {};
+    months[r.month].out = r.volume_kg;
+    months[r.month].lots = r.lots;
+  });
   var keys = Object.keys(months).sort();
   mountChart('shipChart', {
     type:'bar',
@@ -1732,7 +1760,16 @@ function renderShipChart(){
       plugins:{
         legend:{position:'bottom', labels:{boxWidth:11, boxHeight:11, padding:10,
           font:{family:CHART_FONT, size:11.5}, color:COLORS.inkSoft}},
-        tooltip:{callbacks:{label:function(c){ return ' ' + c.dataset.label + ': ' + fmtKgShort(c.parsed.y); }}}
+        tooltip:{callbacks:{
+          label:function(c){ return ' ' + c.dataset.label + ': ' + fmtKgShort(c.parsed.y); },
+          footer:function(c){
+            var m = keys[c[0].dataIndex], row = months[m];
+            var bits = [];
+            if (row.deliveries) bits.push(t('lblDeliveries') + ': ' + fmtInt(row.deliveries));
+            if (row.lots) bits.push(t('lblLots') + ': ' + fmtInt(row.lots));
+            return bits.join('  ');
+          }
+        }}
       },
       scales:{
         x:{grid:{display:false}, border:{display:false}, ticks:{maxRotation:0, autoSkip:true}},
@@ -1760,49 +1797,8 @@ function renderLots(){
   }).join('');
 }
 
-function renderIntake(){
-  var rows = D().purchases_monthly;
-  mountChart('intakeChart', {
-    data:{
-      labels: rows.map(function(r){ return fmtMonth(r.month); }),
-      datasets:[
-        {
-          type:'bar', label:t('lblNetKg'),
-          data: rows.map(function(r){ return r.net_kg; }),
-          backgroundColor:COLORS.roast, borderRadius:3, borderSkipped:false, barPercentage:0.68, order:2
-        },
-      ]
-    },
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      interaction:{mode:'index', intersect:false},
-      plugins:{
-        /* One series, so the panel title names it and no legend box is needed.
-           The delivery count used to be a second line on its own right-hand
-           axis; two y-scales in one frame invite a comparison between the two
-           shapes that the scales make meaningless, so it moved to the tooltip
-           where it is still available but cannot be misread. */
-        legend:{display:false},
-        tooltip:{callbacks:{
-          label:function(c){ return ' ' + t('lblNetKg') + ': ' + fmtKgShort(c.parsed.y); },
-          footer:function(c){
-            var r = rows[c[0].dataIndex];
-            return t('lblDeliveries') + ': ' + fmtInt(r.deliveries);
-          }
-        }}
-      },
-      scales:{
-        x:{grid:{display:false}, border:{display:false}, ticks:{maxRotation:0, autoSkip:true}},
-        y:{grid:{color:COLORS.line, borderDash:GRID_DASH}, border:{display:false},
-           ticks:{callback:function(v){ return fmtAxisKg(v); }}}
-      }
-    }
-  });
-  document.getElementById('intakeInsight').innerHTML = t('insIntake');
-}
-
-/* Buying site and moisture are recorded on the 2026 sheet only, so the whole
-   row is hidden for a season that has neither rather than drawn empty. */
+/* Buying site and moisture are recorded from the 2026 sheet onward. A season
+   with neither hides the row rather than drawing empty panels. */
 function renderIntakeQuality(){
   var d = D();
   var sites = d.by_site || [], moist = d.moisture;
@@ -1928,37 +1924,21 @@ function renderFlow(){
   document.getElementById('notesBox').innerHTML = notes.join('');
 }
 
-var TILE_ICONS = {'tileLead': 'bean', 'tileCert': 'seal', 'tileScreens': 'plot', 'tileBuyers': 'crate'};
-function paintTileIcons(){
-  /* KPI tiles carry their glyph name on the element, so the markup stays
-     declarative and the SVG is built in one place. */
-  document.querySelectorAll('.kpi-icon-slot').forEach(function(slot){
-    if (slot.dataset.done) return;
-    slot.outerHTML = icon(slot.dataset.icon);
-  });
-  Object.keys(TILE_ICONS).forEach(function(id){
-    var el = document.getElementById(id);
-    if (!el || el.querySelector('.tile-icon')) return;
-    el.insertAdjacentHTML('afterbegin', icon(TILE_ICONS[id]));
-  });
-}
-
+/* Panels render in the order the page reads: what was bought, when it moved,
+   who bought it, what was promised, what shipped, and whether it reconciles. */
 function renderAll(){
-  paintTileIcons();
   computeFacts();
   applyStaticI18n();
   renderSeasonPills();
   document.getElementById('footerAboutP').textContent = t('aboutP');
-  renderHeader();
-  paintTileIcons();
+  renderTiles();
+  renderIntakeQuality();
+  renderSuppliers();
+  renderShipChart();
   renderBuyerChart();
   renderScreenChart();
   renderContracts();
-  renderShipChart();
   renderLots();
-  renderIntake();
-  renderIntakeQuality();
-  renderSuppliers();
   renderFlow();
 }
 
@@ -1985,8 +1965,7 @@ function bindControls(){
 
 function start(){
   if (DATA.meta && DATA.meta.fx_ugx_per_usd > 0) FX_RATE = DATA.meta.fx_ugx_per_usd;
-  /* Open on the most recent season the workbook holds rather than a year
-     typed into this file, so a new season needs no code change here. */
+  /* Open on the most recent season the workbook holds. */
   if (DATA.seasons[DATA.meta.default_season]) state.season = DATA.meta.default_season;
   themeCharts();
   bindControls();
