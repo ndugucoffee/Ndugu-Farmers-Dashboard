@@ -748,27 +748,6 @@
         </div>
       </div>
     </div>
-    <div class="grid">
-      <div class="col-12 panel">
-        <p class="panel-title" data-i18n="panSuppH">Largest suppliers</p>
-        <p class="panel-note" data-i18n="panSuppN">Ranked by net weight delivered within the season.</p>
-        <div class="leaderboard-scroll">
-          <table class="leaderboard">
-            <thead>
-              <tr>
-                <th style="width:3rem;">#</th>
-                <th data-i18n="thSupplier">Supplier ref</th>
-                <th class="num" style="width:8rem;" data-i18n="thDeliveries">Deliveries</th>
-                <th class="num" style="width:9rem;" data-i18n="thNetKg">Net delivered</th>
-                <th class="num" style="width:8rem;" data-i18n="thShare">Share</th>
-              </tr>
-            </thead>
-            <tbody id="supplierBody"></tbody>
-          </table>
-        </div>
-        <p class="panel-note" style="margin:11px 0 0;" id="supplierFoot">-</p>
-      </div>
-    </div>
   </section>
 
   <section>
@@ -892,6 +871,34 @@
     </div>
   </section>
 
+  <section>
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="panSuppH">Largest suppliers</h2>
+        <p data-i18n="panSuppN">Ranked by net weight delivered within the season.</p>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="col-12 panel">
+        <div class="leaderboard-scroll">
+          <table class="leaderboard">
+            <thead>
+              <tr>
+                <th style="width:8%;">#</th>
+                <th style="width:32%;" data-i18n="thSupplier">Supplier ref</th>
+                <th class="num" style="width:20%;" data-i18n="thDeliveries">Deliveries</th>
+                <th class="num" style="width:20%;" data-i18n="thNetKg">Net delivered</th>
+                <th class="num" style="width:20%;" data-i18n="thShare">Share</th>
+              </tr>
+            </thead>
+            <tbody id="supplierBody"></tbody>
+          </table>
+        </div>
+        <p class="panel-note" style="margin:11px 0 0;" id="supplierFoot">-</p>
+      </div>
+    </div>
+  </section>
+
 </main>
 
 <footer>
@@ -971,7 +978,7 @@ function boot(){
 
 /* ============================= state ============================= */
 var FX_RATE = 3777;
-var state = { currency:'USD', lang:'en', season:'2026' };
+var state = { currency:'USD', lang:'en', season:'all' };
 
 /* ============================= formatters ============================= */
 var MONTHS_EN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -1955,8 +1962,7 @@ function bindControls(){
 
 function start(){
   if (DATA.meta && DATA.meta.fx_ugx_per_usd > 0) FX_RATE = DATA.meta.fx_ugx_per_usd;
-  /* Open on the most recent season the workbook holds. */
-  if (DATA.seasons[DATA.meta.default_season]) state.season = DATA.meta.default_season;
+  /* Open on "All", showing the full programme rather than a single season. */
   themeCharts();
   bindControls();
   renderAll();
