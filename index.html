@@ -3,7 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ndugu Farmers Ltd | Sourcing &amp; Operations</title>
+<meta name="description" content="Live sourcing and operations dashboard for Ndugu Farmers Ltd — volume, value, farmer network, district map and supplier leaderboard.">
+<meta property="og:title" content="Ndugu Farmers Ltd | Sourcing & Operations">
+<meta property="og:description" content="Live sourcing and operations dashboard — volume, value, farmer network and supplier leaderboard.">
+<meta property="og:type" content="website">
+<title>Sourcing &amp; Operations · Ndugu Farmers Ltd</title>
 <!-- No webfont is loaded. Power BI's typeface is Segoe UI, which Microsoft
      licenses with Windows and does not publish to Google Fonts, so it cannot
      lawfully be served from here; it is named in the stack instead and falls
@@ -339,6 +343,11 @@
     border:1px solid var(--line-strong); border-radius:var(--radius-md);
     background:var(--surface); padding:14px; box-shadow:var(--shadow-panel);
     display:flex; flex-direction:column; min-width:0;
+    transition:box-shadow .18s ease, border-color .18s ease;
+  }
+  .panel:hover{
+    border-color:var(--line-strong);
+    box-shadow:0 2px 4px rgba(42,26,16,.06), 0 14px 32px -18px rgba(42,26,16,.62);
   }
   .panel-title{font-size:14.5px; font-weight:600; margin:0 0 4px 0; min-height:1.4em;}
   .panel-note{font-size:12.5px; color:var(--ink-faint); margin:0 0 8px 0; min-height:1.5em;}
@@ -498,6 +507,42 @@
 
   .vis-hidden{display:none !important;}
 
+  /* ---------- Skip-to-content link (keyboard accessibility) ----------
+     Visible only on focus so it doesn't affect the visual design at all,
+     but keyboard users can jump straight past the sidenav. */
+  .skip-link{
+    position:fixed; top:8px; left:50%; transform:translateX(-50%) translateY(-150%);
+    z-index:200; background:var(--roast-deep); color:#fff;
+    padding:10px 22px; border-radius:var(--radius-md);
+    font-size:14px; font-weight:600; text-decoration:none;
+    transition:transform .15s ease; white-space:nowrap;
+  }
+  .skip-link:focus-visible{ transform:translateX(-50%) translateY(0); outline:none; box-shadow:0 0 0 3px var(--honey); }
+
+  /* ---------- Scroll-margin: prevent sticky topbar from hiding headings on anchor scroll ---------- */
+  h2, section[id]{ scroll-margin-top: 68px; }
+
+  /* ---------- Pill-group filter: accessible role label ---------- */
+  [role="group"]:focus-within .pillgroup-label{ color:var(--ink); }
+
+  /* ---------- Print styles ---------- */
+  @media print{
+    body::before, .sidenav, header.topbar, .filterbar{ display:none !important; }
+    .layout{ display:block; }
+    .layout-main{ max-width:100%; }
+    .shell{ padding:0 12mm; max-width:none; }
+    .panel, .district-ledger, .tile, .kpi-cell{ box-shadow:none !important; border:1px solid #ccc !important; break-inside:avoid; }
+    .chart-box canvas{ max-height:220px; }
+    section{ padding:10px 0; page-break-inside:avoid; }
+    .part-rail{ border-top-color:#000; }
+    footer{ background:#fff !important; color:#333 !important; border-top:1px solid #ccc; }
+    footer h4{ color:#000 !important; }
+    .topbar{ position:static !important; }
+    .map-svg-wrap{ height:280px !important; }
+    #districtList{ max-height:none !important; overflow:visible !important; }
+    a[href]::after{ content:none; }
+  }
+
   /* ---------- boot states (before data.json arrives) ---------- */
   .boot{
     max-width:640px; margin:0 auto; padding:96px 24px 120px; text-align:center;
@@ -520,6 +565,8 @@
 </style>
 </head>
 <body>
+
+<a class="skip-link" href="#main-content">Skip to main content</a>
 
 <div class="boot" id="bootLoading">
   <div class="boot-spinner"></div>
@@ -558,27 +605,27 @@
         <div class="role" data-i18n="brandRole">Sourcing &amp; operations</div>
       </div>
     </div>
-    <div class="filterbar">
-      <div class="pillgroup" id="seasonPills">
-        <button class="pill active" data-season="all">All seasons</button>
-        <button class="pill" data-season="2024">2024</button>
-        <button class="pill" data-season="2025">2025</button>
-        <button class="pill" data-season="2026">2026</button>
+    <div class="filterbar" role="group" aria-label="Dashboard filters">
+      <div class="pillgroup" id="seasonPills" role="group" aria-label="Season">
+        <button class="pill active" data-season="all" aria-pressed="true">All seasons</button>
+        <button class="pill" data-season="2024" aria-pressed="false">2024</button>
+        <button class="pill" data-season="2025" aria-pressed="false">2025</button>
+        <button class="pill" data-season="2026" aria-pressed="false">2026</button>
       </div>
-      <div class="pillgroup" id="currencyPills">
-        <button class="pill active" data-currency="UGX">UGX</button>
-        <button class="pill" data-currency="USD">USD</button>
+      <div class="pillgroup" id="currencyPills" role="group" aria-label="Currency">
+        <button class="pill active" data-currency="UGX" aria-pressed="true">UGX</button>
+        <button class="pill" data-currency="USD" aria-pressed="false">USD</button>
       </div>
-      <div class="pillgroup" id="langPills">
-        <button class="pill active" data-lang="en">EN</button>
-        <button class="pill" data-lang="nl">NL</button>
+      <div class="pillgroup" id="langPills" role="group" aria-label="Language">
+        <button class="pill active" data-lang="en" aria-pressed="true">EN</button>
+        <button class="pill" data-lang="nl" aria-pressed="false">NL</button>
       </div>
       <div class="asof"><span data-i18n="asofLabel">Data through</span> <span class="num" id="asOfDate">-</span></div>
     </div>
   </div>
 </header>
 
-<main class="shell">
+<main class="shell" id="main-content">
 
   <section class="hero">
     <div class="hero-head">
@@ -1244,8 +1291,8 @@ function renderKPIs(){
 document.getElementById('seasonPills').addEventListener('click', function(e){
   var btn = e.target.closest('.pill');
   if (!btn) return;
-  document.querySelectorAll('#seasonPills .pill').forEach(function(p){ p.classList.remove('active'); });
-  btn.classList.add('active');
+  document.querySelectorAll('#seasonPills .pill').forEach(function(p){ p.classList.remove('active'); p.setAttribute('aria-pressed','false'); });
+  btn.classList.add('active'); btn.setAttribute('aria-pressed','true');
   state.season = btn.getAttribute('data-season');
   renderHero();
   renderKPIs();
@@ -1264,8 +1311,8 @@ function updateCurrencyLabels(){
 document.getElementById('currencyPills').addEventListener('click', function(e){
   var btn = e.target.closest('.pill');
   if (!btn) return;
-  document.querySelectorAll('#currencyPills .pill').forEach(function(p){ p.classList.remove('active'); });
-  btn.classList.add('active');
+  document.querySelectorAll('#currencyPills .pill').forEach(function(p){ p.classList.remove('active'); p.setAttribute('aria-pressed','false'); });
+  btn.classList.add('active'); btn.setAttribute('aria-pressed','true');
   state.currency = btn.getAttribute('data-currency');
   updateCurrencyLabels();
   renderHero();
@@ -1333,8 +1380,8 @@ document.getElementById('langPills').addEventListener('click', function(e){
   var btn = e.target.closest('.pill');
   if (!btn) return;
   if (btn.getAttribute('data-lang') === state.lang) return;
-  document.querySelectorAll('#langPills .pill').forEach(function(p){ p.classList.remove('active'); });
-  btn.classList.add('active');
+  document.querySelectorAll('#langPills .pill').forEach(function(p){ p.classList.remove('active'); p.setAttribute('aria-pressed','false'); });
+  btn.classList.add('active'); btn.setAttribute('aria-pressed','true');
   state.lang = btn.getAttribute('data-lang');
   applyLanguage();
 });

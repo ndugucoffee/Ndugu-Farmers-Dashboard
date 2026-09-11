@@ -3,7 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ndugu Farmers Ltd | Export Programme</title>
+<meta name="description" content="Export programme dashboard for Ndugu Farmers Ltd — green coffee shipped to roasters and importers, by season, buyer and screen grade.">
+<meta property="og:title" content="Ndugu Farmers Ltd | Export Programme">
+<meta property="og:description" content="Export programme dashboard — volume, buyers, shipments and supplier detail by season.">
+<meta property="og:type" content="website">
+<title>Export Programme · Ndugu Farmers Ltd</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
   :root{
@@ -333,6 +337,11 @@
     border:1px solid var(--line-strong); border-radius:var(--radius-md);
     background:var(--surface); padding:14px; box-shadow:var(--shadow-panel);
     display:flex; flex-direction:column; min-width:0;
+    transition:box-shadow .18s ease, border-color .18s ease;
+  }
+  .panel:hover{
+    border-color:var(--line-strong);
+    box-shadow:0 2px 4px rgba(42,26,16,.06), 0 14px 32px -18px rgba(42,26,16,.62);
   }
   .panel-title{font-size:14.5px; font-weight:600; margin:0 0 4px 0; min-height:1.4em;}
   .panel-note{font-size:12.5px; color:var(--ink-faint); margin:0 0 8px 0; min-height:1.5em;}
@@ -492,6 +501,34 @@
 
   .vis-hidden{display:none !important;}
 
+  /* ---------- Skip-to-content link ---------- */
+  .skip-link{
+    position:fixed; top:8px; left:50%; transform:translateX(-50%) translateY(-150%);
+    z-index:200; background:var(--roast-deep); color:#fff;
+    padding:10px 22px; border-radius:var(--radius-md);
+    font-size:14px; font-weight:600; text-decoration:none;
+    transition:transform .15s ease; white-space:nowrap;
+  }
+  .skip-link:focus-visible{ transform:translateX(-50%) translateY(0); outline:none; box-shadow:0 0 0 3px var(--honey); }
+
+  /* ---------- Scroll-margin: sticky topbar must not hide headings ---------- */
+  h2, section[id]{ scroll-margin-top: 68px; }
+
+  /* ---------- Print styles ---------- */
+  @media print{
+    body::before, .sidenav, header.topbar, .filterbar{ display:none !important; }
+    .layout{ display:block; }
+    .layout-main{ max-width:100%; }
+    .shell{ padding:0 12mm; max-width:none; }
+    .panel, .tile, .kpi-cell, .flow-step, .district-ledger{ box-shadow:none !important; border:1px solid #ccc !important; break-inside:avoid; }
+    .chart-box canvas{ max-height:220px; }
+    section{ padding:10px 0; page-break-inside:avoid; }
+    footer{ background:#fff !important; color:#333 !important; border-top:1px solid #ccc; }
+    footer h4{ color:#000 !important; }
+    #lotList, #contractList{ max-height:none !important; overflow:visible !important; }
+    a[href]::after{ content:none; }
+  }
+
   /* ---------- boot states (before data.json arrives) ---------- */
   .boot{
     max-width:640px; margin:0 auto; padding:96px 24px 120px; text-align:center;
@@ -563,8 +600,10 @@
     display:grid; grid-template-columns:2.2rem 1fr auto auto; gap:12px;
     align-items:center; padding:8px 16px; border-bottom:1px solid var(--line);
   }
+  .lot-row:nth-child(odd){background:var(--surface);}
+  .lot-row:nth-child(even){background:var(--surface-sunk);}
   .lot-row:last-child{border-bottom:none;}
-  .lot-row:hover{background:var(--roast-wash);}
+  .lot-row:hover{background:var(--roast-wash) !important;}
   .lot-row .seq{font-size:12px; color:var(--ink-faint); font-variant-numeric:tabular-nums;}
   .lot-row .who{min-width:0;}
   .lot-row .who .name{font-size:13.5px; font-weight:500; line-height:1.35;
@@ -616,8 +655,10 @@
     display:grid; grid-template-columns:minmax(0,5fr) minmax(0,6fr) 9.5rem; gap:18px;
     align-items:center; padding:10px 16px; border-bottom:1px solid var(--line);
   }
+  .con-row:nth-child(odd){background:var(--surface);}
+  .con-row:nth-child(even){background:var(--surface-sunk);}
   .con-row:last-child{border-bottom:none;}
-  .con-row:hover{background:var(--roast-wash);}
+  .con-row:hover{background:var(--roast-wash) !important;}
   .con-row .who{min-width:0;}
   .con-row .who .name{font-size:13.5px; font-weight:600; line-height:1.35;
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
@@ -650,6 +691,8 @@
 </style>
 </head>
 <body>
+
+<a class="skip-link" href="#main-content">Skip to main content</a>
 
 <div class="boot" id="bootLoading">
   <div class="boot-spinner"></div>
@@ -688,22 +731,22 @@
         <div class="role" data-i18n="brandRole">Export programme</div>
       </div>
     </div>
-    <div class="filterbar">
-      <div class="pillgroup" id="seasonPills"></div>
-      <div class="pillgroup" id="currencyPills">
-        <button class="pill active" data-currency="USD">USD</button>
-        <button class="pill" data-currency="UGX">UGX</button>
+    <div class="filterbar" role="group" aria-label="Dashboard filters">
+      <div class="pillgroup" id="seasonPills" role="group" aria-label="Season"></div>
+      <div class="pillgroup" id="currencyPills" role="group" aria-label="Currency">
+        <button class="pill active" data-currency="USD" aria-pressed="true">USD</button>
+        <button class="pill" data-currency="UGX" aria-pressed="false">UGX</button>
       </div>
-      <div class="pillgroup" id="langPills">
-        <button class="pill active" data-lang="en">EN</button>
-        <button class="pill" data-lang="nl">NL</button>
+      <div class="pillgroup" id="langPills" role="group" aria-label="Language">
+        <button class="pill active" data-lang="en" aria-pressed="true">EN</button>
+        <button class="pill" data-lang="nl" aria-pressed="false">NL</button>
       </div>
       <div class="asof"><span data-i18n="asofLabel">Season</span> <span class="num" id="asOfSeason">-</span></div>
     </div>
   </div>
 </header>
 
-<main class="shell">
+<main class="shell" id="main-content">
 
   <section class="hero">
     <div class="hero-head">
@@ -1940,22 +1983,31 @@ function renderAll(){
 }
 
 /* ============================= controls ============================= */
+function setPillActive(groupId, activeBtn){
+  document.querySelectorAll('#' + groupId + ' .pill').forEach(function(p){
+    var isActive = p === activeBtn;
+    p.classList.toggle('active', isActive);
+    p.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+  });
+}
+
 function bindControls(){
   document.getElementById('seasonPills').addEventListener('click', function(e){
     var b = e.target.closest('button'); if (!b) return;
     state.season = b.dataset.season;
+    setPillActive('seasonPills', b);
     renderAll();
   });
   document.getElementById('currencyPills').addEventListener('click', function(e){
     var b = e.target.closest('button'); if (!b) return;
     state.currency = b.dataset.currency;
-    this.querySelectorAll('.pill').forEach(function(p){ p.classList.toggle('active', p === b); });
+    setPillActive('currencyPills', b);
     renderAll();
   });
   document.getElementById('langPills').addEventListener('click', function(e){
     var b = e.target.closest('button'); if (!b) return;
     state.lang = b.dataset.lang;
-    this.querySelectorAll('.pill').forEach(function(p){ p.classList.toggle('active', p === b); });
+    setPillActive('langPills', b);
     renderAll();
   });
 }
