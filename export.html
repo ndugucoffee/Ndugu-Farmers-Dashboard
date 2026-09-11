@@ -178,6 +178,18 @@
   /* ---------- Section scaffolding ---------- */
   section{padding:22px 0;}
   section + section{border-top:1px solid var(--line);}
+  /* Part rails split the page into the two runs it actually serves: the
+     scale-and-impact read at the top, the operating detail below it. */
+  .part-rail{
+    display:flex; align-items:center; gap:12px;
+    margin:26px 0 0 0; padding-top:20px; border-top:2px solid var(--ink);
+  }
+  .part-rail span{
+    font-size:11.5px; font-weight:700; letter-spacing:.09em;
+    text-transform:uppercase; color:var(--ink); white-space:nowrap;
+  }
+  .part-rail::after{content:''; flex:1 1 auto; height:1px; background:var(--line);}
+  .part-rail + section{border-top:none; padding-top:10px;}
   .section-head{
     display:grid; grid-template-columns:repeat(12,minmax(0,1fr));
     gap:24px; align-items:end; margin-bottom:12px;
@@ -497,6 +509,11 @@
 
   /* ---------- Export-only ---------- */
 
+  /* .grid and .panel set a display value, and a class rule outranks the user
+     agent's [hidden]{display:none}. Without this a panel hidden for a season
+     that has no such data keeps its space and draws an empty chart. */
+  [hidden]{display:none !important;}
+
   /* Shipment ledger: one row per lot, aligned on the same columns as the
      district ledger on the domestic page so the two read the same way. */
   .lot-row{
@@ -549,6 +566,47 @@
   .flow-step:nth-child(2){border-top:3px solid var(--olive);}
   .flow-step:nth-child(3){border-top:3px solid var(--honey);}
   .flow-step:nth-child(4){border-top:3px solid var(--roast);}
+
+  /* Contract ledger: contracted volume against what shipped against it. The
+     bar is the fulfilment share, so the eye can run down the column and find
+     the short ones without reading a single number. */
+  .con-row{
+    display:grid; grid-template-columns:1fr 7.5rem 8.5rem; gap:12px;
+    align-items:center; padding:9px 16px; border-bottom:1px solid var(--line);
+  }
+  .con-row:last-child{border-bottom:none;}
+  .con-row:hover{background:var(--roast-wash);}
+  .con-row .who{min-width:0;}
+  .con-row .who .name{font-size:13.5px; font-weight:600; line-height:1.35;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .con-row .who .sub{font-size:11.5px; color:var(--ink-faint); margin-top:1px; line-height:1.4;}
+  .con-row .bar{height:7px; border-radius:4px; background:var(--surface-sunk); overflow:hidden;}
+  .con-row .bar span{display:block; height:100%; border-radius:4px; background:var(--leaf);}
+  .con-row .bar.short span{background:var(--honey);}
+  .con-row .bar.none span{background:var(--clay);}
+  .con-row .qty{font-size:12.5px; text-align:right; color:var(--ink-soft);
+    font-variant-numeric:tabular-nums;}
+  .con-row .qty b{display:block; font-size:13px; color:var(--ink); font-weight:600;}
+  @media (max-width:640px){
+    .con-row{grid-template-columns:1fr 5rem; }
+    .con-row .bar{grid-column:1 / -1;}
+  }
+
+  /* A ledger sets the height of the row it sits in, and 27 lots stretched the
+     chart next to it to over a thousand pixels. Both scroll instead, at a
+     height that matches the chart beside them. */
+  #lotList{max-height:432px; overflow-y:auto;}
+  #contractList{max-height:300px; overflow-y:auto;}
+
+  /* Two figures side by side under a chart, for intake quality. */
+  .statpair{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:12px;}
+  .statpair > div{
+    border:1px solid var(--line-strong); border-radius:var(--radius-sm);
+    background:var(--surface-sunk); padding:10px 12px;
+  }
+  .statpair .lab{font-size:11.5px; color:var(--ink-soft);}
+  .statpair .val{font-size:17px; font-weight:600; color:var(--ink); margin-top:3px;
+    font-variant-numeric:tabular-nums;}
 </style>
 </head>
 <body>
@@ -591,6 +649,7 @@
       </div>
     </div>
     <div class="filterbar">
+      <div class="pillgroup" id="seasonPills"></div>
       <div class="pillgroup" id="currencyPills">
         <button class="pill active" data-currency="USD">USD</button>
         <button class="pill" data-currency="UGX">UGX</button>
@@ -609,6 +668,8 @@
   <section class="hero">
     <div class="hero-head">
       <p class="hero-eyebrow" data-i18n="heroEyebrow">Export programme</p>
+      <h1 data-i18n="heroH1">Green coffee shipped direct to roasters and importers</h1>
+      <p class="lede" data-i18n="heroLede">-</p>
     </div>
 
     <div class="tilerow tilerow-4">
@@ -618,12 +679,14 @@
         <div class="tile-foot num" id="heroSub">-</div>
       </div>
       <div class="tile tile-a" id="tileCert">
-        <p class="tile-label" data-i18n="badgeFairtradeL">Certified volume</p>
-        <div class="tile-value tile-value-sm" data-i18n="badgeFairtradeV">Fairtrade</div>
+        <p class="tile-label" data-i18n="badgeCertL">RFA certified volume</p>
+        <div class="tile-value num" id="badgeCert">-</div>
+        <div class="tile-foot num" id="badgeCertSub">-</div>
       </div>
       <div class="tile tile-b" id="tileScreens">
         <p class="tile-label" data-i18n="badgeScreensL">Screen grades shipped</p>
-        <div class="tile-value tile-value-sm" data-i18n="badgeScreensV">12 · 15 · 18</div>
+        <div class="tile-value tile-value-sm" id="badgeScreens">-</div>
+        <div class="tile-foot num" id="badgeScreensSub">-</div>
       </div>
       <div class="tile tile-c" id="tileBuyers">
         <p class="tile-label" id="badgeBuyersL">-</p>
@@ -631,38 +694,10 @@
       </div>
     </div>
 
-    <div class="kpi-strip">
-      <div class="kpi-cell"><span class="kpi-icon-slot" data-icon="bean"></span>
-        <p class="kpi-label" data-i18n="kpiVolume">Volume exported</p>
-        <div class="kpi-value" id="kpiVolume">-</div>
-        <div class="kpi-delta flat" id="kpiVolumeSub">-</div>
-      </div>
-      <div class="kpi-cell"><span class="kpi-icon-slot" data-icon="cash"></span>
-        <p class="kpi-label" data-i18n="kpiRevenue">Export revenue</p>
-        <div class="kpi-value" id="kpiRevenue">-</div>
-        <div class="kpi-delta flat" data-i18n="kpiRevenueSub">gross sales value</div>
-      </div>
-      <div class="kpi-cell"><span class="kpi-icon-slot" data-icon="tag"></span>
-        <p class="kpi-label" data-i18n="kpiPrice">Average realised price</p>
-        <div class="kpi-value" id="kpiPrice">-</div>
-        <div class="kpi-delta flat" data-i18n="kpiPriceSub">per kg, all lots</div>
-      </div>
-      <div class="kpi-cell"><span class="kpi-icon-slot" data-icon="crate"></span>
-        <p class="kpi-label" data-i18n="kpiLots">Lots shipped</p>
-        <div class="kpi-value" id="kpiLots">-</div>
-        <div class="kpi-delta flat" id="kpiLotsSub">-</div>
-      </div>
-      <div class="kpi-cell"><span class="kpi-icon-slot" data-icon="group"></span>
-        <p class="kpi-label" data-i18n="kpiBuyers">Buyers</p>
-        <div class="kpi-value" id="kpiBuyers">-</div>
-        <div class="kpi-delta flat" id="kpiBuyersSub">-</div>
-      </div>
-      <div class="kpi-cell"><span class="kpi-icon-slot" data-icon="plot"></span>
-        <p class="kpi-label" data-i18n="kpiPurchased">Green coffee purchased</p>
-        <div class="kpi-value" id="kpiPurchased">-</div>
-        <div class="kpi-delta flat" id="kpiPurchasedSub">-</div>
-      </div>
-    </div>
+    <!-- Built in script: the cells change with the season, because the 2025
+         sheet records no receipts and a settlement tile would read as zero
+         collected rather than as not recorded. -->
+    <div class="kpi-strip" id="kpiStrip"></div>
   </section>
 
   <section>
@@ -685,6 +720,33 @@
         <p class="panel-note" data-i18n="panScreenN">Bean size determines which roasters a lot can serve.</p>
         <div class="chart-box"><canvas id="screenChart"></canvas></div>
         <div class="insight-line" id="screenInsight">-</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="secContracts">
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="secConH">Contracted against shipped</h2>
+        <p data-i18n="secConP">-</p>
+      </div>
+      <div class="section-tag" data-i18n="secConTag">Every contract on file</div>
+    </div>
+    <div class="grid">
+      <div class="col-7">
+        <div class="district-ledger">
+          <div class="district-ledger-head">
+            <p class="panel-title" style="margin:0;" data-i18n="panConH">Contract fulfilment</p>
+            <p class="panel-note" style="margin:2px 0 0;" data-i18n="panConN">Contracted volume against volume shipped under that reference.</p>
+          </div>
+          <div id="contractList"></div>
+        </div>
+      </div>
+      <div class="col-5 panel">
+        <p class="panel-title" data-i18n="panShipH">Shipped by month</p>
+        <p class="panel-note" data-i18n="panShipN">When lots actually left, against the intake that fed them.</p>
+        <div class="chart-box"><canvas id="shipChart"></canvas></div>
+        <div class="insight-line" id="shipInsight">-</div>
       </div>
     </div>
   </section>
@@ -723,6 +785,23 @@
         <p data-i18n="secSuppP">-</p>
       </div>
       <div class="section-tag" data-i18n="secSuppTag">Top suppliers by volume delivered</div>
+    </div>
+    <div class="grid" id="intakeQualityGrid">
+      <div class="col-7 panel" id="sitePanel">
+        <p class="panel-title" data-i18n="panSiteH">Where the intake came from</p>
+        <p class="panel-note" data-i18n="panSiteN">Net kilograms bought in, by recorded buying site.</p>
+        <div class="chart-box"><canvas id="siteChart"></canvas></div>
+        <div class="insight-line" id="siteInsight">-</div>
+      </div>
+      <div class="col-5 panel" id="moisturePanel">
+        <p class="panel-title" data-i18n="panMoistH">Moisture at intake</p>
+        <p class="panel-note" data-i18n="panMoistN">Recorded on delivery, one bar per percentage point.</p>
+        <div class="chart-box"><canvas id="moistChart"></canvas></div>
+        <div class="statpair">
+          <div><div class="lab" data-i18n="lblMoistMean">Mean moisture</div><div class="val" id="moistMean">-</div></div>
+          <div><div class="lab" data-i18n="lblMoistIn">At or below 14%</div><div class="val" id="moistIn">-</div></div>
+        </div>
+      </div>
     </div>
     <div class="grid">
       <div class="col-12 panel">
@@ -816,8 +895,15 @@
    appear here.
    --------------------------------------------------------------------------- */
 var DATA = null;
-var REQUIRED_KEYS = ['meta','sales','lots','by_buyer','by_screen',
-  'purchases','purchases_monthly','top_suppliers','notes'];
+var REQUIRED_KEYS = ['meta','seasons'];
+/* Everything below reads the selected season's block rather than the payload
+   root, so adding a season to the workbook adds a pill and nothing else. */
+function D(){ return DATA.seasons[state.season]; }
+function seasonList(){ return DATA.meta.seasons.slice(); }
+function prevSeason(){
+  var all = seasonList(), i = all.indexOf(state.season);
+  return (i > 0) ? DATA.seasons[all[i-1]] : null;
+}
 
 function showFatal(title, detail){
   var el = document.getElementById('bootError');
@@ -858,7 +944,7 @@ function boot(){
 
 /* ============================= state ============================= */
 var FX_RATE = 3777;
-var state = { currency:'USD', lang:'en' };
+var state = { currency:'USD', lang:'en', season:'2026' };
 
 /* ============================= formatters ============================= */
 var MONTHS_EN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -896,6 +982,26 @@ function fmtPerKg(usd){
   if (usd===null || usd===undefined) return '-';
   if (state.currency==='UGX') return 'UGX ' + fmtInt(usd*FX_RATE);
   return 'USD ' + usd.toLocaleString(numLocale(),{minimumFractionDigits:2, maximumFractionDigits:2});
+}
+/* The 2026 sheet records revenue in both currencies at the rate on the lot, so
+   the UGX view uses the figure the workbook actually holds rather than the
+   indicative rate applied to a USD total. Only where a season has no recorded
+   UGX figure does it fall back to converting. */
+function fmtMoneyPair(usd, ugx){
+  if (state.currency === 'UGX'){
+    if (ugx === null || ugx === undefined) return fmtMoney(usd);
+    var abs = Math.abs(ugx);
+    if (abs >= 1e9) return 'UGX ' + (ugx/1e9).toLocaleString(numLocale(),{maximumFractionDigits:2}) + bigUnit('bn');
+    if (abs >= 1e6) return 'UGX ' + (ugx/1e6).toLocaleString(numLocale(),{maximumFractionDigits:2}) + bigUnit('m');
+    return 'UGX ' + fmtInt(ugx);
+  }
+  return fmtMoney(usd);
+}
+function fmtRevenue(sales){ return fmtMoneyPair(sales.revenue_usd, sales.revenue_ugx); }
+function fmtPrice(sales){
+  if (state.currency === 'UGX' && sales.avg_realised_ugx_per_kg)
+    return 'UGX ' + fmtInt(sales.avg_realised_ugx_per_kg);
+  return fmtPerKg(sales.avg_realised_usd_per_kg);
 }
 /* toFixed always emits a full stop, which is wrong in Dutch; the locale
    formatter gives 61,6% in NL and 61.6% in EN off the same figure. */
@@ -979,10 +1085,19 @@ var COLORS = {
 var BUYER_CYCLE = [COLORS.roast, COLORS.honey, COLORS.leaf, COLORS.teal, COLORS.cherry, COLORS.clay, COLORS.olive];
 /* Screen grades keep a fixed colour so the doughnut, the badges in the ledger
    and the legend all agree. Larger bean, warmer colour. */
-var SCREEN_COLOR = {'Screen 12':COLORS.leaf, 'Screen 15':COLORS.roast, 'Screen 18':COLORS.honey};
+var SCREEN_COLOR = {'Screen 12':COLORS.leaf, 'Screen 15':COLORS.roast, 'Screen 18':COLORS.honey,
+  'Low grades':COLORS.clay, 'AA Arabica':COLORS.teal, 'FAQ':COLORS.olive};
 function screenColor(k){ return SCREEN_COLOR[k] || COLORS.inkFaint; }
+/* The workbook types the grade freehand; build_export.py folds every spelling
+   into this small set, so the badge only has to switch on the label. */
 function screenClass(s){
-  return s===12 ? 'screen-12' : s===15 ? 'screen-15' : s===18 ? 'screen-18' : 'screen-na';
+  return s==='Screen 12' ? 'screen-12' : s==='Screen 15' ? 'screen-15'
+       : s==='Screen 18' ? 'screen-18' : 'screen-na';
+}
+function screenShort(s){
+  var m = /^Screen (\d+)$/.exec(s || '');
+  if (m) return 'S' + m[1];
+  return (s === 'Low grades') ? 'LG' : (s === 'AA Arabica') ? 'AA' : (s === 'FAQ') ? 'FAQ' : '\u2013';
 }
 
 /* Chart.js comes from a CDN. If a corporate proxy or an offline machine blocks
@@ -1016,19 +1131,30 @@ function mountChart(canvasId, cfg){
    currency changes so the prose never disagrees with the charts. */
 var FACTS = {};
 function computeFacts(){
-  var s = DATA.sales, p = DATA.purchases;
-  var top = DATA.by_buyer[0] || {buyer:'-', volume_kg:0};
-  var topScreen = DATA.by_screen[0] || {screen:'-', volume_kg:0};
-  var peak = DATA.purchases_monthly.reduce(function(a,b){
+  var d = D(), s = d.sales, p = d.purchases;
+  var top = d.by_buyer[0] || {buyer:'-', volume_kg:0};
+  var topScreen = d.by_screen[0] || {screen:'-', volume_kg:0};
+  var peak = d.purchases_monthly.reduce(function(a,b){
     return (b.net_kg > a.net_kg) ? b : a;
-  }, DATA.purchases_monthly[0] || {month:'', net_kg:0});
+  }, d.purchases_monthly[0] || {month:'', net_kg:0});
   var faq = p.net_kg - p.graded_kg;
+  var prev = prevSeason();
+  var site = (d.by_site && d.by_site[0]) || null;
+  var short = (d.contracts || []).filter(function(c){
+    return c.shipped_kg < c.contracted_kg && !c.probable_match;
+  });
+  var shortKg = short.reduce(function(a,c){ return a + (c.contracted_kg - c.shipped_kg); }, 0);
+  var contracted = (d.contracts || []).reduce(function(a,c){ return a + c.contracted_kg; }, 0);
+
   FACTS = {
-    season: DATA.meta.season,
+    season: seasonLabel(state.season),
+    seasonCount: fmtInt(seasonList().length),
+    firstSeason: seasonList()[0],
+    lastSeason: seasonList()[seasonList().length-1],
     volume: fmtTonnes(s.volume_kg),
     volumeKg: fmtInt(s.volume_kg),
-    revenue: fmtMoney(s.revenue_usd),
-    price: fmtPerKg(s.avg_realised_usd_per_kg),
+    revenue: fmtRevenue(s),
+    price: fmtPrice(s),
     lots: fmtInt(s.n_lots),
     buyers: fmtInt(s.n_buyers),
     topBuyer: top.buyer,
@@ -1041,6 +1167,8 @@ function computeFacts(){
     deliveries: fmtInt(p.n_deliveries),
     firstBuy: fmtDate(p.date_min),
     lastBuy: fmtDate(p.date_max),
+    firstShip: fmtDate(s.date_min),
+    lastShip: fmtDate(s.date_max),
     peakMonth: peak.month ? fmtMonth(peak.month) : '-',
     peakKg: fmtTonnes(peak.net_kg),
     faq: fmtTonnes(faq),
@@ -1048,9 +1176,31 @@ function computeFacts(){
     shipShare: fmtPct(p.net_kg ? s.volume_kg/p.net_kg : 0),
     generated: fmtDate(DATA.meta.generated),
     fx: fmtInt(FX_RATE),
-    flagged: DATA.notes.lots_dated_after_season || 0
+    prevSeason: prev ? seasonLabel(seasonList()[seasonList().indexOf(state.season)-1]) : '',
+    volumeDelta: prev ? fmtPct(Math.abs(pctChange(s.volume_kg, prev.sales.volume_kg))) : '',
+    volumeDir: prev ? dirWord(pctChange(s.volume_kg, prev.sales.volume_kg)) : '',
+    priceDelta: prev ? fmtPct(Math.abs(pctChange(s.avg_realised_usd_per_kg, prev.sales.avg_realised_usd_per_kg))) : '',
+    priceDir: prev ? dirWord(pctChange(s.avg_realised_usd_per_kg, prev.sales.avg_realised_usd_per_kg)) : '',
+    settled: d.settlement ? fmtPct(d.settlement.pct_collected) : null,
+    settledLots: d.settlement ? fmtInt(d.settlement.n_lots_covered) : '',
+    settledOf: d.settlement ? fmtInt(d.settlement.n_lots) : '',
+    topSite: site ? site.site : '-',
+    topSitePct: site && p.net_kg ? fmtPct(site.net_kg/p.net_kg) : '-',
+    topSupplierPct: d.notes.top_supplier_share !== null ? fmtPct(d.notes.top_supplier_share) : '-',
+    moistMean: d.moisture ? d.moisture.mean.toLocaleString(numLocale(),{minimumFractionDigits:1, maximumFractionDigits:1}) + '%' : '-',
+    moistIn: d.moisture ? fmtPct(d.moisture.pct_at_or_below_target) : '-',
+    contracted: fmtTonnes(contracted),
+    nContracts: fmtInt((d.contracts || []).length),
+    nShort: fmtInt(short.length),
+    shortKg: fmtTonnes(shortKg),
+    noRevenue: d.notes.lots_without_revenue || 0,
+    flagged: 0
   };
 }
+
+function seasonLabel(s){ return s === 'all' ? t('seasonAll') : s; }
+function pctChange(a, b){ return (b && a !== null && a !== undefined) ? (a - b) / b : 0; }
+function dirWord(d){ return d >= 0 ? t('wordUp') : t('wordDown'); }
 
 /* ============================= i18n ============================= */
 var I18N = {
@@ -1060,34 +1210,54 @@ var I18N = {
     navCoffee:'Coffee', navAbout:'About us',
     brandRole:'Export programme',
     asofLabel:'Season',
+    seasonAll:'All', wordUp:'up', wordDown:'down',
+    vsPriorSeason:'vs prior season',
     heroEyebrow:'Export programme',
     heroH1:'Green coffee shipped direct to roasters and importers',
     heroLede:function(f){
-      return 'In the ' + f.season + ' season Ndugu Farmers Ltd bought ' + f.purchased +
+      var base = 'In ' + f.season + ' Ndugu Farmers Ltd bought ' + f.purchased +
         ' of green coffee from ' + f.suppliers + ' suppliers and shipped ' + f.volume +
-        ' of it as ' + f.lots + ' graded lots to ' + f.buyers +
-        ' buyers. ' + f.topBuyer + ' took ' + f.topBuyerPct + ' of the volume.';
+        ' as ' + f.lots + ' graded lots to ' + f.buyers + ' buyers. ' +
+        f.topBuyer + ' took ' + f.topBuyerPct + ' of the volume';
+      base += f.prevSeason
+        ? ', and shipped volume is ' + f.volumeDelta + ' ' + f.volumeDir + ' on ' + f.prevSeason + '.'
+        : '.';
+      return base;
     },
-    heroCap:'exported in the 2025 season',
-    badgeFairtradeV:'Fairtrade', badgeFairtradeL:'Certified volume',
-    badgeScreensV:'12 · 15 · 18', badgeScreensL:'Screen grades shipped',
+    heroCap:'exported this season',
+    badgeCertL:'RFA certified volume', badgeScreensL:'Screen grades shipped',
+    lblOfShipped:'of shipped volume', lblNotRecorded:'Not recorded',
+    lblNotOnSheet:'no contract type on this season’s sheet',
+    lblScreensOnly:'screen grades only',
     lblLotsShipped:'lots shipped to buyers',
     kpiVolume:'Volume exported', kpiRevenue:'Export revenue',
-    kpiRevenueSub:'gross sales value',
-    kpiPrice:'Average realised price', kpiPriceSub:'per kg, all lots',
+    kpiRevenueSub:'invoiced sales value',
+    kpiPrice:'Average realised price', kpiPriceSub:'per kg, priced lots',
     kpiLots:'Lots shipped', kpiBuyers:'Buyers', kpiPurchased:'Green coffee purchased',
+    kpiSettled:'Revenue collected', kpiSettledSub:'of what was invoiced',
+    lblSuppliers:'suppliers',
     secBuyersH:'Where the coffee went',
     secBuyersP:function(f){
-      return 'Four buyers took the season’s output. Concentration is worth watching: ' +
-        f.topBuyer + ' alone accounts for ' + f.topBuyerPct + ' of shipped volume.';
+      return 'Concentration is the thing to watch: ' + f.topBuyer + ' alone accounts for ' +
+        f.topBuyerPct + ' of shipped volume across ' + f.buyers + ' buyers.';
     },
     secBuyersTag:'Volume by buyer and screen grade',
     panBuyerH:'Volume by buyer', panBuyerN:'Kilograms shipped, all lots in the season.',
     panScreenH:'Screen grade mix', panScreenN:'Bean size determines which roasters a lot can serve.',
+    secConH:'Contracted against shipped',
+    secConP:function(f){
+      return f.nContracts + ' contracts on file for ' + f.contracted +
+        '. The bar is the share of each one that has shipped under its own reference.';
+    },
+    secConTag:'Every contract on file',
+    panConH:'Contract fulfilment',
+    panConN:'Contracted volume against volume shipped under that reference.',
+    panShipH:'Bought in against shipped out',
+    panShipN:'Both series are net kilograms, so the gap is the lag between buying and shipping.',
     secLotsH:'Shipment ledger',
     secLotsP:function(f){
-      return 'Every lot dispatched this season, with the date exactly as recorded in the ' +
-        'source workbook. Purchases ran from ' + f.firstBuy + ' to ' + f.lastBuy + '.';
+      return 'Every lot dispatched, dated as recorded. Shipments ran ' + f.firstShip +
+        ' to ' + f.lastShip + ', purchases ' + f.firstBuy + ' to ' + f.lastBuy + '.';
     },
     secLotsTag:'Every lot dispatched this season',
     panLotsH:'Lots dispatched', panLotsN:'Date recorded, contract, buyer, screen and volume.',
@@ -1095,26 +1265,34 @@ var I18N = {
     panIntakeN:'Green coffee bought in, which the export lots are drawn from.',
     secSuppH:'Who supplied the season',
     secSuppP:function(f){
-      return f.deliveries + ' deliveries from ' + f.suppliers +
-        ' suppliers, a mix of individual farmers, cooperatives and traders. Volume only, no prices.';
+      return f.deliveries + ' deliveries from ' + f.suppliers + ' suppliers. The largest ' +
+        'single supplier accounts for ' + f.topSupplierPct + ' of intake by weight.';
     },
     secSuppTag:'Top suppliers by volume delivered',
+    panSiteH:'Where the intake came from',
+    panSiteN:'Net kilograms bought in, by recorded buying site.',
+    panMoistH:'Moisture at intake',
+    panMoistN:'Recorded on delivery, one bar per percentage point.',
+    lblMoistMean:'Mean moisture', lblMoistIn:'At or below 14%',
     thSupplier:'Supplier ref', thDeliveries:'Deliveries', thNetKg:'Net delivered', thShare:'Share',
     secFlowH:'From purchase to shipment',
     secFlowP:function(f){
-      return 'Not everything bought in is shipped in the same season: coffee is graded, ' +
-        'sorted and bulked before it goes out. ' + f.shipShare +
-        ' of the season’s intake left as export lots.';
+      return 'Coffee is graded, sorted and bulked before it goes out, so intake and ' +
+        'shipment are never equal. ' + f.shipShare + ' of intake left as export lots.';
     },
     secFlowTag:'Volume reconciliation and data notes',
     flow1:'Bought in, FAQ', flow2:'Bought in, already graded',
     flow3:'Total intake', flow3sub:'before grading losses', flow4:'Shipped',
     footerAboutH:'About this data',
     footerDefH:'Definitions',
-    footerDefP:'FAQ: Fair Average Quality, the ungraded green coffee bought from suppliers. Screen: bean size measured over a perforated sieve, so screen 18 is a larger bean than screen 12. Lot: a graded, bulked consignment shipped against one contract. Net delivered: weight after moisture and foreign-matter deductions.',
+    footerDefP:'FAQ: Fair Average Quality, the ungraded green coffee bought from suppliers. Screen: bean size measured over a perforated sieve, so screen 18 is a larger bean than screen 12. Lot: a graded, bulked consignment shipped against one contract. Net delivered: weight after moisture and foreign-matter deductions. Invoiced: the value billed against a lot. Collected: the value received against it.',
     lblLots:'lots', lblDeliveries:'deliveries', lblNetKg:'Net kg', lblVolume:'Volume',
     lblOfIntake:'of intake', lblNoContract:'no contract recorded',
-    flagTitle:'Recorded in the source workbook with a year later than the season. Shown as recorded.',
+    lblShipBy:'ship by', lblOf:'\u00a0of', lblIntake:'Bought in', lblShipped:'Shipped',
+    conFull:'shipped in full', conNothing:'nothing shipped under this reference',
+    conShortBy:'short by', conReused:'reference also used in',
+    conProbable:'probably shipped as',
+    conProbableTitle:'No lot carries this contract reference, but a lot of exactly the contracted volume went to the same buyer within eight weeks of the ship-by date. Most likely the same shipment filed under a different reference.',
     insBuyer:function(f){
       return f.topBuyer + ' is the largest destination at ' + f.topBuyerVol + ', ' +
         f.topBuyerPct + ' of everything shipped.';
@@ -1125,29 +1303,48 @@ var I18N = {
     insIntake:function(f){
       return 'Intake peaked in ' + f.peakMonth + ' at ' + f.peakKg + '.';
     },
+    insShip:function(f){
+      return 'Intake ran ' + f.firstBuy + ' to ' + f.lastBuy + '; shipments ' +
+        f.firstShip + ' to ' + f.lastShip + '.';
+    },
+    insSite:function(f){
+      return f.topSite + ' is the largest source at ' + f.topSitePct + ' of intake by weight.';
+    },
     suppFoot:function(f){
-      return 'Top 10 of ' + f.suppliers + ' suppliers, by net weight delivered. ' +
-        'References only, no names, and nothing about what any supplier was paid.';
+      return 'Top 10 of ' + f.suppliers + ' suppliers, by net weight delivered within the ' +
+        'season. References only, no names, and nothing about what any supplier was paid.';
     },
     aboutP:function(f){
-      return 'Covers the ' + f.season + ' export season as recorded in the source workbook, ' +
-        'rebuilt on ' + f.generated + '. Purchase dates run from ' + f.firstBuy + ' to ' +
-        f.lastBuy + '. Shipment dates are shown exactly as recorded, without correction. ' +
-        'Volumes are net of moisture and foreign-matter deductions. Revenue is the gross ' +
-        'sales value of the season’s lots. UGX figures use an indicative rate of about ' +
-        f.fx + ' UGX per USD and are not a live conversion. Every figure on this page is ' +
-        'computed from the workbook at page load.';
+      return 'Covers ' + f.season + ' as recorded in the combined export workbook, rebuilt on ' +
+        f.generated + '. Purchase dates run ' + f.firstBuy + ' to ' + f.lastBuy +
+        ' and shipment dates ' + f.firstShip + ' to ' + f.lastShip +
+        '. Volumes are net of moisture and foreign-matter deductions. Export revenue is the ' +
+        'value invoiced against the season’s lots. USD figures use each lot’s own recorded ' +
+        'exchange rate where the workbook holds one, and an indicative ' + f.fx +
+        ' UGX per USD otherwise. Supplier references are ranks within the season, not codes ' +
+        'in any Ndugu system. Every figure on this page is computed from the workbook at page load.';
     },
-    noteFlagged:function(f){
-      return f.flagged + ' of the ' + f.lots + ' lots carry a shipment date in a later year ' +
-        'than the season. They are shown exactly as recorded rather than corrected here, ' +
-        'and are flagged in the ledger above so they can be fixed at source.';
+    noteSettle:function(f){
+      return 'Of the value invoiced against lots where the workbook records a receipt, ' +
+        f.settled + ' has been collected. That covers ' + f.settledLots + ' of ' + f.settledOf +
+        ' lots; the rest carry no receipt line either way. Shown as one season figure: no ' +
+        'buyer is named against it and no per-lot amount is published.';
+    },
+    noteNoRevenue:function(f){
+      return f.noRevenue + ' lot(s) shipped with no price or revenue recorded at all. Their ' +
+        'volume counts towards the season total, but they are left out of revenue and of the ' +
+        'average realised price rather than counted as a sale at zero.';
     },
     noteDupe:function(n){
       return n + ' pair(s) of suppliers on the purchase sheet are recorded under the ' +
         'same name entered both ways round, and are almost certainly one person each. ' +
         'They are counted separately here because the sheet is the record of account; ' +
         'merging them would change the supplier count. The names are not published.';
+    },
+    noteMerge:function(list){
+      return 'Buyers recorded under more than one spelling are drawn as one on this page, ' +
+        'because splitting them understates concentration: ' + list + '. The purchase sheet’s ' +
+        'own duplicate names are left unmerged, as above.';
     },
     noteRecon:function(f){
       return 'Intake and shipment are measured at different points in the process, so they ' +
@@ -1162,35 +1359,55 @@ var I18N = {
     navCoffee:'Koffie', navAbout:'Over ons',
     brandRole:'Exportprogramma',
     asofLabel:'Seizoen',
+    seasonAll:'Alle', wordUp:'hoger', wordDown:'lager',
+    vsPriorSeason:'t.o.v. vorig seizoen',
     heroEyebrow:'Exportprogramma',
     heroH1:'Groene koffie rechtstreeks naar branders en importeurs',
     heroLede:function(f){
-      return 'In het seizoen ' + f.season + ' kocht Ndugu Farmers Ltd ' + f.purchased +
+      var base = 'In ' + f.season + ' kocht Ndugu Farmers Ltd ' + f.purchased +
         ' groene koffie van ' + f.suppliers + ' leveranciers en verscheepte daarvan ' +
         f.volume + ' als ' + f.lots + ' gesorteerde partijen naar ' + f.buyers +
-        ' afnemers. ' + f.topBuyer + ' nam ' + f.topBuyerPct + ' van het volume af.';
+        ' afnemers. ' + f.topBuyer + ' nam ' + f.topBuyerPct + ' van het volume af';
+      base += f.prevSeason
+        ? ', en het verscheepte volume ligt ' + f.volumeDelta + ' ' + f.volumeDir +
+          ' dan in ' + f.prevSeason + '.'
+        : '.';
+      return base;
     },
-    heroCap:'geëxporteerd in seizoen 2025',
-    badgeFairtradeV:'Fairtrade', badgeFairtradeL:'Gecertificeerd volume',
-    badgeScreensV:'12 · 15 · 18', badgeScreensL:'Verscheepte screengroottes',
+    heroCap:'dit seizoen geëxporteerd',
+    badgeCertL:'RFA-gecertificeerd volume', badgeScreensL:'Verscheepte screengroottes',
+    lblOfShipped:'van het verscheepte volume', lblNotRecorded:'Niet vastgelegd',
+    lblNotOnSheet:'geen contracttype op het blad van dit seizoen',
+    lblScreensOnly:'alleen screengroottes',
     lblLotsShipped:'partijen naar afnemers',
     kpiVolume:'Geëxporteerd volume', kpiRevenue:'Exportomzet',
-    kpiRevenueSub:'bruto verkoopwaarde',
-    kpiPrice:'Gemiddelde gerealiseerde prijs', kpiPriceSub:'per kg, alle partijen',
+    kpiRevenueSub:'gefactureerde verkoopwaarde',
+    kpiPrice:'Gemiddelde gerealiseerde prijs', kpiPriceSub:'per kg, geprijsde partijen',
     kpiLots:'Verscheepte partijen', kpiBuyers:'Afnemers', kpiPurchased:'Ingekochte groene koffie',
+    kpiSettled:'Omzet ontvangen', kpiSettledSub:'van wat is gefactureerd',
+    lblSuppliers:'leveranciers',
     secBuyersH:'Waar de koffie heen ging',
     secBuyersP:function(f){
-      return 'Vier afnemers namen de productie van het seizoen af. De concentratie verdient ' +
-        'aandacht: ' + f.topBuyer + ' alleen al is goed voor ' + f.topBuyerPct +
-        ' van het verscheepte volume.';
+      return 'De concentratie verdient aandacht: ' + f.topBuyer + ' alleen al is goed voor ' +
+        f.topBuyerPct + ' van het verscheepte volume, verdeeld over ' + f.buyers + ' afnemers.';
     },
     secBuyersTag:'Volume per afnemer en screengrootte',
     panBuyerH:'Volume per afnemer', panBuyerN:'Verscheepte kilogrammen, alle partijen van het seizoen.',
     panScreenH:'Verdeling screengrootte', panScreenN:'De boongrootte bepaalt welke branders een partij kan bedienen.',
+    secConH:'Gecontracteerd tegenover verscheept',
+    secConP:function(f){
+      return f.nContracts + ' contracten vastgelegd voor ' + f.contracted +
+        '. De balk toont het deel dat onder de eigen contractreferentie is verscheept.';
+    },
+    secConTag:'Alle vastgelegde contracten',
+    panConH:'Contractafwikkeling',
+    panConN:'Gecontracteerd volume tegenover het volume dat onder die referentie is verscheept.',
+    panShipH:'Ingekocht tegenover verscheept',
+    panShipN:'Beide reeksen zijn netto kilogrammen; het verschil is de vertraging tussen inkoop en verscheping.',
     secLotsH:'Verschepingsregister',
     secLotsP:function(f){
-      return 'Elke partij die dit seizoen is verscheept, met de datum precies zoals ' +
-        'vastgelegd in het bronbestand. De inkoop liep van ' + f.firstBuy + ' tot ' + f.lastBuy + '.';
+      return 'Elke verscheepte partij, gedateerd zoals vastgelegd. Verschepingen liepen van ' +
+        f.firstShip + ' tot ' + f.lastShip + ', de inkoop van ' + f.firstBuy + ' tot ' + f.lastBuy + '.';
     },
     secLotsTag:'Elke partij die dit seizoen is verscheept',
     panLotsH:'Verscheepte partijen', panLotsN:'Vastgelegde datum, contract, afnemer, screen en volume.',
@@ -1198,27 +1415,34 @@ var I18N = {
     panIntakeN:'Ingekochte groene koffie, waaruit de exportpartijen worden samengesteld.',
     secSuppH:'Wie het seizoen leverde',
     secSuppP:function(f){
-      return f.deliveries + ' leveringen van ' + f.suppliers +
-        ' leveranciers: een mix van individuele boeren, coöperaties en handelaren. ' +
-        'Alleen volume, geen prijzen.';
+      return f.deliveries + ' leveringen van ' + f.suppliers + ' leveranciers. De grootste ' +
+        'afzonderlijke leverancier is goed voor ' + f.topSupplierPct + ' van de inkoop naar gewicht.';
     },
     secSuppTag:'Grootste leveranciers naar geleverd volume',
+    panSiteH:'Waar de inkoop vandaan kwam',
+    panSiteN:'Netto ingekochte kilogrammen, per vastgelegd inkooppunt.',
+    panMoistH:'Vochtgehalte bij inname',
+    panMoistN:'Vastgelegd bij levering, één balk per procentpunt.',
+    lblMoistMean:'Gemiddeld vochtgehalte', lblMoistIn:'14% of lager',
     thSupplier:'Leverancierscode', thDeliveries:'Leveringen', thNetKg:'Netto geleverd', thShare:'Aandeel',
     secFlowH:'Van inkoop naar verscheping',
     secFlowP:function(f){
-      return 'Niet alles wat wordt ingekocht gaat in hetzelfde seizoen de deur uit: koffie ' +
-        'wordt gesorteerd, geschoond en gebulkt. ' + f.shipShare +
-        ' van de inkoop van dit seizoen vertrok als exportpartij.';
+      return 'Koffie wordt gesorteerd, geschoond en gebulkt voordat zij vertrekt, dus inkoop ' +
+        'en verscheping zijn nooit gelijk. ' + f.shipShare + ' van de inkoop vertrok als exportpartij.';
     },
     secFlowTag:'Volumeaansluiting en aantekeningen bij de data',
     flow1:'Ingekocht, FAQ', flow2:'Ingekocht, al gesorteerd',
     flow3:'Totale inkoop', flow3sub:'vóór sorteerverlies', flow4:'Verscheept',
     footerAboutH:'Over deze gegevens',
     footerDefH:'Definities',
-    footerDefP:'FAQ: Fair Average Quality, de ongesorteerde groene koffie die van leveranciers wordt gekocht. Screen: boongrootte gemeten over een geperforeerde zeef, dus screen 18 is een grotere boon dan screen 12. Partij: een gesorteerde, gebulkte zending onder één contract. Netto geleverd: gewicht na aftrek voor vocht en vreemde bestanddelen.',
+    footerDefP:'FAQ: Fair Average Quality, de ongesorteerde groene koffie die van leveranciers wordt gekocht. Screen: boongrootte gemeten over een geperforeerde zeef, dus screen 18 is een grotere boon dan screen 12. Partij: een gesorteerde, gebulkte zending onder één contract. Netto geleverd: gewicht na aftrek voor vocht en vreemde bestanddelen. Gefactureerd: de waarde die voor een partij in rekening is gebracht. Ontvangen: de waarde die daarvoor is binnengekomen.',
     lblLots:'partijen', lblDeliveries:'leveringen', lblNetKg:'Netto kg', lblVolume:'Volume',
     lblOfIntake:'van de inkoop', lblNoContract:'geen contract vastgelegd',
-    flagTitle:'In het bronbestand vastgelegd met een jaartal na het seizoen. Weergegeven zoals vastgelegd.',
+    lblShipBy:'verschepen vóór', lblOf:'\u00a0van', lblIntake:'Ingekocht', lblShipped:'Verscheept',
+    conFull:'volledig verscheept', conNothing:'niets verscheept onder deze referentie',
+    conShortBy:'tekort van', conReused:'referentie ook gebruikt in',
+    conProbable:'waarschijnlijk verscheept als',
+    conProbableTitle:'Geen enkele partij draagt deze contractreferentie, maar een partij met exact het gecontracteerde volume ging binnen acht weken van de uiterste verschepingsdatum naar dezelfde afnemer. Waarschijnlijk dezelfde zending, vastgelegd onder een andere referentie.',
     insBuyer:function(f){
       return f.topBuyer + ' is de grootste bestemming met ' + f.topBuyerVol + ', ' +
         f.topBuyerPct + ' van alles wat is verscheept.';
@@ -1230,31 +1454,49 @@ var I18N = {
     insIntake:function(f){
       return 'De inkoop piekte in ' + f.peakMonth + ' met ' + f.peakKg + '.';
     },
+    insShip:function(f){
+      return 'De inkoop liep van ' + f.firstBuy + ' tot ' + f.lastBuy + '; de verschepingen van ' +
+        f.firstShip + ' tot ' + f.lastShip + '.';
+    },
+    insSite:function(f){
+      return f.topSite + ' is de grootste bron met ' + f.topSitePct + ' van de inkoop naar gewicht.';
+    },
     suppFoot:function(f){
-      return 'Top 10 van ' + f.suppliers + ' leveranciers, naar netto geleverd gewicht. ' +
-        'Alleen codes, geen namen, en niets over wat een leverancier betaald kreeg.';
+      return 'Top 10 van ' + f.suppliers + ' leveranciers, naar netto geleverd gewicht binnen ' +
+        'het seizoen. Alleen codes, geen namen, en niets over wat een leverancier betaald kreeg.';
     },
     aboutP:function(f){
-      return 'Betreft het exportseizoen ' + f.season + ' zoals vastgelegd in het bronbestand, ' +
+      return 'Betreft ' + f.season + ' zoals vastgelegd in het gecombineerde exportbestand, ' +
         'opnieuw opgebouwd op ' + f.generated + '. De inkoopdata lopen van ' + f.firstBuy +
-        ' tot ' + f.lastBuy + '. Verschepingsdata worden precies zo weergegeven als ze zijn ' +
-        'vastgelegd, zonder correctie. Volumes zijn netto na aftrek voor vocht en vreemde ' +
-        'bestanddelen. De omzet is de bruto verkoopwaarde van de partijen van het seizoen. ' +
-        'UGX-bedragen gebruiken een indicatieve koers van ongeveer ' + f.fx +
-        ' UGX per USD en zijn geen actuele omrekening. Elk cijfer op deze pagina wordt bij ' +
-        'het laden van de pagina uit het bronbestand berekend.';
+        ' tot ' + f.lastBuy + ' en de verschepingsdata van ' + f.firstShip + ' tot ' + f.lastShip +
+        '. Volumes zijn netto na aftrek voor vocht en vreemde bestanddelen. De exportomzet is de ' +
+        'waarde die voor de partijen van het seizoen in rekening is gebracht. USD-bedragen ' +
+        'gebruiken de bij de partij vastgelegde wisselkoers waar het bestand die heeft, en ' +
+        'anders een indicatieve ' + f.fx + ' UGX per USD. Leverancierscodes zijn rangnummers ' +
+        'binnen het seizoen, geen codes in enig systeem van Ndugu. Elk cijfer op deze pagina ' +
+        'wordt bij het laden van de pagina uit het bronbestand berekend.';
     },
-    noteFlagged:function(f){
-      return f.flagged + ' van de ' + f.lots + ' partijen heeft een verschepingsdatum in een ' +
-        'later jaar dan het seizoen. Ze worden hier precies zo weergegeven als ze zijn ' +
-        'vastgelegd in plaats van gecorrigeerd, en zijn in het register hierboven gemarkeerd ' +
-        'zodat ze bij de bron kunnen worden hersteld.';
+    noteSettle:function(f){
+      return 'Van de waarde die is gefactureerd voor partijen waarbij het bestand een ontvangst ' +
+        'vastlegt, is ' + f.settled + ' binnengekomen. Dat betreft ' + f.settledLots + ' van ' +
+        f.settledOf + ' partijen; bij de rest ontbreekt een ontvangstregel. Weergegeven als één ' +
+        'seizoenscijfer: er wordt geen afnemer bij genoemd en geen bedrag per partij gepubliceerd.';
+    },
+    noteNoRevenue:function(f){
+      return f.noRevenue + ' partij(en) is verscheept zonder enige vastgelegde prijs of omzet. ' +
+        'Het volume telt mee in het seizoenstotaal, maar zij blijven buiten de omzet en buiten ' +
+        'de gemiddelde gerealiseerde prijs in plaats van als verkoop tegen nul te tellen.';
     },
     noteDupe:function(n){
       return n + ' paar leveranciers op het inkoopblad staan onder dezelfde naam, twee ' +
         'keer andersom ingevoerd, en zijn vrijwel zeker telkens één persoon. Ze worden ' +
         'hier apart geteld omdat het blad de administratie is; samenvoegen zou het aantal ' +
         'leveranciers veranderen. De namen worden niet gepubliceerd.';
+    },
+    noteMerge:function(list){
+      return 'Afnemers die onder meer dan één schrijfwijze zijn vastgelegd, worden op deze ' +
+        'pagina als één getoond, omdat splitsen de concentratie onderschat: ' + list +
+        '. De dubbele namen op het inkoopblad blijven ongewijzigd, zoals hierboven.';
     },
     noteRecon:function(f){
       return 'Inkoop en verscheping worden op verschillende momenten in het proces gemeten en ' +
@@ -1279,32 +1521,90 @@ function applyStaticI18n(){
 }
 
 /* ============================= renderers ============================= */
+function renderSeasonPills(){
+  var host = document.getElementById('seasonPills');
+  var opts = seasonList().concat(['all']);
+  host.innerHTML = opts.map(function(sn){
+    return '<button class="pill' + (sn===state.season ? ' active' : '') +
+           '" data-season="' + sn + '">' + esc(seasonLabel(sn)) + '</button>';
+  }).join('');
+}
+
+function deltaHTML(curr, prev, higherIsBetter){
+  if (prev === null || prev === undefined || !prev) return '';
+  var d = (curr - prev) / prev;
+  var cls = Math.abs(d) < 0.01 ? 'flat' : (d > 0 ? 'up' : 'down');
+  var arrow = d > 0 ? '▲' : (d < 0 ? '▼' : '=');
+  return '<div class="kpi-delta ' + cls + '"><span>' + arrow + '</span><span>' +
+         fmtPct(Math.abs(d)) + ' ' + t('vsPriorSeason') + '</span></div>';
+}
+function flatDelta(text){ return '<div class="kpi-delta flat">' + text + '</div>'; }
+
 function renderHeader(){
-  var s = DATA.sales, p = DATA.purchases;
-  document.getElementById('asOfSeason').textContent = DATA.meta.season;
+  var d = D(), s = d.sales, p = d.purchases, prev = prevSeason();
+  document.getElementById('asOfSeason').textContent = seasonLabel(state.season);
   document.getElementById('heroBig').textContent = fmtTonnes(s.volume_kg);
-  document.getElementById('heroSub').textContent = fmtMoney(s.revenue_usd);
+  document.getElementById('heroSub').textContent = fmtRevenue(s);
   document.getElementById('badgeBuyers').textContent = fmtInt(s.n_lots);
   document.getElementById('badgeBuyersL').textContent =
     t('lblLotsShipped') + ' (' + fmtInt(s.n_buyers) + ')';
 
-  document.getElementById('kpiVolume').textContent = fmtTonnes(s.volume_kg);
-  document.getElementById('kpiVolumeSub').textContent = fmtInt(s.volume_kg) + ' kg';
-  document.getElementById('kpiRevenue').textContent = fmtMoney(s.revenue_usd);
-  document.getElementById('kpiPrice').textContent = fmtPerKg(s.avg_realised_usd_per_kg);
-  document.getElementById('kpiLots').textContent = fmtInt(s.n_lots);
-  document.getElementById('kpiLotsSub').textContent =
-    fmtDate(s.date_min) + ' – ' + fmtDate(s.date_max);
-  document.getElementById('kpiBuyers').textContent = fmtInt(s.n_buyers);
-  document.getElementById('kpiBuyersSub').textContent =
-    DATA.by_buyer[0].buyer + ' ' + fmtPct(s.volume_kg ? DATA.by_buyer[0].volume_kg/s.volume_kg : 0);
-  document.getElementById('kpiPurchased').textContent = fmtTonnes(p.net_kg);
-  document.getElementById('kpiPurchasedSub').textContent =
-    fmtInt(p.n_suppliers) + ' ' + (state.lang==='nl' ? 'leveranciers' : 'suppliers');
+  /* Certification used to be asserted on the tile. The 2026 sheet records a
+     contract type per lot, so it is measured instead, and a season that does
+     not record it says so rather than claiming a share of zero. */
+  var cert = (d.by_type || []).filter(function(r){ return r.type === 'RFA certified'; })[0];
+  var unrec = (d.by_type || []).filter(function(r){ return r.type === 'Unrecorded'; })[0];
+  var certAll = unrec && unrec.volume_kg === s.volume_kg;
+  document.getElementById('badgeCert').textContent =
+    certAll ? t('lblNotRecorded') : fmtTonnes(cert ? cert.volume_kg : 0);
+  document.getElementById('badgeCertSub').textContent = certAll ? t('lblNotOnSheet')
+    : fmtPct(s.volume_kg ? (cert ? cert.volume_kg : 0)/s.volume_kg : 0) + ' ' + t('lblOfShipped');
+
+  var screens = d.by_screen
+    .filter(function(r){ return /^Screen /.test(r.screen); })
+    .map(function(r){ return r.screen.replace('Screen ', ''); });
+  var others = d.by_screen.filter(function(r){ return !/^Screen /.test(r.screen); });
+  document.getElementById('badgeScreens').textContent = screens.join(' · ') || '-';
+  document.getElementById('badgeScreensSub').textContent = others.length
+    ? '+ ' + others.map(function(r){ return r.screen.toLowerCase(); }).join(', ')
+    : t('lblScreensOnly');
+
+  var cells = [];
+  cells.push({icon:'bean', label:t('kpiVolume'), value:fmtTonnes(s.volume_kg),
+              delta: prev ? deltaHTML(s.volume_kg, prev.sales.volume_kg) : flatDelta(fmtInt(s.volume_kg) + ' kg')});
+  cells.push({icon:'cash', label:t('kpiRevenue'), value:fmtRevenue(s),
+              delta: prev ? deltaHTML(s.revenue_usd, prev.sales.revenue_usd) : flatDelta(t('kpiRevenueSub'))});
+  cells.push({icon:'tag', label:t('kpiPrice'), value:fmtPrice(s),
+              delta: prev ? deltaHTML(s.avg_realised_usd_per_kg, prev.sales.avg_realised_usd_per_kg)
+                          : flatDelta(t('kpiPriceSub'))});
+  cells.push({icon:'crate', label:t('kpiLots'), value:fmtInt(s.n_lots),
+              delta: flatDelta(fmtDate(s.date_min) + ' – ' + fmtDate(s.date_max))});
+  /* Settlement only where the sheet records receipts. The 2025 sheet has no
+     such column, so that season shows buyers instead: a nil-collected tile
+     would read as an alarm about a figure that was never recorded. */
+  if (d.settlement){
+    cells.push({icon:'seal', label:t('kpiSettled'),
+                value:fmtPct(d.settlement.pct_collected),
+                delta: flatDelta(t('kpiSettledSub') + ', ' +
+                  fmtInt(d.settlement.n_lots_covered) + '/' + fmtInt(d.settlement.n_lots) +
+                  ' ' + t('lblLots'))});
+  } else {
+    cells.push({icon:'group', label:t('kpiBuyers'), value:fmtInt(s.n_buyers),
+                delta: flatDelta(d.by_buyer.length ? d.by_buyer[0].buyer + ' ' +
+                  fmtPct(s.volume_kg ? d.by_buyer[0].volume_kg/s.volume_kg : 0) : '')});
+  }
+  cells.push({icon:'plot', label:t('kpiPurchased'), value:fmtTonnes(p.net_kg),
+              delta: prev ? deltaHTML(p.net_kg, prev.purchases.net_kg)
+                          : flatDelta(fmtInt(p.n_suppliers) + ' ' + t('lblSuppliers'))});
+
+  document.getElementById('kpiStrip').innerHTML = cells.map(function(c){
+    return '<div class="kpi-cell">' + icon(c.icon) + '<div class="kpi-label">' + c.label +
+           '</div><div class="kpi-value num">' + c.value + '</div>' + c.delta + '</div>';
+  }).join('');
 }
 
 function renderBuyerChart(){
-  var rows = DATA.by_buyer;
+  var rows = D().by_buyer;
   mountChart('buyerChart', {
     type:'bar',
     data:{
@@ -1338,7 +1638,7 @@ function renderBuyerChart(){
 }
 
 function renderScreenChart(){
-  var rows = DATA.by_screen;
+  var rows = D().by_screen, total = D().sales.volume_kg;
   mountChart('screenChart', {
     type:'doughnut',
     data:{
@@ -1352,11 +1652,11 @@ function renderScreenChart(){
     options:{
       responsive:true, maintainAspectRatio:false, cutout:'56%',
       plugins:{
-        legend:{position:'bottom', labels:{boxWidth:11, boxHeight:11, padding:12,
-          font:{family:CHART_FONT, size:12}, color:COLORS.inkSoft}},
+        legend:{position:'bottom', labels:{boxWidth:11, boxHeight:11, padding:10,
+          font:{family:CHART_FONT, size:11.5}, color:COLORS.inkSoft}},
         tooltip:{callbacks:{label:function(c){
-          var r = rows[c.dataIndex], tot = DATA.sales.volume_kg;
-          return ' ' + fmtKgShort(r.volume_kg) + '  ' + fmtPct(tot ? r.volume_kg/tot : 0);
+          var r = rows[c.dataIndex];
+          return ' ' + fmtKgShort(r.volume_kg) + '  ' + fmtPct(total ? r.volume_kg/total : 0);
         }}}
       }
     }
@@ -1364,30 +1664,104 @@ function renderScreenChart(){
   document.getElementById('screenInsight').innerHTML = t('insScreen');
 }
 
+/* Contracted volume against what shipped under that reference. A contract with
+   nothing against its own reference but an exact-volume lot to the same buyer
+   near the ship-by date is shown as a probable rename, not as a miss: the
+   difference between a filing error and an unshipped contract matters to
+   anyone reading this page, and the data cannot tell them apart. */
+function renderContracts(){
+  var host = document.getElementById('contractList');
+  var rows = D().contracts || [];
+  var sec = document.getElementById('secContracts');
+  if (!rows.length){ sec.hidden = true; return; }
+  sec.hidden = false;
+
+  host.innerHTML = rows.map(function(c){
+    var share = c.contracted_kg ? Math.min(c.shipped_kg / c.contracted_kg, 1) : 0;
+    var cls = share >= 0.999 ? '' : (share > 0 ? ' short' : ' none');
+    var sub = c.buyers.join(', ');
+    if (c.ship_by) sub += ' · ' + t('lblShipBy') + ' ' + fmtDate(c.ship_by);
+    var tail;
+    if (c.probable_match){
+      tail = '<span class="flag" title="' + esc(t('conProbableTitle')) + '">?</span> ' +
+             t('conProbable') + ' ' + esc(c.probable_match.ref || '');
+      cls = ' short';
+      share = 1;
+    } else if (c.ref_reused){
+      tail = t('conReused') + ' ' + c.shipped_years.join(', ');
+    } else if (c.shipped_kg === 0){
+      tail = t('conNothing');
+    } else if (c.shipped_kg < c.contracted_kg){
+      tail = t('conShortBy') + ' ' + fmtKgShort(c.contracted_kg - c.shipped_kg);
+    } else {
+      tail = t('conFull');
+    }
+    return '<div class="con-row">' +
+      '<div class="who"><div class="name">' + esc(c.ref) + '</div>' +
+        '<div class="sub">' + esc(sub) + '</div></div>' +
+      '<div class="bar' + cls + '"><span style="width:' + (share*100).toFixed(1) + '%"></span></div>' +
+      '<div class="qty"><b>' + fmtKgShort(c.shipped_kg) + '</b>' +
+        t('lblOf') + ' ' + fmtKgShort(c.contracted_kg) + '<br>' + tail + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+/* Intake and shipment on one frame. They are the same unit and the same
+   months, so the comparison is legitimate; the point of the panel is the lag
+   between buying and shipping, which no single series shows. */
+function renderShipChart(){
+  var d = D();
+  var months = {};
+  d.purchases_monthly.forEach(function(r){ months[r.month] = months[r.month] || {}; months[r.month].in = r.net_kg; });
+  (d.shipments_monthly || []).forEach(function(r){ months[r.month] = months[r.month] || {}; months[r.month].out = r.volume_kg; });
+  var keys = Object.keys(months).sort();
+  mountChart('shipChart', {
+    type:'bar',
+    data:{
+      labels: keys.map(fmtMonth),
+      datasets:[
+        {label:t('lblIntake'), data:keys.map(function(k){ return months[k].in || 0; }),
+         backgroundColor:COLORS.honey, borderRadius:3, borderSkipped:false, barPercentage:0.9, categoryPercentage:0.7},
+        {label:t('lblShipped'), data:keys.map(function(k){ return months[k].out || 0; }),
+         backgroundColor:COLORS.roast, borderRadius:3, borderSkipped:false, barPercentage:0.9, categoryPercentage:0.7}
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index', intersect:false},
+      plugins:{
+        legend:{position:'bottom', labels:{boxWidth:11, boxHeight:11, padding:10,
+          font:{family:CHART_FONT, size:11.5}, color:COLORS.inkSoft}},
+        tooltip:{callbacks:{label:function(c){ return ' ' + c.dataset.label + ': ' + fmtKgShort(c.parsed.y); }}}
+      },
+      scales:{
+        x:{grid:{display:false}, border:{display:false}, ticks:{maxRotation:0, autoSkip:true}},
+        y:{grid:{color:COLORS.line, borderDash:GRID_DASH}, border:{display:false},
+           ticks:{callback:function(v){ return fmtAxisKg(v); }}}
+      }
+    }
+  });
+  document.getElementById('shipInsight').innerHTML = t('insShip');
+}
+
 function renderLots(){
   var host = document.getElementById('lotList');
-  var seasonYear = parseInt(DATA.meta.season, 10);
-  host.innerHTML = DATA.lots.map(function(l){
-    var late = l.date && parseInt(l.date.slice(0,4), 10) > seasonYear;
+  host.innerHTML = D().lots.map(function(l){
     var sub = l.contract ? esc(l.contract) : t('lblNoContract');
     return '<div class="lot-row">' +
       '<div class="seq">' + l.seq + '</div>' +
       '<div class="who">' +
         '<div class="name">' + esc(l.buyer) + '</div>' +
-        '<div class="sub">' + fmtDate(l.date) +
-          (late ? '<span class="flag" title="' + esc(t('flagTitle')) + '">!</span>' : '') +
-          ' · ' + sub +
-        '</div>' +
+        '<div class="sub">' + fmtDate(l.date) + ' · ' + sub + '</div>' +
       '</div>' +
-      '<div class="screen ' + screenClass(l.screen) + '">' +
-        (l.screen ? 'S' + l.screen : '–') + '</div>' +
+      '<div class="screen ' + screenClass(l.screen) + '">' + esc(screenShort(l.screen)) + '</div>' +
       '<div class="qty">' + fmtKgShort(l.volume_kg) + '</div>' +
     '</div>';
   }).join('');
 }
 
 function renderIntake(){
-  var rows = DATA.purchases_monthly;
+  var rows = D().purchases_monthly;
   mountChart('intakeChart', {
     data:{
       labels: rows.map(function(r){ return fmtMonth(r.month); }),
@@ -1418,7 +1792,7 @@ function renderIntake(){
         }}
       },
       scales:{
-        x:{grid:{display:false}, border:{display:false}},
+        x:{grid:{display:false}, border:{display:false}, ticks:{maxRotation:0, autoSkip:true}},
         y:{grid:{color:COLORS.line, borderDash:GRID_DASH}, border:{display:false},
            ticks:{callback:function(v){ return fmtAxisKg(v); }}}
       }
@@ -1427,9 +1801,89 @@ function renderIntake(){
   document.getElementById('intakeInsight').innerHTML = t('insIntake');
 }
 
+/* Buying site and moisture are recorded on the 2026 sheet only, so the whole
+   row is hidden for a season that has neither rather than drawn empty. */
+function renderIntakeQuality(){
+  var d = D();
+  var sites = d.by_site || [], moist = d.moisture;
+  var grid = document.getElementById('intakeQualityGrid');
+  var sitePanel = document.getElementById('sitePanel');
+  var moistPanel = document.getElementById('moisturePanel');
+  grid.hidden = !(sites.length || moist);
+  sitePanel.hidden = !sites.length;
+  moistPanel.hidden = !moist;
+  sitePanel.className = (moist ? 'col-7' : 'col-12') + ' panel';
+  moistPanel.className = (sites.length ? 'col-5' : 'col-12') + ' panel';
+  if (grid.hidden) return;
+
+  if (sites.length){
+    var rows = sites.slice(0, 8);
+    mountChart('siteChart', {
+      type:'bar',
+      data:{
+        labels: rows.map(function(r){ return r.site; }),
+        datasets:[{
+          data: rows.map(function(r){ return r.net_kg; }),
+          backgroundColor: rows.map(function(_, i){ return BUYER_CYCLE[i % BUYER_CYCLE.length]; }),
+          borderRadius:3, borderSkipped:false, barPercentage:0.72
+        }]
+      },
+      options:{
+        indexAxis:'y', responsive:true, maintainAspectRatio:false,
+        plugins:{
+          legend:{display:false},
+          tooltip:{callbacks:{label:function(c){
+            var r = rows[c.dataIndex];
+            return fmtKgShort(r.net_kg) + '  (' + r.deliveries + ' ' + t('lblDeliveries') + ')';
+          }}}
+        },
+        scales:{
+          x:{grid:{color:COLORS.line, borderDash:GRID_DASH}, border:{display:false},
+             ticks:{callback:function(v){ return fmtAxisKg(v); }}},
+          y:{grid:{display:false}, border:{display:false},
+             ticks:{font:{family:CHART_FONT, size:12}, color:COLORS.ink}}
+        }
+      }
+    });
+    document.getElementById('siteInsight').innerHTML = t('insSite');
+  }
+
+  if (moist){
+    mountChart('moistChart', {
+      type:'bar',
+      data:{
+        labels: moist.bins.map(function(b){ return b.pct + '%'; }),
+        datasets:[{
+          data: moist.bins.map(function(b){ return b.n; }),
+          backgroundColor: moist.bins.map(function(b){
+            return b.pct <= moist.target ? COLORS.leaf : COLORS.clay;
+          }),
+          borderRadius:3, borderSkipped:false, barPercentage:0.8
+        }]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{
+          legend:{display:false},
+          tooltip:{callbacks:{label:function(c){
+            return ' ' + fmtInt(c.parsed.y) + ' ' + t('lblDeliveries');
+          }}}
+        },
+        scales:{
+          x:{grid:{display:false}, border:{display:false}},
+          y:{grid:{color:COLORS.line, borderDash:GRID_DASH}, border:{display:false},
+             ticks:{precision:0}}
+        }
+      }
+    });
+    document.getElementById('moistMean').textContent = FACTS.moistMean;
+    document.getElementById('moistIn').textContent = FACTS.moistIn;
+  }
+}
+
 function renderSuppliers(){
-  var total = DATA.purchases.net_kg;
-  document.getElementById('supplierBody').innerHTML = DATA.top_suppliers.map(function(s, i){
+  var d = D(), total = d.purchases.net_kg;
+  document.getElementById('supplierBody').innerHTML = d.top_suppliers.map(function(s, i){
     return '<tr>' +
       '<td class="rank">' + (i+1) + '</td>' +
       '<td class="name code">' + esc(s.ref) + '</td>' +
@@ -1442,7 +1896,7 @@ function renderSuppliers(){
 }
 
 function renderFlow(){
-  var p = DATA.purchases, s = DATA.sales;
+  var d = D(), p = d.purchases, s = d.sales;
   var faq = p.net_kg - p.graded_kg;
   var byType = p.graded_by_supplier_type || {};
   var typeBits = Object.keys(byType).sort(function(a,b){ return byType[b]-byType[a]; })
@@ -1459,10 +1913,17 @@ function renderFlow(){
     fmtPct(p.net_kg ? s.volume_kg/p.net_kg : 0) + ' ' + t('lblOfIntake');
 
   var notes = ['<div class="callout">' + t('noteRecon') + '</div>'];
-  if (FACTS.flagged) notes.push('<div class="callout">' + t('noteFlagged') + '</div>');
-  if (DATA.notes.duplicate_supplier_pairs){
+  if (d.settlement) notes.push('<div class="callout">' + t('noteSettle') + '</div>');
+  if (FACTS.noRevenue) notes.push('<div class="callout">' + t('noteNoRevenue') + '</div>');
+  if (d.notes.duplicate_supplier_pairs){
     notes.push('<div class="callout">' +
-      esc(I18N[state.lang].noteDupe(DATA.notes.duplicate_supplier_pairs)) + '</div>');
+      esc(I18N[state.lang].noteDupe(d.notes.duplicate_supplier_pairs)) + '</div>');
+  }
+  if (DATA.buyer_merges && DATA.buyer_merges.length){
+    notes.push('<div class="callout">' +
+      esc(I18N[state.lang].noteMerge(DATA.buyer_merges.map(function(m){
+        return m.name + ' (' + m.recorded_as.length + ')';
+      }).join(', '))) + '</div>');
   }
   document.getElementById('notesBox').innerHTML = notes.join('');
 }
@@ -1486,18 +1947,28 @@ function renderAll(){
   paintTileIcons();
   computeFacts();
   applyStaticI18n();
+  renderSeasonPills();
   document.getElementById('footerAboutP').textContent = t('aboutP');
   renderHeader();
+  paintTileIcons();
   renderBuyerChart();
   renderScreenChart();
+  renderContracts();
+  renderShipChart();
   renderLots();
   renderIntake();
+  renderIntakeQuality();
   renderSuppliers();
   renderFlow();
 }
 
 /* ============================= controls ============================= */
 function bindControls(){
+  document.getElementById('seasonPills').addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    state.season = b.dataset.season;
+    renderAll();
+  });
   document.getElementById('currencyPills').addEventListener('click', function(e){
     var b = e.target.closest('button'); if (!b) return;
     state.currency = b.dataset.currency;
@@ -1514,6 +1985,9 @@ function bindControls(){
 
 function start(){
   if (DATA.meta && DATA.meta.fx_ugx_per_usd > 0) FX_RATE = DATA.meta.fx_ugx_per_usd;
+  /* Open on the most recent season the workbook holds rather than a year
+     typed into this file, so a new season needs no code change here. */
+  if (DATA.seasons[DATA.meta.default_season]) state.season = DATA.meta.default_season;
   themeCharts();
   bindControls();
   renderAll();
