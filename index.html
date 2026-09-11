@@ -255,14 +255,17 @@
     box-shadow:0 1px 2px rgba(42,26,16,.10), 0 8px 18px -14px rgba(42,26,16,.55);
     display:flex; flex-direction:column; justify-content:center;
   }
-  /* Row one is the deep end of the same palette, so it frames the bright row
-     below rather than competing with it. All four clear 4.5:1 on white text. */
-  .tile-lead{background:linear-gradient(135deg,#5F391C 0%,#2A1A10 100%);} /* 10.1:1 */
-  .tile-a{background:linear-gradient(135deg,#8D4E1D 0%,#6B3A15 100%);}    /* 6.5:1  */
-  .tile-b{background:linear-gradient(135deg,#30610F 0%,#22470A 100%);}    /* 7.4:1  */
-  .tile-c{background:linear-gradient(135deg,#0D606A 0%,#08454C 100%);}    /* 7.3:1  */
-  .tile-d{background:linear-gradient(135deg,#8A2D17 0%,#66200F 100%);}    /* 8.5:1  */
-  .tile-e{background:linear-gradient(135deg,#4F5A0D 0%,#3A4209 100%);}    /* 9.4:1  */
+  /* Row one is the network: who and what Ndugu is. It runs dark to light left
+     to right in the roast family, so the reading order is carried by tone as
+     well as position. Row two below does the same in teal. Every step is set
+     against a 4.5:1 contrast floor for white text, and the two rows share
+     their endpoints with the export dashboard so the pages read as one set. */
+  .tile-lead{background:linear-gradient(135deg,#663A18 0%,#4A2A11 100%);} /* 9.6:1 */
+  .tile-a{background:linear-gradient(135deg,#72401B 0%,#522E13 100%);}    /* 8.5:1 */
+  .tile-b{background:linear-gradient(135deg,#7E481E 0%,#5B3415 100%);}    /* 7.4:1 */
+  .tile-c{background:linear-gradient(135deg,#8C4F21 0%,#653918 100%);}    /* 6.5:1 */
+  .tile-d{background:linear-gradient(135deg,#9B5824 0%,#703F1A 100%);}    /* 5.5:1 */
+  .tile-e{background:linear-gradient(135deg,#AA6128 0%,#7B461D 100%);}    /* 4.7:1 */
   .tile{position:relative;}
   /* Top-right, low opacity: it should read as texture on the tile, not as a
      second thing to look at. aria-hidden, because the label already says what
@@ -302,12 +305,14 @@
     background:var(--tile-roast); color:#fff; min-width:0;
     box-shadow:0 1px 2px rgba(42,26,16,.10), 0 8px 18px -14px rgba(42,26,16,.55);
   }
-  .kpi-cell:nth-child(6n+1){background:var(--tile-leaf);}
-  .kpi-cell:nth-child(6n+2){background:var(--tile-honey);}
-  .kpi-cell:nth-child(6n+3){background:var(--tile-roast);}
-  .kpi-cell:nth-child(6n+4){background:var(--tile-cherry);}
-  .kpi-cell:nth-child(6n+5){background:var(--tile-teal);}
-  .kpi-cell:nth-child(6n+6){background:var(--tile-olive);}
+  /* Row two is performance: what the network produced and what it was paid.
+     Same dark-to-light progression as row one, in the second family. */
+  .kpi-cell:nth-child(6n+1){background:linear-gradient(135deg,#0D4D45 0%,#093832 100%);} /* 9.7:1 */
+  .kpi-cell:nth-child(6n+2){background:linear-gradient(135deg,#0E564D 0%,#0A3E37 100%);} /* 8.5:1 */
+  .kpi-cell:nth-child(6n+3){background:linear-gradient(135deg,#106056 0%,#0B453E 100%);} /* 7.4:1 */
+  .kpi-cell:nth-child(6n+4){background:linear-gradient(135deg,#116A5F 0%,#0C4D44 100%);} /* 6.5:1 */
+  .kpi-cell:nth-child(6n+5){background:linear-gradient(135deg,#137568 0%,#0E554B 100%);} /* 5.6:1 */
+  .kpi-cell:nth-child(6n+6){background:linear-gradient(135deg,#158173 0%,#0F5D53 100%);} /* 4.8:1 */
   .kpi-label{
     font-size:11.5px; font-weight:500; margin:0 0 3px 0;
     color:rgba(255,255,255,.88); letter-spacing:.01em;

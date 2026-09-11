@@ -249,14 +249,17 @@
     box-shadow:0 1px 2px rgba(42,26,16,.10), 0 8px 18px -14px rgba(42,26,16,.55);
     display:flex; flex-direction:column; justify-content:center;
   }
-  /* Row one is the deep end of the same palette, so it frames the bright row
-     below rather than competing with it. All four clear 4.5:1 on white text. */
-  .tile-lead{background:linear-gradient(135deg,#5F391C 0%,#2A1A10 100%);} /* 10.1:1 */
-  .tile-a{background:linear-gradient(135deg,#8D4E1D 0%,#6B3A15 100%);}    /* 6.5:1  */
-  .tile-b{background:linear-gradient(135deg,#30610F 0%,#22470A 100%);}    /* 7.4:1  */
-  .tile-c{background:linear-gradient(135deg,#0D606A 0%,#08454C 100%);}    /* 7.3:1  */
-  .tile-d{background:linear-gradient(135deg,#8A2D17 0%,#66200F 100%);}    /* 8.5:1  */
-  .tile-e{background:linear-gradient(135deg,#4F5A0D 0%,#3A4209 100%);}    /* 9.4:1  */
+  /* Row one is the network: who and what Ndugu is. It runs dark to light left
+     to right in the roast family, so the reading order is carried by tone as
+     well as position. Row two below does the same in teal. Every step is set
+     against a 4.5:1 contrast floor for white text, and the two rows share
+     their endpoints with the export dashboard so the pages read as one set. */
+  .tile-lead{background:linear-gradient(135deg,#663A18 0%,#4A2A11 100%);} /* 9.6:1 */
+  .tile-a{background:linear-gradient(135deg,#72401B 0%,#522E13 100%);}    /* 8.5:1 */
+  .tile-b{background:linear-gradient(135deg,#7E481E 0%,#5B3415 100%);}    /* 7.4:1 */
+  .tile-c{background:linear-gradient(135deg,#8C4F21 0%,#653918 100%);}    /* 6.5:1 */
+  .tile-d{background:linear-gradient(135deg,#9B5824 0%,#703F1A 100%);}    /* 5.5:1 */
+  .tile-e{background:linear-gradient(135deg,#AA6128 0%,#7B461D 100%);}    /* 4.7:1 */
   .tile{position:relative;}
   /* Top-right, low opacity: it should read as texture on the tile, not as a
      second thing to look at. aria-hidden, because the label already says what
@@ -296,12 +299,14 @@
     background:var(--tile-roast); color:#fff; min-width:0;
     box-shadow:0 1px 2px rgba(42,26,16,.10), 0 8px 18px -14px rgba(42,26,16,.55);
   }
-  .kpi-cell:nth-child(6n+1){background:var(--tile-leaf);}
-  .kpi-cell:nth-child(6n+2){background:var(--tile-honey);}
-  .kpi-cell:nth-child(6n+3){background:var(--tile-roast);}
-  .kpi-cell:nth-child(6n+4){background:var(--tile-cherry);}
-  .kpi-cell:nth-child(6n+5){background:var(--tile-teal);}
-  .kpi-cell:nth-child(6n+6){background:var(--tile-olive);}
+  /* Row two is performance: what the network produced and what it was paid.
+     Same dark-to-light progression as row one, in the second family. */
+  .kpi-cell:nth-child(6n+1){background:linear-gradient(135deg,#0D4D45 0%,#093832 100%);} /* 9.7:1 */
+  .kpi-cell:nth-child(6n+2){background:linear-gradient(135deg,#0E564D 0%,#0A3E37 100%);} /* 8.5:1 */
+  .kpi-cell:nth-child(6n+3){background:linear-gradient(135deg,#106056 0%,#0B453E 100%);} /* 7.4:1 */
+  .kpi-cell:nth-child(6n+4){background:linear-gradient(135deg,#116A5F 0%,#0C4D44 100%);} /* 6.5:1 */
+  .kpi-cell:nth-child(6n+5){background:linear-gradient(135deg,#137568 0%,#0E554B 100%);} /* 5.6:1 */
+  .kpi-cell:nth-child(6n+6){background:linear-gradient(135deg,#158173 0%,#0F5D53 100%);} /* 4.8:1 */
   .kpi-label{
     font-size:11.5px; font-weight:500; margin:0 0 3px 0;
     color:rgba(255,255,255,.88); letter-spacing:.01em;
@@ -1257,8 +1262,7 @@ var I18N = {
     lblNotOnSheet:'not on this season’s sheet',
     secSourceH:'Where the coffee came from',
     secSourceP:function(f){
-      return f.deliveries + ' deliveries from ' + f.suppliers + ' suppliers. The largest ' +
-        'supplier accounts for ' + f.topSupplierPct + ' of intake by weight.';
+      return f.deliveries + ' deliveries from ' + f.suppliers + ' suppliers.';
     },
     secSourceTag:'Intake by buying site, quality and supplier',
     panSiteH:'Intake by buying site', panSiteN:'Net kilograms bought in, by recorded site.',
@@ -1269,40 +1273,34 @@ var I18N = {
     thSupplier:'Supplier ref', thDeliveries:'Deliveries', thNetKg:'Net delivered', thShare:'Share',
     secMonthH:'Intake and shipment through the season',
     secMonthP:function(f){
-      return 'Intake ran ' + f.firstBuy + ' to ' + f.lastBuy + ' and shipments ' +
-        f.firstShip + ' to ' + f.lastShip + '. Intake peaked in ' + f.peakMonth +
-        ' at ' + f.peakKg + '.';
+      return 'Intake peaked in ' + f.peakMonth + ' at ' + f.peakKg + '.';
     },
     secMonthTag:'Net kilograms by month',
     panShipH:'Bought in against shipped out',
     panShipN:'Net kilograms bought in and net kilograms shipped, by month.',
     secBuyersH:'Where the coffee went',
     secBuyersP:function(f){
-      return f.topBuyer + ' accounts for ' + f.topBuyerPct + ' of shipped volume across ' +
-        f.buyers + ' buyers, and ' + f.screenName + ' for ' + f.screenPct + ' of the grade mix.';
+      return f.buyers + ' buyers, the largest at ' + f.topBuyerPct + ' of shipped volume.';
     },
     secBuyersTag:'Volume by buyer and screen grade',
     panBuyerH:'Volume by buyer', panBuyerN:'Kilograms shipped, all lots in the season.',
     panScreenH:'Screen grade mix', panScreenN:'Bean size determines which roasters a lot can serve.',
     secConH:'Contracted against shipped',
     secConP:function(f){
-      return f.nContracts + ' contracts on file for ' + f.contracted +
-        '. The bar shows the share of each contract shipped under its own reference.';
+      return f.nContracts + ' contracts on file for ' + f.contracted + ' of committed volume.';
     },
     secConTag:'Every contract on file',
     panConH:'Contract fulfilment',
     panConN:'Contracted volume against volume shipped under that reference.',
     secLotsH:'Shipment ledger',
     secLotsP:function(f){
-      return f.lots + ' lots dispatched between ' + f.firstShip + ' and ' + f.lastShip +
-        ', dated as recorded in the source workbook.';
+      return f.lots + ' lots dispatched between ' + f.firstShip + ' and ' + f.lastShip + '.';
     },
     secLotsTag:'Every lot dispatched this season',
     panLotsH:'Lots dispatched', panLotsN:'Date recorded, contract, buyer, screen and volume.',
     secFlowH:'From purchase to shipment',
     secFlowP:function(f){
-      return 'Coffee is graded, sorted and bulked before dispatch, so intake and shipment ' +
-        'are measured at different points. ' + f.shipShare + ' of intake left as export lots.';
+      return f.shipShare + ' of the season’s intake left as export lots.';
     },
     secFlowTag:'Volume reconciliation and data notes',
     flow1:'Bought in, FAQ', flow2:'Bought in, already graded',
@@ -1407,8 +1405,7 @@ var I18N = {
     lblNotOnSheet:'niet op het blad van dit seizoen',
     secSourceH:'Waar de koffie vandaan kwam',
     secSourceP:function(f){
-      return f.deliveries + ' leveringen van ' + f.suppliers + ' leveranciers. De grootste ' +
-        'leverancier is goed voor ' + f.topSupplierPct + ' van de inkoop naar gewicht.';
+      return f.deliveries + ' leveringen van ' + f.suppliers + ' leveranciers.';
     },
     secSourceTag:'Inkoop per inkooppunt, kwaliteit en leverancier',
     panSiteH:'Inkoop per inkooppunt', panSiteN:'Netto ingekochte kilogrammen, per vastgelegd punt.',
@@ -1419,41 +1416,34 @@ var I18N = {
     thSupplier:'Leverancierscode', thDeliveries:'Leveringen', thNetKg:'Netto geleverd', thShare:'Aandeel',
     secMonthH:'Inkoop en verscheping door het seizoen',
     secMonthP:function(f){
-      return 'De inkoop liep van ' + f.firstBuy + ' tot ' + f.lastBuy + ' en de verschepingen van ' +
-        f.firstShip + ' tot ' + f.lastShip + '. De inkoop piekte in ' + f.peakMonth +
-        ' met ' + f.peakKg + '.';
+      return 'De inkoop piekte in ' + f.peakMonth + ' met ' + f.peakKg + '.';
     },
     secMonthTag:'Netto kilogrammen per maand',
     panShipH:'Ingekocht tegenover verscheept',
     panShipN:'Netto ingekochte en netto verscheepte kilogrammen, per maand.',
     secBuyersH:'Waar de koffie heen ging',
     secBuyersP:function(f){
-      return f.topBuyer + ' is goed voor ' + f.topBuyerPct + ' van het verscheepte volume over ' +
-        f.buyers + ' afnemers, en ' + f.screenName + ' voor ' + f.screenPct + ' van de sorteringen.';
+      return f.buyers + ' afnemers, de grootste met ' + f.topBuyerPct + ' van het volume.';
     },
     secBuyersTag:'Volume per afnemer en screengrootte',
     panBuyerH:'Volume per afnemer', panBuyerN:'Verscheepte kilogrammen, alle partijen van het seizoen.',
     panScreenH:'Verdeling screengrootte', panScreenN:'De boongrootte bepaalt welke branders een partij kan bedienen.',
     secConH:'Gecontracteerd tegenover verscheept',
     secConP:function(f){
-      return f.nContracts + ' contracten vastgelegd voor ' + f.contracted +
-        '. De balk toont het deel van elk contract dat onder de eigen referentie is verscheept.';
+      return f.nContracts + ' contracten vastgelegd voor ' + f.contracted + ' aan toegezegd volume.';
     },
     secConTag:'Alle vastgelegde contracten',
     panConH:'Contractafwikkeling',
     panConN:'Gecontracteerd volume tegenover het volume dat onder die referentie is verscheept.',
     secLotsH:'Verschepingsregister',
     secLotsP:function(f){
-      return f.lots + ' partijen verscheept tussen ' + f.firstShip + ' en ' + f.lastShip +
-        ', gedateerd zoals vastgelegd in het bronbestand.';
+      return f.lots + ' partijen verscheept tussen ' + f.firstShip + ' en ' + f.lastShip + '.';
     },
     secLotsTag:'Elke partij die dit seizoen is verscheept',
     panLotsH:'Verscheepte partijen', panLotsN:'Vastgelegde datum, contract, afnemer, screen en volume.',
     secFlowH:'Van inkoop naar verscheping',
     secFlowP:function(f){
-      return 'Koffie wordt gesorteerd, geschoond en gebulkt vóór verzending, dus inkoop en ' +
-        'verscheping worden op verschillende momenten gemeten. ' + f.shipShare +
-        ' van de inkoop vertrok als exportpartij.';
+      return f.shipShare + ' van de inkoop van het seizoen vertrok als exportpartij.';
     },
     secFlowTag:'Volumeaansluiting en aantekeningen bij de data',
     flow1:'Ingekocht, FAQ', flow2:'Ingekocht, al gesorteerd',
@@ -1539,7 +1529,7 @@ function applyStaticI18n(){
 /* ============================= renderers ============================= */
 function renderSeasonPills(){
   var host = document.getElementById('seasonPills');
-  var opts = seasonList().concat(['all']);
+  var opts = ['all'].concat(seasonList());
   host.innerHTML = opts.map(function(sn){
     return '<button class="pill' + (sn===state.season ? ' active' : '') +
            '" data-season="' + sn + '">' + esc(seasonLabel(sn)) + '</button>';
