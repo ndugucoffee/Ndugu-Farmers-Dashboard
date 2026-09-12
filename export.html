@@ -1150,13 +1150,13 @@ var GRID_DASH = [2, 3];
 var CHART_FONT = '"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif';
 var COLORS = {
   roast:'#7B4A24', roastDeep:'#43260F', roastLight:'#A97244', roastWash:'#F4E6D5',
-  leaf:'#4E7C2E', leafLight:'#7FA84A', leafWash:'#E9F1DD',
+  barGreen:'#0D4D45',leaf:'#4E7C2E', leafLight:'#7FA84A', leafWash:'#E9F1DD',
   cherry:'#B23A1E', cherryWash:'#F9E3D9',
   honey:'#D2911F', honeyWash:'#FBEED4',
   teal:'#2C7A83', olive:'#8C9A3B', clay:'#9C5230',
   ink:'#2A1A10', inkSoft:'#63483A', inkFaint:'#8A7059', line:'#EADCC7'
 };
-var BUYER_CYCLE = [COLORS.roast, COLORS.honey, COLORS.leaf, COLORS.teal, COLORS.cherry, COLORS.clay, COLORS.olive];
+var BUYER_CYCLE = [COLORS.roast, COLORS.honey, COLORS.barGreen, COLORS.teal, COLORS.cherry, COLORS.clay, COLORS.olive];
 /* Screen grades keep a fixed colour so the doughnut, the ledger badges and the
    legend agree. */
 var SCREEN_COLOR = {'Screen 12':COLORS.leaf, 'Screen 15':COLORS.roast, 'Screen 18':COLORS.honey,
@@ -1892,7 +1892,7 @@ function renderIntakeQuality(){
         datasets:[{
           data: moist.bins.map(function(b){ return b.n; }),
           backgroundColor: moist.bins.map(function(b){
-            return b.pct <= moist.target ? COLORS.leaf : COLORS.clay;
+            return b.pct <= moist.target ? COLORS.barGreen : COLORS.clay;
           }),
           borderRadius:3, borderSkipped:false, barPercentage:0.8
         }]

@@ -1159,7 +1159,7 @@ var GRID_DASH = [2, 3];
 var CHART_FONT = '"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif';
 var COLORS = {
   roast:'#7B4A24', roastDeep:'#43260F', roastLight:'#A97244', roastWash:'#F4E6D5',
-  leaf:'#4E7C2E', leafLight:'#7FA84A', leafWash:'#E9F1DD',
+  barGreen:'#0D4D45',leaf:'#4E7C2E', leafLight:'#7FA84A', leafWash:'#E9F1DD',
   cherry:'#B23A1E', honey:'#D2911F', honeyWash:'#FBEED4',
   teal:'#2C7A83', olive:'#8C9A3B', clay:'#9C5230',
   ink:'#2A1A10', inkSoft:'#63483A', inkFaint:'#8A7059', line:'#EADCC7'
@@ -1169,7 +1169,7 @@ var COLORS = {
    which is invisible to a red-green colour-blind reader. Green against gold
    measures 12.0 and passes. Gold is below 3:1 on this background, so every gold
    mark is labelled or sits beside a table. */
-var C_OK = COLORS.leaf;
+var C_OK = COLORS.barGreen;
 var C_RISK = COLORS.honey;
 
 function themeCharts(){
@@ -2146,7 +2146,7 @@ function renderCurve(){
            steepness and moves the apparent knee. The shape of this curve is
            the whole argument, so the axis has to be true to it. */
         data: pts.map(function(p){ return {x:p.farmers, y:p.pct*100}; }),
-        borderColor: C_OK, backgroundColor:'rgba(78,124,46,0.10)',
+        borderColor: C_OK, backgroundColor:'rgba(13,77,69,0.10)',
         borderWidth:2, pointRadius:4, pointHoverRadius:6,
         pointBackgroundColor: C_OK, pointBorderColor:'#FFFCF6', pointBorderWidth:2,
         fill:true, tension:0.25
