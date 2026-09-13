@@ -1889,7 +1889,11 @@ function renderShipChart(){
    A completed year is filled with zero for months it recorded nothing, which
    is what happened. The latest year stops after its last recorded month rather
    than being drawn down to zero, because those months have not happened yet
-   and a line falling to the axis would read as a collapse in trade. */
+   and a line falling to the axis would read as a collapse in trade.
+
+   The curve uses monotone cubic interpolation, so it is smooth without ever
+   overshooting the values it joins: no month is drawn below zero and a run of
+   equal values stays flat. The axis is pinned at zero for the same reason. */
 var MONTH_KEYS = ['01','02','03','04','05','06','07','08','09','10','11','12'];
 
 function yoySeries(year, latest, key, valueField){
@@ -1916,7 +1920,14 @@ function yoyChart(canvasId, key, valueField, tones, yMax){
       data: yoySeries(y, latest, key, valueField),
       borderColor: tone, backgroundColor: tone,
       borderDash: (y === latest) ? [] : [5, 4],
-      borderWidth: 2, tension: 0, pointRadius: 2.5, pointHoverRadius: 4, spanGaps: false
+      borderWidth: 2, pointRadius: 2.5, pointHoverRadius: 4, spanGaps: false,
+      /* Monotone cubic interpolation rather than a plain spline. A plain
+         spline overshoots between points, which is what drives the Excel
+         version below zero on either side of a spike and bows a run of zeros
+         into a dip. Monotone never overshoots: it curves where the data rises
+         or falls and holds flat where consecutive values are equal, so a run
+         of zeros is drawn as a straight line on the axis. */
+      cubicInterpolationMode: 'monotone'
     };
   });
   mountChart(canvasId, {
@@ -1935,7 +1946,7 @@ function yoyChart(canvasId, key, valueField, tones, yMax){
       scales: {
         x: { grid: { display: false }, border: { display: false },
              ticks: { maxRotation: 0, autoSkip: true } },
-        y: { beginAtZero: true, suggestedMax: yMax,
+        y: { min: 0, suggestedMax: yMax,
              grid: { color: COLORS.line, borderDash: GRID_DASH }, border: { display: false },
              ticks: { callback: function(v){ return fmtAxisKg(v); } } }
       }
