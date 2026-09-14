@@ -1343,7 +1343,11 @@ function computeFacts(){
   FACTS.insRawBags = fmtInt(inn.raw_bags);
   FACTS.ins2026 = fmtInt(inn.dated_2026);
   FACTS.insFuture = inn.dated_future;
-  FACTS.insImputed = fmtInt(inn.imputed_values);
+  FACTS.insImputed = fmtInt(inn.cleaning_rows || 0);
+  FACTS.insCleanSheet = inn.cleaning_sheet || 'the cleaning log';
+  FACTS.insPerAcre = inn.trees_derived ? fmtInt(inn.trees_derived.per_acre) : '-';
+  FACTS.insDerivedRows = inn.trees_derived ? fmtInt(inn.trees_derived.rows) : '-';
+  FACTS.insBagsAcre = ib.bags_per_acre.median === null ? '-' : fmtNum(ib.bags_per_acre.median, 1);
   FACTS.insPlotsEx = inn.plots_excluded;
   FACTS.insTreesEx = inn.trees_excluded;
   FACTS.insPeak = peakM.month ? fmtMonth(peakM.month) : '-';
@@ -1388,6 +1392,9 @@ var I18N = {
     insKpiWindow:'First inspection',
     insKpiCoops:'Cooperatives', insLblCoopsSub:'covered by the round',
     insKpiTrees:'Coffee trees counted', insLblOnPlots:'on the plots visited',
+    insKpiTreesDerived:'Coffee trees, derived',
+    insLblDerivedAt:'at', insLblPerAcreWord:'per acre',
+    insKpiBagsPerAcre:'Bags per acre', insLblBagsPerAcreSub:'median across plots',
     insKpiProd:'Trees in production', insLblProdSub:'median share per plot',
     insKpiMedPlot:'Median plot', insLblTotal:'in total',
     insKpiDensity:'Trees per acre', insLblPerAcre:'median across plots',
@@ -1403,13 +1410,14 @@ var I18N = {
     insPanMonthH:'When the inspections happened', insPanMonthN:'Plot visits by month.',
     insSecPlotH:'What the inspectors found',
     insSecPlotP:function(f){
-      return 'Median plot ' + f.insMedPlot + ' acres carrying ' + f.insMedTrees + ' coffee trees.';
+      return 'Median plot ' + f.insMedPlot + ' acres yielding ' + f.insBagsAcre + ' bags per acre.';
     },
     insSecPlotTag:'Plot size, stocking and productive trees',
     insPanSizeH:'Plot size', insPanSizeN:'Plots visited, by measured size in acres.',
     insPanStockH:'Stocking and condition', insPanStockN:'Measured per plot, then summarised.',
     insStatTrees:'Coffee trees on a typical plot', insStatTreesFoot:'median per plot visited',
-    insStatDensity:'Trees per acre', insStatDensityFoot:'median, computed plot by plot',
+    insStatBagsAcre:'Bags per acre', insStatBagsAcreFoot:'median, computed plot by plot',
+    insStatTreesDerivedFoot:'derived from plot size, not counted',
     insStatProd:'Share of trees in production', insStatProdFoot:'median per plot',
     insStatBags:'Bags harvested', insStatBagsFoot:'median per plot visited',
     insSecCoopH:'Cooperatives inspected',
@@ -1431,8 +1439,9 @@ var I18N = {
         'smallholding rather than an estate.';
     },
     insStockInsight:function(f){
-      return 'A typical plot carries ' + f.insMedTrees + ' trees at ' + f.insDensity +
-        ' per acre, with ' + f.insProd + ' of them in production.';
+      return 'A typical plot yields ' + f.insBagsAcre + ' bags to the acre, with ' + f.insProd +
+        ' of its trees in production. Tree counts are derived from plot size, so the count ' +
+        'beside them carries no information the plot size does not already give.';
     },
     insNoteDup:function(f){
       return 'The sheet holds ' + f.insRows + ' submitted rows for ' + f.insVisits +
@@ -1449,10 +1458,19 @@ var I18N = {
         'months later and read as typed-in errors, including ' + f.insFuture +
         ' dated after the data was compiled. Dates are shown as recorded rather than corrected.';
     },
+    insNoteDerived:function(f){
+      return 'Tree counts in this workbook are not counts. Every one of the ' + f.insDerivedRows +
+        ' rows is exactly its plot size multiplied by ' + f.insPerAcre +
+        ' trees per acre, so the figure carries nothing the plot size does not already give and ' +
+        'trees per acre is that constant by construction. The panel that showed it now shows ' +
+        'bags per acre, which is measured on both sides. The share of trees in production is ' +
+        'still meaningful, because the cleaning step kept each plot\u2019s original ratio.';
+    },
     insNoteImputed:function(f){
-      return f.insImputed + ' outlier values across the workbook, such as plots of 32 million ' +
-        'acres, were replaced with the typical value for that field before this build read it. ' +
-        'That correction is the workbook owner\u2019s and is listed on its Imputation Log sheet.';
+      return f.insImputed + ' values across the workbook were changed before this build read it, ' +
+        'including outlier plot sizes replaced with the typical value for that field and blanks ' +
+        'filled with a median or the commonest answer. Those corrections are the workbook ' +
+        'owner\u2019s and are listed on its ' + f.insCleanSheet + ' sheet.';
     },
     insNoteExcluded:function(f){
       return f.insPlotsEx + ' plot sizes outside 0 to 50 acres and ' + f.insTreesEx +
@@ -1624,6 +1642,9 @@ var I18N = {
     insKpiWindow:'Eerste inspectie',
     insKpiCoops:'Coöperaties', insLblCoopsSub:'in deze ronde bezocht',
     insKpiTrees:'Getelde koffiebomen', insLblOnPlots:'op de bezochte percelen',
+    insKpiTreesDerived:'Koffiebomen, afgeleid',
+    insLblDerivedAt:'bij', insLblPerAcreWord:'per acre',
+    insKpiBagsPerAcre:'Zakken per acre', insLblBagsPerAcreSub:'mediaan over de percelen',
     insKpiProd:'Bomen in productie', insLblProdSub:'mediaan aandeel per perceel',
     insKpiMedPlot:'Mediaan perceel', insLblTotal:'in totaal',
     insKpiDensity:'Bomen per acre', insLblPerAcre:'mediaan over de percelen',
@@ -1639,13 +1660,14 @@ var I18N = {
     insPanMonthH:'Wanneer is geïnspecteerd', insPanMonthN:'Perceelbezoeken per maand.',
     insSecPlotH:'Wat de inspecteurs aantroffen',
     insSecPlotP:function(f){
-      return 'Mediaan perceel ' + f.insMedPlot + ' acre met ' + f.insMedTrees + ' koffiebomen.';
+      return 'Mediaan perceel ' + f.insMedPlot + ' acre met ' + f.insBagsAcre + ' zakken per acre.';
     },
     insSecPlotTag:'Perceelgrootte, bezetting en productieve bomen',
     insPanSizeH:'Perceelgrootte', insPanSizeN:'Bezochte percelen, naar gemeten grootte in acres.',
     insPanStockH:'Bezetting en conditie', insPanStockN:'Per perceel gemeten en daarna samengevat.',
     insStatTrees:'Koffiebomen op een doorsnee perceel', insStatTreesFoot:'mediaan per bezocht perceel',
-    insStatDensity:'Bomen per acre', insStatDensityFoot:'mediaan, perceel voor perceel berekend',
+    insStatBagsAcre:'Zakken per acre', insStatBagsAcreFoot:'mediaan, perceel voor perceel berekend',
+    insStatTreesDerivedFoot:'afgeleid van perceelgrootte, niet geteld',
     insStatProd:'Aandeel bomen in productie', insStatProdFoot:'mediaan per perceel',
     insStatBags:'Geoogste zakken', insStatBagsFoot:'mediaan per bezocht perceel',
     insSecCoopH:'Geïnspecteerde coöperaties',
@@ -1668,8 +1690,9 @@ var I18N = {
         'inspecties betreffen een kleinbedrijf en geen landgoed.';
     },
     insStockInsight:function(f){
-      return 'Een doorsnee perceel telt ' + f.insMedTrees + ' bomen bij ' + f.insDensity +
-        ' per acre, waarvan ' + f.insProd + ' in productie is.';
+      return 'Een doorsnee perceel levert ' + f.insBagsAcre + ' zakken per acre, waarvan ' +
+        f.insProd + ' van de bomen in productie is. Boomaantallen zijn afgeleid van de ' +
+        'perceelgrootte en voegen daarom niets toe aan wat de perceelgrootte al zegt.';
     },
     insNoteDup:function(f){
       return 'Het blad bevat ' + f.insRows + ' ingediende regels voor ' + f.insVisits +
@@ -1687,10 +1710,19 @@ var I18N = {
         'enkele liggen maanden later en lezen als typefouten, waaronder ' + f.insFuture +
         ' met een datum na het samenstellen van de data. Data worden getoond zoals vastgelegd.';
     },
+    insNoteDerived:function(f){
+      return 'Boomaantallen in dit bestand zijn geen tellingen. Alle ' + f.insDerivedRows +
+        ' regels zijn exact de perceelgrootte maal ' + f.insPerAcre + ' bomen per acre, dus het ' +
+        'cijfer voegt niets toe aan wat de perceelgrootte al geeft en bomen per acre is die ' +
+        'constante per definitie. Het paneel dat dat toonde, toont nu zakken per acre, aan beide ' +
+        'kanten gemeten. Het aandeel bomen in productie blijft betekenisvol, omdat de ' +
+        'schoonmaakstap de oorspronkelijke verhouding per perceel heeft behouden.';
+    },
     insNoteImputed:function(f){
-      return f.insImputed + ' uitschieters in het bestand, zoals percelen van 32 miljoen acre, ' +
-        'zijn vóór deze build vervangen door de gebruikelijke waarde voor dat veld. Die ' +
-        'correctie is van de eigenaar van het bestand en staat op het blad Imputation Log.';
+      return f.insImputed + ' waarden in het bestand zijn vóór deze build gewijzigd, waaronder ' +
+        'uitschieters in perceelgrootte vervangen door de gebruikelijke waarde en lege velden ' +
+        'gevuld met een mediaan of het meest voorkomende antwoord. Die correcties zijn van de ' +
+        'eigenaar van het bestand en staan op het blad ' + f.insCleanSheet + '.';
     },
     insNoteExcluded:function(f){
       return f.insPlotsEx + ' perceelgroottes buiten 0 tot 50 acre en ' + f.insTreesEx +
@@ -2062,6 +2094,7 @@ function renderNotes(){
 /* ---------- Farmer inspections 2025 ---------- */
 function renderInsTiles(){
   var m = DATA.inspections.meta, b = I(), n = DATA.inspections.notes;
+  var der = n.trees_derived;
   if (state.tab === 'inspections'){
     document.getElementById('asOfWindow').textContent =
       fmtDate(b.date_min) + ' – ' + fmtDate(b.date_max);
@@ -2079,17 +2112,24 @@ function renderInsTiles(){
     {tone:'tone-s5', icon:'group', label:t('insKpiCoops'), value:fmtInt(m.n_cooperatives),
      sub:flat(t('insLblCoopsSub'))},
 
-    {tone:'tone-m1', icon:'bean', label:t('insKpiTrees'), value:fmtInt(b.trees.total),
-     sub:flat(t('insLblOnPlots'))},
+    {tone:'tone-m1', icon:'bean',
+     label: der ? t('insKpiTreesDerived') : t('insKpiTrees'),
+     value:fmtInt(b.trees.total),
+     sub:flat(der ? t('insLblDerivedAt') + ' ' + fmtInt(der.per_acre) + ' ' + t('insLblPerAcreWord')
+                  : t('insLblOnPlots'))},
     {tone:'tone-m2', icon:'leaf', label:t('insKpiProd'),
      value:b.productive_share === null ? '-' : fmtPct(b.productive_share),
      sub:flat(t('insLblProdSub'))},
     {tone:'tone-m3', icon:'plot', label:t('insKpiMedPlot'),
      value:(b.plot_acres.median === null ? '-' : fmtNum(b.plot_acres.median, 2) + ' ' + t('lblAcres')),
      sub:flat(fmtNum(b.plot_acres.total, 0) + ' ' + t('lblAcres') + ' ' + t('insLblTotal'))},
-    {tone:'tone-m4', icon:'hive', label:t('insKpiDensity'),
-     value:b.density.median === null ? '-' : fmtInt(b.density.median),
-     sub:flat(t('insLblPerAcre'))},
+    /* Trees per acre used to live here. The workbook now derives tree counts
+       from plot size at a fixed spacing, so that figure is the spacing rule
+       rather than anything about these farms. Bags against acres is measured
+       on both sides and carries the yield story instead. */
+    {tone:'tone-m4', icon:'hive', label:t('insKpiBagsPerAcre'),
+     value:b.bags_per_acre.median === null ? '-' : fmtNum(b.bags_per_acre.median, 1),
+     sub:flat(t('insLblBagsPerAcreSub'))},
     {tone:'tone-m5', icon:'book', label:t('insKpiBags'), value:fmtInt(b.bags.total),
      sub:flat(t('insLblMedian') + ' ' + fmtNum(b.bags.median, 1))}
   ];
@@ -2158,9 +2198,11 @@ function renderInsCharts(){
   rankBar('insSizeChart', b.size_bands, RANK_TEAL, sumN(b.size_bands));
   document.getElementById('insSizeInsight').innerHTML = t('insSizeInsight');
 
+  var der2 = DATA.inspections.notes.trees_derived;
   var stats = [
-    {lab:t('insStatTrees'), val:fmtInt(b.trees.median || 0), foot:t('insStatTreesFoot')},
-    {lab:t('insStatDensity'), val:fmtInt(b.density.median || 0), foot:t('insStatDensityFoot')},
+    {lab:t('insStatTrees'), val:fmtInt(b.trees.median || 0),
+     foot: der2 ? t('insStatTreesDerivedFoot') : t('insStatTreesFoot')},
+    {lab:t('insStatBagsAcre'), val:fmtNum(b.bags_per_acre.median, 1), foot:t('insStatBagsAcreFoot')},
     {lab:t('insStatProd'), val:b.productive_share === null ? '-' : fmtPct(b.productive_share),
      foot:t('insStatProdFoot')},
     {lab:t('insStatBags'), val:fmtNum(b.bags.median, 1), foot:t('insStatBagsFoot')}
@@ -2188,12 +2230,17 @@ function renderInsCoops(){
 
 function renderInsNotes(){
   var out = [
-    '<div class="callout warn">' + t('insNoteDup') + '</div>',
+    '<div class="callout warn">' + t('insNoteDup') + '</div>'
+  ];
+  if (DATA.inspections.notes.trees_derived){
+    out.push('<div class="callout warn">' + t('insNoteDerived') + '</div>');
+  }
+  out = out.concat([
     '<div class="callout warn">' + t('insNoteDates') + '</div>',
     '<div class="callout">' + t('insNoteImputed') + '</div>',
     '<div class="callout">' + t('insNoteExcluded') + '</div>',
     '<div class="callout">' + t('insNotePrivacy') + '</div>'
-  ];
+  ]);
   document.getElementById('insNotesBox').innerHTML = out.join('');
 }
 
