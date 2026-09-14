@@ -3,9 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="icon" href="favicon.ico" sizes="16x16 32x32" type="image/x-icon">
-<link rel="apple-touch-icon" href="favicon.svg">
 <title>Ndugu Farmers Ltd | Impact Projects</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
@@ -564,6 +561,50 @@
     #districtPills{flex-wrap:wrap; max-width:100%; border-radius:16px;}
   }
 
+  /* Project tabs. The page carries two separate studies of the same farmers,
+     so they sit behind a tab rather than running one after the other down a
+     page already three screens long. */
+  .projtabs{
+    display:flex; gap:4px; margin:0 0 4px; padding-bottom:0;
+    border-bottom:2px solid var(--line-strong); flex-wrap:wrap;
+  }
+  .projtab{
+    border:none; background:transparent; cursor:pointer;
+    font-family:inherit; font-size:14px; font-weight:600; color:var(--ink-faint);
+    padding:10px 16px; border-radius:8px 8px 0 0; position:relative; top:2px;
+    border-bottom:3px solid transparent; transition:color .15s ease, border-color .15s ease;
+  }
+  .projtab:hover{color:var(--ink-soft); background:var(--surface);}
+  .projtab[aria-selected="true"]{
+    color:var(--ink); background:var(--surface);
+    border-bottom-color:var(--roast);
+  }
+  .projtab .cnt{font-weight:400; font-size:12px; color:var(--ink-faint); margin-left:6px;}
+
+  /* Coverage: inspected against registered, per district. */
+  .covrow{
+    display:grid; grid-template-columns:8.5rem 1fr 6.5rem; gap:14px; align-items:center;
+    padding:9px 0; border-bottom:1px solid var(--line);
+  }
+  .covrow:last-child{border-bottom:none;}
+  .covrow .nm{font-size:13px; font-weight:600; color:var(--ink);}
+  .covrow .track{height:9px; border-radius:5px; background:var(--surface-sunk); overflow:hidden;}
+  .covrow .track span{display:block; height:100%; border-radius:5px; background:#11675C;}
+  .covrow .track span.low{background:#AA6128;}
+  .covrow .val{font-size:13px; text-align:right; font-variant-numeric:tabular-nums;}
+  .covrow .val small{display:block; font-size:11px; color:var(--ink-faint);}
+  @media (max-width:640px){ .covrow{grid-template-columns:1fr 5.5rem;} .covrow .track{grid-column:1 / -1;} }
+
+  .statgrid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px;}
+  .statgrid > div{
+    border:1px solid var(--line-strong); border-radius:var(--radius-sm);
+    background:var(--surface-sunk); padding:12px 14px;
+  }
+  .statgrid .lab{font-size:11.5px; color:var(--ink-soft); line-height:1.35;}
+  .statgrid .val{font-size:20px; font-weight:600; color:var(--ink); margin-top:4px;
+    font-variant-numeric:tabular-nums;}
+  .statgrid .foot{font-size:11px; color:var(--ink-faint); margin-top:2px;}
+
   .callout{
     border:1px solid var(--line-strong); border-left:3px solid var(--teal);
     border-radius:var(--radius-sm); background:var(--surface);
@@ -652,12 +693,16 @@
         <button class="pill active" data-lang="en">EN</button>
         <button class="pill" data-lang="nl">NL</button>
       </div>
-      <div class="asof"><span data-i18n="asofLabel">Surveyed</span> <span class="num" id="asOfWindow">-</span></div>
+      <div class="asof"><span id="asOfLabel">Surveyed</span> <span class="num" id="asOfWindow">-</span></div>
     </div>
   </div>
 </header>
 
 <main class="shell">
+
+  <div class="projtabs" id="projTabs" role="tablist"></div>
+
+  <div id="tabSurvey">
 
   <section class="hero">
     <div class="hero-head">
@@ -855,6 +900,121 @@
     </div>
   </section>
 
+  </div><!-- /#tabSurvey -->
+
+  <div id="tabInspections" hidden>
+
+  <section class="hero">
+    <div class="hero-head">
+      <p class="hero-eyebrow" data-i18n="insEyebrow">Impact projects</p>
+      <h1 data-i18n="insH1">Farmer inspections 2025</h1>
+      <p class="lede" data-i18n="insLede">-</p>
+    </div>
+    <div class="tilegrid" id="insTileGrid"></div>
+    <p class="tilegrid-legend">
+      <span><b data-i18n="insRowCovH">Coverage</b> <span data-i18n="insRowCovN">how much of the register was visited</span></span>
+      <span><b data-i18n="insRowFarmH">What was found</b> <span data-i18n="insRowFarmN">plot size, trees and harvest on the plots visited</span></span>
+    </p>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="insSecCovH">How much of the register was inspected</h2>
+        <p data-i18n="insSecCovP">-</p>
+      </div>
+      <div class="section-tag" data-i18n="insSecCovTag">Inspected against registered</div>
+    </div>
+    <div class="grid">
+      <div class="col-6 panel">
+        <p class="panel-title" data-i18n="insPanCovH">Coverage by district</p>
+        <p class="panel-note" data-i18n="insPanCovN">Farmers inspected as a share of those on the register.</p>
+        <div id="covList"></div>
+        <div class="insight-line" id="covInsight">-</div>
+      </div>
+      <div class="col-6 panel">
+        <p class="panel-title" data-i18n="insPanMonthH">When the inspections happened</p>
+        <p class="panel-note" data-i18n="insPanMonthN">Plot visits by month.</p>
+        <div class="chart-box"><canvas id="insMonthChart"></canvas></div>
+        <div class="insight-line" id="insMonthInsight">-</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="insSecPlotH">What the inspectors found</h2>
+        <p data-i18n="insSecPlotP">-</p>
+      </div>
+      <div class="section-tag" data-i18n="insSecPlotTag">Plot size, stocking and productive trees</div>
+    </div>
+    <div class="grid">
+      <div class="col-6 panel">
+        <p class="panel-title" data-i18n="insPanSizeH">Plot size</p>
+        <p class="panel-note" data-i18n="insPanSizeN">Plots visited, by measured size in acres.</p>
+        <div class="chart-box"><canvas id="insSizeChart"></canvas></div>
+        <div class="insight-line" id="insSizeInsight">-</div>
+      </div>
+      <div class="col-6 panel">
+        <p class="panel-title" data-i18n="insPanStockH">Stocking and condition</p>
+        <p class="panel-note" data-i18n="insPanStockN">Measured per plot, then summarised.</p>
+        <div class="statgrid" id="insStats"></div>
+        <div class="insight-line" id="insStockInsight">-</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="insSecCoopH">Cooperatives inspected</h2>
+        <p data-i18n="insSecCoopP">-</p>
+      </div>
+      <div class="section-tag" data-i18n="insSecCoopTag">Ranked by plot visits</div>
+    </div>
+    <div class="grid">
+      <div class="col-12 panel">
+        <div class="leaderboard-scroll">
+          <table class="leaderboard">
+            <colgroup>
+              <col style="width:4rem"><col style="width:34%"><col style="width:16%">
+              <col style="width:16%"><col style="width:17%"><col style="width:17%">
+            </colgroup>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th data-i18n="thCoop">Cooperative</th>
+                <th class="num" data-i18n="thFarmers">Farmers</th>
+                <th class="num" data-i18n="thVisits">Plot visits</th>
+                <th class="num" data-i18n="thTrees">Coffee trees</th>
+                <th class="num" data-i18n="thBags">Bags</th>
+              </tr>
+            </thead>
+            <tbody id="insCoopBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="insSecNotesH">What these figures can and cannot show</h2>
+        <p data-i18n="insSecNotesP">-</p>
+      </div>
+      <div class="section-tag" data-i18n="secNotesTag">Data notes</div>
+    </div>
+    <div class="grid">
+      <div class="col-12">
+        <div id="insNotesBox"></div>
+      </div>
+    </div>
+  </section>
+
+  </div><!-- /#tabInspections -->
+
 </main>
 
 <footer>
@@ -925,8 +1085,19 @@ function boot(){
 }
 
 /* ============================= state ============================= */
-var state = { lang:'en', district:'all' };
-function D(){ return DATA.districts[state.district]; }
+var state = { lang:'en', district:'all', tab:'survey' };
+function D(){ return DATA.districts[state.district] || DATA.districts.all; }
+/* The two studies cover the same farmers but not the same rows, so each keeps
+   its own district list. A district selected on one tab carries to the other
+   when both hold it, and falls back to the combined view when it does not. */
+function I(){
+  var b = DATA.inspections.districts;
+  return b[state.district] || b.all;
+}
+function insDistricts(){ return DATA.inspections.meta.districts.slice(); }
+function tabDistricts(){
+  return state.tab === 'inspections' ? insDistricts() : districtList();
+}
 function districtList(){ return DATA.meta.districts.slice(); }
 
 /* ============================= formatters ============================= */
@@ -1134,12 +1305,161 @@ function computeFacts(){
     soldYes: DATA.notes.mac_sold_yes,
     soldQty: DATA.notes.mac_sold_with_quantity
   };
+
+  /* Inspection facts, computed alongside so both tabs redraw from one pass. */
+  var im = DATA.inspections.meta, ib = I(), inn = DATA.inspections.notes;
+  var blocks = DATA.inspections.districts;
+  var ranked = insDistricts().map(function(k){ return {k:k, b:blocks[k]}; })
+    .filter(function(r){ return r.b; })
+    .sort(function(a, b2){ return (b2.b.coverage || 0) - (a.b.coverage || 0); });
+  var peakM = (ib.by_month || []).reduce(function(a, b2){
+    return (b2.n > a.n) ? b2 : a; }, {month:'', n:0});
+
+  FACTS.insFarmers = fmtInt(ib.n_farmers);
+  FACTS.insRegistered = fmtInt(ib.n_registered);
+  FACTS.insCoverage = ib.coverage === null ? '-' : fmtPct(ib.coverage);
+  FACTS.insVisits = fmtInt(ib.n_visits);
+  FACTS.insRows = fmtInt(inn.rows);
+  FACTS.insFrom = fmtDate(ib.date_min);
+  FACTS.insTo = fmtDate(ib.date_max);
+  FACTS.insCoops = fmtInt(im.n_cooperatives);
+  FACTS.insTrees = fmtInt(ib.trees.total);
+  FACTS.insMedTrees = fmtInt(ib.trees.median || 0);
+  FACTS.insProd = ib.productive_share === null ? '-' : fmtPct(ib.productive_share);
+  FACTS.insMedPlot = ib.plot_acres.median === null ? '-' : fmtNum(ib.plot_acres.median, 2);
+  FACTS.insAcres = fmtNum(ib.plot_acres.total, 0);
+  FACTS.insDensity = fmtInt(ib.density.median || 0);
+  FACTS.insBags = fmtInt(ib.bags.total);
+  FACTS.insMedBags = fmtNum(ib.bags.median, 1);
+  FACTS.insBest = ranked.length ? ranked[0].k : '-';
+  FACTS.insBestPct = ranked.length ? fmtPct(ranked[0].b.coverage || 0) : '-';
+  FACTS.insWorst = ranked.length ? ranked[ranked.length-1].k : '-';
+  FACTS.insWorstPct = ranked.length ? fmtPct(ranked[ranked.length-1].b.coverage || 0) : '-';
+  FACTS.insDupGroups = fmtInt(inn.duplicate_groups);
+  FACTS.insDupRows = fmtInt(inn.rows_in_duplicate_groups);
+  FACTS.insInflTrees = inn.inflation_trees;
+  FACTS.insInflBags = inn.inflation_bags;
+  FACTS.insRawTrees = fmtInt(inn.raw_trees);
+  FACTS.insRawBags = fmtInt(inn.raw_bags);
+  FACTS.ins2026 = fmtInt(inn.dated_2026);
+  FACTS.insFuture = inn.dated_future;
+  FACTS.insImputed = fmtInt(inn.imputed_values);
+  FACTS.insPlotsEx = inn.plots_excluded;
+  FACTS.insTreesEx = inn.trees_excluded;
+  FACTS.insPeak = peakM.month ? fmtMonth(peakM.month) : '-';
+  FACTS.insPeakN = fmtInt(peakM.n);
+  FACTS.insSmallPct = (function(){
+    var bands = ib.size_bands || [], tot = sumN(bands);
+    var small = bands.filter(function(x){ return /0\.5|Under|Onder/.test(x.label); })
+                     .reduce(function(a, x){ return a + x.n; }, 0);
+    return tot ? fmtPct(small / tot) : '-';
+  })();
 }
 function t18(k){ return (I18N[state.lang][k] !== undefined) ? I18N[state.lang][k] : I18N.en[k]; }
 
 /* ============================= i18n ============================= */
 var I18N = {
   en: {
+    asofLabelIns:'Inspected',
+    insAboutP:function(f){
+      return 'A field inspection round covering ' + f.insFarmers + ' of ' + f.insRegistered +
+        ' registered farmers, run ' + f.insFrom + ' to ' + f.insTo + ' and rebuilt on ' +
+        f.generated + '. One record is one plot visited by one inspector on one day, taken as ' +
+        'the median of the rows submitted for it. Land is recorded and shown in acres, not ' +
+        'converted. National ID numbers, farmer and inspector names, villages and plot names ' +
+        'are read by the build and are not published in any form.';
+    },
+    tabSurvey:'Macadamia and beekeeping baseline',
+    tabInspections:'Farmer inspections 2025',
+    lblTo:'to',
+    insEyebrow:'Impact projects',
+    insH1:'Farmer inspections 2025',
+    insLede:function(f){
+      return 'Field inspectors visited ' + f.insFarmers + ' of ' + f.insRegistered +
+        ' registered farmers between ' + f.insFrom + ' and ' + f.insTo + ', recording ' +
+        f.insVisits + ' plot visits across ' + f.insCoops + ' cooperatives. Coverage runs from ' +
+        f.insBestPct + ' in ' + f.insBest + ' down to ' + f.insWorstPct + ' in ' + f.insWorst + '.';
+    },
+    insRowCovH:'Coverage', insRowCovN:'how much of the register was visited',
+    insRowFarmH:'What was found', insRowFarmN:'plot size, trees and harvest on the plots visited',
+    insKpiFarmers:'Farmers inspected', insLblRegistered:'registered',
+    insKpiCoverage:'Share of the register', insLblCoverageSub:'farmers visited at least once',
+    insKpiVisits:'Plot visits', insLblRowsSubmitted:'rows submitted',
+    insKpiWindow:'First inspection',
+    insKpiCoops:'Cooperatives', insLblCoopsSub:'covered by the round',
+    insKpiTrees:'Coffee trees counted', insLblOnPlots:'on the plots visited',
+    insKpiProd:'Trees in production', insLblProdSub:'median share per plot',
+    insKpiMedPlot:'Median plot', insLblTotal:'in total',
+    insKpiDensity:'Trees per acre', insLblPerAcre:'median across plots',
+    insKpiBags:'Bags harvested', insLblMedian:'median per plot',
+    insLblVisits:'plot visits',
+    insSecCovH:'How much of the register was inspected',
+    insSecCovP:function(f){
+      return f.insFarmers + ' of ' + f.insRegistered + ' farmers, ' + f.insCoverage + ' of the register.';
+    },
+    insSecCovTag:'Inspected against registered',
+    insPanCovH:'Coverage by district',
+    insPanCovN:'Farmers inspected as a share of those on the register.',
+    insPanMonthH:'When the inspections happened', insPanMonthN:'Plot visits by month.',
+    insSecPlotH:'What the inspectors found',
+    insSecPlotP:function(f){
+      return 'Median plot ' + f.insMedPlot + ' acres carrying ' + f.insMedTrees + ' coffee trees.';
+    },
+    insSecPlotTag:'Plot size, stocking and productive trees',
+    insPanSizeH:'Plot size', insPanSizeN:'Plots visited, by measured size in acres.',
+    insPanStockH:'Stocking and condition', insPanStockN:'Measured per plot, then summarised.',
+    insStatTrees:'Coffee trees on a typical plot', insStatTreesFoot:'median per plot visited',
+    insStatDensity:'Trees per acre', insStatDensityFoot:'median, computed plot by plot',
+    insStatProd:'Share of trees in production', insStatProdFoot:'median per plot',
+    insStatBags:'Bags harvested', insStatBagsFoot:'median per plot visited',
+    insSecCoopH:'Cooperatives inspected',
+    insSecCoopP:function(f){ return 'Top 10 of ' + f.insCoops + ' cooperatives by plot visits.'; },
+    insSecCoopTag:'Ranked by plot visits',
+    thFarmers:'Farmers', thVisits:'Plot visits', thTrees:'Coffee trees', thBags:'Bags',
+    insSecNotesH:'What these figures can and cannot show',
+    insSecNotesP:'Read these before quoting a figure from this tab.',
+    insCovInsight:function(f){
+      return f.insBest + ' is the best covered at ' + f.insBestPct + ' and ' + f.insWorst +
+        ' the least at ' + f.insWorstPct + '. Bars in amber sit below the programme-wide rate.';
+    },
+    insMonthInsight:function(f){
+      return 'The round peaked in ' + f.insPeak + ' with ' + f.insPeakN + ' visits. Bars from ' +
+        'January 2026 onward are the tail of the same round, shown in the lighter tone.';
+    },
+    insSizeInsight:function(f){
+      return f.insSmallPct + ' of plots visited are under an acre, so most inspections cover a ' +
+        'smallholding rather than an estate.';
+    },
+    insStockInsight:function(f){
+      return 'A typical plot carries ' + f.insMedTrees + ' trees at ' + f.insDensity +
+        ' per acre, with ' + f.insProd + ' of them in production.';
+    },
+    insNoteDup:function(f){
+      return 'The sheet holds ' + f.insRows + ' submitted rows for ' + f.insVisits +
+        ' plot visits: ' + f.insDupRows + ' rows sit in ' + f.insDupGroups + ' groups where the ' +
+        'same plot was submitted more than once on the same day by the same inspector. The ' +
+        'repeats are not identical, so they cannot be dropped as exact duplicates. Every figure ' +
+        'here takes the median of each group as one visit. Summing the raw rows instead would ' +
+        'overstate coffee trees by ' + f.insInflTrees + ' times (' + f.insRawTrees +
+        ' rather than ' + f.insTrees + ') and bags by ' + f.insInflBags + ' times.';
+    },
+    insNoteDates:function(f){
+      return 'The round is named for 2025 and ran from ' + f.insFrom + ', but ' + f.ins2026 +
+        ' visits carry a 2026 date. Most are the January tail of the same round; a handful sit ' +
+        'months later and read as typed-in errors, including ' + f.insFuture +
+        ' dated after the data was compiled. Dates are shown as recorded rather than corrected.';
+    },
+    insNoteImputed:function(f){
+      return f.insImputed + ' outlier values across the workbook, such as plots of 32 million ' +
+        'acres, were replaced with the typical value for that field before this build read it. ' +
+        'That correction is the workbook owner\u2019s and is listed on its Imputation Log sheet.';
+    },
+    insNoteExcluded:function(f){
+      return f.insPlotsEx + ' plot sizes outside 0 to 50 acres and ' + f.insTreesEx +
+        ' tree counts above 40,000 are left out of the averages as recording errors. They are ' +
+        'still counted as visits.';
+    },
+    insNotePrivacy:'This sheet carries a national ID number for 1,185 farmers, alongside names, villages, plot names and inspector names. All of it is read by the build and none of it is published. Cooperatives are named because they are organisations; a cooperative with fewer than ten inspected farmers is left out of the table.',
     navTitle:'Navigation', navDomestic:'Domestic', navExport:'Export', navEudr:'EUDR',
     navImpact:'Impact', navProduction:'Production', navFinance:'Finance',
     navAgritracker:'Agritracker', navCoffee:'Coffee', navAbout:'About us',
@@ -1275,6 +1595,109 @@ var I18N = {
     notePrivacy:'Respondent names, phone numbers and register codes are read by the build and never written to the published file, and free-text answers are not published in any column. A sentence a farmer wrote about their own farm can identify them even with the name removed.'
   },
   nl: {
+    asofLabelIns:'Geïnspecteerd',
+    insAboutP:function(f){
+      return 'Een inspectieronde in het veld bij ' + f.insFarmers + ' van ' + f.insRegistered +
+        ' geregistreerde boeren, uitgevoerd van ' + f.insFrom + ' tot ' + f.insTo +
+        ' en opnieuw opgebouwd op ' + f.generated + '. Eén record is één perceel, bezocht door ' +
+        'één inspecteur op één dag, genomen als de mediaan van de daarvoor ingediende regels. ' +
+        'Land is vastgelegd en weergegeven in acres, niet omgerekend. Nationale ' +
+        'identiteitsnummers, namen van boeren en inspecteurs, dorpen en perceelnamen worden door ' +
+        'de build gelezen en in geen enkele vorm gepubliceerd.';
+    },
+    tabSurvey:'Nulmeting macadamia en bijenteelt',
+    tabInspections:'Boerderij-inspecties 2025',
+    lblTo:'tot',
+    insEyebrow:'Impactprojecten',
+    insH1:'Boerderij-inspecties 2025',
+    insLede:function(f){
+      return 'Veldinspecteurs bezochten ' + f.insFarmers + ' van ' + f.insRegistered +
+        ' geregistreerde boeren tussen ' + f.insFrom + ' en ' + f.insTo + ', met ' +
+        f.insVisits + ' perceelbezoeken bij ' + f.insCoops + ' coöperaties. De dekking loopt van ' +
+        f.insBestPct + ' in ' + f.insBest + ' tot ' + f.insWorstPct + ' in ' + f.insWorst + '.';
+    },
+    insRowCovH:'Dekking', insRowCovN:'welk deel van het register is bezocht',
+    insRowFarmH:'Wat is aangetroffen', insRowFarmN:'perceelgrootte, bomen en oogst op de bezochte percelen',
+    insKpiFarmers:'Geïnspecteerde boeren', insLblRegistered:'geregistreerd',
+    insKpiCoverage:'Deel van het register', insLblCoverageSub:'boeren minstens één keer bezocht',
+    insKpiVisits:'Perceelbezoeken', insLblRowsSubmitted:'ingediende regels',
+    insKpiWindow:'Eerste inspectie',
+    insKpiCoops:'Coöperaties', insLblCoopsSub:'in deze ronde bezocht',
+    insKpiTrees:'Getelde koffiebomen', insLblOnPlots:'op de bezochte percelen',
+    insKpiProd:'Bomen in productie', insLblProdSub:'mediaan aandeel per perceel',
+    insKpiMedPlot:'Mediaan perceel', insLblTotal:'in totaal',
+    insKpiDensity:'Bomen per acre', insLblPerAcre:'mediaan over de percelen',
+    insKpiBags:'Geoogste zakken', insLblMedian:'mediaan per perceel',
+    insLblVisits:'perceelbezoeken',
+    insSecCovH:'Welk deel van het register is geïnspecteerd',
+    insSecCovP:function(f){
+      return f.insFarmers + ' van ' + f.insRegistered + ' boeren, ' + f.insCoverage + ' van het register.';
+    },
+    insSecCovTag:'Geïnspecteerd tegenover geregistreerd',
+    insPanCovH:'Dekking per district',
+    insPanCovN:'Geïnspecteerde boeren als aandeel van het register.',
+    insPanMonthH:'Wanneer is geïnspecteerd', insPanMonthN:'Perceelbezoeken per maand.',
+    insSecPlotH:'Wat de inspecteurs aantroffen',
+    insSecPlotP:function(f){
+      return 'Mediaan perceel ' + f.insMedPlot + ' acre met ' + f.insMedTrees + ' koffiebomen.';
+    },
+    insSecPlotTag:'Perceelgrootte, bezetting en productieve bomen',
+    insPanSizeH:'Perceelgrootte', insPanSizeN:'Bezochte percelen, naar gemeten grootte in acres.',
+    insPanStockH:'Bezetting en conditie', insPanStockN:'Per perceel gemeten en daarna samengevat.',
+    insStatTrees:'Koffiebomen op een doorsnee perceel', insStatTreesFoot:'mediaan per bezocht perceel',
+    insStatDensity:'Bomen per acre', insStatDensityFoot:'mediaan, perceel voor perceel berekend',
+    insStatProd:'Aandeel bomen in productie', insStatProdFoot:'mediaan per perceel',
+    insStatBags:'Geoogste zakken', insStatBagsFoot:'mediaan per bezocht perceel',
+    insSecCoopH:'Geïnspecteerde coöperaties',
+    insSecCoopP:function(f){ return 'Top 10 van ' + f.insCoops + ' coöperaties naar perceelbezoeken.'; },
+    insSecCoopTag:'Naar aantal perceelbezoeken',
+    thFarmers:'Boeren', thVisits:'Perceelbezoeken', thTrees:'Koffiebomen', thBags:'Zakken',
+    insSecNotesH:'Wat deze cijfers wel en niet kunnen laten zien',
+    insSecNotesP:'Lees deze punten voordat u een cijfer van dit tabblad citeert.',
+    insCovInsight:function(f){
+      return f.insBest + ' is het best gedekt met ' + f.insBestPct + ' en ' + f.insWorst +
+        ' het minst met ' + f.insWorstPct + '. Amberkleurige balken liggen onder het gemiddelde ' +
+        'van het hele programma.';
+    },
+    insMonthInsight:function(f){
+      return 'De ronde piekte in ' + f.insPeak + ' met ' + f.insPeakN + ' bezoeken. Balken vanaf ' +
+        'januari 2026 zijn de staart van dezelfde ronde, in de lichtere tint.';
+    },
+    insSizeInsight:function(f){
+      return f.insSmallPct + ' van de bezochte percelen is kleiner dan een acre, dus de meeste ' +
+        'inspecties betreffen een kleinbedrijf en geen landgoed.';
+    },
+    insStockInsight:function(f){
+      return 'Een doorsnee perceel telt ' + f.insMedTrees + ' bomen bij ' + f.insDensity +
+        ' per acre, waarvan ' + f.insProd + ' in productie is.';
+    },
+    insNoteDup:function(f){
+      return 'Het blad bevat ' + f.insRows + ' ingediende regels voor ' + f.insVisits +
+        ' perceelbezoeken: ' + f.insDupRows + ' regels zitten in ' + f.insDupGroups +
+        ' groepen waarin hetzelfde perceel op dezelfde dag door dezelfde inspecteur meer dan ' +
+        'eens is ingediend. De herhalingen zijn niet identiek en kunnen dus niet als exacte ' +
+        'duplicaten worden geschrapt. Elk cijfer hier neemt de mediaan van zo\u2019n groep als ' +
+        'één bezoek. Het optellen van de ruwe regels zou de koffiebomen ' + f.insInflTrees +
+        ' keer overschatten (' + f.insRawTrees + ' in plaats van ' + f.insTrees + ') en de ' +
+        'zakken ' + f.insInflBags + ' keer.';
+    },
+    insNoteDates:function(f){
+      return 'De ronde heet 2025 en begon op ' + f.insFrom + ', maar ' + f.ins2026 +
+        ' bezoeken dragen een datum in 2026. De meeste zijn de januari-staart van dezelfde ronde; ' +
+        'enkele liggen maanden later en lezen als typefouten, waaronder ' + f.insFuture +
+        ' met een datum na het samenstellen van de data. Data worden getoond zoals vastgelegd.';
+    },
+    insNoteImputed:function(f){
+      return f.insImputed + ' uitschieters in het bestand, zoals percelen van 32 miljoen acre, ' +
+        'zijn vóór deze build vervangen door de gebruikelijke waarde voor dat veld. Die ' +
+        'correctie is van de eigenaar van het bestand en staat op het blad Imputation Log.';
+    },
+    insNoteExcluded:function(f){
+      return f.insPlotsEx + ' perceelgroottes buiten 0 tot 50 acre en ' + f.insTreesEx +
+        ' boomaantallen boven 40.000 blijven als invoerfouten buiten de gemiddelden. Zij tellen ' +
+        'wel mee als bezoek.';
+    },
+    insNotePrivacy:'Dit blad bevat een nationaal identiteitsnummer van 1.185 boeren, naast namen, dorpen, perceelnamen en namen van inspecteurs. Dat alles wordt door de build gelezen en niets ervan wordt gepubliceerd. Coöperaties worden genoemd omdat het organisaties zijn; een coöperatie met minder dan tien geïnspecteerde boeren blijft buiten de tabel.',
     navTitle:'Navigatie', navDomestic:'Binnenland', navExport:'Export', navEudr:'EUDR',
     navImpact:'Impact', navProduction:'Productie', navFinance:'Financiën',
     navAgritracker:'Agritracker', navCoffee:'Koffie', navAbout:'Over ons',
@@ -1428,7 +1851,7 @@ function applyStaticI18n(){
 /* ============================= renderers ============================= */
 function renderPills(){
   var host = document.getElementById('districtPills');
-  var opts = ['all'].concat(districtList());
+  var opts = ['all'].concat(tabDistricts());
   host.innerHTML = opts.map(function(k){
     var label = (k === 'all') ? t18('districtAll') : k;
     return '<button class="pill' + (k===state.district ? ' active' : '') +
@@ -1440,8 +1863,10 @@ function flat(text){ return text ? '<div class="tile-foot kpi-delta flat">' + te
 
 function renderTiles(){
   var d = D(), c = d.cohort, mac = d.macadamia, bee = d.beekeeping;
-  document.getElementById('asOfWindow').textContent =
-    fmtDate(c.date_min) + ' – ' + fmtDate(c.date_max);
+  if (state.tab === 'survey'){
+    document.getElementById('asOfWindow').textContent =
+      fmtDate(c.date_min) + ' – ' + fmtDate(c.date_max);
+  }
 
   var cells = [
     {tone:'tone-s1', icon:'person', label:t('kpiSurveyed'), value:fmtInt(d.n),
@@ -1634,11 +2059,167 @@ function renderNotes(){
   document.getElementById('notesBox').innerHTML = out.join('');
 }
 
+/* ---------- Farmer inspections 2025 ---------- */
+function renderInsTiles(){
+  var m = DATA.inspections.meta, b = I(), n = DATA.inspections.notes;
+  if (state.tab === 'inspections'){
+    document.getElementById('asOfWindow').textContent =
+      fmtDate(b.date_min) + ' – ' + fmtDate(b.date_max);
+  }
+  var cells = [
+    {tone:'tone-s1', icon:'person', label:t('insKpiFarmers'), value:fmtInt(b.n_farmers),
+     sub:flat(t('lblOf') + ' ' + fmtInt(b.n_registered) + ' ' + t('insLblRegistered'))},
+    {tone:'tone-s2', icon:'seal', label:t('insKpiCoverage'),
+     value:b.coverage === null ? '-' : fmtPct(b.coverage), sub:flat(t('insLblCoverageSub'))},
+    {tone:'tone-s3', icon:'plot', label:t('insKpiVisits'), value:fmtInt(b.n_visits),
+     sub:flat(fmtInt(n.rows) + ' ' + t('insLblRowsSubmitted'))},
+    {tone:'tone-s4', icon:'window', label:t('insKpiWindow'),
+     value:'<span style="font-size:16px">' + fmtDate(b.date_min) + '</span>',
+     sub:flat(t('lblTo') + ' ' + fmtDate(b.date_max))},
+    {tone:'tone-s5', icon:'group', label:t('insKpiCoops'), value:fmtInt(m.n_cooperatives),
+     sub:flat(t('insLblCoopsSub'))},
+
+    {tone:'tone-m1', icon:'bean', label:t('insKpiTrees'), value:fmtInt(b.trees.total),
+     sub:flat(t('insLblOnPlots'))},
+    {tone:'tone-m2', icon:'leaf', label:t('insKpiProd'),
+     value:b.productive_share === null ? '-' : fmtPct(b.productive_share),
+     sub:flat(t('insLblProdSub'))},
+    {tone:'tone-m3', icon:'plot', label:t('insKpiMedPlot'),
+     value:(b.plot_acres.median === null ? '-' : fmtNum(b.plot_acres.median, 2) + ' ' + t('lblAcres')),
+     sub:flat(fmtNum(b.plot_acres.total, 0) + ' ' + t('lblAcres') + ' ' + t('insLblTotal'))},
+    {tone:'tone-m4', icon:'hive', label:t('insKpiDensity'),
+     value:b.density.median === null ? '-' : fmtInt(b.density.median),
+     sub:flat(t('insLblPerAcre'))},
+    {tone:'tone-m5', icon:'book', label:t('insKpiBags'), value:fmtInt(b.bags.total),
+     sub:flat(t('insLblMedian') + ' ' + fmtNum(b.bags.median, 1))}
+  ];
+  document.getElementById('insTileGrid').innerHTML = cells.map(function(x){
+    return '<div class="tile ' + x.tone + '">' + icon(x.icon) +
+           '<p class="tile-label">' + x.label + '</p>' +
+           '<div class="tile-value num">' + x.value + '</div>' + x.sub + '</div>';
+  }).join('');
+}
+
+/* Coverage is the point of this panel, so every district is listed whatever
+   is selected above: a programme officer needs to see which district is
+   behind, not only the one they are filtered to. */
+function renderCoverage(){
+  var blocks = DATA.inspections.districts;
+  var names = insDistricts();
+  var rows = names.map(function(k){ return {name:k, b:blocks[k]}; })
+    .filter(function(r){ return r.b; })
+    .sort(function(a, b){ return (b.b.coverage || 0) - (a.b.coverage || 0); });
+  var all = blocks.all;
+  rows.push({name:t('districtAllLong'), b:all, total:true});
+
+  document.getElementById('covList').innerHTML = rows.map(function(r){
+    var pct = r.b.coverage || 0;
+    /* Below the programme-wide rate is the thing worth spotting, so those
+       bars take the warning tone rather than every bar being one colour. */
+    var low = (!r.total && pct < (all.coverage || 0)) ? ' low' : '';
+    return '<div class="covrow">' +
+      '<div class="nm">' + esc(r.name) + '</div>' +
+      '<div class="track"><span class="' + low.trim() + '" style="width:' +
+        (Math.min(pct, 1) * 100).toFixed(1) + '%"></span></div>' +
+      '<div class="val">' + fmtPct(pct) +
+        '<small>' + fmtInt(r.b.n_farmers) + ' / ' + fmtInt(r.b.n_registered) + '</small></div>' +
+    '</div>';
+  }).join('');
+  document.getElementById('covInsight').innerHTML = t('insCovInsight');
+}
+
+function renderInsCharts(){
+  var b = I();
+  var months = b.by_month;
+  mountChart('insMonthChart', {
+    type:'bar',
+    data:{
+      labels: months.map(function(r){ return fmtMonth(r.month); }),
+      datasets:[{
+        data: months.map(function(r){ return r.n; }),
+        backgroundColor: months.map(function(r){
+          return r.month < '2026-01' ? '#663A18' : '#AA6128';
+        }),
+        borderRadius:3, borderSkipped:false, barPercentage:0.72
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:function(x){ return ' ' + fmtInt(x.parsed.y) + ' ' + t('insLblVisits'); }}}},
+      scales:{
+        x:{grid:{display:false}, border:{display:false}, ticks:{maxRotation:0, autoSkip:true}},
+        y:{grid:{color:COLORS.line, borderDash:GRID_DASH}, border:{display:false}, ticks:{precision:0}}
+      }
+    }
+  });
+  document.getElementById('insMonthInsight').innerHTML = t('insMonthInsight');
+
+  rankBar('insSizeChart', b.size_bands, RANK_TEAL, sumN(b.size_bands));
+  document.getElementById('insSizeInsight').innerHTML = t('insSizeInsight');
+
+  var stats = [
+    {lab:t('insStatTrees'), val:fmtInt(b.trees.median || 0), foot:t('insStatTreesFoot')},
+    {lab:t('insStatDensity'), val:fmtInt(b.density.median || 0), foot:t('insStatDensityFoot')},
+    {lab:t('insStatProd'), val:b.productive_share === null ? '-' : fmtPct(b.productive_share),
+     foot:t('insStatProdFoot')},
+    {lab:t('insStatBags'), val:fmtNum(b.bags.median, 1), foot:t('insStatBagsFoot')}
+  ];
+  document.getElementById('insStats').innerHTML = stats.map(function(s2){
+    return '<div><div class="lab">' + s2.lab + '</div><div class="val">' + s2.val +
+           '</div><div class="foot">' + s2.foot + '</div></div>';
+  }).join('');
+  document.getElementById('insStockInsight').innerHTML = t('insStockInsight');
+}
+
+function renderInsCoops(){
+  var rows = I().by_cooperative;
+  document.getElementById('insCoopBody').innerHTML = rows.map(function(r, i){
+    return '<tr>' +
+      '<td class="rank">' + (i+1) + '</td>' +
+      '<td class="name">' + esc(r.label) + '</td>' +
+      '<td class="num">' + fmtInt(r.farmers) + '</td>' +
+      '<td class="num">' + fmtInt(r.visits) + '</td>' +
+      '<td class="num">' + fmtInt(r.trees) + '</td>' +
+      '<td class="num">' + fmtInt(r.bags) + '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+function renderInsNotes(){
+  var out = [
+    '<div class="callout warn">' + t('insNoteDup') + '</div>',
+    '<div class="callout warn">' + t('insNoteDates') + '</div>',
+    '<div class="callout">' + t('insNoteImputed') + '</div>',
+    '<div class="callout">' + t('insNoteExcluded') + '</div>',
+    '<div class="callout">' + t('insNotePrivacy') + '</div>'
+  ];
+  document.getElementById('insNotesBox').innerHTML = out.join('');
+}
+
+function renderTabs(){
+  var tabs = [
+    {key:'survey', label:t('tabSurvey'), n:DATA.meta.n_respondents},
+    {key:'inspections', label:t('tabInspections'), n:DATA.inspections.meta.n_farmers}
+  ];
+  document.getElementById('projTabs').innerHTML = tabs.map(function(x){
+    return '<button class="projtab" role="tab" data-tab="' + x.key + '" aria-selected="' +
+      (state.tab === x.key) + '">' + esc(x.label) +
+      '<span class="cnt">' + fmtInt(x.n) + '</span></button>';
+  }).join('');
+  document.getElementById('tabSurvey').hidden = (state.tab !== 'survey');
+  document.getElementById('tabInspections').hidden = (state.tab !== 'inspections');
+}
+
 function renderAll(){
   computeFacts();
   applyStaticI18n();
+  renderTabs();
   renderPills();
-  document.getElementById('footerAboutP').textContent = t('aboutP');
+  document.getElementById('asOfLabel').textContent =
+    (state.tab === 'inspections') ? t('asofLabelIns') : t('asofLabel');
+  document.getElementById('footerAboutP').textContent =
+    (state.tab === 'inspections') ? t('insAboutP') : t('aboutP');
   renderTiles();
   renderCohort();
   renderFarms();
@@ -1647,10 +2228,26 @@ function renderAll(){
   renderTenure();
   renderCoops();
   renderNotes();
+  renderInsTiles();
+  renderCoverage();
+  renderInsCharts();
+  renderInsCoops();
+  renderInsNotes();
 }
 
 /* ============================= controls ============================= */
 function bindControls(){
+  document.getElementById('projTabs').addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    state.tab = b.dataset.tab;
+    /* A district the other tab does not carry would leave every panel on the
+       combined view with a pill claiming otherwise, so it resets. */
+    if (state.district !== 'all' && tabDistricts().indexOf(state.district) === -1){
+      state.district = 'all';
+    }
+    renderAll();
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
   document.getElementById('districtPills').addEventListener('click', function(e){
     var b = e.target.closest('button'); if (!b) return;
     state.district = b.dataset.district;
