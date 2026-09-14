@@ -1014,21 +1014,6 @@
     </div>
   </section>
 
-  <section>
-    <div class="section-head">
-      <div>
-        <h2 data-i18n="insSecNotesH">What these figures can and cannot show</h2>
-        <p data-i18n="insSecNotesP">-</p>
-      </div>
-      <div class="section-tag" data-i18n="secNotesTag">Data notes</div>
-    </div>
-    <div class="grid">
-      <div class="col-12">
-        <div id="insNotesBox"></div>
-      </div>
-    </div>
-  </section>
-
   </div><!-- /#tabInspections -->
 
 </main>
@@ -1454,8 +1439,6 @@ var I18N = {
     insSecCoopP:function(f){ return 'Top 10 of ' + f.insCoops + ' cooperatives by farmers recorded.'; },
     insSecCoopTag:'Ranked by farmers recorded',
     thFarmers:'Farmers', thVisits:'Plot visits', thTrees:'Coffee trees', thBags:'Bags',
-    insSecNotesH:'What these figures can and cannot show',
-    insSecNotesP:'Read these before quoting a figure from this tab.',
     insCertInsight:function(f){
       return 'Rainforest Alliance is the backbone of the programme at ' + f.insRaPct +
         '; 4C sits at ' + f.ins4cPct + ' and C at ' + f.insCPct + ', and the three overlap, ' +
@@ -1480,44 +1463,6 @@ var I18N = {
         ' of its trees in production. Tree counts are derived from plot size, so the count ' +
         'beside them carries no information the plot size does not already give.';
     },
-    insNoteFilled:function(f){
-      return 'Rainforest Alliance certification is published at what the register records, not ' +
-        'at what the file shows. The cleaning pass filled blank RA cells with the commonest ' +
-        'answer, which was YES, for ' + f.insRaFilled + ' farmers. Those cannot be identified ' +
-        'row by row, only counted from the cleaning log, so the figure here subtracts them: a ' +
-        'certification claim a buyer or an auditor checks has to rest on a record rather than ' +
-        'on a default. The 4C and C columns were filled with NO, which cannot inflate a YES, ' +
-        'so those counts stand as they are. The correction is counted for the workbook as a ' +
-        'whole and cannot be split by district, which is why certification does not move with ' +
-        'the district filter.';
-    },
-    insNoteRecords:function(f){
-      return 'Farm measurements come from the ' + f.insRecSheet + ' sheet, which records ' +
-        f.insPlots + ' plots across ' + f.insRecFarmers + ' farms. Where the same plot was ' +
-        'submitted more than once the repeats are not identical, so they are not dropped as ' +
-        'exact duplicates; each plot is taken as the median of its rows. Land, trees and bags ' +
-        'on this tab therefore count each plot once.';
-    },
-    insNoteDerived:function(f){
-      return 'Tree counts in this workbook are not counts. Every one of the ' + f.insDerivedRows +
-        ' rows is exactly its plot size multiplied by ' + f.insPerAcre +
-        ' trees per acre, so the figure carries nothing the plot size does not already give and ' +
-        'trees per acre is that constant by construction. The panel that showed it now shows ' +
-        'bags per acre, which is measured on both sides. The share of trees in production is ' +
-        'still meaningful, because the cleaning step kept each plot\u2019s original ratio.';
-    },
-    insNoteImputed:function(f){
-      return f.insImputed + ' values across the workbook were changed before this build read it, ' +
-        'including outlier plot sizes replaced with the typical value for that field and blanks ' +
-        'filled with a median or the commonest answer. Those corrections are the workbook ' +
-        'owner\u2019s and are listed on its ' + f.insCleanSheet + ' sheet.';
-    },
-    insNoteExcluded:function(f){
-      return f.insPlotsEx + ' plot sizes outside 0 to 50 acres and ' + f.insTreesEx +
-        ' tree counts above 40,000 are left out of the averages as recording errors. Those ' +
-        'plots are still counted.';
-    },
-    insNotePrivacy:'The source workbook carries national ID numbers, farmer names, villages and plot names. All of it is read by the build and none of it is published. Cooperatives are named because they are organisations; a cooperative with fewer than ten farmers recorded is left out of the table.',
     navTitle:'Navigation', navDomestic:'Domestic', navExport:'Export', navEudr:'EUDR',
     navImpact:'Impact', navProduction:'Production', navFinance:'Finance',
     navAgritracker:'Agritracker', navCoffee:'Coffee', navAbout:'About us',
@@ -1728,8 +1673,6 @@ var I18N = {
     insSecCoopP:function(f){ return 'Top 10 van ' + f.insCoops + ' coöperaties naar geregistreerde boeren.'; },
     insSecCoopTag:'Naar geregistreerde boeren',
     thFarmers:'Boeren', thVisits:'Perceelbezoeken', thTrees:'Koffiebomen', thBags:'Zakken',
-    insSecNotesH:'Wat deze cijfers wel en niet kunnen laten zien',
-    insSecNotesP:'Lees deze punten voordat u een cijfer van dit tabblad citeert.',
     insCertInsight:function(f){
       return 'Rainforest Alliance is de ruggengraat van het programma met ' + f.insRaPct +
         '; 4C staat op ' + f.ins4cPct + ' en C op ' + f.insCPct + '. De drie overlappen elkaar ' +
@@ -1755,44 +1698,6 @@ var I18N = {
         f.insProd + ' van de bomen in productie is. Boomaantallen zijn afgeleid van de ' +
         'perceelgrootte en voegen daarom niets toe aan wat de perceelgrootte al zegt.';
     },
-    insNoteFilled:function(f){
-      return 'Rainforest Alliance-certificering wordt gepubliceerd zoals het register het ' +
-        'vastlegt, niet zoals het bestand het toont. De schoonmaakstap vulde lege RA-velden met ' +
-        'het meest voorkomende antwoord, JA, voor ' + f.insRaFilled + ' boeren. Die zijn niet ' +
-        'regel voor regel aan te wijzen, alleen te tellen uit het schoonmaaklogboek, en worden ' +
-        'hier dus afgetrokken: een certificeringsclaim die een koper of auditor natrekt, moet ' +
-        'op een registratie rusten en niet op een standaardwaarde. De 4C- en C-kolommen zijn ' +
-        'met NEE gevuld, wat een JA niet kan opblazen, dus die tellingen blijven staan. De ' +
-        'correctie geldt voor het hele bestand en is niet per district te splitsen; daarom ' +
-        'beweegt certificering niet mee met het districtfilter.';
-    },
-    insNoteRecords:function(f){
-      return 'De bedrijfsmetingen komen van het blad ' + f.insRecSheet + ', met ' + f.insPlots +
-        ' percelen over ' + f.insRecFarmers + ' bedrijven. Waar hetzelfde perceel meer dan eens ' +
-        'is ingediend, zijn de herhalingen niet identiek en worden ze niet als exacte duplicaten ' +
-        'geschrapt; elk perceel wordt als de mediaan van zijn regels genomen. Land, bomen en ' +
-        'zakken op dit tabblad tellen elk perceel dus één keer.';
-    },
-    insNoteDerived:function(f){
-      return 'Boomaantallen in dit bestand zijn geen tellingen. Alle ' + f.insDerivedRows +
-        ' regels zijn exact de perceelgrootte maal ' + f.insPerAcre + ' bomen per acre, dus het ' +
-        'cijfer voegt niets toe aan wat de perceelgrootte al geeft en bomen per acre is die ' +
-        'constante per definitie. Het paneel dat dat toonde, toont nu zakken per acre, aan beide ' +
-        'kanten gemeten. Het aandeel bomen in productie blijft betekenisvol, omdat de ' +
-        'schoonmaakstap de oorspronkelijke verhouding per perceel heeft behouden.';
-    },
-    insNoteImputed:function(f){
-      return f.insImputed + ' waarden in het bestand zijn vóór deze build gewijzigd, waaronder ' +
-        'uitschieters in perceelgrootte vervangen door de gebruikelijke waarde en lege velden ' +
-        'gevuld met een mediaan of het meest voorkomende antwoord. Die correcties zijn van de ' +
-        'eigenaar van het bestand en staan op het blad ' + f.insCleanSheet + '.';
-    },
-    insNoteExcluded:function(f){
-      return f.insPlotsEx + ' perceelgroottes buiten 0 tot 50 acre en ' + f.insTreesEx +
-        ' boomaantallen boven 40.000 blijven als invoerfouten buiten de gemiddelden. Die ' +
-        'percelen tellen wel mee.';
-    },
-    insNotePrivacy:'Het bronbestand bevat nationale identiteitsnummers, namen van boeren, dorpen en perceelnamen. Dat alles wordt door de build gelezen en niets ervan wordt gepubliceerd. Coöperaties worden genoemd omdat het organisaties zijn; een coöperatie met minder dan tien vastgelegde boeren blijft buiten de tabel.',
     navTitle:'Navigatie', navDomestic:'Binnenland', navExport:'Export', navEudr:'EUDR',
     navImpact:'Impact', navProduction:'Productie', navFinance:'Financiën',
     navAgritracker:'Agritracker', navCoffee:'Koffie', navAbout:'Over ons',
@@ -2269,21 +2174,6 @@ function renderInsCoops(){
   }).join('');
 }
 
-function renderInsNotes(){
-  var C = insCert(), out = [];
-  if (C.RA && C.RA.filled_as_yes) out.push('<div class="callout warn">' + t('insNoteFilled') + '</div>');
-  if (DATA.inspections.notes.trees_derived){
-    out.push('<div class="callout warn">' + t('insNoteDerived') + '</div>');
-  }
-  out = out.concat([
-    '<div class="callout">' + t('insNoteRecords') + '</div>',
-    '<div class="callout">' + t('insNoteImputed') + '</div>',
-    '<div class="callout">' + t('insNoteExcluded') + '</div>',
-    '<div class="callout">' + t('insNotePrivacy') + '</div>'
-  ]);
-  document.getElementById('insNotesBox').innerHTML = out.join('');
-}
-
 function renderTabs(){
   var tabs = [
     {key:'survey', label:t('tabSurvey'), n:DATA.meta.n_respondents},
@@ -2319,7 +2209,6 @@ function renderAll(){
   renderCertification();
   renderInsCharts();
   renderInsCoops();
-  renderInsNotes();
 }
 
 /* ============================= controls ============================= */
