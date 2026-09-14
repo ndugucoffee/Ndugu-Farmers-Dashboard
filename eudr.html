@@ -3,9 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="icon" href="favicon.ico" sizes="16x16 32x32" type="image/x-icon">
-<link rel="apple-touch-icon" href="favicon.svg">
 <title>Ndugu Farmers Ltd | EUDR Readiness</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
@@ -1168,12 +1165,18 @@ var COLORS = {
   teal:'#2C7A83', olive:'#8C9A3B', clay:'#9C5230',
   ink:'#2A1A10', inkSoft:'#63483A', inkFaint:'#8A7059', line:'#EADCC7'
 };
-/* Compliant vs at-risk. Chosen with the palette validator rather than by eye:
-   green against red measures a colour-blind separation of 2.2 (deuteranopia),
-   which is invisible to a red-green colour-blind reader. Green against gold
-   measures 12.0 and passes. Gold is below 3:1 on this background, so every gold
-   mark is labelled or sits beside a table. */
-var C_OK = COLORS.leaf;
+/* One green across every dashboard: the dark teal of the KPI tiles. It is not
+   a decorative choice. On this background it measures 9.5:1, where the leaf
+   green it replaces measured 4.8:1, and against the clay it sits beside in the
+   moisture chart a deuteranope saw a CIEDE2000 separation of 1.2 with leaf
+   green, which is no separation at all. With this green that pair measures
+   28.8, and green against gold measures 49.0. Gold is still below 3:1 on this
+   background, so every gold mark stays labelled or sits beside a table. */
+var GREEN = '#0D4D45';
+
+/* Compliant vs at-risk. Green against red is what a red-green colour-blind
+   reader cannot separate, so at-risk is gold rather than red. */
+var C_OK = GREEN;
 var C_RISK = COLORS.honey;
 
 function themeCharts(){
@@ -2150,7 +2153,7 @@ function renderCurve(){
            steepness and moves the apparent knee. The shape of this curve is
            the whole argument, so the axis has to be true to it. */
         data: pts.map(function(p){ return {x:p.farmers, y:p.pct*100}; }),
-        borderColor: C_OK, backgroundColor:'rgba(78,124,46,0.10)',
+        borderColor: C_OK, backgroundColor:'rgba(13,77,69,0.10)',
         borderWidth:2, pointRadius:4, pointHoverRadius:6,
         pointBackgroundColor: C_OK, pointBorderColor:'#FFFCF6', pointBorderWidth:2,
         fill:true, tension:0.25

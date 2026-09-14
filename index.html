@@ -3,9 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="icon" href="favicon.ico" sizes="16x16 32x32" type="image/x-icon">
-<link rel="apple-touch-icon" href="favicon.svg">
 <title>Ndugu Farmers Ltd | Sourcing &amp; Operations</title>
 <!-- No webfont is loaded. Power BI's typeface is Segoe UI, which Microsoft
      licenses with Windows and does not publish to Google Fonts, so it cannot
@@ -931,6 +928,15 @@ var COLORS = {
   ink:'#2A1A10', inkSoft:'#63483A', inkFaint:'#8A7059', line:'#EADCC7'
 };
 /* Seasons read as a roast progression: green cherry -> roasted -> golden. */
+/* One green across every dashboard: the dark teal of the KPI tiles. It is not
+   a decorative choice. On this background it measures 9.5:1, where the leaf
+   green it replaces measured 4.8:1, and against the clay it sits beside in the
+   moisture chart a deuteranope saw a CIEDE2000 separation of 1.2 with leaf
+   green, which is no separation at all. With this green that pair measures
+   28.8, and green against gold measures 49.0. Gold is still below 3:1 on this
+   background, so every gold mark stays labelled or sits beside a table. */
+var GREEN = '#0D4D45';
+
 var SEASON_COLOR = {2024:COLORS.leaf, 2025:COLORS.roast, 2026:COLORS.honey};
 var BUYER_COLOR = {UGACOF:COLORS.roast, ETG:COLORS.cherry, NDUGUEXPORT:COLORS.honey, OLAM:COLORS.teal, SUPERBIA:COLORS.leaf, TOPOFTHECROP:COLORS.clay};
 
@@ -1849,7 +1855,7 @@ function renderFarmsizeChart(){
   var values = labels.map(function(k){return DATA.farm_size[k];});
   mountChart('farmsizeChart', {
     type:'bar',
-    data:{ labels: labels.map(fmtFarmSize), datasets:[{ data: values, backgroundColor: COLORS.leaf, maxBarThickness:34, borderRadius:2 }] },
+    data:{ labels: labels.map(fmtFarmSize), datasets:[{ data: values, backgroundColor: GREEN, maxBarThickness:34, borderRadius:2 }] },
     options:{
       responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{display:false}, tooltip:{ backgroundColor:COLORS.ink, callbacks:{label:function(c){return fmtInt(c.parsed.y)+' '+T('farmersWord');}} } },
