@@ -581,27 +581,23 @@
   }
   .projtab .cnt{font-weight:400; font-size:12px; color:var(--ink-faint); margin-left:6px;}
 
-  /* Coverage, two bars per district: how much of the register carries a farm
-     record, and how much carries a dated inspection inside that. */
-  .covrow2{
-    display:grid; grid-template-columns:8.5rem 1fr 6rem; gap:14px; align-items:center;
-    padding:10px 0; border-bottom:1px solid var(--line);
+  /* One row per certification scheme: share of the programme holding it,
+     with the count beside the bar so the share is never read on its own. */
+  .certrow{
+    display:grid; grid-template-columns:10rem 1fr 7.5rem; gap:14px; align-items:center;
+    padding:12px 0; border-bottom:1px solid var(--line);
   }
-  .covrow2:last-child{border-bottom:none;}
-  .covrow2 .nm{font-size:13px; font-weight:600; color:var(--ink);}
-  .covrow2 .bars{display:grid; gap:4px; min-width:0;}
-  .covrow2 .track{height:8px; border-radius:5px; background:var(--surface-sunk); overflow:hidden;}
-  .covrow2 .track span{display:block; height:100%; border-radius:5px; background:#11675C;}
-  .covrow2 .bars .track:nth-child(2) span{background:#663A18;}
-  .covrow2 .bars .track:nth-child(2) span.low{background:#AA6128;}
-  .covrow2 .val{font-size:13px; text-align:right; font-variant-numeric:tabular-nums; color:#11675C; font-weight:600;}
-  .covrow2 .val small{display:block; font-size:12px; color:#7B4A24; font-weight:600;}
-  @media (max-width:640px){ .covrow2{grid-template-columns:1fr 5rem;} .covrow2 .bars{grid-column:1 / -1;} }
-  .covkey{display:flex; flex-wrap:wrap; gap:8px 18px; margin-top:10px; font-size:11.5px; color:var(--ink-soft);}
-  .covkey span{display:flex; align-items:center; gap:6px;}
-  .covkey i{width:10px; height:10px; border-radius:2px; display:block;}
+  .certrow:last-child{border-bottom:none;}
+  .certrow .nm{font-size:13px; font-weight:600; color:var(--ink);}
+  .certrow .nm small{display:block; font-weight:400; font-size:11.5px; color:var(--ink-faint);}
+  .certrow .track{height:10px; border-radius:5px; background:var(--surface-sunk); overflow:hidden;}
+  .certrow .track span{display:block; height:100%; border-radius:5px; background:#11675C;}
+  .certrow .val{font-size:15px; font-weight:600; text-align:right; color:var(--ink);
+    font-variant-numeric:tabular-nums;}
+  .certrow .val small{display:block; font-size:11.5px; font-weight:400; color:var(--ink-faint);}
+  @media (max-width:640px){ .certrow{grid-template-columns:1fr 6.5rem;} .certrow .track{grid-column:1 / -1;} }
 
-  /* Coverage: inspected against registered, per district. */
+  /* Coverage: one bar per district. */
   .covrow{
     display:grid; grid-template-columns:8.5rem 1fr 6.5rem; gap:14px; align-items:center;
     padding:9px 0; border-bottom:1px solid var(--line);
@@ -932,32 +928,31 @@
     </div>
     <div class="tilegrid" id="insTileGrid"></div>
     <p class="tilegrid-legend">
-      <span><b data-i18n="insRowCovH">Coverage</b> <span data-i18n="insRowCovN">how much of the register was visited</span></span>
-      <span><b data-i18n="insRowFarmH">What was found</b> <span data-i18n="insRowFarmN">plot size, trees and harvest on the plots visited</span></span>
+      <span><b data-i18n="insRowCovH">Programme</b> <span data-i18n="insRowCovN">who is enrolled and what they are certified to</span></span>
+      <span><b data-i18n="insRowFarmH">Farm data</b> <span data-i18n="insRowFarmN">plot size, land and harvest recorded on those farms</span></span>
     </p>
   </section>
 
   <section>
     <div class="section-head">
       <div>
-        <h2 data-i18n="insSecCovH">How much of the register was measured and inspected</h2>
+        <h2 data-i18n="insSecCovH">Certification across the programme</h2>
         <p data-i18n="insSecCovP">-</p>
       </div>
-      <div class="section-tag" data-i18n="insSecCovTag">Inspected against registered</div>
+      <div class="section-tag" data-i18n="insSecCovTag">Schemes held, against farmers enrolled</div>
     </div>
     <div class="grid">
       <div class="col-6 panel">
-        <p class="panel-title" data-i18n="insPanCovH">Coverage by district</p>
-        <p class="panel-note" data-i18n="insPanCovN">Share of the register with a farm record, and with a dated inspection.</p>
-        <div id="covList"></div>
-        <div class="covkey" id="covKey"></div>
-        <div class="insight-line" id="covInsight">-</div>
+        <p class="panel-title" data-i18n="insPanCertH">Certification held</p>
+        <p class="panel-note" data-i18n="insPanCertN">Share of enrolled farmers recorded under each scheme.</p>
+        <div id="certList"></div>
+        <div class="insight-line" id="certInsight">-</div>
       </div>
       <div class="col-6 panel">
-        <p class="panel-title" data-i18n="insPanMonthH">When the inspections happened</p>
-        <p class="panel-note" data-i18n="insPanMonthN">Plot visits by month.</p>
-        <div class="chart-box"><canvas id="insMonthChart"></canvas></div>
-        <div class="insight-line" id="insMonthInsight">-</div>
+        <p class="panel-title" data-i18n="insPanDistH">Where the programme sits</p>
+        <p class="panel-note" data-i18n="insPanDistN">Enrolled farmers by district.</p>
+        <div class="chart-box"><canvas id="insDistChart"></canvas></div>
+        <div class="insight-line" id="insDistInsight">-</div>
       </div>
     </div>
   </section>
@@ -965,7 +960,7 @@
   <section>
     <div class="section-head">
       <div>
-        <h2 data-i18n="insSecPlotH">What the inspectors found</h2>
+        <h2 data-i18n="insSecPlotH">What the farm records hold</h2>
         <p data-i18n="insSecPlotP">-</p>
       </div>
       <div class="section-tag" data-i18n="insSecPlotTag">Plot size, stocking and productive trees</div>
@@ -973,7 +968,7 @@
     <div class="grid">
       <div class="col-6 panel">
         <p class="panel-title" data-i18n="insPanSizeH">Plot size</p>
-        <p class="panel-note" data-i18n="insPanSizeN">Plots visited, by measured size in acres.</p>
+        <p class="panel-note" data-i18n="insPanSizeN">Recorded plots, by measured size in acres.</p>
         <div class="chart-box"><canvas id="insSizeChart"></canvas></div>
         <div class="insight-line" id="insSizeInsight">-</div>
       </div>
@@ -989,10 +984,10 @@
   <section>
     <div class="section-head">
       <div>
-        <h2 data-i18n="insSecCoopH">Cooperatives inspected</h2>
+        <h2 data-i18n="insSecCoopH">Cooperatives in the programme</h2>
         <p data-i18n="insSecCoopP">-</p>
       </div>
-      <div class="section-tag" data-i18n="insSecCoopTag">Ranked by plot visits</div>
+      <div class="section-tag" data-i18n="insSecCoopTag">Ranked by farmers recorded</div>
     </div>
     <div class="grid">
       <div class="col-12 panel">
@@ -1007,7 +1002,7 @@
                 <th>#</th>
                 <th data-i18n="thCoop">Cooperative</th>
                 <th class="num" data-i18n="thFarmers">Farmers</th>
-                <th class="num" data-i18n="thInspected">Inspected</th>
+                <th class="num" data-i18n="thPlots">Plots</th>
                 <th class="num" data-i18n="thTrees">Coffee trees</th>
                 <th class="num" data-i18n="thBags">Bags</th>
               </tr>
@@ -1115,6 +1110,12 @@ function I(){
   var b = DATA.inspections.districts;
   return b[state.district] || b.all;
 }
+/* Certification is published once for the whole programme. The cleaning log
+   counts the values it filled across the workbook and cannot say which
+   district they fell in, so a district figure would carry either all of that
+   correction or none of it, and both would be wrong. */
+function insCert(){ return DATA.inspections.districts.all.certification || {}; }
+function isAllDistricts(){ return !DATA.inspections.districts[state.district] || state.district === 'all'; }
 function insDistricts(){ return DATA.inspections.meta.districts.slice(); }
 function tabDistricts(){
   return state.tab === 'inspections' ? insDistricts() : districtList();
@@ -1327,27 +1328,29 @@ function computeFacts(){
     soldQty: DATA.notes.mac_sold_with_quantity
   };
 
-  /* Inspection facts, computed alongside so both tabs redraw from one pass. */
+  /* Programme facts, computed alongside so both tabs redraw from one pass. */
   var im = DATA.inspections.meta, ib = I(), inn = DATA.inspections.notes;
-  var R = ib.records, X = ib.inspected, blocks = DATA.inspections.districts;
-  var ranked = insDistricts().map(function(k){ return {k:k, b:blocks[k]}; })
-    .filter(function(r){ return r.b; })
-    .sort(function(a, b2){ return (b2.b.inspected.coverage || 0) - (a.b.inspected.coverage || 0); });
-  var peakM = (ib.by_month || []).reduce(function(a, b2){ return (b2.n > a.n) ? b2 : a; }, {month:'', n:0});
+  var R = ib.records, C = insCert();
+  var dists = (ib.by_district || []).slice().sort(function(a, b2){ return b2.n - a.n; });
+  /* The pooled row stands for several districts too small to name, so it is
+     not itself a district and must not be counted as one. */
+  var namedDists = dists.filter(function(r){ return r.district !== im.pooled_label; });
 
+  FACTS.insEnrolled = fmtInt(ib.n_enrolled);
+  FACTS.insRegister = im.wider_register ? fmtInt(im.wider_register) : '-';
+  FACTS.insShareReg = im.wider_register ? fmtPct(ib.n_enrolled / im.wider_register) : '-';
+  FACTS.insIsAll = isAllDistricts();
+  FACTS.insDistrict = isAllDistricts() ? '' : state.district;
   FACTS.insRecFarmers = fmtInt(R.n_farmers);
-  FACTS.insRecCoverage = R.coverage === null ? '-' : fmtPct(R.coverage);
   FACTS.insPlots = fmtInt(R.n_plots);
-  FACTS.insRegistered = fmtInt(ib.n_registered);
-  FACTS.insFarmers = fmtInt(X.n_farmers);
-  FACTS.insCoverage = X.coverage === null ? '-' : fmtPct(X.coverage);
-  FACTS.insOfRecorded = X.share_of_records === null ? '-' : fmtPct(X.share_of_records);
-  FACTS.insVisits = fmtInt(X.n_plots);
-  FACTS.insRows = fmtInt(inn.records.rows);
-  FACTS.insInsRows = fmtInt(inn.inspections.rows);
-  FACTS.insFrom = fmtDate(X.date_min);
-  FACTS.insTo = fmtDate(X.date_max);
   FACTS.insCoops = fmtInt(im.n_cooperatives);
+  FACTS.insRaN = C.RA ? fmtInt(C.RA.recorded) : '-';
+  FACTS.insRaPct = (C.RA && C.RA.pct_recorded !== null) ? fmtPct(C.RA.pct_recorded) : '-';
+  FACTS.insRaFilled = C.RA ? fmtInt(C.RA.filled_as_yes) : '0';
+  FACTS.ins4cN = C['4C'] ? fmtInt(C['4C'].recorded) : '-';
+  FACTS.ins4cPct = (C['4C'] && C['4C'].pct_recorded !== null) ? fmtPct(C['4C'].pct_recorded) : '-';
+  FACTS.insCN = C.C ? fmtInt(C.C.recorded) : '-';
+  FACTS.insCPct = (C.C && C.C.pct_recorded !== null) ? fmtPct(C.C.pct_recorded) : '-';
   FACTS.insTrees = fmtInt(R.trees.total);
   FACTS.insMedTrees = fmtInt(R.trees.median || 0);
   FACTS.insProd = R.productive_share === null ? '-' : fmtPct(R.productive_share);
@@ -1356,27 +1359,17 @@ function computeFacts(){
   FACTS.insBagsAcre = R.bags_per_acre.median === null ? '-' : fmtNum(R.bags_per_acre.median, 1);
   FACTS.insBags = fmtInt(R.bags.total);
   FACTS.insMedBags = fmtNum(R.bags.median, 1);
-  FACTS.insBest = ranked.length ? ranked[0].k : '-';
-  FACTS.insBestPct = ranked.length ? fmtPct(ranked[0].b.inspected.coverage || 0) : '-';
-  FACTS.insWorst = ranked.length ? ranked[ranked.length-1].k : '-';
-  FACTS.insWorstPct = ranked.length ? fmtPct(ranked[ranked.length-1].b.inspected.coverage || 0) : '-';
-  FACTS.insDupGroups = fmtInt(inn.records.groups);
-  FACTS.insDupRows = fmtInt(inn.records.rows_in_groups);
-  FACTS.insInflTrees = inn.inflation_trees;
-  FACTS.insInflBags = inn.inflation_bags;
-  FACTS.insMissing = fmtInt(inn.not_in_either);
-  FACTS.ins2026 = fmtInt(inn.dated_2026);
-  FACTS.insFuture = inn.dated_future;
+  FACTS.insTopDist = namedDists.length ? namedDists[0].district : '-';
+  FACTS.insTopDistPct = (namedDists.length && ib.n_enrolled)
+    ? fmtPct(namedDists[0].n / ib.n_enrolled) : '-';
+  FACTS.insNDists = fmtInt(namedDists.length);
   FACTS.insImputed = fmtInt(inn.cleaning_rows || 0);
   FACTS.insCleanSheet = inn.cleaning_sheet || 'the cleaning log';
   FACTS.insRecSheet = im.records_sheet;
-  FACTS.insInsSheet = im.inspections_sheet;
   FACTS.insPerAcre = inn.trees_derived ? fmtInt(inn.trees_derived.per_acre) : '-';
   FACTS.insDerivedRows = inn.trees_derived ? fmtInt(inn.trees_derived.rows) : '-';
   FACTS.insPlotsEx = inn.plots_excluded;
   FACTS.insTreesEx = inn.trees_excluded;
-  FACTS.insPeak = peakM.month ? fmtMonth(peakM.month) : '-';
-  FACTS.insPeakN = fmtInt(peakM.n);
   FACTS.insSmallPct = (function(){
     var bands = R.size_bands || [], tot = sumN(bands);
     var small = bands.filter(function(x){ return /0\.5|Under|Onder/.test(x.label); })
@@ -1389,14 +1382,14 @@ function t18(k){ return (I18N[state.lang][k] !== undefined) ? I18N[state.lang][k
 /* ============================= i18n ============================= */
 var I18N = {
   en: {
-    asofLabelIns:'Inspected',
+    asofLabelIns:'Season',
+    insSeason:'2025',
     insAboutP:function(f){
-      return 'A field inspection round covering ' + f.insFarmers + ' of ' + f.insRegistered +
-        ' registered farmers, run ' + f.insFrom + ' to ' + f.insTo + ' and rebuilt on ' +
-        f.generated + '. One record is one plot visited by one inspector on one day, taken as ' +
-        'the median of the rows submitted for it. Land is recorded and shown in acres, not ' +
-        'converted. National ID numbers, farmer and inspector names, villages and plot names ' +
-        'are read by the build and are not published in any form.';
+      return 'The certified farm programme for 2025: ' + f.insEnrolled + ' farmers enrolled out ' +
+        'of the ' + f.insRegister + ' on the Ndugu register, rebuilt on ' + f.generated +
+        '. One record is one plot, taken as the median of the rows submitted for it. Land is ' +
+        'recorded and shown in acres, not converted. National ID numbers, farmer names, ' +
+        'villages and plot names are read by the build and are not published in any form.';
     },
     tabSurvey:'Macadamia and beekeeping baseline',
     tabInspections:'Farmer inspections 2025',
@@ -1404,23 +1397,30 @@ var I18N = {
     insEyebrow:'Impact projects',
     insH1:'Farmer inspections 2025',
     insLede:function(f){
-      return 'Farm records cover ' + f.insRecFarmers + ' of ' + f.insRegistered +
-        ' registered farmers, ' + f.insRecCoverage + ' of the register, across ' + f.insPlots +
-        ' plots. Of those, ' + f.insFarmers + ' carry a dated inspection with a named inspector, ' +
-        f.insOfRecorded + ' of the recorded farmers, from ' + f.insFrom + ' to ' + f.insTo + '.';
+      if (!f.insIsAll){
+        return f.insEnrolled + ' farmers in the certified farm programme in ' + f.insDistrict +
+          ', ' + f.insShareReg + ' of Ndugu’s ' + f.insRegister + '-farmer register. Farm data ' +
+          'is recorded across ' + f.insRecFarmers + ' farms and ' + f.insPlots + ' plots, ' +
+          'covering ' + f.insAcres + ' acres. Certification is reported programme-wide.';
+      }
+      return f.insEnrolled + ' farmers in the certified farm programme, drawn from Ndugu’s ' +
+        f.insRegister + '-farmer register. ' + f.insRaPct + ' are recorded as Rainforest ' +
+        'Alliance certified. Farm data is recorded across ' + f.insRecFarmers + ' farms and ' +
+        f.insPlots + ' plots, covering ' + f.insAcres + ' acres.';
     },
-    insRowCovH:'Coverage', insRowCovN:'how much of the register was measured, and how much inspected',
-    insRowFarmH:'What was found', insRowFarmN:'plot size, trees and harvest on the plots visited',
-    insKpiRecFarmers:'Farmers with farm records', insLblRegistered:'on the register',
-    insKpiRecCoverage:'Share of the register', insLblRecCoverageSub:'measured at least once',
-    insKpiPlots:'Plot records', insLblRowsSubmitted:'rows submitted',
-    insKpiInspected:'Formally inspected', insLblOfRecorded:'of those with records',
-    covKeyRecords:'Has a farm record', covKeyInspected:'Has a dated inspection',
-    thInspected:'Inspected',
-
-
-
-    insKpiCoops:'Cooperatives', insLblCoopsSub:'covered by the round',
+    insRowCovH:'Programme', insRowCovN:'who is enrolled and what they are certified to',
+    insRowFarmH:'Farm data', insRowFarmN:'plot size, land and harvest recorded on those farms',
+    insKpiEnrolled:'Farmers in the programme', insLblOnRegister:'registered',
+    insKpiShareReg:'Share of the register', insLblShareRegSub:'enrolled in the programme',
+    insKpiRa:'Rainforest Alliance', insKpi4c:'4C certified', insLblOfProgramme:'of the programme',
+    insLblProgrammeWide:'of the programme, all districts',
+    insKpiRecFarmers:'Farms with data recorded', insLblRecFarmersSub:'measured farm by farm',
+    insKpiPlots:'Plot records', insLblPlotsSub:'measured plots',
+    certNameRA:'Rainforest Alliance', certSubRA:'RA certification on the register',
+    certName4c:'4C', certSub4c:'any of the three 4C codes',
+    certNameC:'C', certSubC:'any of the three C codes',
+    thPlots:'Plots',
+    insKpiCoops:'Cooperatives', insLblCoopsSub:'in the programme',
     insKpiTrees:'Coffee trees counted', insLblOnPlots:'on the plots visited',
     insKpiTreesDerived:'Coffee trees, derived',
     insLblDerivedAt:'at', insLblPerAcreWord:'per acre',
@@ -1430,73 +1430,73 @@ var I18N = {
     insKpiDensity:'Trees per acre', insLblPerAcre:'median across plots',
     insKpiBags:'Bags harvested', insLblMedian:'median per plot',
     insLblVisits:'plot visits',
-    insSecCovH:'How much of the register was measured and inspected',
+    insSecCovH:'Certification across the programme',
     insSecCovP:function(f){
-      return f.insRecCoverage + ' of the register has a farm record, ' + f.insCoverage + ' a dated inspection.';
+      return f.insRaPct + ' hold Rainforest Alliance certification, ' + f.ins4cPct + ' a 4C code.';
     },
-    insSecCovTag:'Recorded and inspected, against the register',
-    insPanCovH:'Coverage by district',
-    insPanCovN:'Share of the register with a farm record, and with a dated inspection.',
-    insPanMonthH:'When the inspections happened', insPanMonthN:'Plot visits by month.',
-    insSecPlotH:'What the inspectors found',
+    insSecCovTag:'Schemes held, against farmers enrolled',
+    insPanCertH:'Certification held',
+    insPanCertN:'Share of enrolled farmers recorded under each scheme, programme-wide.',
+    insPanDistH:'Where the programme sits', insPanDistN:'Enrolled farmers by district.',
+    insSecPlotH:'What the farm records hold',
     insSecPlotP:function(f){
       return 'Median plot ' + f.insMedPlot + ' acres yielding ' + f.insBagsAcre + ' bags per acre.';
     },
     insSecPlotTag:'Plot size, stocking and productive trees',
-    insPanSizeH:'Plot size', insPanSizeN:'Plots visited, by measured size in acres.',
+    insPanSizeH:'Plot size', insPanSizeN:'Recorded plots, by measured size in acres.',
     insPanStockH:'Stocking and condition', insPanStockN:'Measured per plot, then summarised.',
-    insStatTrees:'Coffee trees on a typical plot', insStatTreesFoot:'median per plot visited',
+    insStatTrees:'Coffee trees on a typical plot', insStatTreesFoot:'median per plot recorded',
     insStatBagsAcre:'Bags per acre', insStatBagsAcreFoot:'median, computed plot by plot',
     insStatTreesDerivedFoot:'derived from plot size, not counted',
     insStatProd:'Share of trees in production', insStatProdFoot:'median per plot',
-    insStatBags:'Bags harvested', insStatBagsFoot:'median per plot visited',
-    insSecCoopH:'Cooperatives covered',
+    insStatBags:'Bags harvested', insStatBagsFoot:'median per plot recorded',
+    insSecCoopH:'Cooperatives in the programme',
     insSecCoopP:function(f){ return 'Top 10 of ' + f.insCoops + ' cooperatives by farmers recorded.'; },
     insSecCoopTag:'Ranked by farmers recorded',
     thFarmers:'Farmers', thVisits:'Plot visits', thTrees:'Coffee trees', thBags:'Bags',
     insSecNotesH:'What these figures can and cannot show',
     insSecNotesP:'Read these before quoting a figure from this tab.',
-    insCovInsight:function(f){
-      return 'Farm records reach ' + f.insRecCoverage + ' of the register fairly evenly, but ' +
-        'dated inspections run from ' + f.insBestPct + ' in ' + f.insBest + ' down to ' +
-        f.insWorstPct + ' in ' + f.insWorst + '. Amber marks a district inspected below the ' +
-        'programme-wide rate.';
+    insCertInsight:function(f){
+      return 'Rainforest Alliance is the backbone of the programme at ' + f.insRaPct +
+        '; 4C sits at ' + f.ins4cPct + ' and C at ' + f.insCPct + ', and the three overlap, ' +
+        'so they do not add to a total. These shares are programme-wide and do not change ' +
+        'with the district selected above.';
     },
-    insMonthInsight:function(f){
-      return 'Dated inspections only: the broad farm records carry no date. The round peaked in ' +
-        f.insPeak + ' with ' + f.insPeakN + ' visits, and bars from January 2026 onward are its tail.';
+    insDistInsight:function(f){
+      if (!f.insIsAll){
+        return 'This is the ' + f.insDistrict + ' share of the programme on its own, ' +
+          f.insEnrolled + ' farmers. Clear the filter to see how it sits against the others.';
+      }
+      return f.insTopDist + ' carries ' + f.insTopDistPct + ' of the programme, the largest of ' +
+        f.insNDists + ' districts. The programme is concentrated where Ndugu’s cooperatives are ' +
+        'densest rather than spread evenly.';
     },
     insSizeInsight:function(f){
-      return f.insSmallPct + ' of plots visited are under an acre, so most inspections cover a ' +
-        'smallholding rather than an estate.';
+      return f.insSmallPct + ' of recorded plots are under an acre, so the programme rests on ' +
+        'smallholdings rather than estates.';
     },
     insStockInsight:function(f){
       return 'A typical plot yields ' + f.insBagsAcre + ' bags to the acre, with ' + f.insProd +
         ' of its trees in production. Tree counts are derived from plot size, so the count ' +
         'beside them carries no information the plot size does not already give.';
     },
-    insNoteTwoSheets:function(f){
-      return 'Two sheets measure these farms and they are not the same exercise. ' +
-        f.insRecSheet + ' holds the measurements for ' + f.insRecFarmers + ' farmers with no ' +
-        'date attached. ' + f.insInsSheet + ' holds the same measurements for ' + f.insFarmers +
-        ' of them plus a date, a named inspector and an ID check, and every farmer in it also ' +
-        'appears in the broad sheet. The two staff lists do not overlap at all. Coverage and the ' +
-        'findings below come from the broad sheet; the timeline comes from the dated subset. ' +
-        f.insMissing + ' registered farmers appear in neither.';
+    insNoteFilled:function(f){
+      return 'Rainforest Alliance certification is published at what the register records, not ' +
+        'at what the file shows. The cleaning pass filled blank RA cells with the commonest ' +
+        'answer, which was YES, for ' + f.insRaFilled + ' farmers. Those cannot be identified ' +
+        'row by row, only counted from the cleaning log, so the figure here subtracts them: a ' +
+        'certification claim a buyer or an auditor checks has to rest on a record rather than ' +
+        'on a default. The 4C and C columns were filled with NO, which cannot inflate a YES, ' +
+        'so those counts stand as they are. The correction is counted for the workbook as a ' +
+        'whole and cannot be split by district, which is why certification does not move with ' +
+        'the district filter.';
     },
-    insNoteDup:function(f){
-      return 'The broad sheet holds ' + f.insRows + ' submitted rows for ' + f.insPlots +
-        ' plots: ' + f.insDupRows + ' rows sit in ' + f.insDupGroups + ' groups where the same ' +
-        'plot was submitted more than once. The repeats are not identical, so they cannot be ' +
-        'dropped as exact duplicates, and each group is taken as its median. Summing the raw ' +
-        'rows instead would overstate coffee trees by ' + f.insInflTrees + ' times and bags by ' +
-        f.insInflBags + ' times.';
-    },
-    insNoteDates:function(f){
-      return 'The dated round is named for 2025 and ran from ' + f.insFrom + ', but ' + f.ins2026 +
-        ' visits carry a 2026 date. Most are the January tail of the same round; a handful sit ' +
-        'months later and read as typed-in errors, including ' + f.insFuture +
-        ' dated after the data was compiled. Dates are shown as recorded rather than corrected.';
+    insNoteRecords:function(f){
+      return 'Farm measurements come from the ' + f.insRecSheet + ' sheet, which records ' +
+        f.insPlots + ' plots across ' + f.insRecFarmers + ' farms. Where the same plot was ' +
+        'submitted more than once the repeats are not identical, so they are not dropped as ' +
+        'exact duplicates; each plot is taken as the median of its rows. Land, trees and bags ' +
+        'on this tab therefore count each plot once.';
     },
     insNoteDerived:function(f){
       return 'Tree counts in this workbook are not counts. Every one of the ' + f.insDerivedRows +
@@ -1514,10 +1514,10 @@ var I18N = {
     },
     insNoteExcluded:function(f){
       return f.insPlotsEx + ' plot sizes outside 0 to 50 acres and ' + f.insTreesEx +
-        ' tree counts above 40,000 are left out of the averages as recording errors. They are ' +
-        'still counted as visits.';
+        ' tree counts above 40,000 are left out of the averages as recording errors. Those ' +
+        'plots are still counted.';
     },
-    insNotePrivacy:'This sheet carries a national ID number for 1,185 farmers, alongside names, villages, plot names and inspector names. All of it is read by the build and none of it is published. Cooperatives are named because they are organisations; a cooperative with fewer than ten inspected farmers is left out of the table.',
+    insNotePrivacy:'The source workbook carries national ID numbers, farmer names, villages and plot names. All of it is read by the build and none of it is published. Cooperatives are named because they are organisations; a cooperative with fewer than ten farmers recorded is left out of the table.',
     navTitle:'Navigation', navDomestic:'Domestic', navExport:'Export', navEudr:'EUDR',
     navImpact:'Impact', navProduction:'Production', navFinance:'Finance',
     navAgritracker:'Agritracker', navCoffee:'Coffee', navAbout:'About us',
@@ -1653,15 +1653,15 @@ var I18N = {
     notePrivacy:'Respondent names, phone numbers and register codes are read by the build and never written to the published file, and free-text answers are not published in any column. A sentence a farmer wrote about their own farm can identify them even with the name removed.'
   },
   nl: {
-    asofLabelIns:'Geïnspecteerd',
+    asofLabelIns:'Seizoen',
+    insSeason:'2025',
     insAboutP:function(f){
-      return 'Een inspectieronde in het veld bij ' + f.insFarmers + ' van ' + f.insRegistered +
-        ' geregistreerde boeren, uitgevoerd van ' + f.insFrom + ' tot ' + f.insTo +
-        ' en opnieuw opgebouwd op ' + f.generated + '. Eén record is één perceel, bezocht door ' +
-        'één inspecteur op één dag, genomen als de mediaan van de daarvoor ingediende regels. ' +
-        'Land is vastgelegd en weergegeven in acres, niet omgerekend. Nationale ' +
-        'identiteitsnummers, namen van boeren en inspecteurs, dorpen en perceelnamen worden door ' +
-        'de build gelezen en in geen enkele vorm gepubliceerd.';
+      return 'Het gecertificeerde bedrijfsprogramma voor 2025: ' + f.insEnrolled + ' boeren ' +
+        'ingeschreven van de ' + f.insRegister + ' op het Ndugu-register, opnieuw opgebouwd op ' +
+        f.generated + '. Eén record is één perceel, genomen als de mediaan van de daarvoor ' +
+        'ingediende regels. Land is vastgelegd en weergegeven in acres, niet omgerekend. ' +
+        'Nationale identiteitsnummers, namen van boeren, dorpen en perceelnamen worden door de ' +
+        'build gelezen en in geen enkele vorm gepubliceerd.';
     },
     tabSurvey:'Nulmeting macadamia en bijenteelt',
     tabInspections:'Boerderij-inspecties 2025',
@@ -1669,25 +1669,33 @@ var I18N = {
     insEyebrow:'Impactprojecten',
     insH1:'Boerderij-inspecties 2025',
     insLede:function(f){
-      return 'Bedrijfsgegevens dekken ' + f.insRecFarmers + ' van ' + f.insRegistered +
-        ' geregistreerde boeren, ' + f.insRecCoverage + ' van het register, over ' + f.insPlots +
-        ' percelen. Daarvan draagt ' + f.insFarmers + ' een gedateerde inspectie met een ' +
-        'inspecteur op naam, ' + f.insOfRecorded + ' van de geregistreerde boeren, van ' +
-        f.insFrom + ' tot ' + f.insTo + '.';
+      if (!f.insIsAll){
+        return f.insEnrolled + ' boeren in het gecertificeerde bedrijfsprogramma in ' +
+          f.insDistrict + ', ' + f.insShareReg + ' van het Ndugu-register van ' + f.insRegister +
+          ' boeren. Bedrijfsgegevens zijn vastgelegd voor ' + f.insRecFarmers + ' bedrijven en ' +
+          f.insPlots + ' percelen, samen ' + f.insAcres + ' acre. Certificering wordt ' +
+          'programmabreed gerapporteerd.';
+      }
+      return f.insEnrolled + ' boeren in het gecertificeerde bedrijfsprogramma, uit het ' +
+        'Ndugu-register van ' + f.insRegister + ' boeren. ' + f.insRaPct + ' is geregistreerd ' +
+        'als Rainforest Alliance-gecertificeerd. Bedrijfsgegevens zijn vastgelegd voor ' +
+        f.insRecFarmers + ' bedrijven en ' + f.insPlots + ' percelen, samen ' + f.insAcres +
+        ' acre.';
     },
-    insRowCovH:'Dekking', insRowCovN:'welk deel van het register is gemeten, en welk deel geïnspecteerd',
-    insRowFarmH:'Wat is aangetroffen', insRowFarmN:'perceelgrootte, bomen en oogst op de bezochte percelen',
-    insKpiRecFarmers:'Boeren met bedrijfsgegevens', insLblRegistered:'op het register',
-    insKpiRecCoverage:'Deel van het register', insLblRecCoverageSub:'minstens één keer gemeten',
-    insKpiPlots:'Perceelregistraties', insLblRowsSubmitted:'ingediende regels',
-    insKpiInspected:'Formeel geïnspecteerd', insLblOfRecorded:'van wie gegevens heeft',
-    covKeyRecords:'Heeft bedrijfsgegevens', covKeyInspected:'Heeft gedateerde inspectie',
-    thInspected:'Geïnspecteerd',
-
-
-
-    insKpiCoops:'Coöperaties', insLblCoopsSub:'in deze ronde bezocht',
-    insKpiTrees:'Getelde koffiebomen', insLblOnPlots:'op de bezochte percelen',
+    insRowCovH:'Programma', insRowCovN:'wie is ingeschreven en waarvoor zij gecertificeerd zijn',
+    insRowFarmH:'Bedrijfsgegevens', insRowFarmN:'perceelgrootte, land en oogst op die bedrijven',
+    insKpiEnrolled:'Boeren in het programma', insLblOnRegister:'geregistreerd',
+    insKpiShareReg:'Deel van het register', insLblShareRegSub:'ingeschreven in het programma',
+    insKpiRa:'Rainforest Alliance', insKpi4c:'4C-gecertificeerd', insLblOfProgramme:'van het programma',
+    insLblProgrammeWide:'van het programma, alle districten',
+    insKpiRecFarmers:'Bedrijven met gegevens', insLblRecFarmersSub:'bedrijf voor bedrijf gemeten',
+    insKpiPlots:'Perceelregistraties', insLblPlotsSub:'gemeten percelen',
+    certNameRA:'Rainforest Alliance', certSubRA:'RA-certificering op het register',
+    certName4c:'4C', certSub4c:'een van de drie 4C-codes',
+    certNameC:'C', certSubC:'een van de drie C-codes',
+    thPlots:'Percelen',
+    insKpiCoops:'Coöperaties', insLblCoopsSub:'in het programma',
+    insKpiTrees:'Getelde koffiebomen', insLblOnPlots:'op de gemeten percelen',
     insKpiTreesDerived:'Koffiebomen, afgeleid',
     insLblDerivedAt:'bij', insLblPerAcreWord:'per acre',
     insKpiBagsPerAcre:'Zakken per acre', insLblBagsPerAcreSub:'mediaan over de percelen',
@@ -1696,75 +1704,74 @@ var I18N = {
     insKpiDensity:'Bomen per acre', insLblPerAcre:'mediaan over de percelen',
     insKpiBags:'Geoogste zakken', insLblMedian:'mediaan per perceel',
     insLblVisits:'perceelbezoeken',
-    insSecCovH:'Welk deel van het register is gemeten en geïnspecteerd',
+    insSecCovH:'Certificering in het programma',
     insSecCovP:function(f){
-      return f.insRecCoverage + ' van het register heeft bedrijfsgegevens, ' + f.insCoverage +
-        ' een gedateerde inspectie.';
+      return f.insRaPct + ' heeft Rainforest Alliance-certificering, ' + f.ins4cPct + ' een 4C-code.';
     },
-    insSecCovTag:'Geregistreerd en geïnspecteerd, tegenover het register',
-    insPanCovH:'Dekking per district',
-    insPanCovN:'Deel van het register met bedrijfsgegevens, en met een gedateerde inspectie.',
-    insPanMonthH:'Wanneer is geïnspecteerd', insPanMonthN:'Perceelbezoeken per maand.',
-    insSecPlotH:'Wat de inspecteurs aantroffen',
+    insSecCovTag:'Schema\u2019s, tegenover ingeschreven boeren',
+    insPanCertH:'Certificering',
+    insPanCertN:'Deel van de ingeschreven boeren per schema, programmabreed.',
+    insPanDistH:'Waar het programma zit', insPanDistN:'Ingeschreven boeren per district.',
+    insSecPlotH:'Wat de bedrijfsgegevens bevatten',
     insSecPlotP:function(f){
       return 'Mediaan perceel ' + f.insMedPlot + ' acre met ' + f.insBagsAcre + ' zakken per acre.';
     },
     insSecPlotTag:'Perceelgrootte, bezetting en productieve bomen',
-    insPanSizeH:'Perceelgrootte', insPanSizeN:'Bezochte percelen, naar gemeten grootte in acres.',
+    insPanSizeH:'Perceelgrootte', insPanSizeN:'Vastgelegde percelen, naar gemeten grootte in acres.',
     insPanStockH:'Bezetting en conditie', insPanStockN:'Per perceel gemeten en daarna samengevat.',
-    insStatTrees:'Koffiebomen op een doorsnee perceel', insStatTreesFoot:'mediaan per bezocht perceel',
+    insStatTrees:'Koffiebomen op een doorsnee perceel', insStatTreesFoot:'mediaan per vastgelegd perceel',
     insStatBagsAcre:'Zakken per acre', insStatBagsAcreFoot:'mediaan, perceel voor perceel berekend',
     insStatTreesDerivedFoot:'afgeleid van perceelgrootte, niet geteld',
     insStatProd:'Aandeel bomen in productie', insStatProdFoot:'mediaan per perceel',
-    insStatBags:'Geoogste zakken', insStatBagsFoot:'mediaan per bezocht perceel',
-    insSecCoopH:'Gedekte coöperaties',
+    insStatBags:'Geoogste zakken', insStatBagsFoot:'mediaan per vastgelegd perceel',
+    insSecCoopH:'Coöperaties in het programma',
     insSecCoopP:function(f){ return 'Top 10 van ' + f.insCoops + ' coöperaties naar geregistreerde boeren.'; },
     insSecCoopTag:'Naar geregistreerde boeren',
     thFarmers:'Boeren', thVisits:'Perceelbezoeken', thTrees:'Koffiebomen', thBags:'Zakken',
     insSecNotesH:'Wat deze cijfers wel en niet kunnen laten zien',
     insSecNotesP:'Lees deze punten voordat u een cijfer van dit tabblad citeert.',
-    insCovInsight:function(f){
-      return 'Bedrijfsgegevens bereiken ' + f.insRecCoverage + ' van het register, redelijk ' +
-        'gelijkmatig, maar gedateerde inspecties lopen van ' + f.insBestPct + ' in ' + f.insBest +
-        ' tot ' + f.insWorstPct + ' in ' + f.insWorst + '. Amber markeert een district dat onder ' +
-        'het programmagemiddelde is geïnspecteerd.';
+    insCertInsight:function(f){
+      return 'Rainforest Alliance is de ruggengraat van het programma met ' + f.insRaPct +
+        '; 4C staat op ' + f.ins4cPct + ' en C op ' + f.insCPct + '. De drie overlappen elkaar ' +
+        'en tellen dus niet op tot een totaal. Deze aandelen gelden programmabreed en ' +
+        'veranderen niet met het district dat hierboven is gekozen.';
     },
-    insMonthInsight:function(f){
-      return 'Alleen gedateerde inspecties: de brede bedrijfsgegevens hebben geen datum. De ronde ' +
-        'piekte in ' + f.insPeak + ' met ' + f.insPeakN + ' bezoeken; balken vanaf januari 2026 ' +
-        'zijn de staart ervan.';
+    insDistInsight:function(f){
+      if (!f.insIsAll){
+        return 'Dit is alleen het aandeel van ' + f.insDistrict + ' in het programma, ' +
+          f.insEnrolled + ' boeren. Zet het filter terug op alle districten om de verhouding ' +
+          'met de andere te zien.';
+      }
+      return f.insTopDist + ' draagt ' + f.insTopDistPct + ' van het programma, het grootste van ' +
+        f.insNDists + ' districten. Het programma is geconcentreerd waar de coöperaties van ' +
+        'Ndugu het dichtst zitten, niet gelijkmatig verspreid.';
     },
     insSizeInsight:function(f){
-      return f.insSmallPct + ' van de bezochte percelen is kleiner dan een acre, dus de meeste ' +
-        'inspecties betreffen een kleinbedrijf en geen landgoed.';
+      return f.insSmallPct + ' van de vastgelegde percelen is kleiner dan een acre, dus het ' +
+        'programma rust op kleinbedrijven en niet op landgoederen.';
     },
     insStockInsight:function(f){
       return 'Een doorsnee perceel levert ' + f.insBagsAcre + ' zakken per acre, waarvan ' +
         f.insProd + ' van de bomen in productie is. Boomaantallen zijn afgeleid van de ' +
         'perceelgrootte en voegen daarom niets toe aan wat de perceelgrootte al zegt.';
     },
-    insNoteTwoSheets:function(f){
-      return 'Twee bladen meten deze bedrijven en het zijn niet dezelfde exercitie. ' +
-        f.insRecSheet + ' bevat de metingen van ' + f.insRecFarmers + ' boeren zonder datum. ' +
-        f.insInsSheet + ' bevat dezelfde metingen voor ' + f.insFarmers + ' van hen, plus een ' +
-        'datum, een inspecteur op naam en een ID-controle; elke boer daarin staat ook in het ' +
-        'brede blad. De twee personeelslijsten overlappen in het geheel niet. Dekking en de ' +
-        'bevindingen hieronder komen uit het brede blad; de tijdlijn uit de gedateerde subset. ' +
-        f.insMissing + ' geregistreerde boeren staan in geen van beide.';
+    insNoteFilled:function(f){
+      return 'Rainforest Alliance-certificering wordt gepubliceerd zoals het register het ' +
+        'vastlegt, niet zoals het bestand het toont. De schoonmaakstap vulde lege RA-velden met ' +
+        'het meest voorkomende antwoord, JA, voor ' + f.insRaFilled + ' boeren. Die zijn niet ' +
+        'regel voor regel aan te wijzen, alleen te tellen uit het schoonmaaklogboek, en worden ' +
+        'hier dus afgetrokken: een certificeringsclaim die een koper of auditor natrekt, moet ' +
+        'op een registratie rusten en niet op een standaardwaarde. De 4C- en C-kolommen zijn ' +
+        'met NEE gevuld, wat een JA niet kan opblazen, dus die tellingen blijven staan. De ' +
+        'correctie geldt voor het hele bestand en is niet per district te splitsen; daarom ' +
+        'beweegt certificering niet mee met het districtfilter.';
     },
-    insNoteDup:function(f){
-      return 'Het brede blad bevat ' + f.insRows + ' ingediende regels voor ' + f.insPlots +
-        ' percelen: ' + f.insDupRows + ' regels zitten in ' + f.insDupGroups + ' groepen waarin ' +
-        'hetzelfde perceel meer dan eens is ingediend. De herhalingen zijn niet identiek en ' +
-        'kunnen dus niet als exacte duplicaten worden geschrapt; elke groep wordt als mediaan ' +
-        'genomen. Het optellen van de ruwe regels zou de koffiebomen ' + f.insInflTrees +
-        ' keer overschatten en de zakken ' + f.insInflBags + ' keer.';
-    },
-    insNoteDates:function(f){
-      return 'De gedateerde ronde heet 2025 en begon op ' + f.insFrom + ', maar ' + f.ins2026 +
-        ' bezoeken dragen een datum in 2026. De meeste zijn de januari-staart van dezelfde ronde; ' +
-        'enkele liggen maanden later en lezen als typefouten, waaronder ' + f.insFuture +
-        ' met een datum na het samenstellen van de data. Data worden getoond zoals vastgelegd.';
+    insNoteRecords:function(f){
+      return 'De bedrijfsmetingen komen van het blad ' + f.insRecSheet + ', met ' + f.insPlots +
+        ' percelen over ' + f.insRecFarmers + ' bedrijven. Waar hetzelfde perceel meer dan eens ' +
+        'is ingediend, zijn de herhalingen niet identiek en worden ze niet als exacte duplicaten ' +
+        'geschrapt; elk perceel wordt als de mediaan van zijn regels genomen. Land, bomen en ' +
+        'zakken op dit tabblad tellen elk perceel dus één keer.';
     },
     insNoteDerived:function(f){
       return 'Boomaantallen in dit bestand zijn geen tellingen. Alle ' + f.insDerivedRows +
@@ -1782,10 +1789,10 @@ var I18N = {
     },
     insNoteExcluded:function(f){
       return f.insPlotsEx + ' perceelgroottes buiten 0 tot 50 acre en ' + f.insTreesEx +
-        ' boomaantallen boven 40.000 blijven als invoerfouten buiten de gemiddelden. Zij tellen ' +
-        'wel mee als bezoek.';
+        ' boomaantallen boven 40.000 blijven als invoerfouten buiten de gemiddelden. Die ' +
+        'percelen tellen wel mee.';
     },
-    insNotePrivacy:'Dit blad bevat een nationaal identiteitsnummer van 1.185 boeren, naast namen, dorpen, perceelnamen en namen van inspecteurs. Dat alles wordt door de build gelezen en niets ervan wordt gepubliceerd. Coöperaties worden genoemd omdat het organisaties zijn; een coöperatie met minder dan tien geïnspecteerde boeren blijft buiten de tabel.',
+    insNotePrivacy:'Het bronbestand bevat nationale identiteitsnummers, namen van boeren, dorpen en perceelnamen. Dat alles wordt door de build gelezen en niets ervan wordt gepubliceerd. Coöperaties worden genoemd omdat het organisaties zijn; een coöperatie met minder dan tien vastgelegde boeren blijft buiten de tabel.',
     navTitle:'Navigatie', navDomestic:'Binnenland', navExport:'Export', navEudr:'EUDR',
     navImpact:'Impact', navProduction:'Productie', navFinance:'Financiën',
     navAgritracker:'Agritracker', navCoffee:'Koffie', navAbout:'Over ons',
@@ -2150,37 +2157,38 @@ function renderNotes(){
 /* ---------- Farmer inspections 2025 ---------- */
 function renderInsTiles(){
   var m = DATA.inspections.meta, b = I(), n = DATA.inspections.notes;
-  var der = n.trees_derived, R = b.records, X = b.inspected;
+  var der = n.trees_derived, R = b.records, C = insCert();
   if (state.tab === 'inspections'){
-    document.getElementById('asOfWindow').textContent =
-      fmtDate(X.date_min) + ' – ' + fmtDate(X.date_max);
+    document.getElementById('asOfWindow').textContent = t('insSeason');
   }
 
   var cells = [
-    /* Coverage: the broad sheet first, because that is how much of the
-       register was actually measured, then the dated subset inside it. */
-    {tone:'tone-s1', icon:'person', label:t('insKpiRecFarmers'), value:fmtInt(R.n_farmers),
-     sub:flat(t('lblOf') + ' ' + fmtInt(b.n_registered) + ' ' + t('insLblRegistered'))},
-    {tone:'tone-s2', icon:'seal', label:t('insKpiRecCoverage'),
-     value:R.coverage === null ? '-' : fmtPct(R.coverage), sub:flat(t('insLblRecCoverageSub'))},
-    {tone:'tone-s3', icon:'plot', label:t('insKpiPlots'), value:fmtInt(R.n_plots),
-     sub:flat(fmtInt(n.records.rows) + ' ' + t('insLblRowsSubmitted'))},
-    {tone:'tone-s4', icon:'book', label:t('insKpiInspected'), value:fmtInt(X.n_farmers),
-     sub:flat(X.share_of_records === null ? '' :
-       fmtPct(X.share_of_records) + ' ' + t('insLblOfRecorded'))},
+    /* The programme first: who is in it, how it sits against the wider
+       register, and what those farmers are certified to. */
+    {tone:'tone-s1', icon:'person', label:t('insKpiEnrolled'), value:fmtInt(b.n_enrolled),
+     sub:flat(m.wider_register
+       ? t('lblOf') + ' ' + fmtInt(m.wider_register) + ' ' + t('insLblOnRegister') : '')},
+    {tone:'tone-s2', icon:'group', label:t('insKpiShareReg'),
+     value:m.wider_register ? fmtPct(b.n_enrolled / m.wider_register) : '-',
+     sub:flat(t('insLblShareRegSub'))},
+    /* Certification is programme-wide whatever district is selected, so the
+       footing says so rather than letting the figure read as this district. */
+    {tone:'tone-s3', icon:'seal', label:t('insKpiRa'),
+     value:C.RA ? fmtInt(C.RA.recorded) : '-',
+     sub:flat(C.RA && C.RA.pct_recorded !== null
+       ? fmtPct(C.RA.pct_recorded) + ' ' + t(isAllDistricts() ? 'insLblOfProgramme' : 'insLblProgrammeWide') : '')},
+    {tone:'tone-s4', icon:'book', label:t('insKpi4c'),
+     value:C['4C'] ? fmtInt(C['4C'].recorded) : '-',
+     sub:flat(C['4C'] && C['4C'].pct_recorded !== null
+       ? fmtPct(C['4C'].pct_recorded) + ' ' + t(isAllDistricts() ? 'insLblOfProgramme' : 'insLblProgrammeWide') : '')},
     {tone:'tone-s5', icon:'group', label:t('insKpiCoops'), value:fmtInt(m.n_cooperatives),
      sub:flat(t('insLblCoopsSub'))},
 
-    /* What was found, from the broad sheet: it is the larger and more
-       representative set, and both sheets carry the same measurements. */
-    {tone:'tone-m1', icon:'bean',
-     label: der ? t('insKpiTreesDerived') : t('insKpiTrees'),
-     value:fmtInt(R.trees.total),
-     sub:flat(der ? t('insLblDerivedAt') + ' ' + fmtInt(der.per_acre) + ' ' + t('insLblPerAcreWord')
-                  : t('insLblOnPlots'))},
-    {tone:'tone-m2', icon:'leaf', label:t('insKpiProd'),
-     value:R.productive_share === null ? '-' : fmtPct(R.productive_share),
-     sub:flat(t('insLblProdSub'))},
+    /* Then the farm data held on those farms, plot by plot. */
+    {tone:'tone-m1', icon:'person', label:t('insKpiRecFarmers'), value:fmtInt(R.n_farmers),
+     sub:flat(t('insLblRecFarmersSub'))},
+    {tone:'tone-m2', icon:'plot', label:t('insKpiPlots'), value:fmtInt(R.n_plots),
+     sub:flat(t('insLblPlotsSub'))},
     {tone:'tone-m3', icon:'plot', label:t('insKpiMedPlot'),
      value:(R.plot_acres.median === null ? '-' : fmtNum(R.plot_acres.median, 2) + ' ' + t('lblAcres')),
      sub:flat(fmtNum(R.plot_acres.total, 0) + ' ' + t('lblAcres') + ' ' + t('insLblTotal'))},
@@ -2190,6 +2198,7 @@ function renderInsTiles(){
     {tone:'tone-m5', icon:'window', label:t('insKpiBags'), value:fmtInt(R.bags.total),
      sub:flat(t('insLblMedian') + ' ' + fmtNum(R.bags.median, 1))}
   ];
+  void der;
   document.getElementById('insTileGrid').innerHTML = cells.map(function(x){
     return '<div class="tile ' + x.tone + '">' + icon(x.icon) +
            '<p class="tile-label">' + x.label + '</p>' +
@@ -2197,66 +2206,35 @@ function renderInsTiles(){
   }).join('');
 }
 
-/* Coverage is the point of this panel, so every district is listed whatever
-   is selected above: a programme officer needs to see which district is
-   behind, not only the one they are filtered to. */
-function renderCoverage(){
-  var blocks = DATA.inspections.districts;
-  var rows = insDistricts().map(function(k){ return {name:k, b:blocks[k]}; })
-    .filter(function(r){ return r.b; })
-    .sort(function(a, b2){ return (b2.b.records.coverage || 0) - (a.b.records.coverage || 0); });
-  var all = blocks.all;
-  rows.push({name:t('districtAllLong'), b:all, total:true});
-
-  /* Two bars per district: how much of the register has a farm record at all,
-     and how much of it carries a dated inspection. Stacking them would read as
-     parts of a whole, which they are not: the inspected farmers are inside the
-     recorded ones, not beside them. */
-  document.getElementById('covList').innerHTML = rows.map(function(r){
-    var rc = r.b.records.coverage || 0, ic = r.b.inspected.coverage || 0;
-    var low = (!r.total && ic < (all.inspected.coverage || 0)) ? ' low' : '';
-    return '<div class="covrow2">' +
-      '<div class="nm">' + esc(r.name) + '</div>' +
-      '<div class="bars">' +
-        '<div class="track"><span style="width:' + (Math.min(rc,1)*100).toFixed(1) + '%"></span></div>' +
-        '<div class="track"><span class="' + low.trim() + '" style="width:' +
-          (Math.min(ic,1)*100).toFixed(1) + '%"></span></div>' +
-      '</div>' +
-      '<div class="val">' + fmtPct(rc) + '<small>' + fmtPct(ic) + '</small></div>' +
-    '</div>';
-  }).join('');
-  document.getElementById('covKey').innerHTML =
-    '<span><i style="background:#11675C"></i>' + esc(t('covKeyRecords')) + '</span>' +
-    '<span><i style="background:#663A18"></i>' + esc(t('covKeyInspected')) + '</span>';
-  document.getElementById('covInsight').innerHTML = t('insCovInsight');
+/* Certification is programme-wide whatever district is selected above, and the
+   panel says so: the correction for values filled during cleaning is counted
+   for the workbook as a whole and cannot be split by district. */
+function renderCertification(){
+  var C = insCert(), n = DATA.inspections.districts.all.n_enrolled;
+  var order = ['RA', '4C', 'C'];
+  var tone = {RA:'#0D4D45', '4C':'#137467', C:'#1C9384'};
+  document.getElementById('certList').innerHTML = order.filter(function(k){ return C[k]; })
+    .map(function(k){
+      var c = C[k], p = c.pct_recorded || 0;
+      return '<div class="certrow">' +
+        '<div class="nm">' + esc(t('certName' + k.replace('4C','4c'))) +
+          '<small>' + esc(t('certSub' + k.replace('4C','4c'))) + '</small></div>' +
+        '<div class="track"><span style="background:' + tone[k] + ';width:' +
+          (Math.min(p,1)*100).toFixed(1) + '%"></span></div>' +
+        '<div class="val">' + fmtPct(p) + '<small>' + fmtInt(c.recorded) + ' ' +
+          esc(t('lblOf')) + ' ' + fmtInt(n) + '</small></div>' +
+      '</div>';
+    }).join('');
+  document.getElementById('certInsight').innerHTML = t('insCertInsight');
 }
 
 function renderInsCharts(){
   var b = I(), R = b.records;
-  var months = b.by_month;
-  mountChart('insMonthChart', {
-    type:'bar',
-    data:{
-      labels: months.map(function(r){ return fmtMonth(r.month); }),
-      datasets:[{
-        data: months.map(function(r){ return r.n; }),
-        backgroundColor: months.map(function(r){
-          return r.month < '2026-01' ? '#663A18' : '#AA6128';
-        }),
-        borderRadius:3, borderSkipped:false, barPercentage:0.72
-      }]
-    },
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{display:false},
-        tooltip:{callbacks:{label:function(x){ return ' ' + fmtInt(x.parsed.y) + ' ' + t('insLblVisits'); }}}},
-      scales:{
-        x:{grid:{display:false}, border:{display:false}, ticks:{maxRotation:0, autoSkip:true}},
-        y:{grid:{color:COLORS.line, borderDash:GRID_DASH}, border:{display:false}, ticks:{precision:0}}
-      }
-    }
-  });
-  document.getElementById('insMonthInsight').innerHTML = t('insMonthInsight');
+  var dists = (b.by_district || []).slice()
+    .sort(function(a, b2){ return b2.n - a.n; })
+    .map(function(r){ return {label:r.district, n:r.n}; });
+  rankBar('insDistChart', dists, RANK_ROAST, sumN(dists));
+  document.getElementById('insDistInsight').innerHTML = t('insDistInsight');
 
   rankBar('insSizeChart', R.size_bands, RANK_TEAL, sumN(R.size_bands));
   document.getElementById('insSizeInsight').innerHTML = t('insSizeInsight');
@@ -2284,7 +2262,7 @@ function renderInsCoops(){
       '<td class="rank">' + (i+1) + '</td>' +
       '<td class="name">' + esc(r.label) + '</td>' +
       '<td class="num">' + fmtInt(r.farmers) + '</td>' +
-      '<td class="num">' + fmtInt(r.inspected) + '</td>' +
+      '<td class="num">' + fmtInt(r.plots) + '</td>' +
       '<td class="num">' + fmtInt(r.trees) + '</td>' +
       '<td class="num">' + fmtInt(r.bags) + '</td>' +
     '</tr>';
@@ -2292,15 +2270,13 @@ function renderInsCoops(){
 }
 
 function renderInsNotes(){
-  var out = [
-    '<div class="callout warn">' + t('insNoteTwoSheets') + '</div>',
-    '<div class="callout warn">' + t('insNoteDup') + '</div>'
-  ];
+  var C = insCert(), out = [];
+  if (C.RA && C.RA.filled_as_yes) out.push('<div class="callout warn">' + t('insNoteFilled') + '</div>');
   if (DATA.inspections.notes.trees_derived){
     out.push('<div class="callout warn">' + t('insNoteDerived') + '</div>');
   }
   out = out.concat([
-    '<div class="callout warn">' + t('insNoteDates') + '</div>',
+    '<div class="callout">' + t('insNoteRecords') + '</div>',
     '<div class="callout">' + t('insNoteImputed') + '</div>',
     '<div class="callout">' + t('insNoteExcluded') + '</div>',
     '<div class="callout">' + t('insNotePrivacy') + '</div>'
@@ -2311,7 +2287,7 @@ function renderInsNotes(){
 function renderTabs(){
   var tabs = [
     {key:'survey', label:t('tabSurvey'), n:DATA.meta.n_respondents},
-    {key:'inspections', label:t('tabInspections'), n:DATA.inspections.meta.n_farmers_records}
+    {key:'inspections', label:t('tabInspections'), n:DATA.inspections.meta.n_enrolled}
   ];
   document.getElementById('projTabs').innerHTML = tabs.map(function(x){
     return '<button class="projtab" role="tab" data-tab="' + x.key + '" aria-selected="' +
@@ -2340,7 +2316,7 @@ function renderAll(){
   renderCoops();
   renderNotes();
   renderInsTiles();
-  renderCoverage();
+  renderCertification();
   renderInsCharts();
   renderInsCoops();
   renderInsNotes();
