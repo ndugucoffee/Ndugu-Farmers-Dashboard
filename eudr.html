@@ -940,10 +940,10 @@
           <span class="crumb" id="mapCrumb">-</span>
           <span class="mapstat" id="mapStat">-</span>
         </div>
-        <div class="mapwrap" id="mapWrap">
+        <div class="mapwrap sat" id="mapWrap">
           <div class="mapmode" id="mapMode" role="group" aria-label="Basemap">
-            <button type="button" data-mode="sat" aria-pressed="false" data-i18n="mapModeSat">Satellite</button>
-            <button type="button" data-mode="plain" aria-pressed="true" data-i18n="mapModePlain">Plain</button>
+            <button type="button" data-mode="sat" aria-pressed="true" data-i18n="mapModeSat">Satellite</button>
+            <button type="button" data-mode="plain" aria-pressed="false" data-i18n="mapModePlain">Plain</button>
           </div>
           <div class="mapload" id="mapLoad" hidden>-</div>
           <div class="maptip" id="mapTip"></div>
@@ -1771,15 +1771,19 @@ function applyStaticI18n(){
    geometry rather than a raster, so it stays sharp at any magnification. */
 var MAP = {
   level:'districts', district:null, plots:null, cache:{},
-  map:null, tiles:null, layer:null, shapes:null, home:null, mode:'plain'
+  map:null, tiles:null, layer:null, shapes:null, home:null, mode:'sat'
 };
 /* Sequential ramp, light to dark, for a magnitude (plot size). One hue: a
    categorical palette here would imply the bands are unordered, which they are
-   not. Provisional plots carry a dashed outline as a second encoding, so they
-   are distinguishable without relying on colour. */
+   not. It runs down to the dashboard green, so the darkest plot on this map is
+   the same colour as the darkest bar everywhere else. Steps were picked on
+   relative luminance rather than by eye, which is why the light end is spaced
+   wider than the dark: equal hex steps are not equal visual steps. Provisional
+   plots carry a dashed outline as a second encoding, so they are
+   distinguishable without relying on colour. */
 var BAND_FILL = {
-  under_half:'#F0DCC4', half1:'#D3A878', '1to2':'#A97244',
-  '2to4':'#7B4A24', over4:'#4A2A11'
+  under_half:'#C7DED7', half1:'#93C2B7', '1to2':'#579C8E',
+  '2to4':'#27756A', over4:'#0D4D45'
 };
 var BAND_ORDER = ['under_half','half1','1to2','2to4','over4'];
 
