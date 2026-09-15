@@ -924,7 +924,7 @@ var GRID_DASH = [2, 3];
 var CHART_FONT = '"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif';
 var COLORS = {
   roast:'#7B4A24', roastDeep:'#43260F', roastLight:'#A97244', roastWash:'#F4E6D5',
-  leaf:'#4E7C2E', leafLight:'#7FA84A', leafWash:'#E9F1DD',
+  darkGreen:'#0D4D45', leaf:'#4E7C2E', leafLight:'#7FA84A', leafWash:'#E9F1DD',
   cherry:'#B23A1E', cherryWash:'#F9E3D9',
   honey:'#D2911F', honeyWash:'#FBEED4',
   teal:'#2C7A83', olive:'#8C9A3B', clay:'#9C5230',
@@ -1433,7 +1433,7 @@ function proj(lat,lon){
     y: (LAT_MAX-lat)/(LAT_MAX-LAT_MIN)*MAP_H
   };
 }
-var DISTRICT_COLOR_ORDER = [COLORS.roast, COLORS.cherry, COLORS.leaf, COLORS.honey, COLORS.teal, COLORS.olive, COLORS.clay, COLORS.roastLight];
+var DISTRICT_COLOR_ORDER = [COLORS.roast, COLORS.cherry, COLORS.leaf, COLORS.honey, COLORS.teal, COLORS.darkGreen, COLORS.clay, COLORS.roastLight];
 var districtColorMap = {};
 
 // "Emerging" (registered but never active) is an ALL-TIME property of a district, e.g. Kiboga.
