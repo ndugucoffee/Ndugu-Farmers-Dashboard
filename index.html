@@ -3,9 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="icon" href="favicon.ico" sizes="16x16 32x32" type="image/x-icon">
-<link rel="apple-touch-icon" href="favicon.svg">
 <title>Ndugu Farmers Ltd | Sourcing &amp; Operations</title>
 <!-- No webfont is loaded. Power BI's typeface is Segoe UI, which Microsoft
      licenses with Windows and does not publish to Google Fonts, so it cannot
@@ -540,14 +537,14 @@
 
 <nav class="sidenav" aria-label="Dashboards">
   <p class="sidenav-title" data-i18n="navTitle">Navigation</p>
-  <a class="navbtn" href="index.html"       aria-current="page" data-i18n="navDomestic">Domestic</a>
-  <a class="navbtn" href="export.html"      data-i18n="navExport">Export</a>
-  <a class="navbtn" href="eudr.html"        data-i18n="navEudr">EUDR</a>
-  <a class="navbtn" href="impact.html"      data-i18n="navImpact">Impact</a>
+  <a class="navbtn" href="index.html"       aria-current="page" data-i18n="navDomestic">Domestic Trade</a>
+  <a class="navbtn" href="export.html"      data-i18n="navExport">Ndugu Export</a>
+  <a class="navbtn" href="eudr.html"        data-i18n="navEudr">EUDR Compliance</a>
+  <a class="navbtn" href="impact.html"      data-i18n="navImpact">Impact Projects</a>
   <a class="navbtn" href="production.html"  data-i18n="navProduction">Production</a>
-  <a class="navbtn" href="finance.html"     data-i18n="navFinance">Finance</a>
+  <a class="navbtn" href="finance.html"     data-i18n="navFinance">Financial Services</a>
   <a class="navbtn" href="agritracker.html" data-i18n="navAgritracker">Agritracker</a>
-  <a class="navbtn" href="coffee.html"      data-i18n="navCoffee">Coffee</a>
+  <a class="navbtn" href="coffee.html"      data-i18n="navCoffee">Coffee Minds</a>
   <a class="navbtn" href="about.html"       data-i18n="navAbout">About us</a>
 </nav>
 
@@ -924,7 +921,7 @@ var GRID_DASH = [2, 3];
 var CHART_FONT = '"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif';
 var COLORS = {
   roast:'#7B4A24', roastDeep:'#43260F', roastLight:'#A97244', roastWash:'#F4E6D5',
-  darkGreen:'#0D4D45', leaf:'#4E7C2E', leafLight:'#7FA84A', leafWash:'#E9F1DD',
+  leaf:'#4E7C2E', leafLight:'#7FA84A', leafWash:'#E9F1DD',
   cherry:'#B23A1E', cherryWash:'#F9E3D9',
   honey:'#D2911F', honeyWash:'#FBEED4',
   teal:'#2C7A83', olive:'#8C9A3B', clay:'#9C5230',
@@ -1026,9 +1023,9 @@ var STR = {
 en:{
   docTitle:'Ndugu Farmers Ltd | Sourcing & Operations',
   navTitle:'Navigation',
-  navDomestic:'Domestic', navExport:'Export', navEudr:'EUDR', navImpact:'Impact',
-  navProduction:'Production', navFinance:'Finance', navAgritracker:'Agritracker',
-  navCoffee:'Coffee', navAbout:'About us',
+  navDomestic:'Domestic Trade', navExport:'Ndugu Export', navEudr:'EUDR Compliance', navImpact:'Impact Projects',
+  navProduction:'Production', navFinance:'Financial Services', navAgritracker:'Agritracker',
+  navCoffee:'Coffee Minds', navAbout:'About us',
   brandRole:'Sourcing & operations',
   asofLabel:'Data through',
   heroH1:"Greater Masaka's coffee, tracked from farm gate to export.",
@@ -1094,10 +1091,10 @@ en:{
 },
 nl:{
   docTitle:'Ndugu Farmers Ltd | Inkoop & operaties',
-  navTitle:'Navigatie',
-  navDomestic:'Binnenland', navExport:'Export', navImpact:'Impact',
-  navProduction:'Productie', navFinance:'Financiën', navAgritracker:'Agritracker',
-  navCoffee:'Koffie', navAbout:'Over ons',
+  navTitle:'Navigatie', navEudr:'EUDR-naleving',
+  navDomestic:'Binnenlandse handel', navExport:'Ndugu Export', navImpact:'Impactprojecten',
+  navProduction:'Productie', navFinance:'Financiële diensten', navAgritracker:'Agritracker',
+  navCoffee:'Coffee Minds', navAbout:'Over ons',
   brandRole:'Inkoop &amp; operaties',
   asofLabel:'Gegevens tot',
   heroH1:'Koffie uit Groot-Masaka, gevolgd van boerderij tot export.',
@@ -1433,7 +1430,7 @@ function proj(lat,lon){
     y: (LAT_MAX-lat)/(LAT_MAX-LAT_MIN)*MAP_H
   };
 }
-var DISTRICT_COLOR_ORDER = [COLORS.roast, COLORS.cherry, COLORS.leaf, COLORS.honey, COLORS.teal, COLORS.darkGreen, COLORS.clay, COLORS.roastLight];
+var DISTRICT_COLOR_ORDER = [COLORS.roast, COLORS.cherry, COLORS.leaf, COLORS.honey, COLORS.teal, COLORS.olive, COLORS.clay, COLORS.roastLight];
 var districtColorMap = {};
 
 // "Emerging" (registered but never active) is an ALL-TIME property of a district, e.g. Kiboga.
