@@ -489,8 +489,7 @@
     background:var(--roast-deep); color:#BFA98F;
     border-top:4px solid var(--roast);
   }
-  footer .fgrid{display:grid; grid-template-columns:2fr 1fr; gap:40px;}
-  @media (max-width:780px){ footer .fgrid{grid-template-columns:1fr;} }
+  footer .fgrid{display:grid; grid-template-columns:1fr; gap:40px;}
   footer h4{font-size:12.5px; color:#F0DFC7; font-weight:600; margin:0 0 8px 0; letter-spacing:0.02em;}
 
   .vis-hidden{display:none !important;}
@@ -939,10 +938,6 @@
 
 <footer>
   <div class="shell fgrid">
-    <div>
-      <h4 data-i18n="footerAboutH">About this data</h4>
-      <p id="footerAboutP">-</p>
-    </div>
     <div>
       <h4 data-i18n="footerDefH">Definitions</h4>
       <p data-i18n="footerDefP">-</p>
@@ -1403,7 +1398,6 @@ var I18N = {
     secFlowTag:'Volume reconciliation and data notes',
     flow1:'Bought in, FAQ', flow2:'Bought in, already graded',
     flow3:'Total intake', flow3sub:'before grading losses', flow4:'Shipped',
-    footerAboutH:'About this data',
     footerDefH:'Definitions',
     footerDefP:'FAQ: Fair Average Quality, the ungraded green coffee bought from suppliers. Screen: bean size measured over a perforated sieve, so screen 18 is a larger bean than screen 12. Lot: a graded, bulked consignment shipped against one contract. Net delivered: weight after moisture and foreign-matter deductions. Invoiced: the value billed against a lot. Collected: the value received against it.',
     lblLots:'lots', lblDeliveries:'deliveries', lblVolume:'Volume',
@@ -1429,16 +1423,6 @@ var I18N = {
     },
     suppFoot:function(f){
       return 'Top 10 of ' + f.suppliers + ' suppliers, by net weight delivered within the season.';
-    },
-    aboutP:function(f){
-      return 'Covers ' + f.season + ' as recorded in the combined export workbook, rebuilt on ' +
-        f.generated + '. Purchase dates run ' + f.firstBuy + ' to ' + f.lastBuy +
-        ' and shipment dates ' + f.firstShip + ' to ' + f.lastShip +
-        '. Volumes are net of moisture and foreign-matter deductions. Export revenue is the ' +
-        'value invoiced against the season’s lots. USD figures use each lot’s recorded ' +
-        'exchange rate where the workbook holds one, and an indicative ' + f.fx +
-        ' UGX per USD otherwise. Supplier references are ranks within the season. Every figure ' +
-        'on this page is computed from the workbook at page load.';
     },
     noteSettle:function(f){
       return 'Collection: ' + f.settled + ' of the value invoiced has been received, across the ' +
@@ -1568,7 +1552,6 @@ var I18N = {
     secFlowTag:'Volumeaansluiting en aantekeningen bij de data',
     flow1:'Ingekocht, FAQ', flow2:'Ingekocht, al gesorteerd',
     flow3:'Totale inkoop', flow3sub:'vóór sorteerverlies', flow4:'Verscheept',
-    footerAboutH:'Over deze gegevens',
     footerDefH:'Definities',
     footerDefP:'FAQ: Fair Average Quality, de ongesorteerde groene koffie die van leveranciers wordt gekocht. Screen: boongrootte gemeten over een geperforeerde zeef, dus screen 18 is een grotere boon dan screen 12. Partij: een gesorteerde, gebulkte zending onder één contract. Netto geleverd: gewicht na aftrek voor vocht en vreemde bestanddelen. Gefactureerd: de waarde die voor een partij in rekening is gebracht. Ontvangen: de waarde die daarvoor is binnengekomen.',
     lblLots:'partijen', lblDeliveries:'leveringen', lblVolume:'Volume',
@@ -1595,17 +1578,6 @@ var I18N = {
     },
     suppFoot:function(f){
       return 'Top 10 van ' + f.suppliers + ' leveranciers, naar netto geleverd gewicht binnen het seizoen.';
-    },
-    aboutP:function(f){
-      return 'Betreft ' + f.season + ' zoals vastgelegd in het gecombineerde exportbestand, ' +
-        'opnieuw opgebouwd op ' + f.generated + '. De inkoopdata lopen van ' + f.firstBuy +
-        ' tot ' + f.lastBuy + ' en de verschepingsdata van ' + f.firstShip + ' tot ' + f.lastShip +
-        '. Volumes zijn netto na aftrek voor vocht en vreemde bestanddelen. De exportomzet is de ' +
-        'waarde die voor de partijen van het seizoen in rekening is gebracht. USD-bedragen ' +
-        'gebruiken de bij de partij vastgelegde wisselkoers waar het bestand die heeft, en anders ' +
-        'een indicatieve ' + f.fx + ' UGX per USD. Leverancierscodes zijn rangnummers binnen het ' +
-        'seizoen. Elk cijfer op deze pagina wordt bij het laden van de pagina uit het bronbestand ' +
-        'berekend.';
     },
     noteSettle:function(f){
       return 'Ontvangsten: ' + f.settled + ' van de gefactureerde waarde is binnengekomen, over de ' +
@@ -2135,7 +2107,6 @@ function renderAll(){
   computeFacts();
   applyStaticI18n();
   renderSeasonPills();
-  document.getElementById('footerAboutP').textContent = t('aboutP');
   renderTiles();
   renderIntakeQuality();
   renderSuppliers();

@@ -489,8 +489,7 @@
     background:var(--roast-deep); color:#BFA98F;
     border-top:4px solid var(--roast);
   }
-  footer .fgrid{display:grid; grid-template-columns:2fr 1fr; gap:40px;}
-  @media (max-width:780px){ footer .fgrid{grid-template-columns:1fr;} }
+  footer .fgrid{display:grid; grid-template-columns:1fr; gap:40px;}
   footer h4{font-size:12.5px; color:#F0DFC7; font-weight:600; margin:0 0 8px 0; letter-spacing:0.02em;}
 
   .vis-hidden{display:none !important;}
@@ -1024,10 +1023,6 @@
 <footer>
   <div class="shell fgrid">
     <div>
-      <h4 data-i18n="footerAboutH">About this data</h4>
-      <p id="footerAboutP">-</p>
-    </div>
-    <div>
       <h4 data-i18n="footerDefH">Definitions</h4>
       <p data-i18n="footerDefP">-</p>
     </div>
@@ -1372,13 +1367,6 @@ var I18N = {
   en: {
     asofLabelIns:'Season',
     insSeason:'2025',
-    insAboutP:function(f){
-      return 'The certified farm programme for 2025: ' + f.insEnrolled + ' farmers enrolled out ' +
-        'of the ' + f.insRegister + ' on the Ndugu register, rebuilt on ' + f.generated +
-        '. One record is one plot, taken as the median of the rows submitted for it. Land is ' +
-        'recorded and shown in acres, not converted. National ID numbers, farmer names, ' +
-        'villages and plot names are read by the build and are not published in any form.';
-    },
     tabSurvey:'Macadamia and beekeeping baseline',
     tabInspections:'Farmer inspections 2025',
     lblTo:'to',
@@ -1551,7 +1539,6 @@ var I18N = {
     secNotesP:'Read these before quoting a figure from this page.',
     secNotesTag:'Data notes',
     lblSurveys:'surveys',
-    footerAboutH:'About this data',
     footerDefH:'Definitions',
     footerDefP:'Baseline survey: a measurement taken before a programme starts, describing the starting position rather than any result. Agroforestry: growing trees alongside crops on the same land. Respondents: the farmers who answered, which for most questions is fewer than the full sample. Share: a count against the number who answered that question, not against everyone surveyed. Land is recorded and shown in acres.',
     insAgro:function(f){
@@ -1570,14 +1557,6 @@ var I18N = {
       return 'Planting is mostly shared (' + f.famPlants + ' all family members), but ownership and ' +
         'sale rights concentrate: men hold ' + f.manOwns + ' of ownership and ' + f.manSells +
         ' of the right to harvest or sell, against ' + f.womanSells + ' for women.';
-    },
-    aboutP:function(f){
-      return 'A baseline survey of ' + f.n + ' coffee farmers run ' + f.from + ' to ' + f.to +
-        ', rebuilt on ' + f.generated + '. It records what farmers already do and what they say ' +
-        'they would need, before either project began, so no figure here is an outcome. Shares ' +
-        'are counted against the number who answered each question. Land is recorded and shown in acres, ' +
-        'not converted. Respondent names, phone numbers, register codes and free-text answers are ' +
-        'read by the build and are not published in any form.';
     },
     noteBaseline:'This is a baseline, not a result. The survey was run before either project started, so every figure describes the starting position. Nothing on this page measures what the programme has achieved, because at the time of asking it had not yet done anything.',
     noteNoVariance:function(f){
@@ -1604,14 +1583,6 @@ var I18N = {
   nl: {
     asofLabelIns:'Seizoen',
     insSeason:'2025',
-    insAboutP:function(f){
-      return 'Het gecertificeerde bedrijfsprogramma voor 2025: ' + f.insEnrolled + ' boeren ' +
-        'ingeschreven van de ' + f.insRegister + ' op het Ndugu-register, opnieuw opgebouwd op ' +
-        f.generated + '. Eén record is één perceel, genomen als de mediaan van de daarvoor ' +
-        'ingediende regels. Land is vastgelegd en weergegeven in acres, niet omgerekend. ' +
-        'Nationale identiteitsnummers, namen van boeren, dorpen en perceelnamen worden door de ' +
-        'build gelezen en in geen enkele vorm gepubliceerd.';
-    },
     tabSurvey:'Nulmeting macadamia en bijenteelt',
     tabInspections:'Boerderij-inspecties 2025',
     lblTo:'tot',
@@ -1786,7 +1757,6 @@ var I18N = {
     secNotesP:'Lees deze punten voordat u een cijfer van deze pagina citeert.',
     secNotesTag:'Aantekeningen bij de data',
     lblSurveys:'enquêtes',
-    footerAboutH:'Over deze gegevens',
     footerDefH:'Definities',
     footerDefP:'Nulmeting: een meting vóór de start van een programma, die de uitgangssituatie beschrijft en geen resultaat. Agroforestry: bomen telen naast gewassen op hetzelfde land. Respondenten: de boeren die antwoordden, bij de meeste vragen minder dan de volledige steekproef. Aandeel: een telling ten opzichte van het aantal dat die vraag beantwoordde, niet ten opzichte van iedereen. Land is vastgelegd en weergegeven in acres.',
     insAgro:function(f){
@@ -1806,15 +1776,6 @@ var I18N = {
         'en verkooprechten concentreren zich: mannen hebben ' + f.manOwns + ' van het eigendom en ' +
         f.manSells + ' van het recht te oogsten of te verkopen, tegenover ' + f.womanSells +
         ' voor vrouwen.';
-    },
-    aboutP:function(f){
-      return 'Een nulmeting onder ' + f.n + ' koffieboeren, afgenomen van ' + f.from + ' tot ' +
-        f.to + ' en opnieuw opgebouwd op ' + f.generated + '. Zij legt vast wat boeren nu al doen ' +
-        'en wat zij zeggen nodig te hebben, vóór de start van beide projecten, dus geen enkel ' +
-        'cijfer hier is een resultaat. Aandelen worden berekend ten opzichte van het aantal dat ' +
-        'elke vraag beantwoordde. Land is vastgelegd en weergegeven in acres, niet omgerekend. ' +
-        'Namen, telefoonnummers, registercodes en vrije-tekstantwoorden worden door de build ' +
-        'gelezen en in geen enkele vorm gepubliceerd.';
     },
     noteBaseline:'Dit is een nulmeting, geen resultaat. De enquête is afgenomen voordat beide projecten begonnen, dus elk cijfer beschrijft de uitgangssituatie. Niets op deze pagina meet wat het programma heeft bereikt, omdat het op het moment van vragen nog niets had gedaan.',
     noteNoVariance:function(f){
@@ -2200,8 +2161,6 @@ function renderAll(){
   renderPills();
   document.getElementById('asOfLabel').textContent =
     (state.tab === 'inspections') ? t('asofLabelIns') : t('asofLabel');
-  document.getElementById('footerAboutP').textContent =
-    (state.tab === 'inspections') ? t('insAboutP') : t('aboutP');
   renderTiles();
   renderCohort();
   renderFarms();

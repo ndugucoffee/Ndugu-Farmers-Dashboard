@@ -495,8 +495,7 @@
     background:var(--roast-deep); color:#BFA98F;
     border-top:4px solid var(--roast);
   }
-  footer .fgrid{display:grid; grid-template-columns:2fr 1fr; gap:40px;}
-  @media (max-width:780px){ footer .fgrid{grid-template-columns:1fr;} }
+  footer .fgrid{display:grid; grid-template-columns:1fr; gap:40px;}
   footer h4{font-size:12.5px; color:#F0DFC7; font-weight:600; margin:0 0 8px 0; letter-spacing:0.02em;}
 
   .vis-hidden{display:none !important;}
@@ -769,10 +768,6 @@
 
 <footer>
   <div class="shell fgrid">
-    <div>
-      <h4 data-i18n="footerAboutH">About this data</h4>
-      <p data-i18n="footerAboutP">Covers transactions from 9 May 2024 through 25 Aug 2026. "Season" follows Ndugu's coffee-year convention rather than the calendar year, so a season typically runs from one year's harvest into the next. District is taken from each farmer's registered location. The map plots farmers whose registered coordinates fall inside the mapped area; records without a usable coordinate are included in every total but are not plotted. Age bands are derived from recorded dates of birth and exclude records where that date falls outside a plausible range. USD figures use an indicative rate of about 3,777 UGX per USD and are not a live conversion. Every chart and total on this page is computed over the complete dataset of 21,734 transactions.</p>
-    </div>
     <div>
       <h4 data-i18n="footerDefH">Definitions</h4>
       <p data-i18n="footerDefP">FAQ: Fair Average Quality. Certification: Rainforest Alliance, Fairtrade and 4C. Active supplier: a registered farmer with at least one recorded delivery in this window. Batch: a bulked, graded lot dispatched to a buyer.</p>
@@ -1072,8 +1067,6 @@ en:{
   leaderTitle:'Top suppliers, all-time',
   leaderTag:function(n,total){ return 'Top '+n+' of '+total+' active suppliers'; },
   thRank:'#', thFarmer:'Farmer code', thDistrictVillage:'District / village', thDeliveries:'Deliveries', thVolume:'Volume',
-  footerAboutH:'About this data',
-  footerAboutP:function(f){ return 'Covers transactions from '+f.dateMinHuman+' through '+f.dateMaxHuman+'. "Season" follows Ndugu\'s coffee-year convention rather than the calendar year, so a season typically runs from one year\'s harvest into the next. District is taken from each farmer\'s registered location. The map plots farmers whose registered coordinates fall inside the mapped area; records without a usable coordinate are included in every total but are not plotted. Age bands are derived from recorded dates of birth and exclude records where that date falls outside a plausible range. USD figures use an indicative rate of about '+fmtInt(f.fx)+' UGX per USD and are not a live conversion. Every chart and total on this page is computed over the complete dataset of '+fmtInt(f.transactions)+' transactions, rebuilt from source on '+f.generated+'.'; },
   footerDefH:'Definitions',
   footerDefP:'FAQ: Fair Average Quality. Certification: Rainforest Alliance, Fairtrade and 4C. Active supplier: a registered farmer with at least one recorded delivery in this window. Batch: a bulked, graded lot dispatched to a buyer.',
   kpiPerSupplier:'Avg per supplier', kpiPerSupplierSub:'delivered per active farmer', kpiValue:'Value paid to farmers', kpiActive:'Active suppliers',
@@ -1141,8 +1134,6 @@ nl:{
   leaderTitle:'Grootste leveranciers, aller tijden',
   leaderTag:function(n,total){ return 'Top '+n+' van '+total+' actieve leveranciers'; },
   thRank:'#', thFarmer:'Boerencode', thDistrictVillage:'District / dorp', thDeliveries:'Leveringen', thVolume:'Volume',
-  footerAboutH:'Over deze gegevens',
-  footerAboutP:function(f){ return 'Omvat transacties van '+f.dateMinHuman+' tot en met '+f.dateMaxHuman+'. "Seizoen" volgt Ndugu\'s koffiejaar-conventie in plaats van het kalenderjaar, dus een seizoen loopt doorgaans van de ene oogst tot in de volgende. Het district komt uit de geregistreerde locatie van elke boer. De kaart toont boeren met geregistreerde coördinaten binnen het kaartgebied; records zonder bruikbare coördinaat tellen mee in alle totalen maar worden niet geplot. Leeftijdsgroepen zijn afgeleid van geregistreerde geboortedata en sluiten records uit waarvan die datum buiten een plausibel bereik valt. USD-bedragen gebruiken een indicatieve koers van ongeveer '+fmtInt(f.fx)+' UGX per USD en zijn geen live omrekening. Elke grafiek en elk totaal op deze pagina is berekend over de volledige dataset van '+fmtInt(f.transactions)+' transacties, opnieuw opgebouwd op '+f.generated+'.'; },
   footerDefH:'Definities',
   footerDefP:'FAQ: Fair Average Quality. Certificering: Rainforest Alliance, Fairtrade en 4C. Actieve leverancier: een geregistreerde boer met minstens één geregistreerde levering in deze periode. Partij: een gebundelde, gesorteerde lading verzonden naar een koper.',
   kpiPerSupplier:'Gem. per leverancier', kpiPerSupplierSub:'geleverd per actieve boer', kpiValue:'Uitbetaald aan boeren', kpiActive:'Actieve leveranciers',

@@ -491,8 +491,7 @@
     background:var(--roast-deep); color:#BFA98F;
     border-top:4px solid var(--roast);
   }
-  footer .fgrid{display:grid; grid-template-columns:2fr 1fr; gap:40px;}
-  @media (max-width:780px){ footer .fgrid{grid-template-columns:1fr;} }
+  footer .fgrid{display:grid; grid-template-columns:1fr; gap:40px;}
   footer h4{font-size:12.5px; color:#F0DFC7; font-weight:600; margin:0 0 8px 0; letter-spacing:0.02em;}
 
   .vis-hidden{display:none !important;}
@@ -1038,10 +1037,6 @@
 <footer>
   <div class="shell fgrid">
     <div>
-      <h4 data-i18n="footerAboutH">About this data</h4>
-      <p id="footerAboutP">-</p>
-    </div>
-    <div>
       <h4 data-i18n="footerDefH">Definitions</h4>
       <p data-i18n="footerDefP">EUDR: Regulation (EU) 2023/1115 on deforestation-free products, as amended. Operator: the party first placing goods on the EU market. DDS: the due diligence statement an operator files before placing a consignment. Plot: a single parcel of land on which the coffee was produced. Polygon: the traced perimeter of a plot, as opposed to a single point inside it.</p>
     </div>
@@ -1449,7 +1444,7 @@ var I18N = {
         'field visits than in a second round.';
     },
     secOtherTag:'Beyond the coordinate itself',
-    footerAboutH:'About this data', footerDefH:'Definitions',
+    footerDefH:'Definitions',
     footerDefP:'EUDR: Regulation (EU) 2023/1115 on deforestation-free products, as amended. Operator: the party first placing goods on the EU market. DDS: the due diligence statement an operator files before placing a consignment. Plot: a single parcel of land on which the coffee was produced. Polygon: the traced perimeter of a plot, as opposed to a single point inside it.',
     gapShort:{
       ready_polygon:'Boundary walked', ready_point:'Point on file',
@@ -1518,18 +1513,6 @@ var I18N = {
         'separate round. A farmer whose perimeter is being walked can have their plots ' +
         'separated, their parish recorded and their acreage checked in the same visit.';
     },
-    aboutP:function(f){
-      return 'Assessed on ' + f.generated + ' against ' + f.regulation +
-        '. Covers all ' + f.farmers + ' registered farmers and the ' + f.total +
-        ' recorded against them. A farmer counts as meeting the standard when their ' +
-        'coordinates fall inside Uganda, carry at least ' + f.decimals +
-        ' decimal digits, and their holding is at or below ' + f.ha +
-        ' ha so that a point is accepted in place of a polygon. Deforestation status ' +
-        'itself is not assessed here: that is checked against satellite records once ' +
-        'the geolocation exists, and the geolocation is the gap. This page publishes ' +
-        'counts and volumes only. No farmer name, identifier, contact detail or ' +
-        'coordinate is included, and the build fails rather than publish one.';
-    }
   },
   nl: {
     navTitle:'Navigatie', navDomestic:'Binnenlandse handel', navExport:'Ndugu Export',
@@ -1653,7 +1636,7 @@ var I18N = {
         'veldbezoeken dan in een tweede ronde.';
     },
     secOtherTag:'Verder dan de coördinaat zelf',
-    footerAboutH:'Over deze gegevens', footerDefH:'Definities',
+    footerDefH:'Definities',
     footerDefP:'EUDR: Verordening (EU) 2023/1115 inzake ontbossingsvrije producten, zoals gewijzigd. Marktdeelnemer: de partij die de goederen als eerste op de EU-markt brengt. DDS: de zorgvuldigheidsverklaring die een marktdeelnemer indient voordat hij een zending op de markt brengt. Perceel: één stuk land waarop de koffie is geproduceerd. Polygoon: de uitgezette omtrek van een perceel, in plaats van één punt daarbinnen.',
     gapShort:{
       ready_polygon:'Grens ingemeten', ready_point:'Punt vastgelegd',
@@ -1725,18 +1708,6 @@ var I18N = {
         'kunnen in hetzelfde bezoek de percelen worden gesplitst, de parish worden ' +
         'vastgelegd en de oppervlakte worden gecontroleerd.';
     },
-    aboutP:function(f){
-      return 'Beoordeeld op ' + f.generated + ' aan de hand van ' + f.regulation +
-        '. Betreft alle ' + f.farmers + ' geregistreerde boeren en de ' + f.total +
-        ' die op hen is geregistreerd. Een boer voldoet aan de norm wanneer de coördinaten ' +
-        'binnen Oeganda vallen, minimaal ' + f.decimals + ' decimalen hebben, en het bedrijf ' +
-        'niet groter is dan ' + f.ha + ' ha, zodat een punt in plaats van een polygoon wordt ' +
-        'geaccepteerd. De ontbossingsstatus zelf wordt hier niet beoordeeld: die wordt tegen ' +
-        'satellietgegevens gecontroleerd zodra de geolocatie bestaat, en juist de geolocatie ' +
-        'is het gat. Deze pagina publiceert alleen aantallen en volumes. Geen enkele naam, ' +
-        'identificatie, contactgegeven of coördinaat van een boer is opgenomen, en de build ' +
-        'faalt liever dan er een te publiceren.';
-    }
   }
 };
 function t(key){
@@ -2386,7 +2357,6 @@ function renderAll(){
   paintTileIcons();
   computeFacts();
   applyStaticI18n();
-  document.getElementById('footerAboutP').textContent = t('aboutP');
   renderHeader();
   renderGap();
   renderCurve();
