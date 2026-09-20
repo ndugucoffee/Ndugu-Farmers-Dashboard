@@ -375,7 +375,16 @@
   .panel-note{font-size:12.5px; color:var(--ink-faint); margin:0 0 8px 0; min-height:1.5em;}
 
   /* ---------- Map section ---------- */
-  .map-panel{position:relative; display:flex; flex-direction:column;}
+  /* The map used to be the one section on the page with no card chrome —
+     every other panel, including the district ledger it sits beside, has a
+     border, a surface fill and a shadow. Giving it the same .panel treatment
+     plus its own title/note (matching the ledger's head) is what makes the
+     row read as two matching cards instead of a list beside a bare drawing. */
+  .map-panel{
+    position:relative; display:flex; flex-direction:column; min-width:0;
+    border:1px solid var(--line-strong); border-radius:var(--radius-md);
+    background:var(--surface); padding:14px; box-shadow:var(--shadow-panel);
+  }
   /* The row used to be 899px tall, and not because of the map: the district
      ledger's eleven rows stood 678px and align-items:stretch pulled the map up
      to match. So the ledger now scrolls at a fixed height and the map is given
@@ -386,11 +395,14 @@
      map letterboxes, sitting small between two bands of empty background. So
      the row was rebalanced from 7/5 to 6/6 at the same time: at 470 tall the
      map draws about 450 wide, which a 6-column track fits with far less waste
-     than a 7-column one (124px of dead space per side became 73). */
+     than a 7-column one (124px of dead space per side became 73). The card's
+     own padding now owns part of that margin, so what's left reads as a
+     frame around the map rather than empty canvas. */
   .map-svg-wrap{
     position:relative; width:100%; flex:0 0 auto; height:420px;
     border-radius:var(--radius-sm); overflow:hidden;
-    background:linear-gradient(180deg,#F7EFE1 0%,#EFE3D0 100%);
+    background:linear-gradient(180deg,var(--surface) 0%,var(--surface-sunk) 100%);
+    border:1px solid var(--line);
   }
   @media (max-width:980px){ .map-svg-wrap{min-height:340px;} }
   .map-svg-wrap svg{width:100%; height:100%; display:block;}

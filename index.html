@@ -379,7 +379,16 @@
   .panel-note{font-size:12.5px; color:var(--ink-faint); margin:0 0 8px 0; min-height:1.5em;}
 
   /* ---------- Map section ---------- */
-  .map-panel{position:relative; display:flex; flex-direction:column;}
+  /* The map used to be the one section on the page with no card chrome —
+     every other panel, including the district ledger it sits beside, has a
+     border, a surface fill and a shadow. Giving it the same .panel treatment
+     plus its own title/note (matching the ledger's head) is what makes the
+     row read as two matching cards instead of a list beside a bare drawing. */
+  .map-panel{
+    position:relative; display:flex; flex-direction:column; min-width:0;
+    border:1px solid var(--line-strong); border-radius:var(--radius-md);
+    background:var(--surface); padding:14px; box-shadow:var(--shadow-panel);
+  }
   /* The row used to be 899px tall, and not because of the map: the district
      ledger's eleven rows stood 678px and align-items:stretch pulled the map up
      to match. So the ledger now scrolls at a fixed height and the map is given
@@ -390,11 +399,14 @@
      map letterboxes, sitting small between two bands of empty background. So
      the row was rebalanced from 7/5 to 6/6 at the same time: at 470 tall the
      map draws about 450 wide, which a 6-column track fits with far less waste
-     than a 7-column one (124px of dead space per side became 73). */
+     than a 7-column one (124px of dead space per side became 73). The card's
+     own padding now owns part of that margin, so what's left reads as a
+     frame around the map rather than empty canvas. */
   .map-svg-wrap{
     position:relative; width:100%; flex:0 0 auto; height:420px;
     border-radius:var(--radius-sm); overflow:hidden;
-    background:linear-gradient(180deg,#F7EFE1 0%,#EFE3D0 100%);
+    background:linear-gradient(180deg,var(--surface) 0%,var(--surface-sunk) 100%);
+    border:1px solid var(--line);
   }
   @media (max-width:980px){ .map-svg-wrap{min-height:340px;} }
   .map-svg-wrap svg{width:100%; height:100%; display:block;}
@@ -730,6 +742,8 @@
     </div>
     <div class="grid">
       <div class="map-panel col-6">
+        <div class="panel-title" data-i18n="mapPanelTitle">Farmer density by district</div>
+        <div class="panel-note" data-i18n="mapPanelNote">Bubble size tracks active volume</div>
         <div class="map-svg-wrap" id="mapSvgWrap">
           <div class="map-tooltip" id="mapTooltip"></div>
         </div>
@@ -1101,6 +1115,7 @@ en:{
   mapH2:'Area of operation',
   mapP:'Click a district for its detail.',
   mapTagAll:'Showing all districts',
+  mapPanelTitle:'Farmer density by district', mapPanelNote:'Bubble size tracks active volume',
   legendActive:'Active sourcing (bubble size = volume)',
   legendRegistered:'Registered, not yet active',
   legendFarmer:'Individual farmer',
@@ -1167,6 +1182,7 @@ nl:{
   mapH2:'Werkgebied',
   mapP:'Klik op een district voor details.',
   mapTagAll:'Alle districten getoond',
+  mapPanelTitle:'Boerendichtheid per district', mapPanelNote:'Bubbelgrootte volgt actief volume',
   legendActive:'Actieve inkoop (bubbelgrootte = volume)',
   legendRegistered:'Geregistreerd, nog niet actief',
   legendFarmer:'Individuele boer',
@@ -1503,6 +1519,12 @@ function isAllTimeEmerging(districtName){ return (ALL_TIME_QTY[districtName]||0)
 function buildStaticMapSVG(){
   var svgParts = [];
   svgParts.push('<svg viewBox="0 0 '+MAP_W+' '+MAP_H+'" xmlns="http://www.w3.org/2000/svg">');
+  /* Soft drop shadow under each bubble, the same weight the tooltip and
+     panels already carry, so the bubbles sit visibly above the map instead
+     of reading as flat coloured dots on flat parchment. */
+  svgParts.push('<defs><filter id="bubbleShadow" x="-60%" y="-60%" width="220%" height="220%">'+
+    '<feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-color="'+COLORS.roastDeep+'" flood-opacity="0.28"/>'+
+    '</filter></defs>');
 
   // graticule
   svgParts.push('<g stroke="'+COLORS.line+'" stroke-width="1">');
@@ -1522,10 +1544,13 @@ function buildStaticMapSVG(){
   }
   svgParts.push('</g>');
 
+  /* Lake fill reads as a wash of the site's own teal rather than a stock map
+     blue, so the water sits in the same palette as everything else on the
+     page instead of looking like a different tool drew it. */
   var d = 'M ' + LAKE_POLY.map(function(pt){ var p=proj(pt[1],pt[0]); return p.x+' '+p.y; }).join(' L ') + ' Z';
-  svgParts.push('<path d="'+d+'" fill="#BFD7DC" opacity="0.8"/>');
+  svgParts.push('<path d="'+d+'" fill="rgba(44,122,131,0.16)" stroke="rgba(44,122,131,0.32)" stroke-width="1"/>');
   var lakeLabelP = proj(-0.45,32.55);
-  svgParts.push('<text id="lakeLabelText" x="'+lakeLabelP.x+'" y="'+lakeLabelP.y+'" fill="#4C7078" font-size="13" font-style="italic" font-family="'+SVG_FONT+'">'+T('lakeLabel')+'</text>');
+  svgParts.push('<text id="lakeLabelText" x="'+lakeLabelP.x+'" y="'+lakeLabelP.y+'" fill="'+COLORS.teal+'" font-size="13" font-style="italic" font-family="'+SVG_FONT+'">'+T('lakeLabel')+'</text>');
 
   // Kampala reference marker
   var kp = proj(0.3476, 32.5825);
@@ -1656,6 +1681,7 @@ function renderMapBubbles(){
 
     var circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
     circle.setAttribute('cx', p.x); circle.setAttribute('cy', p.y); circle.setAttribute('r', rad);
+    circle.setAttribute('filter', 'url(#bubbleShadow)');
     if (isEmerging){
       circle.setAttribute('fill', 'rgba(210,145,31,0.12)');
       circle.setAttribute('stroke', COLORS.honey);
