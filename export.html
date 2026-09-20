@@ -65,7 +65,6 @@
 
     --radius-sm:4px;
     --radius-md:8px;
-    --radius-lg:10px;
     --shadow-pop:0 12px 30px -10px rgba(42,26,16,0.38);
     --shadow-panel:0 1px 2px rgba(42,26,16,0.04), 0 10px 26px -20px rgba(42,26,16,0.55);
   }
@@ -201,7 +200,7 @@
   .section-head > div:first-child{grid-column:span 8; min-width:0;}
   .section-head h2{font-size:19px; margin:0 0 4px 0; font-weight:700; letter-spacing:-0.01em;}
   .section-head h2::before{
-    content:''; display:block; width:44px; height:3px; border-radius:2px;
+    content:''; display:block; width:26px; height:3px; border-radius:2px;
     background:var(--roast); margin-bottom:7px;
   }
   .section-head p{margin:0; color:var(--ink-soft); font-size:14px; max-width:62ch;}
@@ -228,7 +227,7 @@
   .hero .hero-head h1{max-width:none;}
   .hero .hero-head p.lede{max-width:none;}
   .hero-eyebrow{font-size:14px; color:var(--roast); font-weight:600; margin:0 0 10px 0;}
-  .hero h1{font-size:25px; line-height:1.12; margin:0 0 9px 0; font-weight:700; letter-spacing:-0.015em; max-width:18ch;}
+  .hero h1{font-size:29px; line-height:1.12; margin:0 0 9px 0; font-weight:700; letter-spacing:-0.015em; max-width:18ch;}
   .hero p.lede{font-size:14.5px; color:var(--ink-soft); max-width:56ch; margin:0;}
 
 
@@ -248,10 +247,10 @@
   @media (max-width:640px){ .tilerow-4 .tile{grid-column:span 2;} }
   .tile{
     grid-column:span 2; min-width:0;
-    padding:13px 15px 13px; border-radius:var(--radius-lg);
+    padding:11px 13px 12px; border-radius:var(--radius-md);
     background:var(--tile-roast); color:#fff;
     box-shadow:0 1px 2px rgba(42,26,16,.10), 0 8px 18px -14px rgba(42,26,16,.55);
-    display:flex; flex-direction:column; justify-content:flex-start;
+    display:flex; flex-direction:column; justify-content:center;
   }
   /* Row one is the network: who and what Ndugu is. It runs dark to light left
      to right in the roast family, so the reading order is carried by tone as
@@ -269,23 +268,23 @@
      second thing to look at. aria-hidden, because the label already says what
      the tile is and a screen reader repeating it adds nothing. */
   .tile-icon{
-    position:absolute; top:12px; right:13px; width:18px; height:18px;
-    color:#fff; opacity:.45; pointer-events:none;
+    position:absolute; top:10px; right:11px; width:22px; height:22px;
+    color:#fff; opacity:.30; pointer-events:none;
   }
   .kpi-cell{position:relative;}
   .kpi-cell .tile-icon{top:9px; right:10px; width:20px; height:20px; opacity:.28;}
-  .tile-label, .kpi-label{padding-right:26px; min-height:1.5em;}
+  .tile-label, .kpi-label{padding-right:26px; min-height:2.7em;}
   .tile-label{
-    font-size:12px; font-weight:500; margin:0 0 6px 0;
-    color:rgba(255,255,255,.82); line-height:1.35;
+    font-size:11.5px; font-weight:500; margin:0 0 3px 0;
+    color:rgba(255,255,255,.88); line-height:1.35;
   }
   .tile-value{
-    font-size:23px; font-weight:700; color:#fff; line-height:1.12;
+    font-size:23px; font-weight:600; color:#fff; line-height:1.12;
     font-variant-numeric:tabular-nums; overflow-wrap:break-word;
   }
   .tile-lead .tile-value{font-size:26px;}
   .tile-value-sm{font-size:15px; line-height:1.3;}
-  .tile-foot{font-size:12.5px; color:rgba(255,255,255,.72); margin-top:5px; font-weight:400;}
+  .tile-foot{font-size:12.5px; color:rgba(255,255,255,.82); margin-top:4px;}
 
   /* ---------- KPI tiles ----------
      Six saturated tiles rather than one bordered ledger strip. Each is its own
@@ -299,7 +298,7 @@
   @media (max-width:1100px){ .kpi-strip{grid-template-columns:repeat(3,minmax(0,1fr));} }
   @media (max-width:560px){ .kpi-strip{grid-template-columns:repeat(2,minmax(0,1fr));} }
   .kpi-cell{
-    padding:13px 15px 13px; border-radius:var(--radius-lg);
+    padding:11px 13px 12px; border-radius:var(--radius-md);
     background:var(--tile-roast); color:#fff; min-width:0;
     box-shadow:0 1px 2px rgba(42,26,16,.10), 0 8px 18px -14px rgba(42,26,16,.55);
   }
@@ -317,7 +316,7 @@
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
   .kpi-value{
-    font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-size:23px; font-weight:700; color:#fff;
+    font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-size:23px; font-weight:600; color:#fff;
     line-height:1.12; overflow-wrap:break-word;
   }
   @media (max-width:560px){ .kpi-value{font-size:19px;} }
@@ -332,37 +331,6 @@
   }
   .kpi-delta.up, .kpi-delta.down, .kpi-delta.flat{color:rgba(255,255,255,.82);}
 
-  /* ---------- KPI grid (twelve tiles, one story) ----------
-     Replaces the old two-row split with a single 4-column, 3-row grid: who
-     the network is (row 1) and how the season is moving (row 2) both run in
-     the teal/green family, so scale and activity read as one continuous
-     block; the closing row (org structure and credentials) switches to the
-     roast/brown family as a deliberate change of register. Each row still
-     lightens left to right within its family. */
-  .kpigrid{
-    display:grid; grid-template-columns:repeat(4,minmax(0,1fr));
-    gap:10px; margin-top:14px;
-  }
-  @media (max-width:900px){ .kpigrid{grid-template-columns:repeat(2,minmax(0,1fr));} }
-  @media (max-width:480px){ .kpigrid{grid-template-columns:1fr;} }
-  .kpigrid .tile{grid-column:span 1;}
-  /* Every stop below is one already validated elsewhere in this file (the
-     kpi-cell teal ramp and the tile-a..e roast ramp) — reused rather than
-     picked fresh, so the 4.5:1 white-text floor and the deuteranopia-safe
-     green stay intact without re-checking new hex. */
-  .kt1{background:linear-gradient(135deg,#0D4D45 0%,#093832 100%);} /* 9.7:1 */
-  .kt2{background:linear-gradient(135deg,#0E564D 0%,#0A3E37 100%);} /* 8.5:1 */
-  .kt3{background:linear-gradient(135deg,#106056 0%,#0B453E 100%);} /* 7.4:1 */
-  .kt4{background:linear-gradient(135deg,#116A5F 0%,#0C4D44 100%);} /* 6.5:1 */
-  .kt5{background:linear-gradient(135deg,#0E564D 0%,#0A3E37 100%);} /* 8.5:1 */
-  .kt6{background:linear-gradient(135deg,#106056 0%,#0B453E 100%);} /* 7.4:1 */
-  .kt7{background:linear-gradient(135deg,#116A5F 0%,#0C4D44 100%);} /* 6.5:1 */
-  .kt8{background:linear-gradient(135deg,#137568 0%,#0E554B 100%);} /* 5.6:1 */
-  .kt9{background:linear-gradient(135deg,#72401B 0%,#522E13 100%);} /* 8.5:1 */
-  .kt10{background:linear-gradient(135deg,#7E481E 0%,#5B3415 100%);} /* 7.4:1 */
-  .kt11{background:linear-gradient(135deg,#8C4F21 0%,#653918 100%);} /* 6.5:1 */
-  .kt12{background:linear-gradient(135deg,#9B5824 0%,#703F1A 100%);} /* 5.5:1 */
-
   /* ---------- Generic panel ---------- */
   .panel{
     border:1px solid var(--line-strong); border-radius:var(--radius-md);
@@ -373,36 +341,24 @@
   .panel-note{font-size:12.5px; color:var(--ink-faint); margin:0 0 8px 0; min-height:1.5em;}
 
   /* ---------- Map section ---------- */
-  /* The map used to be the one section on the page with no card chrome —
-     every other panel, including the district ledger it sits beside, has a
-     border, a surface fill and a shadow. Giving it the same .panel treatment
-     plus its own title/note (matching the ledger's head) is what makes the
-     row read as two matching cards instead of a list beside a bare drawing. */
-  .map-panel{
-    position:relative; display:flex; flex-direction:column; min-width:0;
-    border:1px solid var(--line-strong); border-radius:var(--radius-md);
-    background:var(--surface); padding:14px; box-shadow:var(--shadow-panel);
-  }
-  /* A fixed height used to letterbox the map: at 420px tall the viewBox (a
-     near-square 900x943, 2.1deg lon by 2.2deg lat) only draws about 400px
-     wide, leaving 70-80px of bare parchment on each side of a col-6 track —
-     visible dead space rather than map. aspect-ratio matches the box to the
-     viewBox exactly instead, so the drawing fills the full column width with
-     nothing left over, and the column stays col-6, the same width as the
-     ledger beside it. The row is taller for it (roughly 600px on a typical
-     desktop width rather than 420), so the ledger's list below is no longer
-     capped to an old fixed height — .grid's align-items:stretch makes it
-     match the map, whichever is taller, same as it did before either panel
-     had an explicit height. Narrow viewports stack the two panels instead of
-     sitting them side by side, so nothing there needs to match a neighbour's
-     width; the map reverts to a plain fixed height there. */
+  .map-panel{position:relative; display:flex; flex-direction:column;}
+  /* The row used to be 899px tall, and not because of the map: the district
+     ledger's eleven rows stood 678px and align-items:stretch pulled the map up
+     to match. So the ledger now scrolls at a fixed height and the map is given
+     an explicit one rather than being stretched by its neighbour.
+     The height is a deliberate number, not a round one: the mapped area spans
+     2.1 degrees of longitude by 2.2 of latitude, so the viewBox is very nearly
+     square (900x943). Set this much shorter than the column is wide and the
+     map letterboxes, sitting small between two bands of empty background. So
+     the row was rebalanced from 7/5 to 6/6 at the same time: at 470 tall the
+     map draws about 450 wide, which a 6-column track fits with far less waste
+     than a 7-column one (124px of dead space per side became 73). */
   .map-svg-wrap{
-    position:relative; width:100%; aspect-ratio:900/943;
+    position:relative; width:100%; flex:0 0 auto; height:420px;
     border-radius:var(--radius-sm); overflow:hidden;
-    background:linear-gradient(180deg,var(--surface) 0%,var(--surface-sunk) 100%);
-    border:1px solid var(--line);
+    background:linear-gradient(180deg,#F7EFE1 0%,#EFE3D0 100%);
   }
-  @media (max-width:980px){ .map-svg-wrap{aspect-ratio:auto; height:340px;} }
+  @media (max-width:980px){ .map-svg-wrap{min-height:340px;} }
   .map-svg-wrap svg{width:100%; height:100%; display:block;}
   .map-tooltip{
     position:absolute; pointer-events:none; z-index:10;
@@ -423,20 +379,12 @@
        taller than the map it sits beside; the two then end level. */
     min-height:0;
   }
-  /* flex-basis:0, not auto: the list's own row count must not feed into the
-     grid row's auto height, or an eleven-row list (taller than any map worth
-     drawing) would pull the map-panel card down to match it, leaving empty
-     space below the map instead of beside it. With a zero basis the ledger's
-     only contribution to that calculation is its header, so the map (sized
-     by aspect-ratio) is reliably what sets the row height, and this list
-     just grows to fill and scrolls within whatever that turns out to be —
-     the same relationship as before, just with the two panels' roles
-     swapped. Below 980px the two panels stack instead of sitting side by
-     side, so nothing here needs to match a neighbour's height; capped back
-     to a fixed scroll height there so one district-heavy list can't push the
-     page to an awkward length. */
-  #districtList{flex:1 1 0; overflow-y:auto; min-height:0;}
-  @media (max-width:980px){ #districtList{max-height:382px;} }
+  /* Scrolls instead of setting the height of the whole row. */
+    /* Capped so the list scrolls rather than setting the height of the whole
+     row. Kept in step with the map's height above: the two panels are grid
+     items that stretch to each other, so whichever is taller wins, and an
+     uncapped eleven-row list is taller than any map worth looking at. */
+  #districtList{flex:1 1 auto; overflow-y:auto; min-height:0; max-height:382px;}
   .district-ledger-head{padding:14px 16px 10px; border-bottom:1px solid var(--line);}
   .district-row{
     display:grid; grid-template-columns:1fr auto auto; gap:12px; align-items:center;
@@ -477,7 +425,7 @@
   /* ---------- 12-column layout grid ----------
      Every row on the page sits on the same twelve columns with the same 24px
      gutter, so panel edges line up vertically all the way down. Two-panel rows
-     split 6/6 (map, chart pairs); everything else spans 12.
+     split 7/5 (hero, map) or 6/6 (chart pairs); everything else spans 12.
      minmax(0,1fr) stops a responsive canvas from forcing its column wider. */
   .grid{
     display:grid; grid-template-columns:repeat(12,minmax(0,1fr));
@@ -541,7 +489,8 @@
     background:var(--roast-deep); color:#BFA98F;
     border-top:4px solid var(--roast);
   }
-  footer .fgrid{display:grid; grid-template-columns:1fr; gap:40px;}
+  footer .fgrid{display:grid; grid-template-columns:2fr 1fr; gap:40px;}
+  @media (max-width:780px){ footer .fgrid{grid-template-columns:1fr;} }
   footer h4{font-size:12.5px; color:#F0DFC7; font-weight:600; margin:0 0 8px 0; letter-spacing:0.02em;}
 
   .vis-hidden{display:none !important;}
@@ -723,14 +672,14 @@
 
 <nav class="sidenav" aria-label="Dashboards">
   <p class="sidenav-title" data-i18n="navTitle">Navigation</p>
-  <a class="navbtn" href="index.html"       data-i18n="navDomestic">Domestic Trade</a>
-  <a class="navbtn" href="export.html"      aria-current="page" data-i18n="navExport">Ndugu Export</a>
-  <a class="navbtn" href="eudr.html"        data-i18n="navEudr">EUDR Compliance</a>
-  <a class="navbtn" href="impact.html"      data-i18n="navImpact">Impact Projects</a>
+  <a class="navbtn" href="index.html"       data-i18n="navDomestic">Domestic</a>
+  <a class="navbtn" href="export.html"      aria-current="page" data-i18n="navExport">Export</a>
+  <a class="navbtn" href="eudr.html"        data-i18n="navEudr">EUDR</a>
+  <a class="navbtn" href="impact.html"      data-i18n="navImpact">Impact</a>
   <a class="navbtn" href="production.html"  data-i18n="navProduction">Production</a>
-  <a class="navbtn" href="finance.html"     data-i18n="navFinance">Financial Services</a>
+  <a class="navbtn" href="finance.html"     data-i18n="navFinance">Finance</a>
   <a class="navbtn" href="agritracker.html" data-i18n="navAgritracker">Agritracker</a>
-  <a class="navbtn" href="coffee.html"      data-i18n="navCoffee">Coffee Minds</a>
+  <a class="navbtn" href="coffee.html"      data-i18n="navCoffee">Coffee</a>
   <a class="navbtn" href="about.html"       data-i18n="navAbout">About us</a>
 </nav>
 
@@ -990,6 +939,10 @@
 
 <footer>
   <div class="shell fgrid">
+    <div>
+      <h4 data-i18n="footerAboutH">About this data</h4>
+      <p id="footerAboutP">-</p>
+    </div>
     <div>
       <h4 data-i18n="footerDefH">Definitions</h4>
       <p data-i18n="footerDefP">-</p>
@@ -1349,10 +1302,9 @@ function dirWord(d){ return d >= 0 ? t('wordUp') : t('wordDown'); }
 /* ============================= i18n ============================= */
 var I18N = {
   en: {
-    navTitle:'Navigation', navDomestic:'Domestic Trade', navExport:'Ndugu Export',
-    navEudr:'EUDR Compliance', navImpact:'Impact Projects', navProduction:'Production',
-    navFinance:'Financial Services', navAgritracker:'Agritracker', navCoffee:'Coffee Minds',
-    navAbout:'About us',
+    navTitle:'Navigation', navDomestic:'Domestic', navExport:'Export', navImpact:'Impact',
+    navProduction:'Production', navFinance:'Finance', navAgritracker:'Agritracker',
+    navCoffee:'Coffee', navAbout:'About us',
     brandRole:'Export programme',
     asofLabel:'Season',
     seasonAll:'All', wordUp:'above', wordDown:'below',
@@ -1450,6 +1402,7 @@ var I18N = {
     secFlowTag:'Volume reconciliation and data notes',
     flow1:'Bought in, FAQ', flow2:'Bought in, already graded',
     flow3:'Total intake', flow3sub:'before grading losses', flow4:'Shipped',
+    footerAboutH:'About this data',
     footerDefH:'Definitions',
     footerDefP:'FAQ: Fair Average Quality, the ungraded green coffee bought from suppliers. Screen: bean size measured over a perforated sieve, so screen 18 is a larger bean than screen 12. Lot: a graded, bulked consignment shipped against one contract. Net delivered: weight after moisture and foreign-matter deductions. Invoiced: the value billed against a lot. Collected: the value received against it.',
     lblLots:'lots', lblDeliveries:'deliveries', lblVolume:'Volume',
@@ -1476,6 +1429,16 @@ var I18N = {
     suppFoot:function(f){
       return 'Top 10 of ' + f.suppliers + ' suppliers, by net weight delivered within the season.';
     },
+    aboutP:function(f){
+      return 'Covers ' + f.season + ' as recorded in the combined export workbook, rebuilt on ' +
+        f.generated + '. Purchase dates run ' + f.firstBuy + ' to ' + f.lastBuy +
+        ' and shipment dates ' + f.firstShip + ' to ' + f.lastShip +
+        '. Volumes are net of moisture and foreign-matter deductions. Export revenue is the ' +
+        'value invoiced against the season’s lots. USD figures use each lot’s recorded ' +
+        'exchange rate where the workbook holds one, and an indicative ' + f.fx +
+        ' UGX per USD otherwise. Supplier references are ranks within the season. Every figure ' +
+        'on this page is computed from the workbook at page load.';
+    },
     noteSettle:function(f){
       return 'Collection: ' + f.settled + ' of the value invoiced has been received, across the ' +
         f.settledLots + ' of ' + f.settledOf + ' lots that carry a receipt line. The remaining ' +
@@ -1501,10 +1464,9 @@ var I18N = {
     }
   },
   nl: {
-    navTitle:'Navigatie', navDomestic:'Binnenlandse handel', navExport:'Ndugu Export',
-    navEudr:'EUDR-naleving', navImpact:'Impactprojecten', navProduction:'Productie',
-    navFinance:'Financiële diensten', navAgritracker:'Agritracker', navCoffee:'Coffee Minds',
-    navAbout:'Over ons',
+    navTitle:'Navigatie', navDomestic:'Binnenland', navExport:'Export', navImpact:'Impact',
+    navProduction:'Productie', navFinance:'Financiën', navAgritracker:'Agritracker',
+    navCoffee:'Koffie', navAbout:'Over ons',
     brandRole:'Exportprogramma',
     asofLabel:'Seizoen',
     seasonAll:'Alle', wordUp:'hoger dan', wordDown:'lager dan',
@@ -1604,6 +1566,7 @@ var I18N = {
     secFlowTag:'Volumeaansluiting en aantekeningen bij de data',
     flow1:'Ingekocht, FAQ', flow2:'Ingekocht, al gesorteerd',
     flow3:'Totale inkoop', flow3sub:'vóór sorteerverlies', flow4:'Verscheept',
+    footerAboutH:'Over deze gegevens',
     footerDefH:'Definities',
     footerDefP:'FAQ: Fair Average Quality, de ongesorteerde groene koffie die van leveranciers wordt gekocht. Screen: boongrootte gemeten over een geperforeerde zeef, dus screen 18 is een grotere boon dan screen 12. Partij: een gesorteerde, gebulkte zending onder één contract. Netto geleverd: gewicht na aftrek voor vocht en vreemde bestanddelen. Gefactureerd: de waarde die voor een partij in rekening is gebracht. Ontvangen: de waarde die daarvoor is binnengekomen.',
     lblLots:'partijen', lblDeliveries:'leveringen', lblVolume:'Volume',
@@ -1630,6 +1593,17 @@ var I18N = {
     },
     suppFoot:function(f){
       return 'Top 10 van ' + f.suppliers + ' leveranciers, naar netto geleverd gewicht binnen het seizoen.';
+    },
+    aboutP:function(f){
+      return 'Betreft ' + f.season + ' zoals vastgelegd in het gecombineerde exportbestand, ' +
+        'opnieuw opgebouwd op ' + f.generated + '. De inkoopdata lopen van ' + f.firstBuy +
+        ' tot ' + f.lastBuy + ' en de verschepingsdata van ' + f.firstShip + ' tot ' + f.lastShip +
+        '. Volumes zijn netto na aftrek voor vocht en vreemde bestanddelen. De exportomzet is de ' +
+        'waarde die voor de partijen van het seizoen in rekening is gebracht. USD-bedragen ' +
+        'gebruiken de bij de partij vastgelegde wisselkoers waar het bestand die heeft, en anders ' +
+        'een indicatieve ' + f.fx + ' UGX per USD. Leverancierscodes zijn rangnummers binnen het ' +
+        'seizoen. Elk cijfer op deze pagina wordt bij het laden van de pagina uit het bronbestand ' +
+        'berekend.';
     },
     noteSettle:function(f){
       return 'Ontvangsten: ' + f.settled + ' van de gefactureerde waarde is binnengekomen, over de ' +
@@ -2159,6 +2133,7 @@ function renderAll(){
   computeFacts();
   applyStaticI18n();
   renderSeasonPills();
+  document.getElementById('footerAboutP').textContent = t('aboutP');
   renderTiles();
   renderIntakeQuality();
   renderSuppliers();
