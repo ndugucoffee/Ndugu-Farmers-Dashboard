@@ -390,12 +390,11 @@
      The height is a deliberate number, not a round one: the mapped area spans
      2.1 degrees of longitude by 2.2 of latitude, so the viewBox is very nearly
      square (900x943). Set this much shorter than the column is wide and the
-     map letterboxes, sitting small between two bands of empty background. So
-     the row was rebalanced from 7/5 to 6/6 at the same time: at 470 tall the
-     map draws about 450 wide, which a 6-column track fits with far less waste
-     than a 7-column one (124px of dead space per side became 73). The card's
-     own padding now owns part of that margin, so what's left reads as a
-     frame around the map rather than empty canvas. */
+     map letterboxes, sitting small between two bands of empty background — at
+     420 tall it draws about 400 wide, so the column below is sized to that
+     (col-5, not col-6) rather than leaving 70-80px of visible parchment on
+     each side of the drawing. The ledger takes the seven columns that frees
+     up, which its rows of bars and figures use better than the map could. */
   .map-svg-wrap{
     position:relative; width:100%; flex:0 0 auto; height:420px;
     border-radius:var(--radius-sm); overflow:hidden;
@@ -469,7 +468,7 @@
   /* ---------- 12-column layout grid ----------
      Every row on the page sits on the same twelve columns with the same 24px
      gutter, so panel edges line up vertically all the way down. Two-panel rows
-     split 7/5 (hero, map) or 6/6 (chart pairs); everything else spans 12.
+     split 7/5 (map) or 6/6 (chart pairs); everything else spans 12.
      minmax(0,1fr) stops a responsive canvas from forcing its column wider. */
   .grid{
     display:grid; grid-template-columns:repeat(12,minmax(0,1fr));
