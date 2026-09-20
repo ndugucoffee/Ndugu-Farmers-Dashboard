@@ -8,6 +8,8 @@
 <link rel="apple-touch-icon" href="favicon.svg">
 <title>Ndugu Farmers Ltd | EUDR Readiness</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
   :root{
     /* --- surfaces: raw parchment, cream, unbleached paper --- */
@@ -65,6 +67,7 @@
 
     --radius-sm:4px;
     --radius-md:8px;
+    --radius-lg:10px;
     --shadow-pop:0 12px 30px -10px rgba(42,26,16,0.38);
     --shadow-panel:0 1px 2px rgba(42,26,16,0.04), 0 10px 26px -20px rgba(42,26,16,0.55);
   }
@@ -200,7 +203,7 @@
   .section-head > div:first-child{grid-column:span 8; min-width:0;}
   .section-head h2{font-size:19px; margin:0 0 4px 0; font-weight:700; letter-spacing:-0.01em;}
   .section-head h2::before{
-    content:''; display:block; width:26px; height:3px; border-radius:2px;
+    content:''; display:block; width:44px; height:3px; border-radius:2px;
     background:var(--roast); margin-bottom:7px;
   }
   .section-head p{margin:0; color:var(--ink-soft); font-size:14px; max-width:62ch;}
@@ -227,7 +230,7 @@
   .hero .hero-head h1{max-width:none;}
   .hero .hero-head p.lede{max-width:none;}
   .hero-eyebrow{font-size:14px; color:var(--roast); font-weight:600; margin:0 0 10px 0;}
-  .hero h1{font-size:29px; line-height:1.12; margin:0 0 9px 0; font-weight:700; letter-spacing:-0.015em; max-width:18ch;}
+  .hero h1{font-size:25px; line-height:1.12; margin:0 0 9px 0; font-weight:700; letter-spacing:-0.015em; max-width:18ch;}
   .hero p.lede{font-size:14.5px; color:var(--ink-soft); max-width:56ch; margin:0;}
 
 
@@ -247,10 +250,10 @@
   @media (max-width:640px){ .tilerow-4 .tile{grid-column:span 2;} }
   .tile{
     grid-column:span 2; min-width:0;
-    padding:11px 13px 12px; border-radius:var(--radius-md);
+    padding:13px 15px 13px; border-radius:var(--radius-lg);
     background:var(--tile-roast); color:#fff;
     box-shadow:0 1px 2px rgba(42,26,16,.10), 0 8px 18px -14px rgba(42,26,16,.55);
-    display:flex; flex-direction:column; justify-content:center;
+    display:flex; flex-direction:column; justify-content:flex-start;
   }
   /* Row one is the network: who and what Ndugu is. It runs dark to light left
      to right in the roast family, so the reading order is carried by tone as
@@ -268,23 +271,23 @@
      second thing to look at. aria-hidden, because the label already says what
      the tile is and a screen reader repeating it adds nothing. */
   .tile-icon{
-    position:absolute; top:10px; right:11px; width:22px; height:22px;
-    color:#fff; opacity:.30; pointer-events:none;
+    position:absolute; top:12px; right:13px; width:18px; height:18px;
+    color:#fff; opacity:.45; pointer-events:none;
   }
   .kpi-cell{position:relative;}
   .kpi-cell .tile-icon{top:9px; right:10px; width:20px; height:20px; opacity:.28;}
-  .tile-label, .kpi-label{padding-right:26px; min-height:2.7em;}
+  .tile-label, .kpi-label{padding-right:26px; min-height:1.5em;}
   .tile-label{
-    font-size:11.5px; font-weight:500; margin:0 0 3px 0;
-    color:rgba(255,255,255,.88); line-height:1.35;
+    font-size:12px; font-weight:500; margin:0 0 6px 0;
+    color:rgba(255,255,255,.82); line-height:1.35;
   }
   .tile-value{
-    font-size:23px; font-weight:600; color:#fff; line-height:1.12;
+    font-size:23px; font-weight:700; color:#fff; line-height:1.12;
     font-variant-numeric:tabular-nums; overflow-wrap:break-word;
   }
   .tile-lead .tile-value{font-size:26px;}
   .tile-value-sm{font-size:15px; line-height:1.3;}
-  .tile-foot{font-size:12.5px; color:rgba(255,255,255,.82); margin-top:4px;}
+  .tile-foot{font-size:12.5px; color:rgba(255,255,255,.72); margin-top:5px; font-weight:400;}
 
   /* ---------- KPI tiles ----------
      Six saturated tiles rather than one bordered ledger strip. Each is its own
@@ -298,7 +301,7 @@
   @media (max-width:1100px){ .kpi-strip{grid-template-columns:repeat(3,minmax(0,1fr));} }
   @media (max-width:560px){ .kpi-strip{grid-template-columns:repeat(2,minmax(0,1fr));} }
   .kpi-cell{
-    padding:11px 13px 12px; border-radius:var(--radius-md);
+    padding:13px 15px 13px; border-radius:var(--radius-lg);
     background:var(--tile-roast); color:#fff; min-width:0;
     box-shadow:0 1px 2px rgba(42,26,16,.10), 0 8px 18px -14px rgba(42,26,16,.55);
   }
@@ -316,7 +319,7 @@
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
   .kpi-value{
-    font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-size:23px; font-weight:600; color:#fff;
+    font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-size:23px; font-weight:700; color:#fff;
     line-height:1.12; overflow-wrap:break-word;
   }
   @media (max-width:560px){ .kpi-value{font-size:19px;} }
@@ -331,6 +334,37 @@
   }
   .kpi-delta.up, .kpi-delta.down, .kpi-delta.flat{color:rgba(255,255,255,.82);}
 
+  /* ---------- KPI grid (twelve tiles, one story) ----------
+     Replaces the old two-row split with a single 4-column, 3-row grid: who
+     the network is (row 1) and how the season is moving (row 2) both run in
+     the teal/green family, so scale and activity read as one continuous
+     block; the closing row (org structure and credentials) switches to the
+     roast/brown family as a deliberate change of register. Each row still
+     lightens left to right within its family. */
+  .kpigrid{
+    display:grid; grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:10px; margin-top:14px;
+  }
+  @media (max-width:900px){ .kpigrid{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  @media (max-width:480px){ .kpigrid{grid-template-columns:1fr;} }
+  .kpigrid .tile{grid-column:span 1;}
+  /* Every stop below is one already validated elsewhere in this file (the
+     kpi-cell teal ramp and the tile-a..e roast ramp) — reused rather than
+     picked fresh, so the 4.5:1 white-text floor and the deuteranopia-safe
+     green stay intact without re-checking new hex. */
+  .kt1{background:linear-gradient(135deg,#0D4D45 0%,#093832 100%);} /* 9.7:1 */
+  .kt2{background:linear-gradient(135deg,#0E564D 0%,#0A3E37 100%);} /* 8.5:1 */
+  .kt3{background:linear-gradient(135deg,#106056 0%,#0B453E 100%);} /* 7.4:1 */
+  .kt4{background:linear-gradient(135deg,#116A5F 0%,#0C4D44 100%);} /* 6.5:1 */
+  .kt5{background:linear-gradient(135deg,#0E564D 0%,#0A3E37 100%);} /* 8.5:1 */
+  .kt6{background:linear-gradient(135deg,#106056 0%,#0B453E 100%);} /* 7.4:1 */
+  .kt7{background:linear-gradient(135deg,#116A5F 0%,#0C4D44 100%);} /* 6.5:1 */
+  .kt8{background:linear-gradient(135deg,#137568 0%,#0E554B 100%);} /* 5.6:1 */
+  .kt9{background:linear-gradient(135deg,#72401B 0%,#522E13 100%);} /* 8.5:1 */
+  .kt10{background:linear-gradient(135deg,#7E481E 0%,#5B3415 100%);} /* 7.4:1 */
+  .kt11{background:linear-gradient(135deg,#8C4F21 0%,#653918 100%);} /* 6.5:1 */
+  .kt12{background:linear-gradient(135deg,#9B5824 0%,#703F1A 100%);} /* 5.5:1 */
+
   /* ---------- Generic panel ---------- */
   .panel{
     border:1px solid var(--line-strong); border-radius:var(--radius-md);
@@ -341,24 +375,36 @@
   .panel-note{font-size:12.5px; color:var(--ink-faint); margin:0 0 8px 0; min-height:1.5em;}
 
   /* ---------- Map section ---------- */
-  .map-panel{position:relative; display:flex; flex-direction:column;}
-  /* The row used to be 899px tall, and not because of the map: the district
-     ledger's eleven rows stood 678px and align-items:stretch pulled the map up
-     to match. So the ledger now scrolls at a fixed height and the map is given
-     an explicit one rather than being stretched by its neighbour.
-     The height is a deliberate number, not a round one: the mapped area spans
-     2.1 degrees of longitude by 2.2 of latitude, so the viewBox is very nearly
-     square (900x943). Set this much shorter than the column is wide and the
-     map letterboxes, sitting small between two bands of empty background. So
-     the row was rebalanced from 7/5 to 6/6 at the same time: at 470 tall the
-     map draws about 450 wide, which a 6-column track fits with far less waste
-     than a 7-column one (124px of dead space per side became 73). */
-  .map-svg-wrap{
-    position:relative; width:100%; flex:0 0 auto; height:420px;
-    border-radius:var(--radius-sm); overflow:hidden;
-    background:linear-gradient(180deg,#F7EFE1 0%,#EFE3D0 100%);
+  /* The map used to be the one section on the page with no card chrome —
+     every other panel, including the district ledger it sits beside, has a
+     border, a surface fill and a shadow. Giving it the same .panel treatment
+     plus its own title/note (matching the ledger's head) is what makes the
+     row read as two matching cards instead of a list beside a bare drawing. */
+  .map-panel{
+    position:relative; display:flex; flex-direction:column; min-width:0;
+    border:1px solid var(--line-strong); border-radius:var(--radius-md);
+    background:var(--surface); padding:14px; box-shadow:var(--shadow-panel);
   }
-  @media (max-width:980px){ .map-svg-wrap{min-height:340px;} }
+  /* A fixed height used to letterbox the map: at 420px tall the viewBox (a
+     near-square 900x943, 2.1deg lon by 2.2deg lat) only draws about 400px
+     wide, leaving 70-80px of bare parchment on each side of a col-6 track —
+     visible dead space rather than map. aspect-ratio matches the box to the
+     viewBox exactly instead, so the drawing fills the full column width with
+     nothing left over, and the column stays col-6, the same width as the
+     ledger beside it. The row is taller for it (roughly 600px on a typical
+     desktop width rather than 420), so the ledger's list below is no longer
+     capped to an old fixed height — .grid's align-items:stretch makes it
+     match the map, whichever is taller, same as it did before either panel
+     had an explicit height. Narrow viewports stack the two panels instead of
+     sitting them side by side, so nothing there needs to match a neighbour's
+     width; the map reverts to a plain fixed height there. */
+  .map-svg-wrap{
+    position:relative; width:100%; aspect-ratio:900/943;
+    border-radius:var(--radius-sm); overflow:hidden;
+    background:linear-gradient(180deg,var(--surface) 0%,var(--surface-sunk) 100%);
+    border:1px solid var(--line);
+  }
+  @media (max-width:980px){ .map-svg-wrap{aspect-ratio:auto; height:340px;} }
   .map-svg-wrap svg{width:100%; height:100%; display:block;}
   .map-tooltip{
     position:absolute; pointer-events:none; z-index:10;
@@ -379,12 +425,20 @@
        taller than the map it sits beside; the two then end level. */
     min-height:0;
   }
-  /* Scrolls instead of setting the height of the whole row. */
-    /* Capped so the list scrolls rather than setting the height of the whole
-     row. Kept in step with the map's height above: the two panels are grid
-     items that stretch to each other, so whichever is taller wins, and an
-     uncapped eleven-row list is taller than any map worth looking at. */
-  #districtList{flex:1 1 auto; overflow-y:auto; min-height:0; max-height:382px;}
+  /* flex-basis:0, not auto: the list's own row count must not feed into the
+     grid row's auto height, or an eleven-row list (taller than any map worth
+     drawing) would pull the map-panel card down to match it, leaving empty
+     space below the map instead of beside it. With a zero basis the ledger's
+     only contribution to that calculation is its header, so the map (sized
+     by aspect-ratio) is reliably what sets the row height, and this list
+     just grows to fill and scrolls within whatever that turns out to be —
+     the same relationship as before, just with the two panels' roles
+     swapped. Below 980px the two panels stack instead of sitting side by
+     side, so nothing here needs to match a neighbour's height; capped back
+     to a fixed scroll height there so one district-heavy list can't push the
+     page to an awkward length. */
+  #districtList{flex:1 1 0; overflow-y:auto; min-height:0;}
+  @media (max-width:980px){ #districtList{max-height:382px;} }
   .district-ledger-head{padding:14px 16px 10px; border-bottom:1px solid var(--line);}
   .district-row{
     display:grid; grid-template-columns:1fr auto auto; gap:12px; align-items:center;
@@ -425,7 +479,7 @@
   /* ---------- 12-column layout grid ----------
      Every row on the page sits on the same twelve columns with the same 24px
      gutter, so panel edges line up vertically all the way down. Two-panel rows
-     split 7/5 (hero, map) or 6/6 (chart pairs); everything else spans 12.
+     split 6/6 (map, chart pairs); everything else spans 12.
      minmax(0,1fr) stops a responsive canvas from forcing its column wider. */
   .grid{
     display:grid; grid-template-columns:repeat(12,minmax(0,1fr));
@@ -489,8 +543,7 @@
     background:var(--roast-deep); color:#BFA98F;
     border-top:4px solid var(--roast);
   }
-  footer .fgrid{display:grid; grid-template-columns:2fr 1fr; gap:40px;}
-  @media (max-width:780px){ footer .fgrid{grid-template-columns:1fr;} }
+  footer .fgrid{display:grid; grid-template-columns:1fr; gap:40px;}
   footer h4{font-size:12.5px; color:#F0DFC7; font-weight:600; margin:0 0 8px 0; letter-spacing:0.02em;}
 
   .vis-hidden{display:none !important;}
@@ -603,26 +656,61 @@
     position:relative; width:100%; flex:1 1 0%; min-height:520px;
     border-radius:var(--radius-sm); overflow:hidden;
     background:linear-gradient(180deg,#F7EFE1 0%,#EFE3D0 100%);
-    cursor:grab; touch-action:none;
+    touch-action:none;
   }
-  .mapwrap.dragging{cursor:grabbing;}
-  .mapwrap svg{width:100%; height:100%; display:block;}
   @media (max-width:980px){ .mapwrap{min-height:400px;} }
+  /* Leaflet paints its own grey behind the tiles. On the plain basemap there
+     are no tiles, so that grey would be the whole map: the paper wash has to
+     win, and the container above supplies it. */
+  /* Satellite mode paints a dark ground under the tiles. Boundaries are drawn
+     white there, and white on the paper wash is invisible: without this the map
+     is blank for the second or two the tiles take to arrive, and stays blank
+     for a reader whose network cannot reach the tile host at all. */
+  .mapwrap.sat{background:#241C15;}
+  .mapwrap .leaflet-container{
+    width:100%; height:100%; background:transparent;
+    font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+  }
+  /* Leaflet's own controls are replaced by the buttons in .mapbar, which are
+     already styled, already translated and already where the reader is
+     looking. Only the attribution stays, because the tile licence requires it. */
+  .mapwrap .leaflet-control-attribution{
+    background:rgba(255,252,246,.82); color:var(--ink-faint); font-size:10.5px;
+  }
+  .mapwrap .leaflet-control-attribution a{color:var(--ink-soft);}
+  .mapwrap.sat .leaflet-control-attribution{
+    background:rgba(20,14,10,.62); color:#EFE3D0;
+  }
+  .mapwrap.sat .leaflet-control-attribution a{color:#F7EFE1;}
 
-  /* A typical plot here is 0.38 ha, about 60 m across, inside a district some
-     50 km wide: at district zoom it is far under one pixel and the map renders
-     as dust. The stroke is therefore drawn in the plot's own band colour at a
-     non-scaling width, so every plot has a floor of roughly one pixel however
-     far out the view is. Zooming in, the stroke stays hairline and the true
-     boundary emerges from underneath it. */
-  .plot{stroke-width:1.1; vector-effect:non-scaling-stroke; stroke-linejoin:round;}
-  .plot.prov{stroke:var(--teal) !important; stroke-dasharray:2.5 1.5;}
-  .plot:hover{stroke:var(--ink) !important; stroke-width:2.4; stroke-dasharray:none;}
-  .dbubble{fill:var(--roast); fill-opacity:0.62; stroke:#FFFCF6; stroke-width:1.5; cursor:pointer;}
-  .dbubble:hover{fill-opacity:0.85;}
-  .dlabel{font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-size:11px; fill:var(--ink);
-          pointer-events:none; text-anchor:middle; paint-order:stroke;
-          stroke:#F7EFE1; stroke-width:3px; stroke-linejoin:round;}
+  /* District name over its bubble. A Leaflet divIcon rather than SVG text, so
+     it stays upright and the same size at every zoom; the halo is what keeps it
+     readable over both the paper wash and a dark canopy. */
+  .dlabel{
+    position:absolute; transform:translate(-50%,-230%); white-space:nowrap;
+    font-size:11px; font-weight:600; color:var(--ink);
+    paint-order:stroke; text-shadow:
+      0 0 3px #F7EFE1, 0 0 3px #F7EFE1, 0 0 3px #F7EFE1, 0 0 3px #F7EFE1;
+  }
+  .mapwrap.sat .dlabel{
+    color:#FFFCF6;
+    text-shadow:0 0 4px rgba(0,0,0,.95), 0 0 4px rgba(0,0,0,.95), 0 1px 2px rgba(0,0,0,.9);
+  }
+  .dlabel-icon{pointer-events:none;}
+
+  /* The satellite / plain switch, over the map's top-right corner. */
+  .mapmode{
+    position:absolute; z-index:500; top:10px; right:10px; display:flex;
+    border:1px solid var(--line-strong); border-radius:var(--radius-sm);
+    overflow:hidden; box-shadow:var(--shadow-pop); background:var(--surface);
+  }
+  .mapmode button{
+    border:none; background:transparent; color:var(--ink-soft); cursor:pointer;
+    font-family:inherit; font-size:12px; padding:6px 11px;
+  }
+  .mapmode button + button{border-left:1px solid var(--line-strong);}
+  .mapmode button[aria-pressed="true"]{background:var(--roast); color:#fff;}
+  .mapmode button:focus-visible{outline:2px solid var(--roast); outline-offset:-2px;}
 
   .maptip{
     position:absolute; pointer-events:none; z-index:12;
@@ -653,7 +741,6 @@
   }
   .mapfind:focus-visible{outline:2px solid var(--roast); outline-offset:1px;}
   .mapfind[hidden]{display:none;}
-  .plot.hit{stroke:var(--cherry) !important; stroke-width:3 !important; stroke-dasharray:none;}
 
   .maplegend{
     display:flex; gap:16px; margin-top:10px; flex-wrap:wrap;
@@ -690,14 +777,14 @@
 
 <nav class="sidenav" aria-label="Dashboards">
   <p class="sidenav-title" data-i18n="navTitle">Navigation</p>
-  <a class="navbtn" href="index.html"       data-i18n="navDomestic">Domestic</a>
-  <a class="navbtn" href="export.html"      data-i18n="navExport">Export</a>
-  <a class="navbtn" href="eudr.html"        aria-current="page" data-i18n="navEudr">EUDR</a>
-  <a class="navbtn" href="impact.html"      data-i18n="navImpact">Impact</a>
+  <a class="navbtn" href="index.html"       data-i18n="navDomestic">Domestic Trade</a>
+  <a class="navbtn" href="export.html"      data-i18n="navExport">Ndugu Export</a>
+  <a class="navbtn" href="eudr.html"        aria-current="page" data-i18n="navEudr">EUDR Compliance</a>
+  <a class="navbtn" href="impact.html"      data-i18n="navImpact">Impact Projects</a>
   <a class="navbtn" href="production.html"  data-i18n="navProduction">Production</a>
-  <a class="navbtn" href="finance.html"     data-i18n="navFinance">Finance</a>
+  <a class="navbtn" href="finance.html"     data-i18n="navFinance">Financial Services</a>
   <a class="navbtn" href="agritracker.html" data-i18n="navAgritracker">Agritracker</a>
-  <a class="navbtn" href="coffee.html"      data-i18n="navCoffee">Coffee</a>
+  <a class="navbtn" href="coffee.html"      data-i18n="navCoffee">Coffee Minds</a>
   <a class="navbtn" href="about.html"       data-i18n="navAbout">About us</a>
 </nav>
 
@@ -904,7 +991,11 @@
           <span class="crumb" id="mapCrumb">-</span>
           <span class="mapstat" id="mapStat">-</span>
         </div>
-        <div class="mapwrap" id="mapWrap">
+        <div class="mapwrap sat" id="mapWrap">
+          <div class="mapmode" id="mapMode" role="group" aria-label="Basemap">
+            <button type="button" data-mode="sat" aria-pressed="true" data-i18n="mapModeSat">Satellite</button>
+            <button type="button" data-mode="plain" aria-pressed="false" data-i18n="mapModePlain">Plain</button>
+          </div>
           <div class="mapload" id="mapLoad" hidden>-</div>
           <div class="maptip" id="mapTip"></div>
         </div>
@@ -997,10 +1088,6 @@
 
 <footer>
   <div class="shell fgrid">
-    <div>
-      <h4 data-i18n="footerAboutH">About this data</h4>
-      <p id="footerAboutP">-</p>
-    </div>
     <div>
       <h4 data-i18n="footerDefH">Definitions</h4>
       <p data-i18n="footerDefP">EUDR: Regulation (EU) 2023/1115 on deforestation-free products, as amended. Operator: the party first placing goods on the EU market. DDS: the due diligence statement an operator files before placing a consignment. Plot: a single parcel of land on which the coffee was produced. Polygon: the traced perimeter of a plot, as opposed to a single point inside it.</p>
@@ -1289,9 +1376,10 @@ var GAP_META = {
 
 var I18N = {
   en: {
-    navTitle:'Navigation', navDomestic:'Domestic', navExport:'Export', navEudr:'EUDR',
-    navImpact:'Impact', navProduction:'Production', navFinance:'Finance',
-    navAgritracker:'Agritracker', navCoffee:'Coffee', navAbout:'About us',
+    navTitle:'Navigation', navDomestic:'Domestic Trade', navExport:'Ndugu Export',
+    navEudr:'EUDR Compliance', navImpact:'Impact Projects', navProduction:'Production',
+    navFinance:'Financial Services', navAgritracker:'Agritracker', navCoffee:'Coffee Minds',
+    navAbout:'About us',
     brandRole:'EUDR readiness', asofLabel:'Assessed',
     heroEyebrow:'EU Deforestation Regulation',
     heroH1:'Every kilogram sold into Europe needs the location of the plot it grew on',
@@ -1364,6 +1452,7 @@ var I18N = {
     },
     secMapTag:'Click a district to open its plots',
     mapBack:'All districts', mapReset:'Reset zoom',
+    mapModeSat:'Satellite', mapModePlain:'Plain',
     mapLoading:'Loading boundaries\u2026',
     mapFailed:'Those boundaries could not be loaded.',
     mapOpenHint:'Click to open',
@@ -1407,7 +1496,7 @@ var I18N = {
         'field visits than in a second round.';
     },
     secOtherTag:'Beyond the coordinate itself',
-    footerAboutH:'About this data', footerDefH:'Definitions',
+    footerDefH:'Definitions',
     footerDefP:'EUDR: Regulation (EU) 2023/1115 on deforestation-free products, as amended. Operator: the party first placing goods on the EU market. DDS: the due diligence statement an operator files before placing a consignment. Plot: a single parcel of land on which the coffee was produced. Polygon: the traced perimeter of a plot, as opposed to a single point inside it.',
     gapShort:{
       ready_polygon:'Boundary walked', ready_point:'Point on file',
@@ -1476,23 +1565,12 @@ var I18N = {
         'separate round. A farmer whose perimeter is being walked can have their plots ' +
         'separated, their parish recorded and their acreage checked in the same visit.';
     },
-    aboutP:function(f){
-      return 'Assessed on ' + f.generated + ' against ' + f.regulation +
-        '. Covers all ' + f.farmers + ' registered farmers and the ' + f.total +
-        ' recorded against them. A farmer counts as meeting the standard when their ' +
-        'coordinates fall inside Uganda, carry at least ' + f.decimals +
-        ' decimal digits, and their holding is at or below ' + f.ha +
-        ' ha so that a point is accepted in place of a polygon. Deforestation status ' +
-        'itself is not assessed here: that is checked against satellite records once ' +
-        'the geolocation exists, and the geolocation is the gap. This page publishes ' +
-        'counts and volumes only. No farmer name, identifier, contact detail or ' +
-        'coordinate is included, and the build fails rather than publish one.';
-    }
   },
   nl: {
-    navTitle:'Navigatie', navDomestic:'Binnenland', navExport:'Export', navEudr:'EUDR',
-    navImpact:'Impact', navProduction:'Productie', navFinance:'Financiën',
-    navAgritracker:'Agritracker', navCoffee:'Koffie', navAbout:'Over ons',
+    navTitle:'Navigatie', navDomestic:'Binnenlandse handel', navExport:'Ndugu Export',
+    navEudr:'EUDR-naleving', navImpact:'Impactprojecten', navProduction:'Productie',
+    navFinance:'Financiële diensten', navAgritracker:'Agritracker', navCoffee:'Coffee Minds',
+    navAbout:'Over ons',
     brandRole:'EUDR-gereedheid', asofLabel:'Beoordeeld',
     heroEyebrow:'EU-ontbossingsverordening',
     heroH1:'Elke kilo die naar Europa gaat heeft de locatie nodig van het perceel waarop hij groeide',
@@ -1566,6 +1644,7 @@ var I18N = {
     },
     secMapTag:'Klik op een district om de percelen te openen',
     mapBack:'Alle districten', mapReset:'Zoom herstellen',
+    mapModeSat:'Satelliet', mapModePlain:'Effen',
     mapLoading:'Grenzen laden\u2026',
     mapFailed:'Die grenzen konden niet worden geladen.',
     mapOpenHint:'Klik om te openen',
@@ -1609,7 +1688,7 @@ var I18N = {
         'veldbezoeken dan in een tweede ronde.';
     },
     secOtherTag:'Verder dan de coördinaat zelf',
-    footerAboutH:'Over deze gegevens', footerDefH:'Definities',
+    footerDefH:'Definities',
     footerDefP:'EUDR: Verordening (EU) 2023/1115 inzake ontbossingsvrije producten, zoals gewijzigd. Marktdeelnemer: de partij die de goederen als eerste op de EU-markt brengt. DDS: de zorgvuldigheidsverklaring die een marktdeelnemer indient voordat hij een zending op de markt brengt. Perceel: één stuk land waarop de koffie is geproduceerd. Polygoon: de uitgezette omtrek van een perceel, in plaats van één punt daarbinnen.',
     gapShort:{
       ready_polygon:'Grens ingemeten', ready_point:'Punt vastgelegd',
@@ -1681,18 +1760,6 @@ var I18N = {
         'kunnen in hetzelfde bezoek de percelen worden gesplitst, de parish worden ' +
         'vastgelegd en de oppervlakte worden gecontroleerd.';
     },
-    aboutP:function(f){
-      return 'Beoordeeld op ' + f.generated + ' aan de hand van ' + f.regulation +
-        '. Betreft alle ' + f.farmers + ' geregistreerde boeren en de ' + f.total +
-        ' die op hen is geregistreerd. Een boer voldoet aan de norm wanneer de coördinaten ' +
-        'binnen Oeganda vallen, minimaal ' + f.decimals + ' decimalen hebben, en het bedrijf ' +
-        'niet groter is dan ' + f.ha + ' ha, zodat een punt in plaats van een polygoon wordt ' +
-        'geaccepteerd. De ontbossingsstatus zelf wordt hier niet beoordeeld: die wordt tegen ' +
-        'satellietgegevens gecontroleerd zodra de geolocatie bestaat, en juist de geolocatie ' +
-        'is het gat. Deze pagina publiceert alleen aantallen en volumes. Geen enkele naam, ' +
-        'identificatie, contactgegeven of coördinaat van een boer is opgenomen, en de build ' +
-        'faalt liever dan er een te publiceren.';
-    }
   }
 };
 function t(key){
@@ -1727,61 +1794,34 @@ function applyStaticI18n(){
    geometry rather than a raster, so it stays sharp at any magnification. */
 var MAP = {
   level:'districts', district:null, plots:null, cache:{},
-  view:null, home:null, drag:null, lat0:0
+  map:null, tiles:null, layer:null, shapes:null, home:null, mode:'sat'
 };
 /* Sequential ramp, light to dark, for a magnitude (plot size). One hue: a
    categorical palette here would imply the bands are unordered, which they are
-   not. Provisional plots carry a dashed outline as a second encoding, so they
-   are distinguishable without relying on colour. */
+   not. It runs down to the dashboard green, so the darkest plot on this map is
+   the same colour as the darkest bar everywhere else. Steps were picked on
+   relative luminance rather than by eye, which is why the light end is spaced
+   wider than the dark: equal hex steps are not equal visual steps. Provisional
+   plots carry a dashed outline as a second encoding, so they are
+   distinguishable without relying on colour. */
 var BAND_FILL = {
-  under_half:'#F0DCC4', half1:'#D3A878', '1to2':'#A97244',
-  '2to4':'#7B4A24', over4:'#4A2A11'
+  under_half:'#C7DED7', half1:'#93C2B7', '1to2':'#579C8E',
+  '2to4':'#27756A', over4:'#0D4D45'
 };
 var BAND_ORDER = ['under_half','half1','1to2','2to4','over4'];
 
-function proj(lat, lng){
-  return [lng * Math.cos(MAP.lat0 * Math.PI/180) * 111.32, -lat * 110.54];
-}
-function robustBox(rows, pad){
-  /* Percentile extent of plot centroids. A district's true bounding box is set
-     by its few most distant plots, which squeezes the cluster everyone actually
-     wants to look at into a corner. Framing the 2nd to 98th percentile puts the
-     bulk of the plots on screen; the outliers are still drawn and still
-     reachable by zooming out. */
-  var xs = [], ys = [];
-  for (var i=0;i<rows.length;i++){
-    var r = rows[i].p, sx = 0, sy = 0;
-    for (var j=0;j<r.length;j++){ sx += r[j][0]; sy += r[j][1]; }
-    xs.push(sx/r.length); ys.push(sy/r.length);
-  }
-  xs.sort(function(a,b){return a-b;}); ys.sort(function(a,b){return a-b;});
-  var q = function(a, f){ return a[Math.min(a.length-1, Math.max(0, Math.floor(a.length*f)))]; };
-  return boxFrom([q(xs,0.02), q(ys,0.02), q(xs,0.98), q(ys,0.98)], pad);
-}
-function boxFrom(bbox, pad){
-  /* bbox is [minLat, minLng, maxLat, maxLng] */
-  var a = proj(bbox[0], bbox[1]), b = proj(bbox[2], bbox[3]);
-  var x0 = Math.min(a[0],b[0]), x1 = Math.max(a[0],b[0]);
-  var y0 = Math.min(a[1],b[1]), y1 = Math.max(a[1],b[1]);
-  var w = Math.max(x1-x0, 0.02), h = Math.max(y1-y0, 0.02);
-  var m = (pad === undefined ? 0.06 : pad);
-  return {x:x0 - w*m, y:y0 - h*m, w:w*(1+2*m), h:h*(1+2*m)};
-}
-function fitAspect(v){
-  /* Match the viewBox aspect to the element so nothing is squashed. */
-  var el = document.getElementById('mapWrap');
-  var ar = (el.clientWidth||900) / (el.clientHeight||520);
-  var cx = v.x + v.w/2, cy = v.y + v.h/2;
-  var w = v.w, h = v.h;
-  if (w/h < ar) w = h*ar; else h = w/ar;
-  return {x:cx-w/2, y:cy-h/2, w:w, h:h};
-}
-function applyView(){
-  var svg = document.querySelector('#mapWrap svg');
-  if (!svg || !MAP.view) return;
-  var v = MAP.view;
-  svg.setAttribute('viewBox', v.x+' '+v.y+' '+v.w+' '+v.h);
-}
+/* Esri World Imagery. Free and keyless, and the only one of the keyless
+   providers with sub-metre cover over this part of Uganda, which is the whole
+   point: at plot zoom a reader has to be able to see the coffee. The licence
+   requires the credit line, so the attribution control stays on. */
+var SAT_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+var SAT_ATTR = 'Imagery &copy; Esri, Maxar, Earthstar Geographics';
+var SAT_MAX = 19;
+
+/* Plot outlines are drawn on a canvas, not as SVG elements. Masaka alone holds
+   5,629 of them; one DOM node each is what turns panning into a slideshow. */
+var RENDERER = null;
+
 function mapLoading(on, msg){
   var el = document.getElementById('mapLoad');
   el.hidden = !on;
@@ -1799,43 +1839,126 @@ function plotLabel(pl){
   return '';
 }
 
-function ringPath(ring){
-  var d = '';
-  for (var i=0;i<ring.length;i++){
-    var q = proj(ring[i][0], ring[i][1]);
-    d += (i?'L':'M') + q[0].toFixed(4) + ' ' + q[1].toFixed(4);
-  }
-  return d + 'Z';
+function plotStyle(r, hit){
+  var col = BAND_FILL[r.b] || '#A97244';
+  var sat = MAP.mode === 'sat';
+  return {
+    /* On imagery the fill has to drop right back or it buries the thing the
+       reader came to see. The outline carries the shape instead, in white,
+       which is the one colour that holds against both canopy and bare soil. */
+    color: hit ? '#D24422' : (r.s === 'provisional' ? '#2C7A83' : (sat ? '#FFFFFF' : col)),
+    weight: hit ? 3 : (sat ? 1.4 : 1.1),
+    opacity: sat ? 0.95 : 1,
+    dashArray: r.s === 'provisional' ? '4,3' : null,
+    fillColor: col,
+    fillOpacity: sat ? 0.16 : 0.9
+  };
 }
 
-function renderDistricts(){
-  MAP.level='districts'; MAP.district=null;
-  var ds = DATA_POLY.districts;
-  var lats=[], lngs=[];
-  ds.forEach(function(d){ lats.push(d.bbox[0],d.bbox[2]); lngs.push(d.bbox[1],d.bbox[3]); });
-  MAP.lat0 = (Math.min.apply(null,lats)+Math.max.apply(null,lats))/2;
-  MAP.home = fitAspect(boxFrom([Math.min.apply(null,lats),Math.min.apply(null,lngs),
-                                Math.max.apply(null,lats),Math.max.apply(null,lngs)], 0.10));
-  MAP.view = {x:MAP.home.x,y:MAP.home.y,w:MAP.home.w,h:MAP.home.h};
+function ensureMap(){
+  if (MAP.map) return MAP.map;
+  var m = L.map('mapWrap', {
+    zoomControl:false, attributionControl:true,
+    preferCanvas:true, maxZoom:SAT_MAX, wheelPxPerZoomLevel:90
+  });
+  RENDERER = L.canvas({padding:0.3});
+  MAP.map = m;
+  setMode(MAP.mode, true);
+  return m;
+}
 
+/* Plain is deliberately no tiles at all rather than a second tile provider:
+   it keeps the map readable with nothing loaded, matches the rest of the
+   dashboard, and means a reader who does not want a third party fetching for
+   them has somewhere to stand. */
+function setMode(mode, force){
+  if (!force && mode === MAP.mode) return;
+  MAP.mode = mode;
+  var wrap = document.getElementById('mapWrap');
+  wrap.classList.toggle('sat', mode === 'sat');
+  if (MAP.map){
+    if (mode === 'sat'){
+      if (!MAP.tiles){
+        MAP.tiles = L.tileLayer(SAT_URL, {maxZoom:SAT_MAX, attribution:SAT_ATTR});
+      }
+      MAP.tiles.addTo(MAP.map);
+    } else if (MAP.tiles){
+      MAP.map.removeLayer(MAP.tiles);
+    }
+  }
+  document.querySelectorAll('#mapMode button').forEach(function(b){
+    b.setAttribute('aria-pressed', String(b.dataset.mode === mode));
+  });
+  restyleAll();
+}
+
+function restyleAll(){
+  if (!MAP.shapes) return;
+  for (var i=0;i<MAP.shapes.length;i++){
+    var sh = MAP.shapes[i];
+    if (sh && sh.setStyle) sh.setStyle(plotStyle(MAP.plots[i], sh._hit));
+  }
+}
+
+function clearLayer(){
+  if (MAP.layer){ MAP.map.removeLayer(MAP.layer); MAP.layer = null; }
+  MAP.shapes = null;
+}
+
+function tipAt(e, html){
+  var wrap = document.getElementById('mapWrap');
+  var tip = document.getElementById('mapTip');
+  var r = wrap.getBoundingClientRect();
+  tip.style.left = (e.originalEvent.clientX - r.left) + 'px';
+  tip.style.top  = (e.originalEvent.clientY - r.top) + 'px';
+  tip.innerHTML = html;
+  tip.style.opacity = 1;
+}
+function tipOff(){ document.getElementById('mapTip').style.opacity = 0; }
+
+function renderDistricts(){
+  var m = ensureMap();
+  MAP.level='districts'; MAP.district=null; MAP.plots=null;
+  clearLayer();
+  var ds = DATA_POLY.districts;
   var maxP = Math.max.apply(null, ds.map(function(d){ return d.plots; }));
-  var body = '';
+  var grp = L.layerGroup();
+  var bounds = L.latLngBounds([]);
+
   ds.forEach(function(d, i){
-    var c = proj((d.bbox[0]+d.bbox[2])/2, (d.bbox[1]+d.bbox[3])/2);
-    /* area-proportional radius, so a bubble twice the area means twice the plots */
-    var r = Math.sqrt(d.plots/maxP) * MAP.home.w * 0.042 + MAP.home.w*0.004;
-    body += '<circle class="dbubble" data-i="'+i+'" cx="'+c[0].toFixed(3)+'" cy="'+
-            c[1].toFixed(3)+'" r="'+r.toFixed(3)+'"></circle>';
+    var c = [(d.bbox[0]+d.bbox[2])/2, (d.bbox[1]+d.bbox[3])/2];
+    bounds.extend([d.bbox[0], d.bbox[1]]);
+    bounds.extend([d.bbox[2], d.bbox[3]]);
+    /* Area-proportional radius, so a bubble twice the area means twice the
+       plots. In pixels, so it stays the same size as the reader zooms: this
+       layer is a count, not a footprint, and growing it would pretend the
+       district covers that much ground. */
+    var rad = Math.sqrt(d.plots/maxP) * 26 + 5;
+    var circ = L.circleMarker(c, {
+      radius:rad, color:'#FFFCF6', weight:1.5,
+      fillColor:'#7B4A24', fillOpacity:0.62, interactive:true
+    });
+    circ.on('mouseover mousemove', function(e){
+      tipAt(e, '<strong>'+esc(d.district)+'</strong><br>'+
+        '<b>'+fmtInt(d.plots)+'</b> '+t('lblPlots')+' · <b>'+fmtInt(d.ha)+'</b> ha<br>'+
+        t('mapOpenHint'));
+      this.setStyle({fillOpacity:0.85});
+    });
+    circ.on('mouseout', function(){ tipOff(); this.setStyle({fillOpacity:0.62}); });
+    circ.on('click', function(){ openDistrict(i); });
+    grp.addLayer(circ);
+    if (d.plots >= maxP*0.02){
+      grp.addLayer(L.marker(c, {interactive:false, icon:L.divIcon({
+        className:'dlabel-icon', html:'<span class="dlabel">'+esc(d.district)+'</span>',
+        iconSize:[0,0]
+      })}));
+    }
   });
-  ds.forEach(function(d){
-    if (d.plots < maxP*0.02) return;
-    var c = proj((d.bbox[0]+d.bbox[2])/2, (d.bbox[1]+d.bbox[3])/2);
-    var r = Math.sqrt(d.plots/maxP) * MAP.home.w * 0.042 + MAP.home.w*0.004;
-    body += '<text class="dlabel" x="'+c[0].toFixed(3)+'" y="'+(c[1]-r-MAP.home.w*0.012).toFixed(3)+
-            '" style="font-size:'+(MAP.home.w*0.022).toFixed(3)+'px">'+esc(d.district)+'</text>';
-  });
-  document.getElementById('mapWrap').querySelector('svg').innerHTML = body;
-  applyView();
+
+  MAP.layer = grp.addTo(m);
+  MAP.home = bounds.pad(0.08);
+  m.fitBounds(MAP.home);
+
   document.getElementById('mapBack').disabled = true;
   var f = document.getElementById('mapFind');
   if (f){ f.hidden = true; f.value = ''; }
@@ -1851,20 +1974,56 @@ function openDistrict(idx){
   var d = DATA_POLY.districts[idx];
   if (!d) return;
   var done = function(rows){
+    var m = ensureMap();
     MAP.level='district'; MAP.district=d; MAP.plots=rows;
-    MAP.lat0 = (d.bbox[0]+d.bbox[2])/2;
-    MAP.home = fitAspect(rows.length > 20 ? robustBox(rows, 0.08)
-                                       : boxFrom(d.bbox, 0.10));
-    MAP.view = {x:MAP.home.x,y:MAP.home.y,w:MAP.home.w,h:MAP.home.h};
-    var body='';
+    clearLayer();
+
+    var grp = L.layerGroup();
+    var shapes = new Array(rows.length);
     for (var i=0;i<rows.length;i++){
       var r = rows[i];
-      var col = BAND_FILL[r.b] || '#A97244';
-      body += '<path class="plot'+(r.s==='provisional'?' prov':'')+'" data-i="'+i+
-              '" fill="'+col+'" stroke="'+col+'" d="'+ringPath(r.p)+'"></path>';
+      /* p is already [lat, lng] pairs, which is the order Leaflet takes. */
+      var poly = L.polygon(r.p, plotStyle(r, false));
+      poly._idx = i;
+      poly.on('mouseover mousemove', function(e){
+        var pl = MAP.plots[this._idx];
+        tipAt(e, (plotLabel(pl) ? '<strong>'+esc(plotLabel(pl))+'</strong><br>' : '')+
+          '<strong>'+t('band_'+pl.b)+'</strong><br>'+
+          '<b>'+pl.h.toLocaleString(numLocale(),{maximumFractionDigits:2})+'</b> ha'+
+          ' · <b>'+(pl.h*2.4711).toLocaleString(numLocale(),{maximumFractionDigits:2})+'</b> '+t('lblAcres')+'<br>'+
+          (pl.s==='provisional' ? t('tipProvisional') : t('tipRegistered')) +
+          (pl.i ? ' · ' + t('lblItc') : ''));
+        this.setStyle({weight:3, color:'#2A1A10'});
+      });
+      poly.on('mouseout', function(){
+        tipOff();
+        this.setStyle(plotStyle(MAP.plots[this._idx], this._hit));
+      });
+      /* Click frames the plot with its neighbours around it. Wheel-zooming
+         into the middle of a district usually lands on empty ground, because
+         the plots sit in tight clusters with long gaps between them, and a
+         boundary on its own tells a reader nothing: it is the fit against the
+         plots either side, and against what the imagery shows on the ground,
+         that says whether it is plausible. The padding is what buys that
+         context, and 'Reset zoom' comes back out. */
+      poly.on('click', function(){
+        MAP.map.fitBounds(this.getBounds().pad(6), {maxZoom:SAT_MAX - 1});
+      });
+      shapes[i] = poly;
+      grp.addLayer(poly);
     }
-    document.getElementById('mapWrap').querySelector('svg').innerHTML = body;
-    applyView();
+    MAP.shapes = shapes;
+    MAP.layer = grp.addTo(m);
+
+    /* Percentile extent of plot centroids. A district's true bounding box is
+       set by its few most distant plots, which squeezes the cluster everyone
+       actually wants to look at into a corner. Framing the 2nd to 98th
+       percentile puts the bulk on screen; the outliers are still drawn and
+       still reachable by zooming out. */
+    MAP.home = rows.length > 20 ? robustBounds(rows) : L.latLngBounds(
+      [d.bbox[0], d.bbox[1]], [d.bbox[2], d.bbox[3]]).pad(0.08);
+    m.fitBounds(MAP.home);
+
     mapLoading(false);
     document.getElementById('mapBack').disabled = false;
     var f = document.getElementById('mapFind');
@@ -1889,6 +2048,18 @@ function openDistrict(idx){
     .catch(function(err){
       mapLoading(true, t('mapFailed') + ' [' + err.message + ']');
     });
+}
+
+function robustBounds(rows){
+  var lats = [], lngs = [];
+  for (var i=0;i<rows.length;i++){
+    var r = rows[i].p, sa = 0, sg = 0;
+    for (var j=0;j<r.length;j++){ sa += r[j][0]; sg += r[j][1]; }
+    lats.push(sa/r.length); lngs.push(sg/r.length);
+  }
+  lats.sort(function(a,b){return a-b;}); lngs.sort(function(a,b){return a-b;});
+  var q = function(a, f){ return a[Math.min(a.length-1, Math.max(0, Math.floor(a.length*f)))]; };
+  return L.latLngBounds([q(lats,0.02), q(lngs,0.02)], [q(lats,0.98), q(lngs,0.98)]).pad(0.08);
 }
 
 function renderMapList(){
@@ -1925,72 +2096,11 @@ function renderLegend(detail){
 }
 
 function bindMap(){
-  var wrap = document.getElementById('mapWrap');
-  var svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
-  svg.setAttribute('preserveAspectRatio','xMidYMid meet');
-  wrap.insertBefore(svg, wrap.firstChild);
-  var tip = document.getElementById('mapTip');
+  document.getElementById('mapWrap').addEventListener('mouseleave', tipOff);
 
-  wrap.addEventListener('click', function(e){
-    var b = e.target.closest('.dbubble');
-    if (b) openDistrict(parseInt(b.dataset.i,10));
-  });
-  wrap.addEventListener('mousemove', function(e){
-    var el = e.target.closest('.plot, .dbubble');
-    if (!el){ tip.style.opacity = 0; return; }
-    var r = wrap.getBoundingClientRect();
-    tip.style.left = (e.clientX - r.left) + 'px';
-    tip.style.top  = (e.clientY - r.top) + 'px';
-    tip.style.opacity = 1;
-    if (el.classList.contains('dbubble')){
-      var d = DATA_POLY.districts[parseInt(el.dataset.i,10)];
-      tip.innerHTML = '<strong>'+esc(d.district)+'</strong><br>'+
-        '<b>'+fmtInt(d.plots)+'</b> '+t('lblPlots')+' · <b>'+fmtInt(d.ha)+'</b> ha<br>'+
-        t('mapOpenHint');
-    } else {
-      var pl = MAP.plots[parseInt(el.dataset.i,10)];
-      tip.innerHTML = (plotLabel(pl) ? '<strong>'+esc(plotLabel(pl))+'</strong><br>' : '')+
-        '<strong>'+t('band_'+pl.b)+'</strong><br>'+
-        '<b>'+pl.h.toLocaleString(numLocale(),{maximumFractionDigits:2})+'</b> ha'+
-        ' · <b>'+(pl.h*2.4711).toLocaleString(numLocale(),{maximumFractionDigits:2})+'</b> '+t('lblAcres')+'<br>'+
-        (pl.s==='provisional' ? t('tipProvisional') : t('tipRegistered')) +
-        (pl.i ? ' · ' + t('lblItc') : '');
-    }
-  });
-  wrap.addEventListener('mouseleave', function(){ tip.style.opacity = 0; });
-
-  /* Zoom about the cursor: the point under the pointer stays put. */
-  wrap.addEventListener('wheel', function(e){
-    if (!MAP.view) return;
-    e.preventDefault();
-    var r = wrap.getBoundingClientRect();
-    var fx = (e.clientX-r.left)/r.width, fy = (e.clientY-r.top)/r.height;
-    var k = e.deltaY > 0 ? 1.18 : 1/1.18;
-    var v = MAP.view;
-    var nw = Math.min(Math.max(v.w*k, MAP.home.w/4000), MAP.home.w*40);
-    var nh = nw * (v.h/v.w);
-    MAP.view = {x: v.x + (v.w-nw)*fx, y: v.y + (v.h-nh)*fy, w:nw, h:nh};
-    applyView();
-  }, {passive:false});
-
-  wrap.addEventListener('pointerdown', function(e){
-    if (!MAP.view) return;
-    MAP.drag = {x:e.clientX, y:e.clientY, vx:MAP.view.x, vy:MAP.view.y};
-    wrap.classList.add('dragging');
-    wrap.setPointerCapture(e.pointerId);
-  });
-  wrap.addEventListener('pointermove', function(e){
-    if (!MAP.drag) return;
-    var r = wrap.getBoundingClientRect();
-    MAP.view.x = MAP.drag.vx - (e.clientX-MAP.drag.x)/r.width*MAP.view.w;
-    MAP.view.y = MAP.drag.vy - (e.clientY-MAP.drag.y)/r.height*MAP.view.h;
-    applyView();
-  });
-  ['pointerup','pointercancel'].forEach(function(ev){
-    wrap.addEventListener(ev, function(e){
-      MAP.drag = null; wrap.classList.remove('dragging');
-      try { wrap.releasePointerCapture(e.pointerId); } catch(_){}
-    });
+  document.getElementById('mapMode').addEventListener('click', function(e){
+    var b = e.target.closest('button');
+    if (b) setMode(b.dataset.mode);
   });
 
   var list = document.getElementById('mapDistrictList');
@@ -2005,46 +2115,47 @@ function bindMap(){
     list.addEventListener('click', open);
     list.addEventListener('keydown', open);
   }
+
   var find = document.getElementById('mapFind');
   if (find){
     find.addEventListener('input', function(){
       var q = this.value.trim().toLowerCase();
-      var svg = document.querySelector('#mapWrap svg');
-      if (!svg || MAP.level !== 'district' || !MAP.plots) return;
-      svg.querySelectorAll('.plot.hit').forEach(function(e){ e.classList.remove('hit'); });
-      if (q.length < 2) return;
+      if (MAP.level !== 'district' || !MAP.plots || !MAP.shapes) return;
       var first = null, n = 0;
       for (var i=0;i<MAP.plots.length;i++){
         var lab = plotLabel(MAP.plots[i]).toLowerCase();
-        if (lab && lab.indexOf(q) !== -1){
-          var el = svg.querySelector('.plot[data-i="'+i+'"]');
-          if (el){ el.classList.add('hit'); if (!first) first = MAP.plots[i]; n++; }
+        var on = q.length >= 2 && lab && lab.indexOf(q) !== -1;
+        if (MAP.shapes[i]._hit !== on){
+          MAP.shapes[i]._hit = on;
+          MAP.shapes[i].setStyle(plotStyle(MAP.plots[i], on));
         }
+        if (on){ if (!first) first = MAP.shapes[i]; n++; }
+      }
+      if (q.length < 2){
+        document.getElementById('mapStat').textContent =
+          fmtInt(MAP.district.plots) + ' ' + t('lblPlots');
+        return;
       }
       document.getElementById('mapStat').textContent =
         n ? n + ' ' + t('lblMatches') : t('lblNoMatch');
       /* Zoom to the first match, so finding a plot actually shows it rather
-         than highlighting a pixel somewhere off screen. */
-      if (first){
-        var lats = first.p.map(function(c){return c[0];});
-        var lngs = first.p.map(function(c){return c[1];});
-        var box = boxFrom([Math.min.apply(null,lats), Math.min.apply(null,lngs),
-                           Math.max.apply(null,lats), Math.max.apply(null,lngs)], 6);
-        MAP.view = fitAspect(box);
-        applyView();
-      }
+         than highlighting a pixel somewhere off screen. Padded out well past
+         the plot itself: the neighbours are what say whether a boundary is
+         plausible, and a lone shape centred on the screen says nothing. */
+      if (first) MAP.map.fitBounds(first.getBounds().pad(6));
     });
   }
+
   document.getElementById('mapBack').addEventListener('click', renderDistricts);
   document.getElementById('mapReset').addEventListener('click', function(){
-    if (!MAP.home) return;
-    MAP.view = {x:MAP.home.x,y:MAP.home.y,w:MAP.home.w,h:MAP.home.h};
-    applyView();
+    if (MAP.map && MAP.home) MAP.map.fitBounds(MAP.home);
   });
+  /* Leaflet tracks its own container size, so the old manual resize handler is
+     gone. What it cannot know is that this panel starts hidden on a narrow
+     screen and on the language switch, so the size is re-checked whenever the
+     window changes shape. */
   window.addEventListener('resize', function(){
-    if (!MAP.home) return;
-    MAP.home = fitAspect(MAP.home);
-    applyView();
+    if (MAP.map) MAP.map.invalidateSize({animate:false});
   });
 }
 
@@ -2298,7 +2409,6 @@ function renderAll(){
   paintTileIcons();
   computeFacts();
   applyStaticI18n();
-  document.getElementById('footerAboutP').textContent = t('aboutP');
   renderHeader();
   renderGap();
   renderCurve();
