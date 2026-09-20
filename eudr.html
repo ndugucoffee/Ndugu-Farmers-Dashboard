@@ -335,11 +335,12 @@
   .kpi-delta.up, .kpi-delta.down, .kpi-delta.flat{color:rgba(255,255,255,.82);}
 
   /* ---------- KPI grid (twelve tiles, one story) ----------
-     Replaces the old two-row split with a single 4-column, 3-row grid: an
-     overview beat, an operations beat, an inclusion beat. Each row runs its
-     own dark-to-light pass in its own family rather than one long ramp, the
-     same convention row one and the metrics row already used, just applied
-     per beat instead of per component. */
+     Replaces the old two-row split with a single 4-column, 3-row grid: who
+     the network is (row 1) and how the season is moving (row 2) both run in
+     the teal/green family, so scale and activity read as one continuous
+     block; the closing row (org structure and credentials) switches to the
+     roast/brown family as a deliberate change of register. Each row still
+     lightens left to right within its family. */
   .kpigrid{
     display:grid; grid-template-columns:repeat(4,minmax(0,1fr));
     gap:10px; margin-top:14px;
@@ -352,17 +353,17 @@
      picked fresh, so the 4.5:1 white-text floor and the deuteranopia-safe
      green stay intact without re-checking new hex. */
   .kt1{background:linear-gradient(135deg,#0D4D45 0%,#093832 100%);} /* 9.7:1 */
-  .kt2{background:linear-gradient(135deg,#7E481E 0%,#5B3415 100%);} /* 7.4:1 */
+  .kt2{background:linear-gradient(135deg,#0E564D 0%,#0A3E37 100%);} /* 8.5:1 */
   .kt3{background:linear-gradient(135deg,#106056 0%,#0B453E 100%);} /* 7.4:1 */
   .kt4{background:linear-gradient(135deg,#116A5F 0%,#0C4D44 100%);} /* 6.5:1 */
   .kt5{background:linear-gradient(135deg,#0E564D 0%,#0A3E37 100%);} /* 8.5:1 */
   .kt6{background:linear-gradient(135deg,#106056 0%,#0B453E 100%);} /* 7.4:1 */
   .kt7{background:linear-gradient(135deg,#116A5F 0%,#0C4D44 100%);} /* 6.5:1 */
   .kt8{background:linear-gradient(135deg,#137568 0%,#0E554B 100%);} /* 5.6:1 */
-  .kt9{background:linear-gradient(135deg,#106056 0%,#0B453E 100%);} /* 7.4:1 */
-  .kt10{background:linear-gradient(135deg,#8C4F21 0%,#653918 100%);} /* 6.5:1 */
-  .kt11{background:linear-gradient(135deg,#9B5824 0%,#703F1A 100%);} /* 5.5:1 */
-  .kt12{background:linear-gradient(135deg,#0D4D45 0%,#093832 100%);} /* 9.7:1 */
+  .kt9{background:linear-gradient(135deg,#72401B 0%,#522E13 100%);} /* 8.5:1 */
+  .kt10{background:linear-gradient(135deg,#7E481E 0%,#5B3415 100%);} /* 7.4:1 */
+  .kt11{background:linear-gradient(135deg,#8C4F21 0%,#653918 100%);} /* 6.5:1 */
+  .kt12{background:linear-gradient(135deg,#9B5824 0%,#703F1A 100%);} /* 5.5:1 */
 
   /* ---------- Generic panel ---------- */
   .panel{
