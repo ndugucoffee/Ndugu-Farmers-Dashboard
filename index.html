@@ -71,6 +71,7 @@
 
     --radius-sm:4px;
     --radius-md:8px;
+    --radius-lg:10px;
     --shadow-pop:0 12px 30px -10px rgba(42,26,16,0.38);
     --shadow-panel:0 1px 2px rgba(42,26,16,0.04), 0 10px 26px -20px rgba(42,26,16,0.55);
   }
@@ -253,10 +254,10 @@
   @media (max-width:640px){ .tilerow-4 .tile{grid-column:span 2;} }
   .tile{
     grid-column:span 2; min-width:0;
-    padding:11px 13px 12px; border-radius:var(--radius-md);
+    padding:13px 15px 13px; border-radius:var(--radius-lg);
     background:var(--tile-roast); color:#fff;
     box-shadow:0 1px 2px rgba(42,26,16,.10), 0 8px 18px -14px rgba(42,26,16,.55);
-    display:flex; flex-direction:column; justify-content:center;
+    display:flex; flex-direction:column; justify-content:flex-start;
   }
   /* Row one is the network: who and what Ndugu is. It runs dark to light left
      to right in the roast family, so the reading order is carried by tone as
@@ -274,23 +275,23 @@
      second thing to look at. aria-hidden, because the label already says what
      the tile is and a screen reader repeating it adds nothing. */
   .tile-icon{
-    position:absolute; top:10px; right:11px; width:22px; height:22px;
-    color:#fff; opacity:.30; pointer-events:none;
+    position:absolute; top:12px; right:13px; width:18px; height:18px;
+    color:#fff; opacity:.45; pointer-events:none;
   }
   .kpi-cell{position:relative;}
   .kpi-cell .tile-icon{top:9px; right:10px; width:20px; height:20px; opacity:.28;}
-  .tile-label, .kpi-label{padding-right:26px; min-height:2.7em;}
+  .tile-label, .kpi-label{padding-right:26px; min-height:1.5em;}
   .tile-label{
-    font-size:11.5px; font-weight:500; margin:0 0 3px 0;
-    color:rgba(255,255,255,.88); line-height:1.35;
+    font-size:12px; font-weight:500; margin:0 0 6px 0;
+    color:rgba(255,255,255,.82); line-height:1.35;
   }
   .tile-value{
-    font-size:23px; font-weight:600; color:#fff; line-height:1.12;
+    font-size:23px; font-weight:700; color:#fff; line-height:1.12;
     font-variant-numeric:tabular-nums; overflow-wrap:break-word;
   }
   .tile-lead .tile-value{font-size:26px;}
   .tile-value-sm{font-size:15px; line-height:1.3;}
-  .tile-foot{font-size:12.5px; color:rgba(255,255,255,.82); margin-top:4px;}
+  .tile-foot{font-size:12.5px; color:rgba(255,255,255,.72); margin-top:5px; font-weight:400;}
 
   /* ---------- KPI tiles ----------
      Six saturated tiles rather than one bordered ledger strip. Each is its own
@@ -304,7 +305,7 @@
   @media (max-width:1100px){ .kpi-strip{grid-template-columns:repeat(3,minmax(0,1fr));} }
   @media (max-width:560px){ .kpi-strip{grid-template-columns:repeat(2,minmax(0,1fr));} }
   .kpi-cell{
-    padding:11px 13px 12px; border-radius:var(--radius-md);
+    padding:13px 15px 13px; border-radius:var(--radius-lg);
     background:var(--tile-roast); color:#fff; min-width:0;
     box-shadow:0 1px 2px rgba(42,26,16,.10), 0 8px 18px -14px rgba(42,26,16,.55);
   }
@@ -322,7 +323,7 @@
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
   .kpi-value{
-    font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-size:23px; font-weight:600; color:#fff;
+    font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-size:23px; font-weight:700; color:#fff;
     line-height:1.12; overflow-wrap:break-word;
   }
   @media (max-width:560px){ .kpi-value{font-size:19px;} }
@@ -336,6 +337,36 @@
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
   .kpi-delta.up, .kpi-delta.down, .kpi-delta.flat{color:rgba(255,255,255,.82);}
+
+  /* ---------- KPI grid (twelve tiles, one story) ----------
+     Replaces the old two-row split with a single 4-column, 3-row grid: an
+     overview beat, an operations beat, an inclusion beat. Each row runs its
+     own dark-to-light pass in its own family rather than one long ramp, the
+     same convention row one and the metrics row already used, just applied
+     per beat instead of per component. */
+  .kpigrid{
+    display:grid; grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:10px; margin-top:14px;
+  }
+  @media (max-width:900px){ .kpigrid{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  @media (max-width:480px){ .kpigrid{grid-template-columns:1fr;} }
+  .kpigrid .tile{grid-column:span 1;}
+  /* Every stop below is one already validated elsewhere in this file (the
+     kpi-cell teal ramp and the tile-a..e roast ramp) — reused rather than
+     picked fresh, so the 4.5:1 white-text floor and the deuteranopia-safe
+     green stay intact without re-checking new hex. */
+  .kt1{background:linear-gradient(135deg,#0D4D45 0%,#093832 100%);} /* 9.7:1 */
+  .kt2{background:linear-gradient(135deg,#7E481E 0%,#5B3415 100%);} /* 7.4:1 */
+  .kt3{background:linear-gradient(135deg,#106056 0%,#0B453E 100%);} /* 7.4:1 */
+  .kt4{background:linear-gradient(135deg,#116A5F 0%,#0C4D44 100%);} /* 6.5:1 */
+  .kt5{background:linear-gradient(135deg,#0E564D 0%,#0A3E37 100%);} /* 8.5:1 */
+  .kt6{background:linear-gradient(135deg,#106056 0%,#0B453E 100%);} /* 7.4:1 */
+  .kt7{background:linear-gradient(135deg,#116A5F 0%,#0C4D44 100%);} /* 6.5:1 */
+  .kt8{background:linear-gradient(135deg,#137568 0%,#0E554B 100%);} /* 5.6:1 */
+  .kt9{background:linear-gradient(135deg,#106056 0%,#0B453E 100%);} /* 7.4:1 */
+  .kt10{background:linear-gradient(135deg,#8C4F21 0%,#653918 100%);} /* 6.5:1 */
+  .kt11{background:linear-gradient(135deg,#9B5824 0%,#703F1A 100%);} /* 5.5:1 */
+  .kt12{background:linear-gradient(135deg,#0D4D45 0%,#093832 100%);} /* 9.7:1 */
 
   /* ---------- Generic panel ---------- */
   .panel{
@@ -588,40 +619,74 @@
       <p class="lede" data-i18n="heroLede">Ndugu Coop buys FAQ-grade robusta, certified under Rainforest Alliance, Fairtrade and 4C, from smallholder farmers across seven Ugandan districts, bulks it into export-ready lots, and hands it off to UGACOF, ETG and other buyers. This is where that pipeline stands today.</p>
     </div>
 
-    <!-- Row one. Six equal tiles, matching the KPI row below, so the head of
-         the page is one grid rather than two. Tone carries the hierarchy: this
-         row runs deep, the metrics row runs bright. -->
-    <div class="tilerow">
-      <div class="tile tile-lead" id="tileLead">
+    <!-- Twelve tiles in one grid, three rows telling one story: overview
+         (what and who), operations (how the season is moving), inclusion
+         (who the network reaches). Tone follows that grouping rather than a
+         single ramp, so each row reads as its own beat. -->
+    <div class="kpigrid">
+      <div class="tile kt1" id="tileLead">
         <p class="tile-label" data-i18n="heroCap">Coffee purchased</p>
         <div class="tile-value num" id="heroQty">-</div>
         <div class="tile-foot num" id="heroWindow">May 2024 - Aug 2026</div>
       </div>
-      <div class="tile tile-a" id="tileCert">
+      <div class="tile kt2" id="tileCert">
         <p class="tile-label" data-i18n="badge1l">Certifications</p>
         <div class="tile-value tile-value-sm" data-i18n="badge1v">RFA · 4C · Fairtrade · EUDR</div>
       </div>
-      <div class="tile tile-b" id="tileFarmers">
+      <div class="tile kt3" id="tileFarmers">
         <p class="tile-label" data-i18n="badge2l">Farmers registered</p>
         <div class="tile-value num" id="badge2v">-</div>
       </div>
-      <div class="tile tile-c" id="tileCoops">
+      <div class="tile kt4" id="tileCoops">
         <p class="tile-label" data-i18n="badge4l">Cooperatives</p>
         <div class="tile-value num" id="badge4v">-</div>
       </div>
-      <div class="tile tile-d" id="tileWomen">
-        <p class="tile-label" data-i18n="badge5l">Women in the registry</p>
-        <div class="tile-value num" id="badge5v">-</div>
-        <div class="tile-foot num" id="badge5f">-</div>
+
+      <div class="tile kt5" id="tileAvgSupplier">
+        <p class="tile-label" data-i18n="kpiPerSupplier">Avg per supplier</p>
+        <div class="tile-value num" id="kpiAvgSupplierV">-</div>
+        <div class="tile-foot num" data-i18n="kpiPerSupplierSub">delivered per active farmer</div>
       </div>
-      <div class="tile tile-e" id="tileDeliveries">
-        <p class="tile-label" data-i18n="badge3l2">Deliveries recorded</p>
-        <div class="tile-value num" id="badge3v">-</div>
-        <div class="tile-foot num" id="badge3f">-</div>
+      <div class="tile kt6" id="tileActive">
+        <p class="tile-label" data-i18n="kpiActive">Active suppliers</p>
+        <div class="tile-value num" id="kpiActiveV">-</div>
+      </div>
+      <div class="tile kt7" id="tileDistricts">
+        <p class="tile-label" data-i18n="kpiDistricts">Districts covered</p>
+        <div class="tile-value num" id="kpiDistrictsV">-</div>
+      </div>
+      <div class="tile kt8" id="tileBatches">
+        <p class="tile-label" data-i18n="kpiBatches">Batches dispatched</p>
+        <div class="tile-value num" id="kpiBatchesV">-</div>
+        <div class="tile-foot num" id="kpiBatchesF">-</div>
+      </div>
+      <div class="tile kt8" id="tileSeasonWindow" hidden>
+        <p class="tile-label" data-i18n="kpiSeasonWindow">Season window</p>
+        <div class="tile-value" id="kpiSeasonWindowV">-</div>
+        <div class="tile-foot num" id="kpiSeasonWindowF">-</div>
+      </div>
+
+      <div class="tile kt9" id="tileWomenReg">
+        <p class="tile-label" data-i18n="badge5l">Women in the registry</p>
+        <div class="tile-value num" id="kpiWomenRegV">-</div>
+        <div class="tile-foot num" id="kpiWomenRegF">-</div>
+      </div>
+      <div class="tile kt10" id="tileWomenVol">
+        <p class="tile-label" data-i18n="kpiWomenVol">Women in delivered volume</p>
+        <div class="tile-value num" id="kpiWomenVolV">-</div>
+        <div class="tile-foot num" id="kpiWomenVolF">-</div>
+      </div>
+      <div class="tile kt11" id="tileYouthReg">
+        <p class="tile-label" data-i18n="kpiYouthReg">Youth (18–35) in the registry</p>
+        <div class="tile-value num" id="kpiYouthRegV">-</div>
+        <div class="tile-foot num" id="kpiYouthRegF">-</div>
+      </div>
+      <div class="tile kt12" id="tileYouthVol">
+        <p class="tile-label" data-i18n="kpiYouthVol">Youth (18–35) in delivered volume</p>
+        <div class="tile-value num" id="kpiYouthVolV">-</div>
+        <div class="tile-foot num" id="kpiYouthVolF">-</div>
       </div>
     </div>
-
-    <div class="kpi-strip" id="kpiStrip"></div>
   </section>
 
   <div class="part-rail"><span data-i18n="partScale">Scale and impact</span></div>
@@ -1029,8 +1094,9 @@ en:{
   heroH1:"Greater Masaka's coffee, tracked from farm gate to export.",
   heroLede:function(f){ return 'FAQ-grade robusta from smallholders across '+f.activeDistricts+' districts, bulked into export lots for '+f.buyer1+', '+f.buyer2+' and others.'; },
   badge1v:'RFA · Fairtrade · 4C · EUDR', badge1l:'Certifications',
-  badge4l:'Cooperatives', badge5l:'Women in the registry', ofRegistry:'of the registry',
-  badge3l2:'Deliveries recorded', acrossDistricts:'districts',
+  badge4l:'Cooperatives', badge5l:'Women in the registry',
+  kpiWomenVol:'Women in delivered volume', kpiYouthReg:'Youth (18–35) in the registry',
+  kpiYouthVol:'Youth (18–35) in delivered volume', lblOf:'of', lblRegistered:'registered',
   badge2l:'Farmers registered',
   badge3l:function(f){ return 'Sourcing districts' + (f.emerging ? ', '+f.emerging+' emerging' : ''); },
   heroCap:'Coffee purchased',
@@ -1069,10 +1135,9 @@ en:{
   thRank:'#', thFarmer:'Farmer code', thDistrictVillage:'District / village', thDeliveries:'Deliveries', thVolume:'Volume',
   footerDefH:'Definitions',
   footerDefP:'FAQ: Fair Average Quality. Certification: Rainforest Alliance, Fairtrade and 4C. Active supplier: a registered farmer with at least one recorded delivery in this window. Batch: a bulked, graded lot dispatched to a buyer.',
-  kpiPerSupplier:'Avg per supplier', kpiPerSupplierSub:'delivered per active farmer', kpiValue:'Value paid to farmers', kpiActive:'Active suppliers',
-  kpiDistricts:'Districts covered', kpiAvgPrice:'Avg. price paid', kpiBatches:'Batches dispatched',
+  kpiPerSupplier:'Avg per supplier', kpiPerSupplierSub:'delivered per active farmer', kpiActive:'Active suppliers',
+  kpiDistricts:'Districts covered', kpiBatches:'Batches dispatched',
   kpiSeasonWindow:'Season window', kpiToExporters:'to exporters', kpiTo:'to', kpiInProgress:'in progress',
-  vsPriorSeason:'vs prior season',
   lakeLabel:'Lake Victoria',
   tipRegisteredNoDeliv:'farmers registered', tipNoDelivYet:'no deliveries yet', tipNoDelivWindow:'no deliveries in this window',
   tipActiveFarmers:'active farmers', tipAvgPrice:'avg. price',
@@ -1096,8 +1161,9 @@ nl:{
   heroH1:'Koffie uit Groot-Masaka, gevolgd van boerderij tot export.',
   heroLede:function(f){ return 'FAQ-kwaliteit robusta van kleine boeren in '+f.activeDistricts+' districten, gebundeld tot exportpartijen voor '+f.buyer1+', '+f.buyer2+' en anderen.'; },
   badge1v:'RFA · Fairtrade · 4C · EUDR', badge1l:'Certificeringen',
-  badge4l:'Coöperaties', badge5l:'Vrouwen in het register', ofRegistry:'van het register',
-  badge3l2:'Geregistreerde leveringen', acrossDistricts:'districten',
+  badge4l:'Coöperaties', badge5l:'Vrouwen in het register',
+  kpiWomenVol:'Vrouwen in geleverd volume', kpiYouthReg:'Jongeren (18–35) in het register',
+  kpiYouthVol:'Jongeren (18–35) in geleverd volume', lblOf:'van', lblRegistered:'geregistreerd',
   badge2l:'Geregistreerde boeren',
   badge3l:function(f){ return 'Inkoopdistricten' + (f.emerging ? ', '+f.emerging+' opkomend' : ''); },
   heroCap:'Ingekochte koffie',
@@ -1136,10 +1202,9 @@ nl:{
   thRank:'#', thFarmer:'Boerencode', thDistrictVillage:'District / dorp', thDeliveries:'Leveringen', thVolume:'Volume',
   footerDefH:'Definities',
   footerDefP:'FAQ: Fair Average Quality. Certificering: Rainforest Alliance, Fairtrade en 4C. Actieve leverancier: een geregistreerde boer met minstens één geregistreerde levering in deze periode. Partij: een gebundelde, gesorteerde lading verzonden naar een koper.',
-  kpiPerSupplier:'Gem. per leverancier', kpiPerSupplierSub:'geleverd per actieve boer', kpiValue:'Uitbetaald aan boeren', kpiActive:'Actieve leveranciers',
-  kpiDistricts:'Districten gedekt', kpiAvgPrice:'Gem. betaalde prijs', kpiBatches:'Verzonden partijen',
+  kpiPerSupplier:'Gem. per leverancier', kpiPerSupplierSub:'geleverd per actieve boer', kpiActive:'Actieve leveranciers',
+  kpiDistricts:'Districten gedekt', kpiBatches:'Verzonden partijen',
   kpiSeasonWindow:'Seizoensvenster', kpiToExporters:'naar exporteurs', kpiTo:'tot', kpiInProgress:'loopt nog',
-  vsPriorSeason:'t.o.v. vorig seizoen',
   lakeLabel:'Victoriameer',
   tipRegisteredNoDeliv:'boeren geregistreerd', tipNoDelivYet:'nog geen leveringen', tipNoDelivWindow:'geen leveringen in deze periode',
   tipActiveFarmers:'actieve boeren', tipAvgPrice:'gem. prijs',
@@ -1197,51 +1262,37 @@ function seasonData(season){
   var row = DATA.seasons.find(function(s){ return String(s.season)===String(season); });
   return row;
 }
-function prevSeasonRow(season){
-  var idx = DATA.seasons.findIndex(function(s){ return String(s.season)===String(season); });
-  if (idx<=0) return null;
-  return DATA.seasons[idx-1];
-}
-function deltaHTML(curr, prev, key, higherIsGood){
-  if (prev===null || prev[key]===0) return '';
-  var d = (curr[key]-prev[key])/prev[key];
-  var cls = Math.abs(d)<0.01 ? 'flat' : (d>0 ? 'up':'down');
-  var arrow = d>0 ? '▲' : (d<0 ? '▼':'=');
-  return '<div class="kpi-delta '+cls+'"><span>'+arrow+'</span><span>'+fmtPct(Math.abs(d))+' '+T('vsPriorSeason')+'</span></div>';
-}
 function renderKPIs(){
   var s = state.season;
   var d = seasonData(s);
   var isAll = s==='all';
-  var prev = isAll ? null : prevSeasonRow(s);
   var registered = DATA.kpis.n_registered_farmers;
   var farmers = isAll ? DATA.kpis.n_active_farmers : d.n_farmers;
   var districts = isAll ? DATA.kpis.n_districts : d.n_districts;
   var batchesQty = isAll ? DATA.kpis.total_batch_qty_kg : null;
   var batchesN = isAll ? DATA.kpis.n_batches : null;
 
-  var cells = [];
   /* Volume lives on the lead tile above, which now tracks the same season, so
      repeating it here bought nothing. Average delivered per supplier is the
      figure the trend commentary already turns on and nothing else showed it. */
   var perSupplier = (d.n_farmers > 0) ? (d.qty_kg / d.n_farmers) : 0;
-  cells.push({icon:'person', label:T('kpiPerSupplier'), value:fmtKgShort(perSupplier),
-              delta:'<div class="kpi-delta flat">'+T('kpiPerSupplierSub')+'</div>'});
-  cells.push({icon:'cash',   label:T('kpiValue'), value:fmtUGX(d.amount_ugx), delta: isAll?'':deltaHTML(d,prev,'amount_ugx')});
-  cells.push({icon:'group',  label:T('kpiActive'), value:fmtInt(farmers)+' <small>/ '+fmtInt(registered)+'</small>', delta:''});
-  cells.push({icon:'pin',    label:T('kpiDistricts'), value:fmtInt(districts), delta:''});
-  cells.push({icon:'tag',    label:T('kpiAvgPrice'), value:fmtPrice(d.avg_price)+' <small>/kg</small>', delta: isAll?'':deltaHTML(d,prev,'avg_price')});
-  if (isAll){
-    cells.push({icon:'crate', label:T('kpiBatches'), value:fmtInt(batchesN), delta:'<div class="kpi-delta flat">'+fmtTonnes(batchesQty)+' '+T('kpiToExporters')+'</div>'});
-  } else {
-    cells.push({icon:'window', label:T('kpiSeasonWindow'), value:'<span style="font-size:15px">'+fmtDateHuman(d.date_min)+'</span>', delta:'<div class="kpi-delta flat">'+T('kpiTo')+' '+fmtDateHuman(d.date_max)+(s==='2026' ? ' · '+T('kpiInProgress'):'')+'</div>'});
-  }
+  document.getElementById('kpiAvgSupplierV').textContent = fmtKgShort(perSupplier);
+  document.getElementById('kpiActiveV').innerHTML = fmtInt(farmers)+' <small>/ '+fmtInt(registered)+'</small>';
+  document.getElementById('kpiDistrictsV').textContent = fmtInt(districts);
 
-  var html = cells.map(function(c){
-    return '<div class="kpi-cell">'+icon(c.icon)+'<div class="kpi-label">'+c.label+
-           '</div><div class="kpi-value num">'+c.value+'</div>'+c.delta+'</div>';
-  }).join('');
-  document.getElementById('kpiStrip').innerHTML = html;
+  /* Batches only total sensibly across the whole run, so a specific season
+     shows its own window in that tile's place instead of a per-season count
+     the data does not carry. */
+  document.getElementById('tileBatches').hidden = !isAll;
+  document.getElementById('tileSeasonWindow').hidden = isAll;
+  if (isAll){
+    document.getElementById('kpiBatchesV').textContent = fmtInt(batchesN);
+    document.getElementById('kpiBatchesF').textContent = fmtTonnes(batchesQty) + ' ' + T('kpiToExporters');
+  } else {
+    document.getElementById('kpiSeasonWindowV').textContent = fmtDateHuman(d.date_min);
+    document.getElementById('kpiSeasonWindowF').textContent =
+      T('kpiTo') + ' ' + fmtDateHuman(d.date_max) + (s==='2026' ? ' · '+T('kpiInProgress') : '');
+  }
 }
 
 /* ============================= season pills ============================= */
@@ -1288,8 +1339,10 @@ document.getElementById('currencyPills').addEventListener('click', function(e){
 /* Which glyph belongs on which tile. Kept beside the tiles rather than in the
    markup so a tile and its icon cannot drift apart. */
 var TILE_ICONS = {
-  tileLead:'bean', tileCert:'seal', tileFarmers:'person',
-  tileCoops:'group', tileWomen:'leaf', tileDeliveries:'crate'
+  tileLead:'bean', tileCert:'seal', tileFarmers:'person', tileCoops:'group',
+  tileAvgSupplier:'person', tileActive:'group', tileDistricts:'pin',
+  tileBatches:'crate', tileSeasonWindow:'window',
+  tileWomenReg:'person', tileWomenVol:'bean', tileYouthReg:'leaf', tileYouthVol:'bean'
 };
 function paintTileIcons(){
   Object.keys(TILE_ICONS).forEach(function(id){
@@ -1299,19 +1352,39 @@ function paintTileIcons(){
   });
 }
 
+/* Registry counts (gender_registered, youth.registered) and delivered-volume
+   splits (gender_volume, youth.volume_kg) are each their own all-time total —
+   not DATA.kpis' totals, which include deliveries the gender/age fields don't
+   cover — so every share here is computed against its own field's sum. */
+function shareOf(part, whole){ return whole ? part / whole : 0; }
 function renderHeroCards(){
   paintTileIcons();
   var g = DATA.gender_registered || {};
-  var women = g.Female || 0;
-  var totalG = (g.Male || 0) + women;
+  var women = g.Female || 0, totalReg = (g.Male || 0) + women;
+  var gv = DATA.gender_volume || {};
+  var womenVol = gv.Female || 0, totalVol = (gv.Male || 0) + womenVol;
+  var yr = (DATA.youth && DATA.youth.registered) || {};
+  var youthReg = yr['Youth (18-35)'] || 0;
+  var totalYouthReg = (yr['Youth (18-35)']||0) + (yr['Adult (36-59)']||0) + (yr['Senior (60+)']||0);
+  var yv = (DATA.youth && DATA.youth.volume_kg) || {};
+  var youthVol = yv['Youth (18-35)'] || 0;
+  var totalYouthVol = (yv['Youth (18-35)']||0) + (yv['Adult (36-59)']||0) + (yv['Senior (60+)']||0);
+
   document.getElementById('badge2v').textContent = fmtInt(FACTS.registered);
   document.getElementById('badge4v').textContent = fmtInt(DATA.kpis.n_cooperatives || 0);
-  document.getElementById('badge5v').textContent = fmtInt(women);
-  document.getElementById('badge5f').textContent =
-    totalG ? fmtPct(women / totalG) + ' ' + T('ofRegistry') : '';
-  document.getElementById('badge3v').textContent = fmtInt(DATA.kpis.n_transactions);
-  document.getElementById('badge3f').textContent =
-    fmtInt(FACTS.activeDistricts) + ' ' + T('acrossDistricts');
+
+  document.getElementById('kpiWomenRegV').textContent = fmtPct(shareOf(women, totalReg));
+  document.getElementById('kpiWomenRegF').textContent =
+    fmtInt(women) + ' ' + T('lblOf') + ' ' + fmtInt(totalReg) + ' ' + T('lblRegistered');
+  document.getElementById('kpiWomenVolV').textContent = fmtPct(shareOf(womenVol, totalVol));
+  document.getElementById('kpiWomenVolF').textContent =
+    fmtTonnes(womenVol) + ' ' + T('lblOf') + ' ' + fmtTonnes(totalVol);
+  document.getElementById('kpiYouthRegV').textContent = fmtPct(shareOf(youthReg, totalYouthReg));
+  document.getElementById('kpiYouthRegF').textContent =
+    fmtInt(youthReg) + ' ' + T('lblOf') + ' ' + fmtInt(totalYouthReg) + ' ' + T('lblRegistered');
+  document.getElementById('kpiYouthVolV').textContent = fmtPct(shareOf(youthVol, totalYouthVol));
+  document.getElementById('kpiYouthVolF').textContent =
+    fmtTonnes(youthVol) + ' ' + T('lblOf') + ' ' + fmtTonnes(totalYouthVol);
 }
 
 function applyLanguage(){
