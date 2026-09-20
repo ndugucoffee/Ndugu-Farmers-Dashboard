@@ -813,6 +813,8 @@
   <section class="hero">
     <div class="hero-head">
       <p class="hero-eyebrow" data-i18n="heroEyebrow">EU Deforestation Regulation</p>
+      <h1 data-i18n="heroH1">Every kilogram sold into Europe needs the location of the plot it grew on</h1>
+      <p class="lede" data-i18n="heroLede">-</p>
     </div>
 
     <div class="tilerow tilerow-4">
@@ -833,13 +835,6 @@
         <p class="tile-label" id="badgePrecision">-</p>
         <div class="tile-value num" id="badgePrecisionV">-</div>
       </div>
-    </div>
-
-    <div class="countdown">
-      <div><span class="days" id="cdDays">-</span></div>
-      <div class="lab" id="cdLab">-</div>
-      <div class="rule"></div>
-      <div class="lab" id="cdSmall">-</div>
     </div>
 
     <div class="kpi-strip">
@@ -874,6 +869,52 @@
         <div class="kpi-delta up" data-i18n="kpiChainSub">every kg links to a farmer</div>
       </div>
     </div>
+
+    <div class="countdown">
+      <div><span class="days" id="cdDays">-</span></div>
+      <div class="lab" id="cdLab">-</div>
+      <div class="rule"></div>
+      <div class="lab" id="cdSmall">-</div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="secReqH">What the regulation asks for</h2>
+        <p data-i18n="secReqP">-</p>
+      </div>
+      <div class="section-tag" id="secReqTag">-</div>
+    </div>
+    <div class="grid">
+      <div class="col-12 panel">
+        <div class="req">
+          <div class="req-card">
+            <h4 data-i18n="req1H">Geolocation of every plot</h4>
+            <p data-i18n="req1P">Latitude and longitude for each plot the coffee was produced on, to at least six decimal digits. Fewer digits is not a rounding preference, it fails the test.</p>
+            <span class="art" data-i18n="req1A">Art. 9(1)(d)</span>
+          </div>
+          <div class="req-card">
+            <h4 data-i18n="req2H">Polygons above 4 hectares</h4>
+            <p data-i18n="req2P">A plot larger than four hectares must be given as a polygon tracing its perimeter. A single point is only accepted at four hectares or below.</p>
+            <span class="art" data-i18n="req2A">Art. 2(28)</span>
+          </div>
+          <div class="req-card">
+            <h4 data-i18n="req3H">Deforestation-free</h4>
+            <p data-i18n="req3P">The land must not have been converted from forest after 31 December 2020. The geolocation is what makes that checkable against satellite records.</p>
+            <span class="art" data-i18n="req3A">Art. 3(a)</span>
+          </div>
+          <div class="req-card">
+            <h4 data-i18n="req4H">Legally produced</h4>
+            <p data-i18n="req4P">Production must comply with Uganda's law on land use, tenure and labour. Evidencing that needs the administrative location, not just the district.</p>
+            <span class="art" data-i18n="req4A">Art. 3(b)</span>
+          </div>
+        </div>
+        <div style="margin-top:14px;">
+          <div class="callout" id="whoFiles">-</div>
+        </div>
+      </div>
+    </div>
   </section>
 
   <section>
@@ -890,14 +931,12 @@
         <p class="panel-note" data-i18n="panGapN">Each farmer counts once, under the work their plot actually needs.</p>
         <div class="chart-box"><canvas id="gapChart"></canvas></div>
       </div>
-      <div class="col-5">
-        <div class="district-ledger">
-          <div class="district-ledger-head">
-            <p class="panel-title" style="margin:0;" data-i18n="panFixH">What closing each gap involves</p>
-            <p class="panel-note" style="margin:2px 0 0;" data-i18n="panFixN">Farmers affected and volume behind them.</p>
-          </div>
-          <div id="gapList"></div>
+      <div class="district-ledger col-5">
+        <div class="district-ledger-head">
+          <p class="panel-title" style="margin:0;" data-i18n="panFixH">What closing each gap involves</p>
+          <p class="panel-note" style="margin:2px 0 0;" data-i18n="panFixN">Farmers affected and volume behind them.</p>
         </div>
+        <div id="gapList"></div>
       </div>
     </div>
   </section>
@@ -917,14 +956,12 @@
         <div class="chart-box"><canvas id="curveChart"></canvas></div>
         <div class="insight-line" id="curveInsight">-</div>
       </div>
-      <div class="col-5">
-        <div class="district-ledger">
-          <div class="district-ledger-head">
-            <p class="panel-title" style="margin:0;" data-i18n="panDistH">Where the work is</p>
-            <p class="panel-note" style="margin:2px 0 0;" data-i18n="panDistN">Districts by volume at risk.</p>
-          </div>
-          <div id="districtList"></div>
+      <div class="district-ledger col-5">
+        <div class="district-ledger-head">
+          <p class="panel-title" style="margin:0;" data-i18n="panDistH">Where the work is</p>
+          <p class="panel-note" style="margin:2px 0 0;" data-i18n="panDistN">Districts by volume at risk.</p>
         </div>
+        <div id="districtList"></div>
       </div>
     </div>
   </section>
@@ -1001,56 +1038,15 @@
         </div>
         <div class="maplegend" id="mapLegend"></div>
       </div>
-      <div class="col-4">
-        <div class="district-ledger">
-          <div class="district-ledger-head">
-            <p class="panel-title" style="margin:0;" data-i18n="panMapListH">Districts mapped</p>
-            <p class="panel-note" style="margin:2px 0 0;" data-i18n="panMapListN">Click a row to open its plots.</p>
-          </div>
-          <div id="mapDistrictList"></div>
+      <div class="district-ledger col-4">
+        <div class="district-ledger-head">
+          <p class="panel-title" style="margin:0;" data-i18n="panMapListH">Districts mapped</p>
+          <p class="panel-note" style="margin:2px 0 0;" data-i18n="panMapListN">Click a row to open its plots.</p>
         </div>
+        <div id="mapDistrictList"></div>
       </div>
       <div class="col-12">
         <div class="callout" id="mapNote">-</div>
-      </div>
-    </div>
-  </section>
-
-  <section>
-    <div class="section-head">
-      <div>
-        <h2 data-i18n="secReqH">What the regulation asks for</h2>
-        <p data-i18n="secReqP">-</p>
-      </div>
-      <div class="section-tag" id="secReqTag">-</div>
-    </div>
-    <div class="grid">
-      <div class="col-12 panel">
-        <div class="req">
-          <div class="req-card">
-            <h4 data-i18n="req1H">Geolocation of every plot</h4>
-            <p data-i18n="req1P">Latitude and longitude for each plot the coffee was produced on, to at least six decimal digits. Fewer digits is not a rounding preference, it fails the test.</p>
-            <span class="art" data-i18n="req1A">Art. 9(1)(d)</span>
-          </div>
-          <div class="req-card">
-            <h4 data-i18n="req2H">Polygons above 4 hectares</h4>
-            <p data-i18n="req2P">A plot larger than four hectares must be given as a polygon tracing its perimeter. A single point is only accepted at four hectares or below.</p>
-            <span class="art" data-i18n="req2A">Art. 2(28)</span>
-          </div>
-          <div class="req-card">
-            <h4 data-i18n="req3H">Deforestation-free</h4>
-            <p data-i18n="req3P">The land must not have been converted from forest after 31 December 2020. The geolocation is what makes that checkable against satellite records.</p>
-            <span class="art" data-i18n="req3A">Art. 3(a)</span>
-          </div>
-          <div class="req-card">
-            <h4 data-i18n="req4H">Legally produced</h4>
-            <p data-i18n="req4P">Production must comply with Uganda's law on land use, tenure and labour. Evidencing that needs the administrative location, not just the district.</p>
-            <span class="art" data-i18n="req4A">Art. 3(b)</span>
-          </div>
-        </div>
-        <div style="margin-top:14px;">
-          <div class="callout" id="whoFiles">-</div>
-        </div>
       </div>
     </div>
   </section>
@@ -1202,22 +1198,13 @@ function esc(s){
    a 24x24 stroke path so they share a weight, and they sit at low opacity so
    they decorate the tile without competing with the figure on it. */
 var ICONS = {
-  /* coffee bean: an ellipse with the crease down it */
-  bean:'<ellipse cx="12" cy="12" rx="6.5" ry="9" transform="rotate(-35 12 12)"/>'+
-       '<path d="M8 16c2.5-2.6 5.5-5.6 8-8"/>',
   /* rosette seal for certification */
   seal:'<circle cx="12" cy="9.5" r="5.5"/><path d="M9 14.5 7.5 21l4.5-2.4 4.5 2.4L15 14.5"/>',
   /* one person */
   person:'<circle cx="12" cy="8" r="3.5"/><path d="M5.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/>',
-  /* several people, for a cooperative */
-  group:'<circle cx="9" cy="8.5" r="3"/><path d="M3 19c0-3.1 2.7-5.2 6-5.2s6 2.1 6 5.2"/>'+
-        '<path d="M16 6.4a3 3 0 0 1 0 5.7"/><path d="M17.5 13.9c2.1.5 3.5 2.2 3.5 4.4"/>',
   /* map pin */
   pin:'<path d="M12 21s6.5-6.2 6.5-11a6.5 6.5 0 1 0-13 0C5.5 14.8 12 21 12 21Z"/>'+
       '<circle cx="12" cy="10" r="2.4"/>',
-  /* banknote */
-  cash:'<rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.8"/>'+
-       '<path d="M6 9.5v5M18 9.5v5"/>',
   /* price tag */
   tag:'<path d="M11 3.5H4.5A1.5 1.5 0 0 0 3 5v6.4c0 .4.2.8.4 1l8.6 8.6a1.5 1.5 0 0 0 2.1 0l6-6a1.5 1.5 0 0 0 0-2.1L11.6 4a1.5 1.5 0 0 0-1-.5Z"/>'+
       '<circle cx="7.5" cy="8.5" r="1.4"/>',
@@ -1225,19 +1212,9 @@ var ICONS = {
   crate:'<path d="M3 8.2 12 4l9 4.2v7.6L12 20l-9-4.2Z"/><path d="M3 8.2 12 12.4l9-4.2M12 12.4V20"/>',
   /* surveyed plot boundary */
   plot:'<path d="M4 6.5 10 4l4.5 2.5L20 4.4v13.2L14.5 20 10 17.5 4 20Z"/><path d="M10 4v13.5M14.5 6.5V20"/>',
-  /* calendar window */
-  window:'<rect x="3.5" y="5.5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3.5v4M16 3.5v4"/>',
   /* leaf, for the growing side */
   leaf:'<path d="M20 4C10 4 4 9 4 15.5A4.5 4.5 0 0 0 8.5 20C15 20 20 14 20 4Z"/><path d="M15 9C10.5 11 8 14.5 7 19"/>'
 };
-function icon(name){
-  var d = ICONS[name];
-  if (!d) return '';
-  return '<svg class="tile-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" ' +
-         'fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" ' +
-         'stroke-linejoin="round">' + d + '</svg>';
-}
-
 function icon(name){
   var d = ICONS[name];
   if (!d) return '';
@@ -1365,10 +1342,15 @@ function computeFacts(){
    gap. Listing the ready keys here rather than testing for one literal is what
    stops a newly added ready category from silently rendering as a gap. */
 var READY_KEYS = {ready_polygon:1, ready_point:1};
+/* Six reasons shown together in one bar chart, so each needs to read apart
+   from its neighbours rather than sharing one hue. Red is deliberately not
+   among them: paired with the honey gold used elsewhere on this page, red
+   is exactly the combination a deuteranope cannot separate (see the module
+   docstring). Olive stands in for it instead. */
 var GAP_META = {
   low_precision:  {color:COLORS.roast},
   needs_polygon:  {color:COLORS.honey},
-  no_gps:         {color:COLORS.cherry},
+  no_gps:         {color:COLORS.olive},
   zeroed:         {color:COLORS.clay},
   outside_uganda: {color:COLORS.teal},
   unmatched:      {color:COLORS.inkFaint}
@@ -1400,7 +1382,7 @@ var I18N = {
     badgeCutoff:function(f){ return 'Deforestation-free since ' + f.cutoff; },
     badgePrecision:function(f){ return 'At least ' + f.decimals + ' decimal digits'; },
     kpiCompliant:'Volume that qualifies', kpiAtRisk:'Volume at risk',
-    kpiVisits:'Farmers needing a visit', kpiPolygon:'Farms needing a polygon',
+    kpiVisits:'Farmers needing a visit',
     kpiPolygonSub:'over 4 ha, point not accepted',
     kpiMappedPlots:'Plot boundaries walked',
     lblFarmersMapped:'farmers mapped',
@@ -1475,7 +1457,7 @@ var I18N = {
         'National ID numbers, phone numbers, dates of birth and addresses are never ' +
         'published and the build fails rather than include one. ' +
         'Areas are measured from the geometry rather than taken from the workbook, whose ' +
-        'rather than taken from the workbook, whose own size column is in acres. ' +
+        'own size column is in acres. ' +
         f.provisional + ' plots come from a second register with no shared identifier and ' +
         'are matched on farmer name alone, so they are marked provisional. ' +
         '<b>No deforestation status is shown.</b> The source workbook contradicts itself, ' +
@@ -1591,7 +1573,7 @@ var I18N = {
     badgeCutoff:function(f){ return 'Ontbossingsvrij sinds ' + f.cutoff; },
     badgePrecision:function(f){ return 'Minimaal ' + f.decimals + ' decimalen'; },
     kpiCompliant:'Volume dat voldoet', kpiAtRisk:'Volume met risico',
-    kpiVisits:'Boeren die bezoek nodig hebben', kpiPolygon:'Percelen die een polygoon nodig hebben',
+    kpiVisits:'Boeren die bezoek nodig hebben',
     kpiPolygonSub:'boven 4 ha, punt niet toegestaan',
     kpiMappedPlots:'Ingemeten perceelgrenzen',
     lblFarmersMapped:'boeren ingemeten',
@@ -2215,9 +2197,8 @@ function renderGap(){
       labels: rows.map(function(r){ return gapShort(r.key); }),
       datasets:[{
         label: t('lblAtRisk'),
-        /* Single series: the axis labels carry identity, so one colour is
-           correct here. A category palette would imply a distinction the data
-           does not have. */
+        /* One colour per reason (GAP_META), matched to that reason's swatch
+           in the ledger beside this chart, so the two can be read together. */
         data: rows.map(function(r){ return r.kg; }),
         backgroundColor: rows.map(function(r){
           return (GAP_META[r.key] || {}).color || COLORS.roast;
