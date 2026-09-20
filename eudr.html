@@ -385,25 +385,26 @@
     border:1px solid var(--line-strong); border-radius:var(--radius-md);
     background:var(--surface); padding:14px; box-shadow:var(--shadow-panel);
   }
-  /* The row used to be 899px tall, and not because of the map: the district
-     ledger's eleven rows stood 678px and align-items:stretch pulled the map up
-     to match. So the ledger now scrolls at a fixed height and the map is given
-     an explicit one rather than being stretched by its neighbour.
-     The height is a deliberate number, not a round one: the mapped area spans
-     2.1 degrees of longitude by 2.2 of latitude, so the viewBox is very nearly
-     square (900x943). Set this much shorter than the column is wide and the
-     map letterboxes, sitting small between two bands of empty background — at
-     420 tall it draws about 400 wide, so the column below is sized to that
-     (col-5, not col-6) rather than leaving 70-80px of visible parchment on
-     each side of the drawing. The ledger takes the seven columns that frees
-     up, which its rows of bars and figures use better than the map could. */
+  /* A fixed height used to letterbox the map: at 420px tall the viewBox (a
+     near-square 900x943, 2.1deg lon by 2.2deg lat) only draws about 400px
+     wide, leaving 70-80px of bare parchment on each side of a col-6 track —
+     visible dead space rather than map. aspect-ratio matches the box to the
+     viewBox exactly instead, so the drawing fills the full column width with
+     nothing left over, and the column stays col-6, the same width as the
+     ledger beside it. The row is taller for it (roughly 600px on a typical
+     desktop width rather than 420), so the ledger's list below is no longer
+     capped to an old fixed height — .grid's align-items:stretch makes it
+     match the map, whichever is taller, same as it did before either panel
+     had an explicit height. Narrow viewports stack the two panels instead of
+     sitting them side by side, so nothing there needs to match a neighbour's
+     width; the map reverts to a plain fixed height there. */
   .map-svg-wrap{
-    position:relative; width:100%; flex:0 0 auto; height:420px;
+    position:relative; width:100%; aspect-ratio:900/943;
     border-radius:var(--radius-sm); overflow:hidden;
     background:linear-gradient(180deg,var(--surface) 0%,var(--surface-sunk) 100%);
     border:1px solid var(--line);
   }
-  @media (max-width:980px){ .map-svg-wrap{min-height:340px;} }
+  @media (max-width:980px){ .map-svg-wrap{aspect-ratio:auto; height:340px;} }
   .map-svg-wrap svg{width:100%; height:100%; display:block;}
   .map-tooltip{
     position:absolute; pointer-events:none; z-index:10;
@@ -424,12 +425,20 @@
        taller than the map it sits beside; the two then end level. */
     min-height:0;
   }
-  /* Scrolls instead of setting the height of the whole row. */
-    /* Capped so the list scrolls rather than setting the height of the whole
-     row. Kept in step with the map's height above: the two panels are grid
-     items that stretch to each other, so whichever is taller wins, and an
-     uncapped eleven-row list is taller than any map worth looking at. */
-  #districtList{flex:1 1 auto; overflow-y:auto; min-height:0; max-height:382px;}
+  /* flex-basis:0, not auto: the list's own row count must not feed into the
+     grid row's auto height, or an eleven-row list (taller than any map worth
+     drawing) would pull the map-panel card down to match it, leaving empty
+     space below the map instead of beside it. With a zero basis the ledger's
+     only contribution to that calculation is its header, so the map (sized
+     by aspect-ratio) is reliably what sets the row height, and this list
+     just grows to fill and scrolls within whatever that turns out to be —
+     the same relationship as before, just with the two panels' roles
+     swapped. Below 980px the two panels stack instead of sitting side by
+     side, so nothing here needs to match a neighbour's height; capped back
+     to a fixed scroll height there so one district-heavy list can't push the
+     page to an awkward length. */
+  #districtList{flex:1 1 0; overflow-y:auto; min-height:0;}
+  @media (max-width:980px){ #districtList{max-height:382px;} }
   .district-ledger-head{padding:14px 16px 10px; border-bottom:1px solid var(--line);}
   .district-row{
     display:grid; grid-template-columns:1fr auto auto; gap:12px; align-items:center;
@@ -470,7 +479,7 @@
   /* ---------- 12-column layout grid ----------
      Every row on the page sits on the same twelve columns with the same 24px
      gutter, so panel edges line up vertically all the way down. Two-panel rows
-     split 7/5 (map) or 6/6 (chart pairs); everything else spans 12.
+     split 6/6 (map, chart pairs); everything else spans 12.
      minmax(0,1fr) stops a responsive canvas from forcing its column wider. */
   .grid{
     display:grid; grid-template-columns:repeat(12,minmax(0,1fr));
