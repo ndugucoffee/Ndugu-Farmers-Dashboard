@@ -821,19 +821,6 @@
     </div>
   </section>
 
-  <section>
-    <div class="section-head">
-      <div>
-        <h2 data-i18n="secNotesH">What these figures can and cannot show</h2>
-        <p data-i18n="secNotesP">-</p>
-      </div>
-      <div class="section-tag" data-i18n="secNotesTag">Data notes</div>
-    </div>
-    <div class="grid">
-      <div class="col-12"><div id="notesBox"></div></div>
-    </div>
-  </section>
-
 </main>
 
 <footer>
@@ -1095,10 +1082,9 @@ var I18N = {
     aboutP:function(f){
       return 'Ndugu’s microfinance book as recorded to ' + f.asOf + ': ' + f.nLoans +
         ' loans across ' + f.nProducts + ' active products, ' + f.advanced + ' advanced. ' +
-        'Recovery is measured against principal plus anticipated interest, not principal ' +
-        'alone. Overdue is computed from the recorded repayment dates rather than from the ' +
-        'workbook’s status text, which disagrees with its own dates. No borrower, pupil, ' +
-        'school or register code is published; the build fails rather than let one through.';
+        'Recovery is measured against principal plus anticipated interest. Amounts past due ' +
+        'are measured from the recorded repayment dates. Figures are published as totals by ' +
+        'product, funder and cooperative; no individual borrower is named.';
     },
     footerAboutH:'About this data', footerDefH:'Definitions',
     footerDefP:'Advanced: principal paid out. Due: principal plus anticipated interest. ' +
@@ -1138,13 +1124,11 @@ var I18N = {
     panProdN:'Bar length is the amount advanced; the dark fill is the share recovered.',
     panFunderH:'Who funds what', panFunderN:'Amount advanced by funder.',
     prodInsight:function(f){
-      return f.biggestProduct + ' carries ' + f.biggestShare + ' of the book. Recovery is ' +
-        'uneven across products and low everywhere: the portfolio as a whole stands at ' +
-        f.recovery + ' of what is due.';
+      return f.biggestProduct + ' carries ' + f.biggestShare + ' of the book. Across all ' +
+        'products, ' + f.recovery + ' of what is due has been recovered.';
     },
     funderInsight:function(f){
-      return f.topFunder + ' is behind ' + f.topFunderShare + ' of everything advanced. ' +
-        'A funder’s exposure is the balance beside it, not the amount it put in.';
+      return f.topFunder + ' is behind ' + f.topFunderShare + ' of everything advanced.';
     },
 
     secAgeH:'What is past due',
@@ -1152,13 +1136,10 @@ var I18N = {
       return f.overdueBal + ' across ' + f.overdueN + ' loans, up to ' + f.maxDays + ' days late.';
     },
     secAgeTag:'Measured from recorded repayment dates',
-    arrearsH:'Most of the book is past its repayment date',
+    arrearsH:'Position against recorded repayment dates',
     arrearsP:function(f){
-      return 'This is the position as recorded, not an estimate. Most of this money went ' +
-        'out between April and June against a harvest that has not been sold yet, which is ' +
-        'the ordinary shape of seasonal lending and not in itself a loss. It is reported ' +
-        'here as it stands because a reader who later finds the arrears were softened has ' +
-        'no reason to trust anything else on this site.';
+      return 'Most of this lending was advanced between April and June against the coming ' +
+        'harvest, and falls due as that harvest is sold.';
     },
     arrearsK1:'past due', arrearsK2:'loans', arrearsK3:'of the open balance',
     arrearsK4:'days, the oldest',
@@ -1167,13 +1148,11 @@ var I18N = {
     panAgeProdH:'Overdue by product',
     panAgeProdN:'Open balance against the part of it now past due.',
     bucketInsight:function(f){
-      return 'The weight sits in the most recent band, which is what seasonal lending against ' +
-        'an unsold harvest looks like. The tail beyond 90 days is the part that needs a ' +
-        'different explanation.';
+      return 'Most of the balance sits in the most recent band, in step with the April to ' +
+        'June disbursements.';
     },
     ageInsight:function(f){
-      return f.worstProduct + ' holds the largest overdue balance at ' + f.worstBal +
-        '. Amber marks a product where more than half the open balance is past its date.';
+      return f.worstProduct + ' holds the largest balance past its date, at ' + f.worstBal + '.';
     },
 
     secConcH:'Where the exposure sits',
@@ -1186,15 +1165,12 @@ var I18N = {
     panBandH:'External trade loans by size',
     panBandN:'Borrowers are not named: several are private individuals.',
     splitInsight:function(f){
-      return 'The single largest position in the book is Ndugu lending to its own export ' +
-        'department: ' + f.internalAmt + ', ' + f.internalShare + ' of trade lending. It is ' +
-        'shown rather than netted off, because a portfolio that looks diversified only ' +
-        'because its largest exposure was removed is not a portfolio anyone can assess.';
+      return 'The largest single position is lending to Ndugu’s own export department: ' +
+        f.internalAmt + ', ' + f.internalShare + ' of trade lending.';
     },
     bandInsight:function(f){
-      return f.externalN + ' external trade loans make up the rest. They are grouped by size ' +
-        'rather than listed, because several borrowers are private individuals and a list of ' +
-        'thirteen with the names taken off still identifies people to anyone in the trade.';
+      return f.externalN + ' external trade loans make up the rest, grouped by size because ' +
+        'several borrowers are private individuals.';
     },
 
     secFertH:'Fertiliser on credit',
@@ -1206,13 +1182,12 @@ var I18N = {
     panFertCoopN:'Principal advanced, and the share recovered so far.',
     panBrandH:'What the money bought', panBrandN:'Bags distributed, by product.',
     fertInsight:function(f){
-      return f.topFert + ' took the largest share at ' + f.topFertAmt + '. Every fertiliser ' +
-        'loan was written against the same July repayment date, so they all came due together ' +
-        'rather than spreading across the season.';
+      return f.topFert + ' took the largest share at ' + f.topFertAmt + '. All six loans were ' +
+        'written against the same July repayment date.';
     },
     brandInsight:function(f){
-      return f.topBrand + ' is the bulk of it at ' + f.topBrandBags + ' bags. This is input ' +
-        'credit rather than cash: the loan is the fertiliser, priced and delivered.';
+      return f.topBrand + ' is the bulk of it at ' + f.topBrandBags + ' bags. The credit is ' +
+        'the fertiliser itself, priced and delivered, rather than cash.';
     },
 
     secSchoolH:'School fees',
@@ -1226,42 +1201,10 @@ var I18N = {
     statMedian:'Median loan', statMedianFoot:'half are smaller than this',
     statCleared:'Cleared', statClearedFoot:'loans repaid in full',
     schoolInsight:function(f){
-      return f.schoolClearedPct + ' of school fees loans have cleared, the best recovery of ' +
-        'any product here and the smallest book. Cooperatives with fewer than ' + f.minCoop +
-        ' loans are pooled: at that size a row describes a household rather than a group.';
+      return f.schoolClearedPct + ' of school fees loans have cleared. Cooperatives with ' +
+        'fewer than ' + f.minCoop + ' loans are pooled into one row.';
     },
 
-    secNotesH:'What these figures can and cannot show',
-    secNotesP:'Read these before quoting a figure from this page.',
-    secNotesTag:'Data notes',
-    noteArrears:function(f){
-      return 'Overdue is computed here from the recorded repayment dates, not read from the ' +
-        'workbook’s own status column. The two disagree: that column reads "Loan ongoing" ' +
-        'on loans whose repayment date passed months ago and is blank on others. Where a loan ' +
-        'carries no repayment date at all it is counted as open but not as overdue, which ' +
-        'understates rather than overstates the arrears.';
-    },
-    noteConcentration:function(f){
-      return 'Half the portfolio is one loan to Ndugu’s own export department. Read the ' +
-        'recovery rate with that in mind: it is a transfer within the group, and it will not ' +
-        'behave like a loan to a third party. The figures for the rest of the book are the ' +
-        'ones that describe lending to farmers and cooperatives.';
-    },
-    noteUnattributed:function(f){
-      return f.fertUnattributed + ' of fertiliser recoveries is recorded against no ' +
-        'cooperative, so the recoveries log totals more than the per-cooperative figures add ' +
-        'up to. The per-cooperative rows here use the attributed amounts only. The workbook ' +
-        'flags this as worth checking against the original records, and it has not been.';
-    },
-    noteDerived:'On the older school fees rows, cleared and balance were inferred from a free-text status rather than recorded as amounts, and on the newer rows status was inferred from the balance. Those fields are derived, not sourced.',
-    noteNames:function(f){
-      return 'Cooperatives appear in the source under several spellings each, which the ' +
-        'workbook leaves unmerged. They are merged here, or Kalisizo would appear three ' +
-        'times at a third of its real size and the largest exposure on this page would be ' +
-        'the wrong cooperative.';
-    },
-    noteMedcare:'A fifth product, Medcare, is carried in the source summary with zero of everything and no detail sheet. It is shown as not yet started rather than dropped, so the product list matches the source.',
-    notePrivacy:'This workbook names five staff and what each personally owes their employer, the schoolchildren whose fees were lent against, their schools, their parents and their register codes. All of it is read by the build and none of it is published. Cooperatives, funders and fertiliser brands are named because they are organisations.',
     lblOf:'of'
   },
   nl: {
@@ -1274,11 +1217,10 @@ var I18N = {
     aboutP:function(f){
       return 'De microfinancieringsportefeuille van Ndugu zoals vastgelegd tot ' + f.asOf +
         ': ' + f.nLoans + ' leningen in ' + f.nProducts + ' actieve producten, ' + f.advanced +
-        ' uitgeleend. Terugbetaling wordt gemeten tegen hoofdsom plus verwachte rente, niet ' +
-        'tegen de hoofdsom alleen. Achterstand wordt berekend uit de vastgelegde ' +
-        'terugbetaaldata en niet uit de statuskolom van het bestand, die met die data in ' +
-        'tegenspraak is. Geen kredietnemer, leerling, school of registratiecode wordt ' +
-        'gepubliceerd; de build faalt liever dan er één door te laten.';
+        ' uitgeleend. Terugbetaling wordt gemeten tegen hoofdsom plus verwachte rente. ' +
+        'Bedragen over de datum heen worden gemeten vanaf de vastgelegde terugbetaaldata. ' +
+        'Cijfers zijn totalen per product, financier en coöperatie; geen individuele ' +
+        'kredietnemer wordt genoemd.';
     },
     footerAboutH:'Over deze gegevens', footerDefH:'Definities',
     footerDefP:'Uitgeleend: uitbetaalde hoofdsom. Verschuldigd: hoofdsom plus verwachte ' +
@@ -1318,13 +1260,11 @@ var I18N = {
     panProdN:'De balklengte is het uitgeleende bedrag; de donkere vulling het terugbetaalde deel.',
     panFunderH:'Wie financiert wat', panFunderN:'Uitgeleend bedrag per financier.',
     prodInsight:function(f){
-      return f.biggestProduct + ' draagt ' + f.biggestShare + ' van de portefeuille. De ' +
-        'terugbetaling verschilt per product en is overal laag: de portefeuille als geheel ' +
-        'staat op ' + f.recovery + ' van het verschuldigde.';
+      return f.biggestProduct + ' draagt ' + f.biggestShare + ' van de portefeuille. Over ' +
+        'alle producten samen is ' + f.recovery + ' van het verschuldigde terugbetaald.';
     },
     funderInsight:function(f){
-      return f.topFunder + ' staat achter ' + f.topFunderShare + ' van alles wat is ' +
-        'uitgeleend. Het risico van een financier is het saldo ernaast, niet de inleg.';
+      return f.topFunder + ' staat achter ' + f.topFunderShare + ' van alles wat is uitgeleend.';
     },
 
     secAgeH:'Wat achterstallig is',
@@ -1332,13 +1272,10 @@ var I18N = {
       return f.overdueBal + ' over ' + f.overdueN + ' leningen, tot ' + f.maxDays + ' dagen te laat.';
     },
     secAgeTag:'Berekend uit de vastgelegde terugbetaaldata',
-    arrearsH:'Het grootste deel van de portefeuille is over de terugbetaaldatum heen',
+    arrearsH:'Stand tegenover de vastgelegde terugbetaaldata',
     arrearsP:function(f){
-      return 'Dit is de stand zoals vastgelegd, geen schatting. Het meeste geld ging tussen ' +
-        'april en juni de deur uit tegen een oogst die nog niet is verkocht, wat de gewone ' +
-        'vorm van seizoenskrediet is en op zichzelf geen verlies. Het staat hier zoals het ' +
-        'is, omdat een lezer die later merkt dat de achterstanden zijn verzacht geen reden ' +
-        'heeft de rest van deze site nog te geloven.';
+      return 'Het grootste deel van dit krediet is tussen april en juni verstrekt tegen de ' +
+        'komende oogst, en wordt opeisbaar naarmate die oogst wordt verkocht.';
     },
     arrearsK1:'achterstallig', arrearsK2:'leningen', arrearsK3:'van het openstaande saldo',
     arrearsK4:'dagen, de oudste',
@@ -1347,13 +1284,11 @@ var I18N = {
     panAgeProdH:'Achterstallig per product',
     panAgeProdN:'Openstaand saldo tegenover het deel dat over de datum heen is.',
     bucketInsight:function(f){
-      return 'Het zwaartepunt ligt in de meest recente band, wat past bij seizoenskrediet ' +
-        'tegen een onverkochte oogst. De staart voorbij 90 dagen vraagt een andere verklaring.';
+      return 'Het grootste deel van het saldo ligt in de meest recente band, in lijn met de ' +
+        'verstrekkingen van april tot juni.';
     },
     ageInsight:function(f){
-      return f.worstProduct + ' heeft het grootste achterstallige saldo met ' + f.worstBal +
-        '. Amber markeert een product waarvan meer dan de helft van het openstaande saldo ' +
-        'over de datum heen is.';
+      return f.worstProduct + ' heeft het grootste saldo over de datum heen, met ' + f.worstBal + '.';
     },
 
     secConcH:'Waar het risico zit',
@@ -1366,17 +1301,12 @@ var I18N = {
     panBandH:'Externe handelsleningen naar omvang',
     panBandN:'Kredietnemers worden niet genoemd: meerdere zijn particulieren.',
     splitInsight:function(f){
-      return 'De grootste positie in de portefeuille is Ndugu die aan de eigen ' +
-        'exportafdeling leent: ' + f.internalAmt + ', ' + f.internalShare + ' van de ' +
-        'handelsleningen. Die staat er wél in plaats van weggestreept, want een portefeuille ' +
-        'die er alleen gespreid uitziet doordat de grootste positie is weggelaten, is voor ' +
-        'niemand te beoordelen.';
+      return 'De grootste enkele positie is krediet aan de eigen exportafdeling van Ndugu: ' +
+        f.internalAmt + ', ' + f.internalShare + ' van de handelsleningen.';
     },
     bandInsight:function(f){
-      return f.externalN + ' externe handelsleningen vormen de rest. Ze zijn naar omvang ' +
-        'gegroepeerd in plaats van opgesomd, omdat meerdere kredietnemers particulieren zijn ' +
-        'en een lijst van dertien zonder namen voor wie de handel kent nog steeds personen ' +
-        'aanwijst.';
+      return f.externalN + ' externe handelsleningen vormen de rest, naar omvang gegroepeerd ' +
+        'omdat meerdere kredietnemers particulieren zijn.';
     },
 
     secFertH:'Kunstmest op krediet',
@@ -1388,13 +1318,12 @@ var I18N = {
     panFertCoopN:'Uitgeleende hoofdsom, en het tot nu toe terugbetaalde deel.',
     panBrandH:'Wat ervoor is gekocht', panBrandN:'Geleverde zakken, per product.',
     fertInsight:function(f){
-      return f.topFert + ' nam het grootste deel met ' + f.topFertAmt + '. Elke ' +
-        'kunstmestlening kreeg dezelfde terugbetaaldatum in juli mee, dus ze werden allemaal ' +
-        'tegelijk opeisbaar in plaats van verspreid over het seizoen.';
+      return f.topFert + ' nam het grootste deel met ' + f.topFertAmt + '. Alle zes leningen ' +
+        'kregen dezelfde terugbetaaldatum in juli mee.';
     },
     brandInsight:function(f){
-      return f.topBrand + ' is het grootste deel met ' + f.topBrandBags + ' zakken. Dit is ' +
-        'krediet in natura en niet in geld: de lening is de kunstmest, geprijsd en geleverd.';
+      return f.topBrand + ' is het grootste deel met ' + f.topBrandBags + ' zakken. Het ' +
+        'krediet is de kunstmest zelf, geprijsd en geleverd, en niet geld.';
     },
 
     secSchoolH:'Schoolgeld',
@@ -1408,44 +1337,10 @@ var I18N = {
     statMedian:'Mediane lening', statMedianFoot:'de helft is kleiner dan dit',
     statCleared:'Afgelost', statClearedFoot:'volledig terugbetaalde leningen',
     schoolInsight:function(f){
-      return f.schoolClearedPct + ' van de schoolgeldleningen is afgelost, de beste ' +
-        'terugbetaling van alle producten hier en de kleinste portefeuille. Coöperaties met ' +
-        'minder dan ' + f.minCoop + ' leningen zijn samengevoegd: bij die omvang beschrijft ' +
-        'een regel een huishouden en geen groep.';
+      return f.schoolClearedPct + ' van de schoolgeldleningen is afgelost. Coöperaties met ' +
+        'minder dan ' + f.minCoop + ' leningen zijn in één regel samengevoegd.';
     },
 
-    secNotesH:'Wat deze cijfers wel en niet kunnen laten zien',
-    secNotesP:'Lees deze punten voordat u een cijfer van deze pagina citeert.',
-    secNotesTag:'Toelichting',
-    noteArrears:function(f){
-      return 'Achterstand wordt hier berekend uit de vastgelegde terugbetaaldata, niet ' +
-        'overgenomen uit de statuskolom van het bestand. Die twee spreken elkaar tegen: die ' +
-        'kolom zegt "Loan ongoing" bij leningen waarvan de datum maanden geleden verstreek, ' +
-        'en is elders leeg. Een lening zonder terugbetaaldatum telt wel als open maar niet ' +
-        'als achterstallig, wat de achterstand eerder onderschat dan overschat.';
-    },
-    noteConcentration:function(f){
-      return 'De helft van de portefeuille is één lening aan de eigen exportafdeling van ' +
-        'Ndugu. Lees het terugbetalingspercentage met dat in gedachten: het is een overdracht ' +
-        'binnen de groep en gedraagt zich niet als een lening aan een derde. De cijfers voor ' +
-        'de rest van de portefeuille beschrijven het krediet aan boeren en coöperaties.';
-    },
-    noteUnattributed:function(f){
-      return f.fertUnattributed + ' aan kunstmestterugbetalingen staat op geen enkele ' +
-        'coöperatie geboekt, waardoor het logboek hoger uitkomt dan de cijfers per coöperatie ' +
-        'bij elkaar. De regels per coöperatie gebruiken hier alleen de toegewezen bedragen. ' +
-        'Het bestand merkt dit aan als na te trekken in de oorspronkelijke administratie, en ' +
-        'dat is niet gebeurd.';
-    },
-    noteDerived:'Bij de oudere schoolgeldregels zijn afgelost en saldo afgeleid uit een vrije-tekststatus in plaats van als bedrag vastgelegd, en bij de nieuwere regels is de status afgeleid uit het saldo. Die velden zijn afgeleid, niet uit de bron.',
-    noteNames:function(f){
-      return 'Coöperaties komen in de bron onder meerdere schrijfwijzen voor, die het bestand ' +
-        'niet samenvoegt. Hier zijn ze wel samengevoegd, anders zou Kalisizo drie keer ' +
-        'verschijnen op een derde van zijn werkelijke omvang en zou de grootste positie op ' +
-        'deze pagina de verkeerde coöperatie zijn.';
-    },
-    noteMedcare:'Een vijfde product, Medcare, staat in het bronoverzicht met overal nul en zonder detailblad. Het wordt getoond als nog niet gestart in plaats van weggelaten, zodat de productlijst met de bron overeenkomt.',
-    notePrivacy:'Dit bestand noemt vijf medewerkers en wat ieder van hen persoonlijk aan de werkgever schuldig is, de schoolkinderen voor wie schoolgeld is geleend, hun scholen, hun ouders en hun registratiecodes. Dat alles wordt door de build gelezen en niets ervan wordt gepubliceerd. Coöperaties, financiers en kunstmestmerken worden genoemd omdat het organisaties zijn.',
     lblOf:'van'
   }
 };
@@ -1754,23 +1649,6 @@ function renderSchool(){
   }).join('');
 }
 
-function renderNotes(){
-  var out = [
-    '<div class="callout warn">' + t('noteArrears') + '</div>',
-    '<div class="callout warn">' + t('noteConcentration') + '</div>'
-  ];
-  if (DATA.notes.unattributed_recovery > 0){
-    out.push('<div class="callout warn">' + t('noteUnattributed') + '</div>');
-  }
-  out = out.concat([
-    '<div class="callout">' + t('noteDerived') + '</div>',
-    '<div class="callout">' + t('noteNames') + '</div>',
-    '<div class="callout">' + t('noteMedcare') + '</div>',
-    '<div class="callout">' + t('notePrivacy') + '</div>'
-  ]);
-  document.getElementById('notesBox').innerHTML = out.join('');
-}
-
 function renderAll(){
   computeFacts();
   applyStaticI18n();
@@ -1784,7 +1662,6 @@ function renderAll(){
   renderSplit();
   renderFertiliser();
   renderSchool();
-  renderNotes();
 }
 
 /* ============================= controls ============================= */
