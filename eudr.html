@@ -747,7 +747,7 @@
     font-size:12px; color:var(--ink-soft); align-items:center;
   }
   .maplegend .item{display:flex; align-items:center; gap:6px;}
-  .maplegend .sw{width:13px; height:11px; border-radius:2px; flex:none; border:1px solid rgba(0,0,0,.12);}
+  .maplegend .sw{width:13px; height:11px; border-radius:2px; flex:none; border:1px solid #E8791C;}
   .maplegend .sw.prov{background:transparent; border:1.5px dashed var(--teal);}
 
   .mapload{
@@ -1791,6 +1791,12 @@ var BAND_FILL = {
   '2to4':'#27756A', over4:'#0D4D45'
 };
 var BAND_ORDER = ['under_half','half1','1to2','2to4','over4'];
+/* Every plot's own outline, in both basemaps. White used to do this job on
+   imagery specifically because it was the one colour that held against both
+   canopy and bare soil; orange holds up nearly as well against either and
+   reads as one boundary colour across both modes instead of switching to
+   match the sourcefill on the plain map, which is the trade made here. */
+var PLOT_STROKE = '#E8791C';
 
 /* Esri World Imagery. Free and keyless, and the only one of the keyless
    providers with sub-metre cover over this part of Uganda, which is the whole
@@ -1826,9 +1832,8 @@ function plotStyle(r, hit){
   var sat = MAP.mode === 'sat';
   return {
     /* On imagery the fill has to drop right back or it buries the thing the
-       reader came to see. The outline carries the shape instead, in white,
-       which is the one colour that holds against both canopy and bare soil. */
-    color: hit ? '#D24422' : (r.s === 'provisional' ? '#2C7A83' : (sat ? '#FFFFFF' : col)),
+       reader came to see; the outline carries the shape instead. */
+    color: hit ? '#D24422' : (r.s === 'provisional' ? '#2C7A83' : PLOT_STROKE),
     weight: hit ? 3 : (sat ? 1.4 : 1.1),
     opacity: sat ? 0.95 : 1,
     dashArray: r.s === 'provisional' ? '4,3' : null,

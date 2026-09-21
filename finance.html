@@ -877,10 +877,6 @@
 <footer>
   <div class="shell fgrid">
     <div>
-      <h4 data-i18n="footerAboutH">About this data</h4>
-      <p id="footerAboutP">-</p>
-    </div>
-    <div>
       <h4 data-i18n="footerDefH">Definitions</h4>
       <p data-i18n="footerDefP">-</p>
     </div>
@@ -1139,14 +1135,7 @@ var I18N = {
     navAbout:'About us',
     brandRole:'Financial services',
     asofLabel:'Position at',
-    aboutP:function(f){
-      return 'Ndugu’s microfinance book as recorded to ' + f.asOf + ': ' + f.nLoans +
-        ' loans across ' + f.nProducts + ' active products, ' + f.advanced + ' advanced. ' +
-        'Recovery is measured against principal plus anticipated interest. Amounts past due ' +
-        'are measured from the recorded repayment dates. Figures are published as totals by ' +
-        'product, funder and cooperative; no individual borrower is named.';
-    },
-    footerAboutH:'About this data', footerDefH:'Definitions',
+    footerDefH:'Definitions',
     footerDefP:'Advanced: principal paid out. Due: principal plus anticipated interest. ' +
       'Recovered: cash received against that. Balance: what remains owed. Overdue: the ' +
       'recorded repayment date has passed and a balance remains. Amounts are Ugandan ' +
@@ -1274,15 +1263,7 @@ var I18N = {
     navAbout:'Over ons',
     brandRole:'Financiële diensten',
     asofLabel:'Stand per',
-    aboutP:function(f){
-      return 'De microfinancieringsportefeuille van Ndugu zoals vastgelegd tot ' + f.asOf +
-        ': ' + f.nLoans + ' leningen in ' + f.nProducts + ' actieve producten, ' + f.advanced +
-        ' uitgeleend. Terugbetaling wordt gemeten tegen hoofdsom plus verwachte rente. ' +
-        'Bedragen over de datum heen worden gemeten vanaf de vastgelegde terugbetaaldata. ' +
-        'Cijfers zijn totalen per product, financier en coöperatie; geen individuele ' +
-        'kredietnemer wordt genoemd.';
-    },
-    footerAboutH:'Over deze gegevens', footerDefH:'Definities',
+    footerDefH:'Definities',
     footerDefP:'Uitgeleend: uitbetaalde hoofdsom. Verschuldigd: hoofdsom plus verwachte ' +
       'rente. Terugbetaald: daarop ontvangen. Saldo: wat nog openstaat. Achterstallig: de ' +
       'vastgelegde terugbetaaldatum is verstreken en er staat nog een saldo open. Bedragen ' +
@@ -1712,7 +1693,6 @@ function renderSchool(){
 function renderAll(){
   computeFacts();
   applyStaticI18n();
-  document.getElementById('footerAboutP').textContent = t('aboutP');
   renderTiles();
   renderProducts();
   renderFunders();

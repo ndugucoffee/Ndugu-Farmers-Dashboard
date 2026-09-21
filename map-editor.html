@@ -3,10 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="icon" href="favicon.ico" sizes="16x16 32x32" type="image/x-icon">
 <link rel="apple-touch-icon" href="favicon.svg">
-<title>Ndugu Farmers Ltd | About us</title>
+<title>Boundary editor | Ndugu Farmers Ltd</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
   :root{
     /* --- surfaces: raw parchment, cream, unbleached paper --- */
@@ -565,380 +568,640 @@
     padding:14px 16px; text-align:left; margin-top:16px;
   }
 
-  /* ---------- About-only ---------- */
-
-  /* Four-step story and the eight business-line cards share this grid: a
-     colour-accented top border and a title/paragraph body, the same idiom
-     the EUDR page uses for "what the regulation asks for" so a reader who
-     has seen one dashboard on this site recognises the shape of this one. */
-  .cardgrid{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px;}
-  @media (max-width:980px){ .cardgrid{grid-template-columns:repeat(2,minmax(0,1fr));} }
-  @media (max-width:560px){ .cardgrid{grid-template-columns:1fr;} }
-  .acard{
-    border:1px solid var(--line-strong); border-top:3px solid var(--roast);
-    border-radius:var(--radius-sm); background:var(--surface); padding:14px 16px;
+  /* ---------- boundary editor ---------- */
+  body{padding:0;}
+  .edwrap{display:flex; flex-direction:column; height:100vh; overflow:hidden;}
+  .edbar{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    padding:10px 16px; border-bottom:1px solid var(--line-strong);
+    background:var(--surface); flex:none;
   }
-  .acard .n{
-    font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
-    font-size:11px; font-weight:600; color:var(--ink-faint); letter-spacing:0.04em; margin:0 0 6px;
+  .edbar .grow{flex:1 1 auto;}
+  .edbar select, .edbar button{
+    font-family:inherit; font-size:12.5px; padding:6px 11px;
+    border:1px solid var(--line-strong); border-radius:var(--radius-sm);
+    background:var(--surface); color:var(--ink); cursor:pointer;
   }
-  .acard h4{font-size:14px; margin:0 0 6px 0; font-weight:600; color:var(--ink);}
-  .acard p{margin:0; font-size:12.5px; color:var(--ink-soft); line-height:1.55;}
-  .steps .acard:nth-child(1){border-top-color:#663A18;}
-  .steps .acard:nth-child(2){border-top-color:#884D20;}
-  .steps .acard:nth-child(3){border-top-color:#AA6128;}
-  .steps .acard:nth-child(4){border-top-color:#11675C;}
-
-  /* Business-line cards are links: the whole card, not just a title, so the
-     click target matches what looks clickable. Pages still being built keep
-     the same shape rather than a visibly lesser one — the placeholder page
-     they land on already says so. */
-  a.acard{display:block; text-decoration:none; transition:border-color .12s ease, box-shadow .12s ease;}
-  a.acard:hover{border-color:var(--roast); box-shadow:var(--shadow-panel);}
-  a.acard:focus-visible{outline:2px solid var(--roast); outline-offset:2px;}
-  .lines .acard:nth-child(8n+1){border-top-color:#663A18;}
-  .lines .acard:nth-child(8n+2){border-top-color:#77431C;}
-  .lines .acard:nth-child(8n+3){border-top-color:#884D20;}
-  .lines .acard:nth-child(8n+4){border-top-color:#995724;}
-  .lines .acard:nth-child(8n+5){border-top-color:#0D4D45;}
-  .lines .acard:nth-child(8n+6){border-top-color:#0F5A50;}
-  .lines .acard:nth-child(8n+7){border-top-color:#11675C;}
-  .lines .acard:nth-child(8n+8){border-top-color:#137568;}
-
-  .badgerow{display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 0;}
-  .badge{
-    display:inline-block; padding:6px 13px; border-radius:999px;
-    background:var(--roast-wash); color:#5C3315; font-size:12.5px; font-weight:600;
+  .edbar button:hover{background:var(--roast-wash);}
+  .edbar button[disabled]{opacity:.45; cursor:default;}
+  .edbar button.primary{background:#0D4D45; border-color:#0D4D45; color:#fff;}
+  .edbar button.primary[disabled]{background:var(--surface); color:var(--ink-faint);
+    border-color:var(--line-strong);}
+  .edbar .warn{
+    font-size:12px; color:#7A3E16; background:#FBEED4;
+    border:1px solid #E6C98A; border-radius:var(--radius-sm); padding:5px 10px;
   }
-
-  .closing{
-    border:1px solid var(--line-strong); border-left:3px solid var(--roast);
-    border-radius:var(--radius-sm); background:var(--surface);
-    padding:16px 20px; font-size:13.5px; color:var(--ink-soft); line-height:1.65;
+  .edmain{flex:1 1 auto; display:flex; min-height:0;}
+  #edMap{flex:1 1 auto; min-width:0; background:#241C15;}
+  #edMap.plain{background:linear-gradient(180deg,#F7EFE1 0%,#EFE3D0 100%);}
+  .edside{
+    width:300px; flex:none; border-left:1px solid var(--line-strong);
+    background:var(--surface); overflow:auto; padding:14px 16px;
   }
-  .closing b{color:var(--ink); font-weight:600;}
-
-  .about-foot{
-    background:var(--roast-deep); color:#BFA98F; padding:22px 0; margin-top:8px;
-    font-size:12.5px; text-align:center;
+  @media (max-width:900px){
+    .edmain{flex-direction:column;}
+    .edside{width:auto; border-left:none; border-top:1px solid var(--line-strong);
+      max-height:40vh;}
   }
+  .edside h3{font-size:13px; margin:0 0 8px; color:var(--ink);}
+  .edside .muted{font-size:11.5px; color:var(--ink-faint); line-height:1.5;}
+  .edfield{display:flex; justify-content:space-between; gap:10px;
+    padding:6px 0; border-bottom:1px solid var(--line); font-size:12.5px;}
+  .edfield:last-child{border-bottom:none;}
+  .edfield .k{color:var(--ink-soft);}
+  .edfield .v{font-variant-numeric:tabular-nums; color:var(--ink); font-weight:600;}
+  .edfield .v.moved{color:#0D4D45;}
+  .edfield .v.cross{color:#B23A1E;}
+  .edlist{margin-top:14px;}
+  .edrow{
+    display:flex; justify-content:space-between; gap:8px; align-items:center;
+    padding:7px 8px; border-radius:var(--radius-sm); cursor:pointer;
+    font-size:12px; border:1px solid transparent;
+  }
+  .edrow:hover{background:var(--roast-wash);}
+  .edrow.sel{border-color:#0D4D45; background:#E8F1EE;}
+  .edrow .d{font-variant-numeric:tabular-nums; color:var(--ink-faint);}
+  .edhelp{margin-top:16px; font-size:11.5px; color:var(--ink-soft); line-height:1.65;}
+  .edhelp kbd{
+    font-family:inherit; font-size:11px; background:var(--surface-sunk);
+    border:1px solid var(--line-strong); border-radius:3px; padding:1px 5px;
+  }
+  .edstatus{font-size:12px; color:var(--ink-faint);}
+  /* Vertex handles. Square for a real vertex, hollow circle for the midpoint
+     that inserts one: different shapes, so which is which does not depend on
+     size alone at a glance. */
+  .vtx{
+    width:11px; height:11px; margin:-5px 0 0 -5px; background:#FFFCF6;
+    border:2px solid #0D4D45; border-radius:2px; cursor:grab;
+  }
+  .vtx.mid{
+    width:9px; height:9px; margin:-4px 0 0 -4px; border-radius:50%;
+    background:rgba(255,252,246,.55); border:1.5px dashed #0D4D45; cursor:copy;
+  }
+  .vtx:active{cursor:grabbing;}
+
+  /* ---------- access gate ----------
+     A client-side password prompt, not a real access control: the check runs
+     in the reader's own browser, so anyone who opens dev tools can read the
+     hash it compares against or skip the check entirely. What it buys is
+     narrow but real: the tool is not linked from anywhere, is marked
+     noindex, and no longer requires a search-engine-proof URL or a local
+     server to reach — a custodian can open it from any machine, while a
+     visitor who lands on it by accident or by guessing the address still
+     hits a locked door instead of a live editor. Anyone who actually needs
+     to keep this off limits to a specific set of people should put real
+     auth in front of it (Cloudflare Access, HTTP basic auth at the edge);
+     this is a deterrent, not a boundary. */
+  .edgate{
+    position:fixed; inset:0; z-index:1000; display:flex; align-items:center;
+    justify-content:center; background:var(--paper);
+  }
+  .edgate-box{
+    width:min(360px, calc(100vw - 48px)); text-align:center;
+    border:1px solid var(--line-strong); border-radius:var(--radius-md);
+    background:var(--surface); box-shadow:var(--shadow-panel); padding:28px 26px;
+  }
+  .edgate-box h1{font-size:16px; margin:0 0 6px; color:var(--ink);}
+  .edgate-box p{font-size:12.5px; color:var(--ink-soft); margin:0 0 16px; line-height:1.5;}
+  .edgate-box input{
+    width:100%; font-family:inherit; font-size:14px; padding:9px 12px;
+    border:1px solid var(--line-strong); border-radius:var(--radius-sm);
+    background:var(--surface); color:var(--ink); text-align:center;
+    letter-spacing:0.04em;
+  }
+  .edgate-box button{
+    width:100%; margin-top:10px; font-family:inherit; font-size:13px; font-weight:600;
+    padding:10px 12px; border:none; border-radius:var(--radius-sm);
+    background:#0D4D45; color:#fff; cursor:pointer;
+  }
+  .edgate-box button:hover{background:#0A3E37;}
+  .edgate-err{font-size:12px; color:#B23A1E; margin-top:10px; min-height:1.4em;}
+  .edwrap[hidden]{display:none;}
 </style>
 </head>
 <body>
 
-<div class="layout">
+<div class="edgate" id="edGate">
+  <div class="edgate-box">
+    <h1>Boundary editor</h1>
+    <p>Restricted to the people who maintain the plot register.<br>Enter the access phrase to continue.</p>
+    <input id="edGatePw" type="password" autocomplete="off" spellcheck="false" placeholder="Access phrase" aria-label="Access phrase">
+    <button id="edGateGo" type="button">Unlock</button>
+    <div class="edgate-err" id="edGateErr"></div>
+  </div>
+</div>
 
-<nav class="sidenav" aria-label="Dashboards">
-  <p class="sidenav-title" data-i18n="navTitle">Navigation</p>
-  <a class="navbtn" href="index.html"       data-i18n="navDomestic">Domestic Trade</a>
-  <a class="navbtn" href="export.html"      data-i18n="navExport">Ndugu Export</a>
-  <a class="navbtn" href="eudr.html"        data-i18n="navEudr">EUDR Compliance</a>
-  <a class="navbtn" href="impact.html"      data-i18n="navImpact">Impact Projects</a>
-  <a class="navbtn" href="finance.html"     data-i18n="navFinance">Financial Services</a>
-  <a class="navbtn" href="production.html"  data-i18n="navProduction">Ndugu Production</a>
-  <a class="navbtn" href="agritracker.html" data-i18n="navAgritracker">Agritracker</a>
-  <a class="navbtn" href="coffee.html"      data-i18n="navCoffee">Coffee Minds</a>
-  <a class="navbtn" href="about.html"       aria-current="page" data-i18n="navAbout">About us</a>
-</nav>
-
-<div class="layout-main">
-
-<header class="topbar">
-  <div class="shell topbar-inner">
-    <div class="brand">
-      <svg class="brand-mark" viewBox="0 0 1080 283.07" xmlns="http://www.w3.org/2000/svg"><style>.cls-1{fill:#347e19;}</style><path class="cls-1" d="M469.14,81.5c41.67,0,59.71,16.51,59.71,54.37v74.95H495.56V136.89c0-18.81-7.62-27.19-26.42-27.19-19.06,0-26.94,8.38-26.94,27.19v73.93h-33V135.87C409.17,98,426.7,81.5,469.14,81.5Z"></path><path class="cls-1" d="M593.37,81.5c20.32,0,30,6.6,37.6,13.46h1.78V28.46h33V148.83c0,44.21-20.58,64.28-63.52,64.28S538,193,538,148.83v-3.05C538,100.3,556.78,81.5,593.37,81.5Zm8.89,103.41c21.85,0,30.49-9.91,30.49-37.1v-1c0-27.18-8.64-37.09-30.49-37.09s-31,9.91-31,37.09v1C571.26,175,580.41,184.91,602.26,184.91Z"></path><path class="cls-1" d="M872.33,81.5c42.94,0,63.52,20.83,63.52,65.29V203c0,41.92-16.51,60-65.3,60a216.77,216.77,0,0,1-39.89-3.81V232.42a251.24,251.24,0,0,0,36.84,3.3c26.93,0,35.32-8.38,35.32-26.17v-9.91H901c-7.62,6.86-17.28,13.47-37.6,13.47-36.59,0-55.39-18.8-55.39-64.28v-3.05C808.05,101.57,829.39,81.5,872.33,81.5Zm0,103.41c21.85,0,30.49-9.91,30.49-37.1v-1c0-27.18-8.64-37.09-30.49-37.09s-31,9.91-31,37.09v1C841.33,175,850.48,184.91,872.33,184.91Z"></path><path class="cls-1" d="M948,80.84h33v76.88c0,18.8,7.88,27.19,26.94,27.19,18.8,0,26.42-8.39,26.42-27.19V80.84h33.29v77.9c0,37.85-18,54.37-59.71,54.37-42.44,0-60-16.52-60-54.37Z"></path><path class="cls-1" d="M799.15,80.85v77.9c0,37.85-18,54.36-59.7,54.36-42.42,0-60-16.51-60-54.36V80.85h42.64c-2.25,3.84-4.59,11-7,15.49-.92,1.93-1.78,3.86-2.55,5.77C701,130,702.28,156.31,716,174.48c0,.05,0,.07,0,.1A17.61,17.61,0,0,0,721,180.2a58.17,58.17,0,0,0,15.73,11,72,72,0,0,0,9.46,3.76,38.85,38.85,0,0,1-1.71-3.76,34.06,34.06,0,0,1-1.9-6.37c-4.07-19.62,8.9-37.66,15.57-56.5,2.36-6.62,5.87-14.37,7.78-25.68a142.1,142.1,0,0,0,1.36-19.93c0-.65,0-1.28,0-1.88Z"></path><path class="cls-1" d="M727.74,164.64c-.71-.78-8.53-11.11,9-59.73,1.05-2.93,1.9-5.66,2.63-8.32a48.22,48.22,0,0,0,7.18-1.21,121.65,121.65,0,0,1-4.47,11.82C724.22,147.81,727.46,163.44,727.74,164.64Z"></path><path class="cls-1" d="M240.49,8.16c23.92,0,77.27,38.63,98.88,117.28,18.77,68.29-39.55,149.46-67.6,149.46-58.41,0-45.53-94.28-43.23-104.85C251.07,79.45,214.74,8.16,240.49,8.16Z"></path><path class="cls-1" d="M211,274.9c-23.92,0-77.27-35.1-98.88-106.55-18.77-62.06,39.55-135.81,67.6-135.81,58.41,0,45.53,85.66,43.23,95.27C200.41,210.13,236.74,274.9,211,274.9Z"></path><path class="cls-1" d="M26.3,232.09a1.23,1.23,0,0,1,.21,1.67c-2.34,3.26-4.74,6.56-7.06,9.66-2.53,3.4-4.81,11.58-3.74,15.5s13.52,6.38,14.86,5.51,6.18-12.52,9.21-18.78c5.6-11.56,10.67-23.4,16.91-34.59,3.93-7.06,9.14-13.4,14.22-20.32a1.26,1.26,0,0,0-1.2-2c-12,1.85-20.42,10.16-28.44,18.17-.42.51-1.11.14-1-.28,7.62-14.37,20.45-20.79,35.69-22.2,12.23-1.13,20.52,5.89,26.66,16a1.19,1.19,0,0,1,.15.35A87.14,87.14,0,0,1,105,211.9c1.6,8.2,1,16.38-3.08,23.78C88.2,260.16,66.79,273,39.23,274.86c-6,.42-12.9-2.41-18.38-5.52a17.38,17.38,0,0,1-6.48-23.26c2.67-5,6.53-9.34,10-13.91a1.24,1.24,0,0,1,1.81-.2Zm34.57,24.78C75,245,81.15,230.78,90.41,217.9c5.1-7.09,3.94-20.8,1.35-24.06-2.36-3-5.24-3.55-8.43-4.55a1.24,1.24,0,0,0-1.49.58c-3.94,7.42-8.61,18.78-12.33,21.86-3.88,3.21-10.55,14.84-15.05,22.86-4.67,8.31-21.06,26.12-19.63,32.62S59.72,257.83,60.87,256.87Z"></path></svg>
-      <div class="brand-text">
-        <div class="role" data-i18n="brandRole">About us</div>
+<div class="edwrap" id="edWrap" hidden>
+  <div class="edbar">
+    <svg class="brand-mark" viewBox="0 0 1080 283.07" xmlns="http://www.w3.org/2000/svg"><style>.cls-1{fill:#347e19;}</style><path class="cls-1" d="M469.14,81.5c41.67,0,59.71,16.51,59.71,54.37v74.95H495.56V136.89c0-18.81-7.62-27.19-26.42-27.19-19.06,0-26.94,8.38-26.94,27.19v73.93h-33V135.87C409.17,98,426.7,81.5,469.14,81.5Z"></path><path class="cls-1" d="M593.37,81.5c20.32,0,30,6.6,37.6,13.46h1.78V28.46h33V148.83c0,44.21-20.58,64.28-63.52,64.28S538,193,538,148.83v-3.05C538,100.3,556.78,81.5,593.37,81.5Zm8.89,103.41c21.85,0,30.49-9.91,30.49-37.1v-1c0-27.18-8.64-37.09-30.49-37.09s-31,9.91-31,37.09v1C571.26,175,580.41,184.91,602.26,184.91Z"></path><path class="cls-1" d="M872.33,81.5c42.94,0,63.52,20.83,63.52,65.29V203c0,41.92-16.51,60-65.3,60a216.77,216.77,0,0,1-39.89-3.81V232.42a251.24,251.24,0,0,0,36.84,3.3c26.93,0,35.32-8.38,35.32-26.17v-9.91H901c-7.62,6.86-17.28,13.47-37.6,13.47-36.59,0-55.39-18.8-55.39-64.28v-3.05C808.05,101.57,829.39,81.5,872.33,81.5Zm0,103.41c21.85,0,30.49-9.91,30.49-37.1v-1c0-27.18-8.64-37.09-30.49-37.09s-31,9.91-31,37.09v1C841.33,175,850.48,184.91,872.33,184.91Z"></path><path class="cls-1" d="M948,80.84h33v76.88c0,18.8,7.88,27.19,26.94,27.19,18.8,0,26.42-8.39,26.42-27.19V80.84h33.29v77.9c0,37.85-18,54.37-59.71,54.37-42.44,0-60-16.52-60-54.37Z"></path><path class="cls-1" d="M799.15,80.85v77.9c0,37.85-18,54.36-59.7,54.36-42.42,0-60-16.51-60-54.36V80.85h42.64c-2.25,3.84-4.59,11-7,15.49-.92,1.93-1.78,3.86-2.55,5.77C701,130,702.28,156.31,716,174.48c0,.05,0,.07,0,.1A17.61,17.61,0,0,0,721,180.2a58.17,58.17,0,0,0,15.73,11,72,72,0,0,0,9.46,3.76,38.85,38.85,0,0,1-1.71-3.76,34.06,34.06,0,0,1-1.9-6.37c-4.07-19.62,8.9-37.66,15.57-56.5,2.36-6.62,5.87-14.37,7.78-25.68a142.1,142.1,0,0,0,1.36-19.93c0-.65,0-1.28,0-1.88Z"></path><path class="cls-1" d="M727.74,164.64c-.71-.78-8.53-11.11,9-59.73,1.05-2.93,1.9-5.66,2.63-8.32a48.22,48.22,0,0,0,7.18-1.21,121.65,121.65,0,0,1-4.47,11.82C724.22,147.81,727.46,163.44,727.74,164.64Z"></path><path class="cls-1" d="M240.49,8.16c23.92,0,77.27,38.63,98.88,117.28,18.77,68.29-39.55,149.46-67.6,149.46-58.41,0-45.53-94.28-43.23-104.85C251.07,79.45,214.74,8.16,240.49,8.16Z"></path><path class="cls-1" d="M211,274.9c-23.92,0-77.27-35.1-98.88-106.55-18.77-62.06,39.55-135.81,67.6-135.81,58.41,0,45.53,85.66,43.23,95.27C200.41,210.13,236.74,274.9,211,274.9Z"></path><path class="cls-1" d="M26.3,232.09a1.23,1.23,0,0,1,.21,1.67c-2.34,3.26-4.74,6.56-7.06,9.66-2.53,3.4-4.81,11.58-3.74,15.5s13.52,6.38,14.86,5.51,6.18-12.52,9.21-18.78c5.6-11.56,10.67-23.4,16.91-34.59,3.93-7.06,9.14-13.4,14.22-20.32a1.26,1.26,0,0,0-1.2-2c-12,1.85-20.42,10.16-28.44,18.17-.42.51-1.11.14-1-.28,7.62-14.37,20.45-20.79,35.69-22.2,12.23-1.13,20.52,5.89,26.66,16a1.19,1.19,0,0,1,.15.35A87.14,87.14,0,0,1,105,211.9c1.6,8.2,1,16.38-3.08,23.78C88.2,260.16,66.79,273,39.23,274.86c-6,.42-12.9-2.41-18.38-5.52a17.38,17.38,0,0,1-6.48-23.26c2.67-5,6.53-9.34,10-13.91a1.24,1.24,0,0,1,1.81-.2Zm34.57,24.78C75,245,81.15,230.78,90.41,217.9c5.1-7.09,3.94-20.8,1.35-24.06-2.36-3-5.24-3.55-8.43-4.55a1.24,1.24,0,0,0-1.49.58c-3.94,7.42-8.61,18.78-12.33,21.86-3.88,3.21-10.55,14.84-15.05,22.86-4.67,8.31-21.06,26.12-19.63,32.62S59.72,257.83,60.87,256.87Z"></path></svg>
+    <strong style="font-size:13px;">Boundary editor</strong>
+    <select id="edDistrict" aria-label="District"></select>
+    <button id="edSat" type="button">Plain basemap</button>
+    <span class="grow"></span>
+    <span class="edstatus" id="edStatus">Pick a district</span>
+    <button id="edRevert" type="button" disabled>Revert plot</button>
+    <button id="edRevertAll" type="button" disabled>Revert all</button>
+    <button id="edExport" type="button" class="primary" disabled>Export changes</button>
+    <span class="warn">Nothing here is saved centrally. Export and apply at source.</span>
+  </div>
+  <div class="edmain">
+    <div id="edMap"></div>
+    <div class="edside">
+      <h3 id="edTitle">No plot selected</h3>
+      <div id="edFields"></div>
+      <div class="edlist">
+        <h3 style="margin-top:16px;">Changed plots (<span id="edCount">0</span>)</h3>
+        <div id="edChanged"><p class="muted">Nothing changed yet.</p></div>
       </div>
-    </div>
-    <div class="filterbar">
-      <div class="pillgroup" id="langPills">
-        <button class="pill active" data-lang="en">EN</button>
-        <button class="pill" data-lang="nl">NL</button>
+      <div class="edhelp">
+        <p><b>Click</b> a plot to select it and show its vertices.</p>
+        <p><b>Drag</b> a square handle to move that corner. <b>Drag</b> the middle of the
+           plot to move the whole boundary. <b>Drag</b> a hollow handle to insert a corner.</p>
+        <p><kbd>Alt</kbd>-click or right-click a square handle to delete that corner.
+           A ring needs at least three.</p>
+        <p><kbd>Esc</kbd> deselects.</p>
+        <p style="margin-top:10px;">Export writes only the plots you changed, as GeoJSON
+           and as polygon rows, with the register area and the recomputed area side by
+           side. Apply it at source; this page cannot.</p>
       </div>
     </div>
   </div>
-</header>
-
-<main class="shell">
-
-  <section class="hero">
-    <div class="hero-head">
-      <p class="hero-eyebrow" data-i18n="heroEyebrow">About us</p>
-      <h1 data-i18n="heroH1">Coffee, traced back to the farmer who grew it.</h1>
-      <p class="lede" data-i18n="heroLede">Ndugu Farmers Ltd buys FAQ-grade robusta from smallholder cooperatives across ten districts in Uganda's Greater Masaka region, bulks it into export-ready lots, and ships it to buyers who need to know exactly where it came from. The dashboards on this site are not a brochure &mdash; they are the same reporting the business runs on, published as it is.</p>
-    </div>
-  </section>
-
-  <div class="part-rail"><span data-i18n="partProcess">How the trade works</span></div>
-
-  <section id="sec-process">
-    <div class="section-head">
-      <div>
-        <h2 data-i18n="processH2">From farm gate to export</h2>
-        <p data-i18n="processP">Four steps, the same four every season.</p>
-      </div>
-    </div>
-    <div class="cardgrid steps">
-      <div class="acard">
-        <p class="n" data-i18n="step1N">Step 1</p>
-        <h4 data-i18n="step1H">Registration</h4>
-        <p data-i18n="step1P">A farmer joins through a cooperative in one of ten districts. Their record &mdash; name, plot, district &mdash; starts here and follows the coffee for as long as they keep delivering.</p>
-      </div>
-      <div class="acard">
-        <p class="n" data-i18n="step2N">Step 2</p>
-        <h4 data-i18n="step2H">Delivery</h4>
-        <p data-i18n="step2P">Cherry and parchment are weighed and paid for at the buying site, on the day, and logged against the farmer who brought it in.</p>
-      </div>
-      <div class="acard">
-        <p class="n" data-i18n="step3N">Step 3</p>
-        <h4 data-i18n="step3H">Bulking &amp; grading</h4>
-        <p data-i18n="step3P">Deliveries are bulked into lots, graded by screen size, and checked against certification and geolocation requirements before they're offered to a buyer.</p>
-      </div>
-      <div class="acard">
-        <p class="n" data-i18n="step4N">Step 4</p>
-        <h4 data-i18n="step4H">Export</h4>
-        <p data-i18n="step4P">Graded lots ship to UGACOF, ETG and other buyers, with the record &mdash; farmer, plot, certification, delivery date &mdash; intact behind every bag.</p>
-      </div>
-    </div>
-  </section>
-
-  <div class="part-rail"><span data-i18n="partLines">What we do</span></div>
-
-  <section id="sec-lines">
-    <div class="section-head">
-      <div>
-        <h2 data-i18n="linesH2">Eight lines of work</h2>
-        <p data-i18n="linesP">Reported here as they run, not summarised after the fact.</p>
-      </div>
-    </div>
-    <div class="cardgrid lines">
-      <a class="acard" href="index.html">
-        <p class="n" data-i18n="lblLive">Live</p>
-        <h4 data-i18n="lineDomH">Domestic Trade</h4>
-        <p data-i18n="lineDomP">Buying FAQ-grade robusta from registered farmers across ten districts, season by season.</p>
-      </a>
-      <a class="acard" href="export.html">
-        <p class="n" data-i18n="lblLive">Live</p>
-        <h4 data-i18n="lineExpH">Ndugu Export</h4>
-        <p data-i18n="lineExpP">Bulking, grading and shipping export lots to UGACOF, ETG and other buyers.</p>
-      </a>
-      <a class="acard" href="eudr.html">
-        <p class="n" data-i18n="lblLive">Live</p>
-        <h4 data-i18n="lineEudrH">EUDR Compliance</h4>
-        <p data-i18n="lineEudrP">Mapping every plot to the geolocation standard the regulation sets, and tracking what's left to close.</p>
-      </a>
-      <a class="acard" href="impact.html">
-        <p class="n" data-i18n="lblLive">Live</p>
-        <h4 data-i18n="lineImpH">Impact Projects</h4>
-        <p data-i18n="lineImpP">Surveying the farmers in our network and the cooperatives newly enrolled for certification.</p>
-      </a>
-      <a class="acard" href="finance.html">
-        <p class="n" data-i18n="lblLive">Live</p>
-        <h4 data-i18n="lineFinH">Financial Services</h4>
-        <p data-i18n="lineFinP">Microfinance for farmers in the network, from input loans to school-fees credit.</p>
-      </a>
-      <a class="acard" href="production.html">
-        <p class="n" data-i18n="lblBuilding">In development</p>
-        <h4 data-i18n="lineProdH">Production</h4>
-        <p data-i18n="lineProdP">Farm-level production records, from planting through harvest.</p>
-      </a>
-      <a class="acard" href="agritracker.html">
-        <p class="n" data-i18n="lblBuilding">In development</p>
-        <h4 data-i18n="lineAgriH">Agritracker</h4>
-        <p data-i18n="lineAgriP">Field data collection and record-keeping down to the plot.</p>
-      </a>
-      <a class="acard" href="coffee.html">
-        <p class="n" data-i18n="lblBuilding">In development</p>
-        <h4 data-i18n="lineCoffH">Coffee Minds</h4>
-        <p data-i18n="lineCoffP">Agronomy training and advisory for the farmers we buy from.</p>
-      </a>
-    </div>
-  </section>
-
-  <div class="part-rail"><span data-i18n="partWhere">Where we work</span></div>
-
-  <section id="sec-where">
-    <div class="section-head">
-      <div>
-        <h2 data-i18n="whereH2">Ten districts, one lake basin</h2>
-      </div>
-    </div>
-    <div class="grid">
-      <div class="col-12 panel">
-        <p data-i18n="whereP" id="whereP">-</p>
-        <div class="badgerow">
-          <span class="badge">Masaka</span><span class="badge">Kyotera</span>
-          <span class="badge">Rakai</span><span class="badge">Lwengo</span>
-          <span class="badge">Ntungamo</span><span class="badge">Bukomansimbi</span>
-          <span class="badge">Luuka</span><span class="badge">Mukono</span>
-          <span class="badge">Kiboga</span><span class="badge">Luwero</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <div class="part-rail"><span data-i18n="partStandards">Standards</span></div>
-
-  <section id="sec-standards">
-    <div class="section-head">
-      <div>
-        <h2 data-i18n="standardsH2">Certifications &amp; standards</h2>
-      </div>
-    </div>
-    <div class="grid">
-      <div class="col-12 panel">
-        <p data-i18n="standardsP">Certified Rainforest Alliance, Fairtrade and 4C, and working toward full EUDR compliance ahead of the regulation's deadlines &mdash; see the EUDR Compliance dashboard for exactly where that stands today.</p>
-        <div class="badgerow">
-          <span class="badge">Rainforest Alliance</span>
-          <span class="badge">Fairtrade</span>
-          <span class="badge">4C</span>
-          <span class="badge">EUDR</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <div class="part-rail"><span data-i18n="partReport">How we report</span></div>
-
-  <section id="sec-closing">
-    <div class="grid">
-      <div class="col-12">
-        <div class="closing" data-i18n="closingP">-</div>
-      </div>
-    </div>
-  </section>
-
-</main>
-
-<footer class="about-foot">
-  <div data-i18n="footTag">Ndugu Farmers Ltd</div>
-</footer>
-
-</div><!-- /.layout-main -->
-</div><!-- /.layout -->
+</div>
 
 <script>
 
 (function(){
 'use strict';
 
-var state = {lang:'en'};
+var POLY = null, ROWS = null, DKEY = null;
+var map = null, tiles = null, layer = null, shapes = null, handles = null;
+var sel = -1, mode = 'sat';
+var orig = {};      /* index -> the untouched ring, kept for revert and diff */
+var changed = {};   /* index -> true */
 
-var I18N = {
-en:{
-  navTitle:'Navigation', navDomestic:'Domestic Trade', navExport:'Ndugu Export',
-    navEudr:'EUDR Compliance', navImpact:'Impact Projects', navFinance:'Financial Services',
-    navProduction:'Ndugu Production', navAgritracker:'Agritracker', navCoffee:'Coffee Minds',
-    navAbout:'About us',
-  brandRole:'About us',
-  heroEyebrow:'About us',
-  heroH1:'Coffee, traced back to the farmer who grew it.',
-  heroLede:'Ndugu Farmers Ltd buys FAQ-grade robusta from smallholder cooperatives across ten districts in Uganda’s Greater Masaka region, bulks it into export-ready lots, and ships it to buyers who need to know exactly where it came from. The dashboards on this site are not a brochure — they are the same reporting the business runs on, published as it is.',
-  partProcess:'How the trade works',
-  processH2:'From farm gate to export', processP:'Four steps, the same four every season.',
-  step1N:'Step 1', step1H:'Registration',
-  step1P:'A farmer joins through a cooperative in one of ten districts. Their record — name, plot, district — starts here and follows the coffee for as long as they keep delivering.',
-  step2N:'Step 2', step2H:'Delivery',
-  step2P:'Cherry and parchment are weighed and paid for at the buying site, on the day, and logged against the farmer who brought it in.',
-  step3N:'Step 3', step3H:'Bulking & grading',
-  step3P:'Deliveries are bulked into lots, graded by screen size, and checked against certification and geolocation requirements before they’re offered to a buyer.',
-  step4N:'Step 4', step4H:'Export',
-  step4P:'Graded lots ship to UGACOF, ETG and other buyers, with the record — farmer, plot, certification, delivery date — intact behind every bag.',
-  partLines:'What we do',
-  linesH2:'Eight lines of work', linesP:'Reported here as they run, not summarised after the fact.',
-  lblLive:'Live', lblBuilding:'In development',
-  lineDomH:'Domestic Trade', lineDomP:'Buying FAQ-grade robusta from registered farmers across ten districts, season by season.',
-  lineExpH:'Ndugu Export', lineExpP:'Bulking, grading and shipping export lots to UGACOF, ETG and other buyers.',
-  lineEudrH:'EUDR Compliance', lineEudrP:'Mapping every plot to the geolocation standard the regulation sets, and tracking what’s left to close.',
-  lineImpH:'Impact Projects', lineImpP:'Surveying the farmers in our network and the cooperatives newly enrolled for certification.',
-  lineFinH:'Financial Services', lineFinP:'Microfinance for farmers in the network, from input loans to school-fees credit.',
-  lineProdH:'Production', lineProdP:'Farm-level production records, from planting through harvest.',
-  lineAgriH:'Agritracker', lineAgriP:'Field data collection and record-keeping down to the plot.',
-  lineCoffH:'Coffee Minds', lineCoffP:'Agronomy training and advisory for the farmers we buy from.',
-  partWhere:'Where we work',
-  whereH2:'Ten districts, one lake basin',
-  whereP:'Ndugu sources from smallholder cooperatives across ten districts in Uganda’s Greater Masaka region and the wider Lake Victoria basin. Most of the farmers we work with farm small plots — __PCT__ of the registry holds under two hectares.',
-  partStandards:'Standards',
-  standardsH2:'Certifications & standards',
-  standardsP:'Certified Rainforest Alliance, Fairtrade and 4C, and working toward full EUDR compliance ahead of the regulation’s deadlines — see the EUDR Compliance dashboard for exactly where that stands today.',
-  partReport:'How we report',
-  closingP:'Every figure on this site is published as a total — by district, season, product or cooperative — <b>never as an individual farmer, borrower or pupil.</b> Nothing here is a summary written after the fact: these are the live dashboards Ndugu uses to run the business, the same ones a funder, a buyer or an auditor would be shown.',
-  footTag:'Ndugu Farmers Ltd'
-},
-nl:{
-  navTitle:'Navigatie', navDomestic:'Binnenlandse handel', navExport:'Ndugu Export',
-    navEudr:'EUDR-naleving', navImpact:'Impactprojecten', navFinance:'Financiële diensten',
-    navProduction:'Ndugu Production', navAgritracker:'Agritracker', navCoffee:'Coffee Minds',
-    navAbout:'Over ons',
-  brandRole:'Over ons',
-  heroEyebrow:'Over ons',
-  heroH1:'Koffie, te herleiden tot de boer die hem verbouwde.',
-  heroLede:'Ndugu Farmers Ltd koopt robusta van FAQ-kwaliteit van kleinschalige coöperaties in tien districten in de regio Groot-Masaka in Oeganda, bundelt dit tot exportklare partijen en verscheept het naar afnemers die precies willen weten waar het vandaan komt. De dashboards op deze site zijn geen brochure — het is dezelfde rapportage waarop het bedrijf draait, gepubliceerd zoals ze is.',
-  partProcess:'Hoe de handel werkt',
-  processH2:'Van erf tot export', processP:'Vier stappen, elk seizoen dezelfde vier.',
-  step1N:'Stap 1', step1H:'Registratie',
-  step1P:'Een boer sluit zich aan via een coöperatie in een van tien districten. Het dossier — naam, perceel, district — begint hier en volgt de koffie zolang er geleverd wordt.',
-  step2N:'Stap 2', step2H:'Levering',
-  step2P:'Kersen en parchment worden gewogen en op de dag zelf uitbetaald op de inkooplocatie, geregistreerd op naam van de boer die ze bracht.',
-  step3N:'Stap 3', step3H:'Bundelen & sorteren',
-  step3P:'Leveringen worden gebundeld tot partijen, gesorteerd op zeefmaat, en getoetst aan certificerings- en geolocatie-eisen voordat ze aan een afnemer worden aangeboden.',
-  step4N:'Stap 4', step4H:'Export',
-  step4P:'Gesorteerde partijen gaan naar UGACOF, ETG en andere afnemers, met het dossier — boer, perceel, certificering, leverdatum — intact achter elke baal.',
-  partLines:'Wat we doen',
-  linesH2:'Acht bedrijfsonderdelen', linesP:'Hier gerapporteerd zoals ze lopen, niet achteraf samengevat.',
-  lblLive:'Actief', lblBuilding:'In ontwikkeling',
-  lineDomH:'Binnenlandse handel', lineDomP:'Inkoop van robusta van FAQ-kwaliteit bij geregistreerde boeren in tien districten, seizoen na seizoen.',
-  lineExpH:'Ndugu Export', lineExpP:'Bundelen, sorteren en verschepen van exportpartijen naar UGACOF, ETG en andere afnemers.',
-  lineEudrH:'EUDR-naleving', lineEudrP:'Elk perceel in kaart brengen volgens de geolocatienorm van de verordening, en bijhouden wat nog moet worden gesloten.',
-  lineImpH:'Impactprojecten', lineImpP:'Onderzoek onder de boeren in ons netwerk en de coöperaties die net zijn ingeschreven voor certificering.',
-  lineFinH:'Financiële diensten', lineFinP:'Microfinanciering voor boeren in het netwerk, van inputleningen tot schoolgeldkrediet.',
-  lineProdH:'Productie', lineProdP:'Productiegegevens op boerderijniveau, van aanplant tot oogst.',
-  lineAgriH:'Agritracker', lineAgriP:'Verzameling van velddata en registratie tot op perceelniveau.',
-  lineCoffH:'Coffee Minds', lineCoffP:'Agronomische training en advies voor de boeren bij wie we inkopen.',
-  partWhere:'Waar we werken',
-  whereH2:'Tien districten, één merengebied',
-  whereP:'Ndugu koopt in bij kleinschalige coöperaties in tien districten in de regio Groot-Masaka in Oeganda en het bredere Victoriameer-gebied. De meeste boeren in ons netwerk werken kleine percelen — __PCT__ van het register bewerkt minder dan twee hectare.',
-  partStandards:'Normen',
-  standardsH2:'Certificeringen & normen',
-  standardsP:'Gecertificeerd Rainforest Alliance, Fairtrade en 4C, en op weg naar volledige EUDR-naleving voor de deadlines van de verordening — zie het EUDR-nalevingsdashboard voor de actuele stand van zaken.',
-  partReport:'Hoe we rapporteren',
-  closingP:'Elk cijfer op deze site wordt gepubliceerd als totaal — per district, seizoen, product of coöperatie — <b>nooit als individuele boer, kredietnemer of leerling.</b> Niets hier is een achteraf geschreven samenvatting: dit zijn de dashboards waarop Ndugu het bedrijf draait, dezelfde die een financier, afnemer of auditor te zien krijgt.',
-  footTag:'Ndugu Farmers Ltd'
-}
+var SAT_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+var SAT_ATTR = 'Imagery &copy; Esri, Maxar, Earthstar Geographics';
+var SAT_MAX = 19;
+
+/* Same ramp as the dashboard, so a plot is the same colour in both. */
+var BAND_FILL = {
+  under_half:'#C7DED7', half1:'#93C2B7', '1to2':'#579C8E',
+  '2to4':'#27756A', over4:'#0D4D45'
 };
+/* Same outline colour as the dashboard too, for a plot that is neither
+   selected nor edited. Selected and changed keep their own colours below:
+   those are states this tool needs a reader to tell apart at a glance, which
+   a shared default colour would blur. */
+var PLOT_STROKE = '#E8791C';
+/* EUDR asks for a polygon above this area, which is why the recomputed figure
+   is worth watching while dragging: an edit that crosses it changes what the
+   regulation requires of the plot. */
+var EUDR_HA = 4.0;
 
-function t(key){
-  var v = I18N[state.lang][key];
-  if (v === undefined) v = I18N.en[key];
-  return v;
+function $(id){ return document.getElementById(id); }
+function esc(s){
+  return (s===null||s===undefined) ? '' :
+    String(s).replace(/[&<>"]/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; });
 }
-function applyStaticI18n(){
-  document.querySelectorAll('[data-i18n]').forEach(function(el){
-    var v = t(el.getAttribute('data-i18n'));
-    if (v !== undefined && v !== null) el.innerHTML = v;
+function fmt(n, dp){
+  return Number(n).toLocaleString('en-US',
+    {minimumFractionDigits:dp||0, maximumFractionDigits:dp||0});
+}
+
+/* Spherical excess on the WGS84 ellipsoid radius. Good to a few parts in ten
+   thousand at this size, which is far finer than a hand-walked boundary, and
+   it needs no projection step that could quietly disagree with the map's. */
+function ringHa(ring){
+  var R = 6378137, n = ring.length, area = 0;
+  if (n < 3) return 0;
+  for (var i=0;i<n;i++){
+    var a = ring[i], b = ring[(i+1)%n];
+    area += (b[1]-a[1]) * Math.PI/180 *
+            (2 + Math.sin(a[0]*Math.PI/180) + Math.sin(b[0]*Math.PI/180));
+  }
+  return Math.abs(area * R * R / 2) / 10000;
+}
+function ringOf(poly){
+  var ll = poly.getLatLngs()[0];
+  return ll.map(function(p){ return [p.lat, p.lng]; });
+}
+function movedCount(i){
+  var a = orig[i], b = ringOf(shapes[i]);
+  if (!a) return 0;
+  if (a.length !== b.length) return Math.abs(a.length - b.length) + 1;
+  var n = 0;
+  for (var k=0;k<a.length;k++){
+    if (Math.abs(a[k][0]-b[k][0]) > 1e-7 || Math.abs(a[k][1]-b[k][1]) > 1e-7) n++;
+  }
+  return n;
+}
+
+function style(i){
+  var r = ROWS[i], on = (i === sel), ch = !!changed[i];
+  return {
+    color: on ? '#F2C14E' : (ch ? '#D24422' : PLOT_STROKE),
+    weight: on ? 3 : (ch ? 2.2 : (mode==='sat' ? 1.4 : 1.1)),
+    fillColor: BAND_FILL[r.b] || '#579C8E',
+    fillOpacity: on ? 0.32 : (mode==='sat' ? 0.16 : 0.85),
+    dashArray: r.s === 'provisional' ? '4,3' : null
+  };
+}
+function restyle(){
+  if (!shapes) return;
+  for (var i=0;i<shapes.length;i++) shapes[i].setStyle(style(i));
+}
+
+function setMode(m){
+  mode = m;
+  $('edMap').classList.toggle('plain', m !== 'sat');
+  $('edSat').textContent = m === 'sat' ? 'Plain basemap' : 'Satellite basemap';
+  if (m === 'sat'){
+    if (!tiles) tiles = L.tileLayer(SAT_URL, {maxZoom:SAT_MAX, attribution:SAT_ATTR});
+    tiles.addTo(map);
+  } else if (tiles){ map.removeLayer(tiles); }
+  restyle();
+}
+
+function ensureMap(){
+  if (map) return map;
+  map = L.map('edMap', {zoomControl:true, preferCanvas:true, maxZoom:SAT_MAX});
+  setMode('sat');
+  map.on('click', function(){ select(-1); });
+  /* Whether a midpoint handle is worth showing depends on how far apart its
+     two corners are ON SCREEN, which changes with every zoom. Without this the
+     handles stay as they were computed at the zoom where the plot was
+     selected: zoom in on a dense boundary and the midpoints never appear, so
+     there is no way to insert a corner where one is actually needed. */
+  map.on('zoomend', function(){ if (sel >= 0) drawHandles(); });
+  return map;
+}
+
+/* ---------- selection and handles ---------- */
+function clearHandles(){
+  if (handles){ handles.forEach(function(h){ map.removeLayer(h); }); }
+  handles = null;
+}
+
+function drawHandles(){
+  clearHandles();
+  if (sel < 0) return;
+  handles = [];
+  var poly = shapes[sel];
+  var ring = poly.getLatLngs()[0];
+
+  var icon = L.divIcon({className:'', html:'<div class="vtx"></div>', iconSize:[0,0]});
+  var midIcon = L.divIcon({className:'', html:'<div class="vtx mid"></div>', iconSize:[0,0]});
+
+  ring.forEach(function(pt, i){
+    var mk = L.marker(pt, {icon:icon, draggable:true, zIndexOffset:1000});
+    mk.on('drag', function(e){
+      var ll = poly.getLatLngs()[0];
+      ll[i] = e.target.getLatLng();
+      poly.setLatLngs([ll]);
+      touch();
+    });
+    mk.on('dragend', function(){ drawHandles(); });
+    /* Alt-click or right-click removes this corner. A ring with two points is
+       a line, not a boundary, so three is the floor. */
+    var kill = function(e){
+      if (e.originalEvent) e.originalEvent.preventDefault();
+      var ll = poly.getLatLngs()[0];
+      if (ll.length <= 3){ status('A boundary needs at least three corners.'); return; }
+      ll.splice(i,1);
+      poly.setLatLngs([ll]);
+      touch(); drawHandles();
+    };
+    mk.on('contextmenu', kill);
+    mk.on('click', function(e){ if (e.originalEvent && e.originalEvent.altKey) kill(e); });
+    mk.addTo(map); handles.push(mk);
   });
-  document.getElementById('whereP').innerHTML = t('whereP').replace('__PCT__', '79%');
-  document.documentElement.lang = state.lang;
+
+  /* Midpoint handles: dragging one inserts a real vertex there. Shown only
+     when the corners are far enough apart on screen to tell them apart,
+     otherwise a dense boundary becomes a wall of handles. */
+  for (var i=0;i<ring.length;i++){
+    var a = ring[i], b = ring[(i+1)%ring.length];
+    var pa = map.latLngToContainerPoint(a), pb = map.latLngToContainerPoint(b);
+    if (pa.distanceTo(pb) < 34) continue;
+    var mid = L.latLng((a.lat+b.lat)/2, (a.lng+b.lng)/2);
+    (function(at){
+      var mk = L.marker(mid, {icon:midIcon, draggable:true, zIndexOffset:900});
+      var inserted = false;
+      mk.on('dragstart', function(){
+        var ll = poly.getLatLngs()[0];
+        ll.splice(at+1, 0, mk.getLatLng());
+        poly.setLatLngs([ll]);
+        inserted = true;
+      });
+      mk.on('drag', function(e){
+        if (!inserted) return;
+        var ll = poly.getLatLngs()[0];
+        ll[at+1] = e.target.getLatLng();
+        poly.setLatLngs([ll]);
+        touch();
+      });
+      mk.on('dragend', function(){ drawHandles(); });
+      mk.addTo(map); handles.push(mk);
+    })(i);
+  }
 }
 
-document.getElementById('langPills').addEventListener('click', function(e){
-  var b = e.target.closest('.pill'); if (!b) return;
-  document.querySelectorAll('#langPills .pill').forEach(function(p){ p.classList.remove('active'); });
-  b.classList.add('active');
-  state.lang = b.getAttribute('data-lang');
-  applyStaticI18n();
+function select(i){
+  var was = sel;
+  sel = i;
+  if (was >= 0 && shapes[was]) shapes[was].setStyle(style(was));
+  clearHandles();
+  if (i >= 0){
+    shapes[i].setStyle(style(i));
+    if (orig[i] === undefined) orig[i] = ringOf(shapes[i]);
+    drawHandles();
+  }
+  renderSide();
+  $('edRevert').disabled = (i < 0) || !changed[i];
+}
+
+function touch(){
+  if (sel < 0) return;
+  var n = movedCount(sel);
+  if (n > 0) changed[sel] = true; else delete changed[sel];
+  shapes[sel].setStyle(style(sel));
+  renderSide(); renderChanged();
+  $('edRevert').disabled = !changed[sel];
+}
+
+/* ---------- side panel ---------- */
+function renderSide(){
+  var t = $('edTitle'), f = $('edFields');
+  if (sel < 0){
+    t.textContent = 'No plot selected';
+    f.innerHTML = '<p class="muted">Click a boundary on the map. Its corners appear as ' +
+                  'handles you can drag.</p>';
+    return;
+  }
+  var r = ROWS[sel];
+  var live = ringHa(ringOf(shapes[sel]));
+  var base = orig[sel] ? ringHa(orig[sel]) : live;
+  var moved = movedCount(sel);
+  var crossed = (base >= EUDR_HA) !== (live >= EUDR_HA);
+  var label = r.u || r.c || r.n || ('plot ' + sel);
+  t.textContent = label;
+
+  var rows = [
+    ['Register area', fmt(r.h,2) + ' ha'],
+    ['Geometry as filed', fmt(base,2) + ' ha'],
+    ['Geometry now', fmt(live,2) + ' ha', moved ? 'moved' : ''],
+    ['Corners', shapes[sel].getLatLngs()[0].length + (moved ? ' (' + moved + ' changed)' : '')],
+    ['Band', r.b],
+    ['Status', r.s + (r.i ? ' · submitted to ITC' : '')]
+  ];
+  if (crossed){
+    rows.push(['EUDR 4 ha threshold',
+      (live >= EUDR_HA ? 'now above' : 'now below') + ', was the other side', 'cross']);
+  }
+  f.innerHTML = rows.map(function(x){
+    return '<div class="edfield"><span class="k">' + esc(x[0]) + '</span>' +
+           '<span class="v ' + (x[2]||'') + '">' + esc(x[1]) + '</span></div>';
+  }).join('');
+}
+
+function renderChanged(){
+  var keys = Object.keys(changed);
+  $('edCount').textContent = keys.length;
+  $('edExport').disabled = keys.length === 0;
+  $('edRevertAll').disabled = keys.length === 0;
+  var host = $('edChanged');
+  if (!keys.length){ host.innerHTML = '<p class="muted">Nothing changed yet.</p>'; return; }
+  host.innerHTML = keys.map(function(k){
+    var i = +k, r = ROWS[i];
+    return '<div class="edrow' + (i===sel?' sel':'') + '" data-i="'+i+'">' +
+      '<span>' + esc(r.u || r.c || r.n || ('plot '+i)) + '</span>' +
+      '<span class="d">' + fmt(ringHa(ringOf(shapes[i])),2) + ' ha</span></div>';
+  }).join('');
+}
+
+function status(msg){ $('edStatus').textContent = msg; }
+
+/* ---------- load ---------- */
+function loadDistrict(key){
+  var d = POLY.districts.find(function(x){ return x.district === key; });
+  if (!d) return;
+  status('Loading ' + d.district + '…');
+  fetch('./' + d.file + '?v=' + Date.now(), {cache:'no-store'})
+    .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+    .then(function(rows){
+      DKEY = d; ROWS = rows; sel = -1; orig = {}; changed = {};
+      var m = ensureMap();
+      if (layer) m.removeLayer(layer);
+      clearHandles();
+      var grp = L.layerGroup();
+      shapes = new Array(rows.length);
+      for (var i=0;i<rows.length;i++){
+        var poly = L.polygon(rows[i].p, style(i));
+        poly._i = i;
+        poly.on('click', function(e){
+          L.DomEvent.stop(e);
+          select(this._i);
+          map.fitBounds(this.getBounds().pad(3), {maxZoom:SAT_MAX});
+        });
+        /* Dragging the body moves the whole boundary, rigidly: every corner
+           by the same delta, so the shape and area are preserved and only the
+           position changes. That is the right tool when a GPS was offset, and
+           the wrong one when a single corner was walked badly, which is what
+           the vertex handles are for. */
+        poly.on('mousedown', function(e){
+          if (this._i !== sel) return;
+          var self = this, start = e.latlng, ring0 = ringOf(this);
+          L.DomEvent.stop(e);
+          map.dragging.disable();
+          clearHandles();
+          var move = function(ev){
+            var dLat = ev.latlng.lat - start.lat, dLng = ev.latlng.lng - start.lng;
+            self.setLatLngs([ring0.map(function(p){ return [p[0]+dLat, p[1]+dLng]; })]);
+            touch();
+          };
+          var up = function(){
+            map.off('mousemove', move); map.off('mouseup', up);
+            map.dragging.enable();
+            drawHandles();
+          };
+          map.on('mousemove', move); map.on('mouseup', up);
+        });
+        shapes[i] = poly; grp.addLayer(poly);
+      }
+      layer = grp.addTo(m);
+      m.fitBounds(L.latLngBounds([d.bbox[0],d.bbox[1]],[d.bbox[2],d.bbox[3]]).pad(0.05));
+      status(fmt(rows.length) + ' plots in ' + d.district);
+      renderSide(); renderChanged();
+    })
+    .catch(function(err){ status('Could not load: ' + err.message); });
+}
+
+function revert(i){
+  if (orig[i] === undefined) return;
+  shapes[i].setLatLngs([orig[i]]);
+  delete changed[i];
+  shapes[i].setStyle(style(i));
+  if (i === sel) drawHandles();
+  renderSide(); renderChanged();
+  $('edRevert').disabled = true;
+}
+
+/* ---------- export ---------- */
+function download(name, text, type){
+  var blob = new Blob([text], {type:type});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
+}
+
+function exportChanges(){
+  var keys = Object.keys(changed).map(Number).sort(function(a,b){return a-b;});
+  if (!keys.length) return;
+  var stamp = new Date().toISOString().slice(0,10);
+  var slug = DKEY.district.toLowerCase().replace(/[^a-z0-9]+/g,'-');
+
+  var feats = [], rowsOut = [];
+  keys.forEach(function(i){
+    var r = ROWS[i], ring = ringOf(shapes[i]);
+    var before = ringHa(orig[i]), after = ringHa(ring);
+    var props = {
+      district: DKEY.district,
+      farm_unit_id: r.u || null, farmer_code: r.c || null, plot_name: r.n || null,
+      band: r.b, status: r.s, itc_submitted: !!r.i,
+      register_ha: r.h,
+      geometry_ha_before: Number(before.toFixed(4)),
+      geometry_ha_after: Number(after.toFixed(4)),
+      corners_before: orig[i].length, corners_after: ring.length,
+      corners_moved: movedCount(i),
+      crosses_eudr_4ha: (before >= EUDR_HA) !== (after >= EUDR_HA),
+      edited_on: stamp
+    };
+    /* GeoJSON is [lng, lat] and the source file is [lat, lng]. Getting this
+       backwards puts Masaka in the Indian Ocean, and silently: both numbers
+       are plausible on their own. */
+    var coords = ring.map(function(p){ return [p[1], p[0]]; });
+    coords.push(coords[0].slice());   /* GeoJSON rings must close */
+    feats.push({type:'Feature', properties:props,
+                geometry:{type:'Polygon', coordinates:[coords]}});
+    /* The polygons/*.json row shape, so an edit can go back the way it came.
+       h is the recomputed area, not the register's: the geometry is what was
+       edited, and carrying the old number beside a new shape is how the two
+       drift apart. */
+    var row = {h:Number(after.toFixed(4)), b:r.b, s:r.s, i:r.i,
+               p:ring.map(function(p){ return [Number(p[0].toFixed(6)),
+                                               Number(p[1].toFixed(6))]; })};
+    if (r.c) row.c = r.c;
+    if (r.n) row.n = r.n;
+    if (r.u) row.u = r.u;
+    rowsOut.push(row);
+  });
+
+  download('edited-plots-' + slug + '-' + stamp + '.geojson',
+    JSON.stringify({type:'FeatureCollection',
+                    crs:{type:'name', properties:{name:'urn:ogc:def:crs:OGC:1.3:CRS84'}},
+                    features:feats}, null, 1), 'application/geo+json');
+  download('edited-plots-' + slug + '-' + stamp + '.json',
+    JSON.stringify(rowsOut, null, 1), 'application/json');
+  status('Exported ' + keys.length + ' plot' + (keys.length===1?'':'s') + '.');
+}
+
+/* ---------- boot ---------- */
+function startEditor(){
+  fetch('./polygon-data.json?v=' + Date.now(), {cache:'no-store'})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      POLY = d;
+      var sel0 = $('edDistrict');
+      sel0.innerHTML = '<option value="">Choose a district…</option>' +
+        d.districts.map(function(x){
+          return '<option value="'+esc(x.district)+'">'+esc(x.district)+
+                 ' ('+fmt(x.plots)+')</option>';
+        }).join('');
+      sel0.addEventListener('change', function(){
+        if (this.value) loadDistrict(this.value);
+      });
+      status('Pick a district');
+    })
+    .catch(function(err){ status('Could not load polygon-data.json: ' + err.message); });
+
+  $('edSat').addEventListener('click', function(){ setMode(mode === 'sat' ? 'plain' : 'sat'); });
+  $('edRevert').addEventListener('click', function(){ if (sel >= 0) revert(sel); });
+  $('edRevertAll').addEventListener('click', function(){
+    Object.keys(changed).map(Number).forEach(revert);
+    status('Reverted everything.');
+  });
+  $('edExport').addEventListener('click', exportChanges);
+  $('edChanged').addEventListener('click', function(e){
+    var row = e.target.closest('.edrow');
+    if (!row) return;
+    var i = +row.dataset.i;
+    select(i);
+    map.fitBounds(shapes[i].getBounds().pad(3), {maxZoom:SAT_MAX});
+  });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape') select(-1);
+  });
+}
+
+/* ---------- access gate ----------
+   Checks a typed phrase against a SHA-256 hash rather than a plaintext
+   compare, so the phrase itself is not sitting in the page source in the
+   clear — but the hash is, and this runs entirely in the reader's browser,
+   so it stops a casual visitor, not a determined one. See the CSS comment
+   above .edgate for what this can and cannot be relied on for. Unlocking is
+   remembered for the tab's session only (sessionStorage), not saved to
+   disk, so it does not survive onto a shared or public machine. */
+var GATE_HASH = '2694b6d22d5ae17e8b37661873f00eb390a339681a9b3c518e56e1cd62740fea';
+var GATE_KEY = 'ndugu-editor-unlocked';
+
+function sha256Hex(text){
+  var data = new TextEncoder().encode(text);
+  return crypto.subtle.digest('SHA-256', data).then(function(buf){
+    return Array.prototype.map.call(new Uint8Array(buf), function(b){
+      return b.toString(16).padStart(2, '0');
+    }).join('');
+  });
+}
+
+function unlock(){
+  $('edGate').remove();
+  var wrap = $('edWrap');
+  wrap.hidden = false;
+  startEditor();
+}
+
+function tryUnlock(){
+  var pw = $('edGatePw').value;
+  var err = $('edGateErr');
+  if (!pw){ err.textContent = 'Enter the access phrase.'; return; }
+  if (!window.isSecureContext || !window.crypto || !crypto.subtle){
+    err.textContent = 'This page needs an https connection to check the phrase.';
+    return;
+  }
+  sha256Hex(pw).then(function(hex){
+    if (hex === GATE_HASH){
+      try { sessionStorage.setItem(GATE_KEY, '1'); } catch (e) {}
+      unlock();
+    } else {
+      err.textContent = 'That phrase is not recognised.';
+      $('edGatePw').select();
+    }
+  });
+}
+
+$('edGateGo').addEventListener('click', tryUnlock);
+$('edGatePw').addEventListener('keydown', function(e){
+  if (e.key === 'Enter') tryUnlock();
 });
 
-applyStaticI18n();
+var alreadyUnlocked = false;
+try { alreadyUnlocked = sessionStorage.getItem(GATE_KEY) === '1'; } catch (e) {}
+if (alreadyUnlocked) unlock(); else $('edGatePw').focus();
 })();
 
 </script>
-<!-- ndugu:analytics -->
-<!-- Visit counting. No cookie, no localStorage, no fingerprinting;
-     figures are private to the Ndugu Cloudflare account. Managed by
-     scripts/sync_analytics.py: edits here are overwritten. -->
-<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "667a8f6b0e6244bab958af8756cef50b"}'></script><!-- End Cloudflare Web Analytics -->
-<!-- /ndugu:analytics -->
 </body>
 </html>
