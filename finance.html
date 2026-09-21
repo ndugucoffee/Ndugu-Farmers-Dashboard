@@ -689,7 +689,7 @@
   <a class="navbtn" href="eudr.html"        data-i18n="navEudr">EUDR Compliance</a>
   <a class="navbtn" href="impact.html"      data-i18n="navImpact">Impact Projects</a>
   <a class="navbtn" href="finance.html"     aria-current="page" data-i18n="navFinance">Financial Services</a>
-  <a class="navbtn" href="production.html"  data-i18n="navProduction">Production</a>
+  <a class="navbtn" href="production.html"  data-i18n="navProduction">Ndugu Production</a>
   <a class="navbtn" href="agritracker.html" data-i18n="navAgritracker">Agritracker</a>
   <a class="navbtn" href="coffee.html"      data-i18n="navCoffee">Coffee Minds</a>
   <a class="navbtn" href="about.html"       data-i18n="navAbout">About us</a>
@@ -982,6 +982,15 @@ function moneyFull(ugx){
   return (state.currency === 'USD' ? 'USD ' : 'UGX ') +
          Math.round(v).toLocaleString(numLocale());
 }
+/* Loan-size bucket edges arrive as raw UGX (lo, hi=null for the open-ended
+   top bucket) rather than a pre-built label, specifically so this can run
+   through money() and follow the currency switch instead of staying in UGX
+   forever. */
+function sizeLabel(r){
+  if (r.hi === null || r.hi === undefined) return t('lblOver') + ' ' + money(r.lo, 0);
+  if (r.lo === 0) return t('lblUpTo') + ' ' + money(r.hi, 0);
+  return money(r.lo, 0) + ' – ' + money(r.hi, 0);
+}
 function fmtDate(d){
   if (!d) return '-';
   var M = state.lang==='nl'
@@ -1126,7 +1135,7 @@ var I18N = {
   en: {
     navTitle:'Navigation', navDomestic:'Domestic Trade', navExport:'Ndugu Export',
     navEudr:'EUDR Compliance', navImpact:'Impact Projects', navFinance:'Financial Services',
-    navProduction:'Production', navAgritracker:'Agritracker', navCoffee:'Coffee Minds',
+    navProduction:'Ndugu Production', navAgritracker:'Agritracker', navCoffee:'Coffee Minds',
     navAbout:'About us',
     brandRole:'Financial services',
     asofLabel:'Position at',
@@ -1153,7 +1162,7 @@ var I18N = {
     rowBookH:'The book', rowBookN:'what went out, what is owed, what has come back',
     rowRiskH:'Position', rowRiskN:'what is late, and where the exposure sits',
 
-    kpiAdvanced:'Advanced', lblLoans:'loans',
+    kpiAdvanced:'Advanced', lblLoans:'loans', lblUpTo:'Up to', lblOver:'Over',
     kpiDue:'Total due', lblPlusInterest:'principal plus interest',
     kpiRecovered:'Recovered', lblOfDue:'of what is due',
     kpiBalance:'Outstanding', lblStillOwed:'still owed',
@@ -1261,7 +1270,7 @@ var I18N = {
   nl: {
     navTitle:'Navigatie', navDomestic:'Binnenlandse handel', navExport:'Ndugu Export',
     navEudr:'EUDR-naleving', navImpact:'Impactprojecten', navFinance:'Financiële diensten',
-    navProduction:'Productie', navAgritracker:'Agritracker', navCoffee:'Coffee Minds',
+    navProduction:'Ndugu Production', navAgritracker:'Agritracker', navCoffee:'Coffee Minds',
     navAbout:'Over ons',
     brandRole:'Financiële diensten',
     asofLabel:'Stand per',
@@ -1289,7 +1298,7 @@ var I18N = {
     rowBookH:'De portefeuille', rowBookN:'wat eruit ging, wat verschuldigd is, wat terugkwam',
     rowRiskH:'Stand', rowRiskN:'wat te laat is, en waar het risico zit',
 
-    kpiAdvanced:'Uitgeleend', lblLoans:'leningen',
+    kpiAdvanced:'Uitgeleend', lblLoans:'leningen', lblUpTo:'Tot', lblOver:'Meer dan',
     kpiDue:'Totaal verschuldigd', lblPlusInterest:'hoofdsom plus rente',
     kpiRecovered:'Terugbetaald', lblOfDue:'van het verschuldigde',
     kpiBalance:'Openstaand', lblStillOwed:'nog verschuldigd',
@@ -1669,7 +1678,7 @@ function renderSchool(){
   mountChart('sizeChart', {
     type:'bar',
     data:{
-      labels: sizes.map(function(r){ return r.label; }),
+      labels: sizes.map(sizeLabel),
       datasets:[{
         data: sizes.map(function(r){ return r.n; }),
         backgroundColor: sizes.map(function(_, i){ return RANK_GREEN[Math.min(i, RANK_GREEN.length-1)]; }),
