@@ -741,7 +741,14 @@ var changed = {};   /* index -> true */
 
 var SAT_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
 var SAT_ATTR = 'Imagery &copy; Esri, Maxar, Earthstar Geographics';
-var SAT_MAX = 19;
+/* Same ceiling as the dashboard map: Esri's real capture here tops out at
+   zoom 17, past which it serves a "map data not yet available" placeholder
+   instead of imagery. maxNativeZoom keeps requests at 17 and upscales for
+   anything past it, which matters more here than on the read-only dashboard
+   — placing a vertex accurately wants to zoom in past what the imagery
+   itself resolves to, even blurred. */
+var SAT_NATIVE_MAX = 17;
+var SAT_MAX = 20;
 
 /* Same ramp as the dashboard, so a plot is the same colour in both. */
 var BAND_FILL = {
@@ -817,7 +824,7 @@ function setMode(m){
   $('edMap').classList.toggle('plain', m !== 'sat');
   $('edSat').textContent = m === 'sat' ? 'Plain basemap' : 'Satellite basemap';
   if (m === 'sat'){
-    if (!tiles) tiles = L.tileLayer(SAT_URL, {maxZoom:SAT_MAX, attribution:SAT_ATTR});
+    if (!tiles) tiles = L.tileLayer(SAT_URL, {maxZoom:SAT_MAX, maxNativeZoom:SAT_NATIVE_MAX, attribution:SAT_ATTR});
     tiles.addTo(map);
   } else if (tiles){ map.removeLayer(tiles); }
   restyle();

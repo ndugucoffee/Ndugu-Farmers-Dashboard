@@ -1804,7 +1804,14 @@ var PLOT_STROKE = '#E8791C';
    requires the credit line, so the attribution control stays on. */
 var SAT_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
 var SAT_ATTR = 'Imagery &copy; Esri, Maxar, Earthstar Geographics';
-var SAT_MAX = 19;
+/* Esri's actual capture over this part of Uganda tops out at 17: asking for
+   real tiles past that returns a placeholder reading "map data not yet
+   available" instead of imagery. maxNativeZoom on the tile layer stops
+   Leaflet requesting tiles past 17 at all; past that it upscales the zoom-17
+   tile instead, so the map keeps zooming (staying blurrier, not blank) up to
+   the reader-facing ceiling below. */
+var SAT_NATIVE_MAX = 17;
+var SAT_MAX = 20;
 
 /* Plot outlines are drawn on a canvas, not as SVG elements. Masaka alone holds
    5,629 of them; one DOM node each is what turns panning into a slideshow. */
@@ -1866,7 +1873,7 @@ function setMode(mode, force){
   if (MAP.map){
     if (mode === 'sat'){
       if (!MAP.tiles){
-        MAP.tiles = L.tileLayer(SAT_URL, {maxZoom:SAT_MAX, attribution:SAT_ATTR});
+        MAP.tiles = L.tileLayer(SAT_URL, {maxZoom:SAT_MAX, maxNativeZoom:SAT_NATIVE_MAX, attribution:SAT_ATTR});
       }
       MAP.tiles.addTo(MAP.map);
     } else if (MAP.tiles){
