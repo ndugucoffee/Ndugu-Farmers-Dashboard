@@ -6,153 +6,1817 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="icon" href="favicon.ico" sizes="16x16 32x32" type="image/x-icon">
 <link rel="apple-touch-icon" href="favicon.svg">
-<title>Financial Services | Ndugu Farmers Ltd</title>
+<title>Ndugu Farmers Ltd | Financial Services</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
   :root{
-    --paper:#FAF4EA; --surface:#FFFCF6;
-    --ink:#2A1A10; --ink-soft:#63483A; --ink-faint:#8A7059;
-    --line:#EADCC7; --line-strong:#D8C4A6;
-    --roast:#7B4A24; --roast-deep:#43260F; --honey:#D2911F;
-    --nav-bg:#43260F; --nav-edge:#5A3618; --nav-title:#F0DFC7;
-    --nav-btn:#835231; --nav-btn-hover:#8A5A34;
-    --nav-btn-current:#D2911F; --nav-btn-current-ink:#2A1A10;
+    /* --- surfaces: raw parchment, cream, unbleached paper --- */
+    --paper:#FAF4EA;
+    --surface:#FFFCF6;
+    --surface-sunk:#F4EADA;
+    /* --- ink: espresso --- */
+    --ink:#2A1A10;
+    --ink-soft:#63483A;
+    --ink-faint:#8A7059;
+    --line:#EADCC7;
+    --line-strong:#D8C4A6;
+    /* --- roasted bean: the primary --- */
+    --roast:#7B4A24;
+    --roast-deep:#43260F;
+    --roast-light:#A97244;
+    --roast-wash:#F4E6D5;
+    /* --- leaf: the growing side --- */
+    --leaf:#4E7C2E;
+    --leaf-light:#7FA84A;
+    --leaf-wash:#E9F1DD;
+    /* --- coffee cherry --- */
+    --cherry:#B23A1E;
+    --cherry-wash:#F9E3D9;
+    /* --- golden harvest --- */
+    --honey:#D2911F;
+    --honey-wash:#FBEED4;
+    /* --- supporting --- */
+    --teal:#2C7A83;
+    --olive:#8C9A3B;
+    --clay:#9C5230;
+    /* Side navigation: drawn from the page's own palette: the rail is the
+       same espresso as the footer, so the dashboard sits framed between them.
+       Contrast (white on button 6.5:1, espresso on honey 6.2:1) is above AA. */
+    --nav-bg:#43260F;
+    --nav-edge:#5A3618;
+    --nav-title:#F0DFC7;
+    --nav-btn:#835231;
+    --nav-btn-hover:#8A5A34;
+    --nav-btn-current:#D2911F;
+    --nav-btn-current-ink:#2A1A10;
+    /* KPI tile gradients. Every stop was checked for white-text contrast
+       rather than picked by eye. Saturation is pushed well above the base
+       palette (leaf 0.46 -> 0.68, teal 0.50 -> 0.75) to make the row carry, but
+       each hue is then darkened only as far as it must be for white text to
+       clear 4.5:1. Full saturation passes too, and looks like neon rather than
+       coffee, so it was not used. The tiles are the loudest thing on the page;
+       unreadable labels on them would be the most visible possible mistake. */
+    --tile-leaf:linear-gradient(135deg,#458419 0%,#30610F 100%);   /* 4.60:1 */
+    --tile-honey:linear-gradient(135deg,#9F6B12 0%,#795109 100%);  /* 4.58:1 */
+    --tile-roast:linear-gradient(135deg,#AC642B 0%,#8D4E1D 100%);  /* 4.55:1 */
+    --tile-cherry:linear-gradient(135deg,#D24422 0%,#B13316 100%); /* 4.57:1 */
+    --tile-teal:linear-gradient(135deg,#14828E 0%,#0B606A 100%);   /* 4.55:1 */
+    --tile-olive:linear-gradient(135deg,#6E7D18 0%,#4F5A0D 100%);  /* 4.56:1 */
+
+    --radius-sm:4px;
+    --radius-md:8px;
+    --shadow-pop:0 12px 30px -10px rgba(42,26,16,0.38);
+    --shadow-panel:0 1px 2px rgba(42,26,16,0.04), 0 10px 26px -20px rgba(42,26,16,0.55);
   }
   *{box-sizing:border-box;}
+  .kpi-value,.tile-value,.tile-foot,
+  table.leaderboard td.num,table.leaderboard th.num,
+  .district-row .qty,.district-detail b
+  {font-variant-numeric:tabular-nums; font-feature-settings:'tnum' 1;}
+  html{scroll-behavior:smooth;}
   body{
-    margin:0; background:var(--paper); color:var(--ink);
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
     font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
-    font-size:15px; line-height:1.55; -webkit-font-smoothing:antialiased;
+    font-size:15px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
   }
-  body::before{
-    content:''; position:fixed; top:0; left:0; right:0; height:4px; z-index:60;
-    background:linear-gradient(90deg,var(--roast-deep) 0%,var(--roast) 22%,#B23A1E 46%,var(--honey) 70%,#4E7C2E 100%);
-  }
+    /* Power BI aligns figures with tabular numerals rather than a monospace
+     face. Segoe UI, Helvetica and Arial all ship fixed-width lining figures, so
+     columns still line up without a second typeface. */
+  .num{font-variant-numeric:tabular-nums; font-feature-settings:'tnum' 1;}
+  a{color:inherit;}
+  ::selection{background:var(--roast); color:#fff;}
+
+  /* ---------- Page frame: fixed side nav + the dashboard column ---------- */
   .layout{display:flex; align-items:flex-start; min-height:100vh;}
-  .layout-main{flex:1 1 auto; min-width:0; max-width:100%;}
+  .layout-main{flex:1 1 auto; min-width:0; max-width:100%;}   /* min-width:0 so grids can shrink */
+
   .sidenav{
     flex:0 0 172px; width:172px; align-self:stretch;
     position:sticky; top:4px; max-height:calc(100vh - 4px); overflow-y:auto;
-    background:var(--nav-bg); border-right:1px solid var(--nav-edge);
-    padding:16px 14px 28px; display:flex; flex-direction:column; gap:13px;
+    background:var(--nav-bg);
+    border-right:1px solid var(--nav-edge);
+    padding:16px 14px 28px;
+    display:flex; flex-direction:column; gap:13px;
   }
   .sidenav-title{
     color:var(--nav-title); font-size:12px; font-weight:600;
-    text-transform:uppercase; letter-spacing:0.12em; margin:0; padding:2px;
+    text-transform:uppercase; letter-spacing:0.12em;
+    padding:2px 2px 2px; margin:0;
   }
   .navbtn{
     display:block; text-align:center; text-decoration:none;
-    background:var(--nav-btn); color:#fff; font-size:13px; font-weight:500;
-    line-height:1.3; padding:12px 6px; border:1px solid rgba(255,252,246,0.10);
+    background:var(--nav-btn); color:#fff;
+    border:1px solid rgba(255,252,246,0.10);
+    font-size:13px; font-weight:500; line-height:1.3;
+    padding:12px 6px;
+    /* chamfered corners, matching the other dashboards' buttons */
     clip-path:polygon(9px 0, calc(100% - 9px) 0, 100% 9px, 100% calc(100% - 9px),
                       calc(100% - 9px) 100%, 9px 100%, 0 calc(100% - 9px), 0 9px);
     transition:background .15s ease;
   }
   .navbtn:hover{background:var(--nav-btn-hover);}
+  /* clip-path would crop a normal outline, so the focus ring is drawn inside */
   .navbtn:focus-visible{outline:none; box-shadow:inset 0 0 0 2px #fff;}
   .navbtn[aria-current="page"]{
     background:var(--nav-btn-current); color:var(--nav-btn-current-ink);
     font-weight:600; border-color:transparent;
   }
   @media (prefers-reduced-motion:reduce){ .navbtn{transition:none;} }
+
   @media (max-width:900px){
     .layout{flex-direction:column;}
     .sidenav{
       position:static; width:auto; max-height:none; flex:0 0 auto; align-self:auto;
-      flex-direction:row; align-items:center; gap:10px; overflow-x:auto;
-      /* min-width:0 is what makes that overflow-x actually scroll: without it
-         the rail sizes to all nine buttons and widens the page instead. */
+      flex-direction:row; align-items:center; gap:10px;
+      /* min-width:0 is what makes overflow-x:auto actually scroll here: without
+         it the rail sizes to all nine buttons and drags the page wider than the
+         viewport rather than scrolling inside itself. */
       min-width:0; max-width:100%;
-      padding:12px 16px; border-right:none; border-bottom:1px solid var(--nav-edge);
+      overflow-x:auto; padding:12px 16px;
+      border-right:none; border-bottom:1px solid var(--nav-edge);
     }
     .sidenav-title{display:none;}
     .navbtn{flex:0 0 auto; padding:10px 16px; white-space:nowrap;}
   }
 
+  /* ---------- Layout shell ---------- */
+  .shell{max-width:1320px; margin:0 auto; padding:0 32px;}
+  @media (max-width:900px){ .shell{padding:0 18px;} }
+
+  /* ---------- Header ---------- */
+  body::before{
+    content:''; position:fixed; top:0; left:0; right:0; height:4px; z-index:60;
+    background:linear-gradient(90deg,var(--roast-deep) 0%,var(--roast) 22%,var(--cherry) 46%,var(--honey) 70%,var(--leaf) 100%);
+  }
   header.topbar{
     position:sticky; top:4px; z-index:50;
-    background:rgba(250,244,234,0.94); backdrop-filter:blur(10px);
+    background:rgba(250,244,234,0.94);
+    backdrop-filter:blur(10px);
     border-bottom:1px solid var(--line-strong);
   }
   .topbar-inner{
-    max-width:1320px; margin:0 auto; padding:16px 32px;
-    display:flex; align-items:center; gap:14px;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:8px 0; gap:20px; flex-wrap:wrap;
   }
-  .brand-mark{height:28px; width:auto; flex:none;}
-  .brand-text{
-    border-left:1px solid var(--line-strong); padding-left:14px;
-    font-size:12.5px; color:var(--ink-soft);
+  .brand{display:flex; align-items:center; gap:14px;}
+  .brand-mark{height:30px; width:auto; flex:none;}
+  .brand-text{border-left:1px solid var(--line-strong); padding-left:14px;}
+  .brand-text .role{font-size:12.5px; color:var(--ink-soft); margin-top:1px;}
+
+  .filterbar{display:flex; align-items:center; gap:18px; flex-wrap:wrap;}
+  .pillgroup{display:flex; background:var(--surface-sunk); border-radius:999px; padding:3px; gap:2px;}
+  .pill{
+    border:none; background:transparent; padding:7px 14px; border-radius:999px;
+    font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-size:13px; font-weight:500; color:var(--ink-soft);
+    cursor:pointer; transition:background .15s ease, color .15s ease;
+  }
+  .pill.active{background:var(--roast); color:#fff;}
+  .pill:not(.active):hover{color:var(--ink);}
+  .asof{font-size:12px; color:var(--ink-faint); white-space:nowrap;}
+
+  /* ---------- Section scaffolding ---------- */
+  section{padding:22px 0;}
+  section + section{border-top:1px solid var(--line);}
+  /* Part rails split the page into the two runs it actually serves: the
+     scale-and-impact read at the top, the operating detail below it. */
+  .part-rail{
+    display:flex; align-items:center; gap:12px;
+    margin:26px 0 0 0; padding-top:20px; border-top:2px solid var(--ink);
+  }
+  .part-rail span{
+    font-size:11.5px; font-weight:700; letter-spacing:.09em;
+    text-transform:uppercase; color:var(--ink); white-space:nowrap;
+  }
+  .part-rail::after{content:''; flex:1 1 auto; height:1px; background:var(--line);}
+  .part-rail + section{border-top:none; padding-top:10px;}
+  .section-head{
+    display:grid; grid-template-columns:repeat(12,minmax(0,1fr));
+    gap:24px; align-items:end; margin-bottom:12px;
+  }
+  .section-head > div:first-child{grid-column:span 8; min-width:0;}
+  .section-head h2{font-size:19px; margin:0 0 4px 0; font-weight:700; letter-spacing:-0.01em;}
+  .section-head h2::before{
+    content:''; display:block; width:26px; height:3px; border-radius:2px;
+    background:var(--roast); margin-bottom:7px;
+  }
+  .section-head p{margin:0; color:var(--ink-soft); font-size:14px; max-width:62ch;}
+  .section-tag{grid-column:span 4; align-self:end; font-size:12.5px; color:var(--ink-faint); text-align:right;}
+  @media (max-width:980px){
+    .section-head > div:first-child, .section-tag{grid-column:1 / -1;}
+    .section-tag{text-align:left;}
   }
 
-  .stage{
-    max-width:1320px; margin:0 auto; padding:0 32px;
-    display:flex; align-items:center; justify-content:center;
-    min-height:calc(100vh - 66px);
+  /* ---------- Hero ---------- */
+  .hero{
+    padding-top:20px; padding-bottom:0; border-top:none;
+    background:
+      radial-gradient(ellipse 900px 460px at 8% -14%, var(--honey-wash) 0%, transparent 64%),
+      radial-gradient(ellipse 760px 400px at 100% -4%, var(--leaf-wash) 0%, transparent 60%),
+      radial-gradient(ellipse 520px 300px at 58% -18%, var(--roast-wash) 0%, transparent 66%);
+    margin-top:-1px;
   }
-  .card{
-    max-width:520px; width:100%; text-align:center;
+  .hero-head{margin-bottom:14px;}
+  /* the figure column is far taller than the badges; centring stops a dead
+     band opening up above them */
+  /* these sit before .hero h1 / .hero p.lede in the cascade, so they need
+     enough specificity to win rather than relying on source order */
+  .hero .hero-head h1{max-width:none;}
+  .hero .hero-head p.lede{max-width:none;}
+  .hero-eyebrow{font-size:14px; color:var(--roast); font-weight:600; margin:0 0 10px 0;}
+  .hero h1{font-size:29px; line-height:1.12; margin:0 0 9px 0; font-weight:700; letter-spacing:-0.015em; max-width:18ch;}
+  .hero p.lede{font-size:14.5px; color:var(--ink-soft); max-width:56ch; margin:0;}
+
+
+  /* ---------- Tile rows ----------
+     Row one (context) and row two (metrics) share one tile component so the
+     head of the page reads as a single grid. Row one runs deeper in tone than
+     row two, which gives the hierarchy without introducing another shape. */
+  .tilerow{
+    display:grid; grid-template-columns:repeat(12,minmax(0,1fr));
+    gap:10px; margin-top:14px;
+  }
+  @media (max-width:1100px){ .tilerow{grid-template-columns:repeat(6,minmax(0,1fr));} }
+  @media (max-width:640px){ .tilerow{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  /* Four-tile pages (export, EUDR) spread across the same twelve columns. */
+  .tilerow-4 .tile{grid-column:span 3;}
+  @media (max-width:1100px){ .tilerow-4 .tile{grid-column:span 3;} }
+  @media (max-width:640px){ .tilerow-4 .tile{grid-column:span 2;} }
+  .tile{
+    grid-column:span 2; min-width:0;
+    padding:11px 13px 12px; border-radius:var(--radius-md);
+    background:var(--tile-roast); color:#fff;
+    box-shadow:0 1px 2px rgba(42,26,16,.10), 0 8px 18px -14px rgba(42,26,16,.55);
+    display:flex; flex-direction:column; justify-content:center;
+  }
+  /* Row one is the network: who and what Ndugu is. It runs dark to light left
+     to right in the roast family, so the reading order is carried by tone as
+     well as position. Row two below does the same in teal. Every step is set
+     against a 4.5:1 contrast floor for white text, and the two rows share
+     their endpoints with the export dashboard so the pages read as one set. */
+  .tile-lead{background:linear-gradient(135deg,#663A18 0%,#4A2A11 100%);} /* 9.6:1 */
+  .tile-a{background:linear-gradient(135deg,#72401B 0%,#522E13 100%);}    /* 8.5:1 */
+  .tile-b{background:linear-gradient(135deg,#7E481E 0%,#5B3415 100%);}    /* 7.4:1 */
+  .tile-c{background:linear-gradient(135deg,#8C4F21 0%,#653918 100%);}    /* 6.5:1 */
+  .tile-d{background:linear-gradient(135deg,#9B5824 0%,#703F1A 100%);}    /* 5.5:1 */
+  .tile-e{background:linear-gradient(135deg,#AA6128 0%,#7B461D 100%);}    /* 4.7:1 */
+  .tile{position:relative;}
+  /* Top-right, low opacity: it should read as texture on the tile, not as a
+     second thing to look at. aria-hidden, because the label already says what
+     the tile is and a screen reader repeating it adds nothing. */
+  .tile-icon{
+    position:absolute; top:10px; right:11px; width:22px; height:22px;
+    color:#fff; opacity:.30; pointer-events:none;
+  }
+  .kpi-cell{position:relative;}
+  .kpi-cell .tile-icon{top:9px; right:10px; width:20px; height:20px; opacity:.28;}
+  .tile-label, .kpi-label{padding-right:26px; min-height:2.7em;}
+  .tile-label{
+    font-size:11.5px; font-weight:500; margin:0 0 3px 0;
+    color:rgba(255,255,255,.88); line-height:1.35;
+  }
+  .tile-value{
+    font-size:23px; font-weight:600; color:#fff; line-height:1.12;
+    font-variant-numeric:tabular-nums; overflow-wrap:break-word;
+  }
+  .tile-lead .tile-value{font-size:26px;}
+  .tile-value-sm{font-size:15px; line-height:1.3;}
+  .tile-foot{font-size:12.5px; color:rgba(255,255,255,.82); margin-top:4px;}
+
+  /* ---------- KPI tiles ----------
+     Six saturated tiles rather than one bordered ledger strip. Each is its own
+     card so the row reads at a glance from across a room, which is what a
+     dashboard's headline numbers are for. Padding is deliberately tight: the
+     whole point of the change was to get more of the page above the fold. */
+  .kpi-strip{
+    margin-top:10px;
+    display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:10px;
+  }
+  @media (max-width:1100px){ .kpi-strip{grid-template-columns:repeat(3,minmax(0,1fr));} }
+  @media (max-width:560px){ .kpi-strip{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  .kpi-cell{
+    padding:11px 13px 12px; border-radius:var(--radius-md);
+    background:var(--tile-roast); color:#fff; min-width:0;
+    box-shadow:0 1px 2px rgba(42,26,16,.10), 0 8px 18px -14px rgba(42,26,16,.55);
+  }
+  /* Row two is performance: what the network produced and what it was paid.
+     Same dark-to-light progression as row one, in the second family. */
+  .kpi-cell:nth-child(6n+1){background:linear-gradient(135deg,#0D4D45 0%,#093832 100%);} /* 9.7:1 */
+  .kpi-cell:nth-child(6n+2){background:linear-gradient(135deg,#0E564D 0%,#0A3E37 100%);} /* 8.5:1 */
+  .kpi-cell:nth-child(6n+3){background:linear-gradient(135deg,#106056 0%,#0B453E 100%);} /* 7.4:1 */
+  .kpi-cell:nth-child(6n+4){background:linear-gradient(135deg,#116A5F 0%,#0C4D44 100%);} /* 6.5:1 */
+  .kpi-cell:nth-child(6n+5){background:linear-gradient(135deg,#137568 0%,#0E554B 100%);} /* 5.6:1 */
+  .kpi-cell:nth-child(6n+6){background:linear-gradient(135deg,#158173 0%,#0F5D53 100%);} /* 4.8:1 */
+  .kpi-label{
+    font-size:11.5px; font-weight:500; margin:0 0 3px 0;
+    color:rgba(255,255,255,.88); letter-spacing:.01em;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .kpi-value{
+    font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-size:23px; font-weight:600; color:#fff;
+    line-height:1.12; overflow-wrap:break-word;
+  }
+  @media (max-width:560px){ .kpi-value{font-size:19px;} }
+  .kpi-value small{font-size:12px; font-weight:500; color:rgba(255,255,255,.75);}
+  /* On a coloured tile the up/down hues from the light theme have no contrast,
+     so the delta rides on the tile's own white at reduced opacity and the
+     arrow glyph carries the direction. */
+  .kpi-delta{
+    font-size:11.5px; margin-top:4px; display:flex; align-items:center; gap:4px;
+    color:rgba(255,255,255,.82);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .kpi-delta.up, .kpi-delta.down, .kpi-delta.flat{color:rgba(255,255,255,.82);}
+
+  /* ---------- Generic panel ---------- */
+  .panel{
+    border:1px solid var(--line-strong); border-radius:var(--radius-md);
+    background:var(--surface); padding:14px; box-shadow:var(--shadow-panel);
+    display:flex; flex-direction:column; min-width:0;
+  }
+  .panel-title{font-size:14.5px; font-weight:600; margin:0 0 4px 0; min-height:1.4em;}
+  .panel-note{font-size:12.5px; color:var(--ink-faint); margin:0 0 8px 0; min-height:1.5em;}
+
+  /* ---------- Map section ---------- */
+  .map-panel{position:relative; display:flex; flex-direction:column;}
+  /* The row used to be 899px tall, and not because of the map: the district
+     ledger's eleven rows stood 678px and align-items:stretch pulled the map up
+     to match. So the ledger now scrolls at a fixed height and the map is given
+     an explicit one rather than being stretched by its neighbour.
+     The height is a deliberate number, not a round one: the mapped area spans
+     2.1 degrees of longitude by 2.2 of latitude, so the viewBox is very nearly
+     square (900x943). Set this much shorter than the column is wide and the
+     map letterboxes, sitting small between two bands of empty background. So
+     the row was rebalanced from 7/5 to 6/6 at the same time: at 470 tall the
+     map draws about 450 wide, which a 6-column track fits with far less waste
+     than a 7-column one (124px of dead space per side became 73). */
+  .map-svg-wrap{
+    position:relative; width:100%; flex:0 0 auto; height:420px;
+    border-radius:var(--radius-sm); overflow:hidden;
+    background:linear-gradient(180deg,#F7EFE1 0%,#EFE3D0 100%);
+  }
+  @media (max-width:980px){ .map-svg-wrap{min-height:340px;} }
+  .map-svg-wrap svg{width:100%; height:100%; display:block;}
+  .map-tooltip{
+    position:absolute; pointer-events:none; z-index:10;
+    background:var(--ink); color:#fff; padding:9px 12px; border-radius:var(--radius-sm);
+    font-size:12.5px; line-height:1.45; box-shadow:var(--shadow-pop);
+    transform:translate(-50%,-115%); white-space:nowrap; opacity:0; transition:opacity .1s ease;
+  }
+  .map-tooltip strong{font-weight:600;}
+  .map-tooltip .num{color:#EBD6BC;}
+  .map-legend{display:flex; gap:18px; margin-top:10px; flex-wrap:wrap; font-size:12px; color:var(--ink-soft);}
+  .map-legend .item{display:flex; align-items:center; gap:6px;}
+  .map-legend .sw{width:11px; height:11px; border-radius:50%; flex:none;}
+
+  .district-ledger{
+    border:1px solid var(--line-strong); border-radius:var(--radius-md); background:var(--surface);
+    overflow:hidden; box-shadow:var(--shadow-panel); display:flex; flex-direction:column;
+    /* min-height:0 lets the list inside scroll instead of pushing this panel
+       taller than the map it sits beside; the two then end level. */
+    min-height:0;
+  }
+  /* Scrolls instead of setting the height of the whole row. */
+    /* Capped so the list scrolls rather than setting the height of the whole
+     row. Kept in step with the map's height above: the two panels are grid
+     items that stretch to each other, so whichever is taller wins, and an
+     uncapped eleven-row list is taller than any map worth looking at. */
+  #districtList{flex:1 1 auto; overflow-y:auto; min-height:0; max-height:382px;}
+  .district-ledger-head{padding:14px 16px 10px; border-bottom:1px solid var(--line);}
+  .district-row{
+    display:grid; grid-template-columns:1fr auto auto; gap:12px; align-items:center;
+    padding:6px 16px; border-bottom:1px solid var(--line); cursor:pointer;
+    transition:background .12s ease;
+  }
+  .district-row:last-child{border-bottom:none;}
+  .district-row:nth-child(even){background:var(--surface-sunk);}
+  .district-row:hover{background:var(--roast-wash);}
+  .district-row.selected{background:var(--roast-wash); box-shadow:inset 3px 0 0 var(--roast);}
+  .district-row .name{font-size:13.5px; font-weight:500; line-height:1.35;}
+  .district-row .sub{font-size:11.5px; color:var(--ink-faint); margin-top:1px; line-height:1.35;}
+  .district-row .bar-track{width:64px; height:5px; background:var(--surface-sunk); border-radius:3px; overflow:hidden; justify-self:end;}
+  .district-row .bar-fill{height:100%; background:linear-gradient(90deg,var(--roast) 0%,var(--roast-light) 100%);}
+  .district-row .qty{font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-size:13px; text-align:right; min-width:64px;}
+  .district-detail{padding:12px 16px; border-top:1px solid var(--line); background:var(--surface-sunk); font-size:12.5px; color:var(--ink-soft);}
+  .district-detail b{color:var(--ink); font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-weight:600;}
+
+  /* ---------- Chart toggle ---------- */
+  .toggle-row{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:14px;}
+  .seg{display:inline-flex; border:1px solid var(--line-strong); border-radius:var(--radius-sm); overflow:hidden;}
+  .seg button{
+    border:none; background:var(--surface); padding:8px 16px; font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+    font-size:13px; font-weight:500; color:var(--ink-soft); cursor:pointer; border-right:1px solid var(--line-strong);
+  }
+  .seg button:last-child{border-right:none;}
+  .seg button.active{background:var(--roast); color:#fff;}
+  /* flex-basis 0 keeps the canvas from feeding its own height back into the row */
+  .chart-box{position:relative; flex:1 1 0%; min-height:225px;}
+  .chart-box.short{min-height:180px;}
+  .chart-box canvas{position:absolute; left:0; top:0;}
+  .insight-line{
+    margin-top:9px; padding:8px 12px; background:var(--honey-wash); border-radius:var(--radius-sm);
+    font-size:13px; color:#5C3A15; border-left:3px solid var(--honey);
+  }
+  .insight-line b{font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-weight:600;}
+
+  /* ---------- 12-column layout grid ----------
+     Every row on the page sits on the same twelve columns with the same 24px
+     gutter, so panel edges line up vertically all the way down. Two-panel rows
+     split 7/5 (hero, map) or 6/6 (chart pairs); everything else spans 12.
+     minmax(0,1fr) stops a responsive canvas from forcing its column wider. */
+  .grid{
+    display:grid; grid-template-columns:repeat(12,minmax(0,1fr));
+    gap:14px; align-items:stretch;
+  }
+  .col-4{grid-column:span 4;}
+  .col-5{grid-column:span 5;}
+  .col-6{grid-column:span 6;}
+  .col-7{grid-column:span 7;}
+  .col-8{grid-column:span 8;}
+  .col-12{grid-column:span 12;}
+  /* A grid item defaults to min-width:auto, which is its CONTENT width, so a
+     wide table or a fixed-width canvas inside one pushes the whole page wider
+     than the viewport instead of scrolling within its own panel. */
+  .grid > [class*="col-"]{min-width:0;}
+  @media (max-width:980px){ .grid > [class*="col-"]{grid-column:1 / -1;} }
+
+  table.leaderboard{
+    width:100%; border-collapse:separate; border-spacing:0; font-size:13.5px;
+    table-layout:fixed; border:1px solid var(--line-strong);
+    border-radius:var(--radius-sm); overflow:hidden;
+  }
+  table.leaderboard th{
+    text-align:left; font-size:11px; font-weight:600; color:#F0DFC7;
+    background:var(--roast-deep);
+    padding:9px 14px; text-transform:uppercase; letter-spacing:0.07em; white-space:nowrap;
+  }
+  table.leaderboard td{
+    padding:8px 14px; border-bottom:1px solid var(--line);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  /* Alternating rows. The stripe is the palette's own parchment rather than a
+     grey, so it reads as part of the theme instead of a browser default. */
+  table.leaderboard tbody tr:nth-child(odd){background:var(--surface);}
+  table.leaderboard tbody tr:nth-child(even){background:var(--surface-sunk);}
+  table.leaderboard tbody tr:last-child td{border-bottom:none;}
+  table.leaderboard tbody tr:hover{background:var(--roast-wash);}
+  table.leaderboard td.num, table.leaderboard th.num{text-align:right; font-variant-numeric:tabular-nums;}
+  table.leaderboard td.name{font-weight:500;}
+  /* A code is an identifier, not a quantity, so it stays left-aligned under a
+     left-aligned header. It keeps tabular figures so the codes stack evenly. */
+  table.leaderboard td.code{
+    text-align:left; font-variant-numeric:tabular-nums; letter-spacing:.01em;
+  }
+  /* A rule down the left of the first data column, so the eye has a rail to
+     follow across a wide row. */
+  table.leaderboard td.rank{
+    color:var(--ink-faint); font-variant-numeric:tabular-nums;
+    box-shadow:inset 3px 0 0 var(--roast-wash);
+  }
+  table.leaderboard tbody tr:hover td.rank{box-shadow:inset 3px 0 0 var(--roast);}
+  /* Unconditional rather than only under 820px: the table has a 660px floor,
+     so any container narrower than that has to scroll it, and min-width:0 lets
+     the container shrink far enough for that to happen. */
+  .leaderboard-scroll{overflow-x:auto; min-width:0;}
+  @media (max-width:820px){ table.leaderboard{min-width:660px;} }
+
+  /* ---------- Footer ---------- */
+  footer{
+    margin-top:22px; padding:24px 0 30px; font-size:12.5px; line-height:1.7;
+    background:var(--roast-deep); color:#BFA98F;
+    border-top:4px solid var(--roast);
+  }
+  footer .fgrid{display:grid; grid-template-columns:2fr 1fr; gap:40px;}
+  @media (max-width:780px){ footer .fgrid{grid-template-columns:1fr;} }
+  footer h4{font-size:12.5px; color:#F0DFC7; font-weight:600; margin:0 0 8px 0; letter-spacing:0.02em;}
+
+  .vis-hidden{display:none !important;}
+
+  /* ---------- boot states (before data.json arrives) ---------- */
+  .boot{
+    max-width:640px; margin:0 auto; padding:96px 24px 120px; text-align:center;
+  }
+  .boot-spinner{
+    width:26px; height:26px; margin:0 auto 18px; border-radius:50%;
+    border:2.5px solid var(--line-strong); border-top-color:var(--roast);
+    animation:boot-spin .8s linear infinite;
+  }
+  @keyframes boot-spin{to{transform:rotate(360deg);}}
+  @media (prefers-reduced-motion:reduce){ .boot-spinner{animation-duration:2.4s;} }
+  .boot p{margin:0; color:var(--ink-soft); font-size:14px;}
+  .boot-title{font-size:16px; font-weight:600; color:var(--ink); margin:0 0 10px 0;}
+  .boot-detail{
+    font-size:13.5px; color:var(--ink-soft); line-height:1.6;
     background:var(--surface); border:1px solid var(--line-strong);
-    border-radius:8px; padding:44px 40px 40px;
-    box-shadow:0 1px 2px rgba(42,26,16,0.04), 0 10px 26px -20px rgba(42,26,16,0.55);
+    border-left:3px solid var(--cherry); border-radius:var(--radius-sm);
+    padding:14px 16px; text-align:left; margin-top:16px;
   }
-  .rule{width:30px; height:3px; border-radius:2px; background:var(--roast); margin:0 auto 18px;}
-  .eyebrow{
-    font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-size:11px; font-weight:600;
-    letter-spacing:0.13em; text-transform:uppercase; color:var(--ink-faint);
-    margin:0 0 10px;
+
+  /* ---------- Finance-only ---------- */
+
+  /* .grid and .panel set a display value, which outranks the user agent's
+     [hidden] rule, so a hidden panel would still show without this. */
+  [hidden]{display:none !important;}
+
+  .tilegrid{
+    display:grid; grid-template-columns:repeat(5,minmax(0,1fr));
+    gap:10px; margin-top:16px;
   }
-  h1{font-size:27px; line-height:1.18; font-weight:700; letter-spacing:-0.015em; margin:0 0 12px;}
-  .card p{margin:0 0 22px; color:var(--ink-soft); font-size:15px;}
-  .back{
-    display:inline-block; text-decoration:none;
-    background:var(--roast); color:#FFFCF6;
-    font-size:13.5px; font-weight:500; padding:11px 20px; border-radius:5px;
-    transition:background .15s ease;
+  @media (max-width:1100px){ .tilegrid{grid-template-columns:repeat(3,minmax(0,1fr));} }
+  @media (max-width:640px){ .tilegrid{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  .tilegrid .tile{grid-column:auto; min-width:0;}
+
+  .tone-s1{background:linear-gradient(135deg,#663A18 0%,#4A2A11 100%);}
+  .tone-s2{background:linear-gradient(135deg,#77431C 0%,#563114 100%);}
+  .tone-s3{background:linear-gradient(135deg,#884D20 0%,#623817 100%);}
+  .tone-s4{background:linear-gradient(135deg,#995724 0%,#6F3F1A 100%);}
+  .tone-s5{background:linear-gradient(135deg,#AA6128 0%,#7B461D 100%);}
+  .tone-m1{background:linear-gradient(135deg,#0D4D45 0%,#093832 100%);}
+  .tone-m2{background:linear-gradient(135deg,#0F5A50 0%,#0B413A 100%);}
+  .tone-m3{background:linear-gradient(135deg,#11675C 0%,#0C4B42 100%);}
+  .tone-m4{background:linear-gradient(135deg,#137467 0%,#0E564D 100%);}
+  .tone-m5{background:linear-gradient(135deg,#158173 0%,#0F5D53 100%);}
+
+  .tilegrid-legend{
+    display:flex; flex-wrap:wrap; gap:6px 22px; margin-top:12px;
+    font-size:11.5px; color:var(--ink-faint);
   }
-  .back:hover{background:#8A5A34;}
-  .back:focus-visible{outline:2px solid var(--roast); outline-offset:2px;}
-  @media (prefers-reduced-motion:reduce){ .back{transition:none;} }
-  @media (max-width:900px){ .stage{min-height:auto; padding:56px 18px 72px;} }
+  .tilegrid-legend b{color:var(--ink); font-weight:600;}
+  .tilegrid-legend > span{display:flex; gap:6px; align-items:baseline;}
+  .tilegrid-legend > span::before{
+    content:""; width:9px; height:9px; border-radius:2px; flex:none;
+    position:relative; top:1px;
+  }
+  .tilegrid-legend > span:nth-child(1)::before{background:#884D20;}
+  .tilegrid-legend > span:nth-child(2)::before{background:#11675C;}
+
+  /* One product per row: amount advanced as the bar, recovery as the share
+     filled. Two encodings of two different things in one row, because the
+     question a reader has is always "how big, and how much of it came back". */
+  .prow{
+    display:grid; grid-template-columns:9.5rem 1fr 7rem 5.5rem; gap:14px;
+    align-items:center; padding:11px 0; border-bottom:1px solid var(--line);
+  }
+  .prow:last-child{border-bottom:none;}
+  .prow.idle{opacity:.55;}
+  .prow .nm{font-size:13px; font-weight:600; color:var(--ink);}
+  .prow .nm small{display:block; font-weight:400; font-size:11.5px; color:var(--ink-faint);}
+  .prow .track{height:12px; border-radius:6px; background:var(--surface-sunk); overflow:hidden; position:relative;}
+  .prow .track .adv{position:absolute; inset:0; border-radius:6px; background:#C7DED7;}
+  .prow .track .rec{position:absolute; left:0; top:0; bottom:0; border-radius:6px; background:#0D4D45;}
+  .prow .amt{font-size:13px; text-align:right; font-variant-numeric:tabular-nums; color:var(--ink); font-weight:600;}
+  .prow .pct{font-size:13px; text-align:right; font-variant-numeric:tabular-nums; color:#0D4D45; font-weight:600;}
+  .prow .pct.bad{color:#B23A1E;}
+  @media (max-width:700px){
+    .prow{grid-template-columns:1fr 5.5rem; row-gap:6px;}
+    .prow .track{grid-column:1 / -1;}
+  }
+
+  /* The arrears band. Loud on purpose: it is the finding of the page. */
+  .arrears{
+    border:1px solid #E6C98A; border-left:4px solid #D2911F;
+    background:linear-gradient(180deg,#FBEED4 0%,#F8E6C4 100%);
+    border-radius:var(--radius-sm); padding:16px 18px; margin-bottom:16px;
+  }
+  .arrears h3{margin:0 0 4px; font-size:15px; color:#6B3B10;}
+  .arrears p{margin:0; font-size:13px; color:#7A4A18; line-height:1.6;}
+  .arrears .figs{display:flex; flex-wrap:wrap; gap:10px 28px; margin-top:12px;}
+  .arrears .figs div{min-width:0;}
+  .arrears .figs .v{font-size:21px; font-weight:600; color:#5C320C; font-variant-numeric:tabular-nums;}
+  .arrears .figs .k{font-size:11.5px; color:#8A5A28;}
+
+  .splitbar{display:flex; height:30px; border-radius:6px; overflow:hidden; margin-top:4px;}
+  .splitbar span{display:flex; align-items:center; justify-content:center;
+    font-size:11.5px; color:#fff; font-weight:600; min-width:0; overflow:hidden;}
+  .splitkey{display:flex; flex-wrap:wrap; gap:8px 18px; margin-top:10px; font-size:11.5px; color:var(--ink-soft);}
+  .splitkey span{display:flex; align-items:center; gap:6px;}
+  .splitkey i{width:10px; height:10px; border-radius:2px; display:block;}
+
+  .statgrid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px;}
+  .statgrid > div{
+    border:1px solid var(--line-strong); border-radius:var(--radius-sm);
+    background:var(--surface-sunk); padding:12px 14px;
+  }
+  .statgrid .lab{font-size:11.5px; color:var(--ink-soft); line-height:1.35;}
+  .statgrid .val{font-size:20px; font-weight:600; color:var(--ink); margin-top:4px;
+    font-variant-numeric:tabular-nums;}
+  .statgrid .foot{font-size:11px; color:var(--ink-faint); margin-top:2px;}
+
+  .callout{
+    border:1px solid var(--line-strong); border-left:3px solid var(--teal);
+    border-radius:var(--radius-sm); background:var(--surface);
+    padding:14px 16px; font-size:13px; color:var(--ink-soft); line-height:1.6;
+  }
+  .callout b{color:var(--ink); font-weight:600;}
+  .callout + .callout{margin-top:10px;}
+  .callout.warn{border-left-color:var(--clay);}
 </style>
 </head>
 <body>
 
+<div class="boot" id="bootLoading">
+  <div class="boot-spinner"></div>
+  <p>Loading dashboard data&hellip;</p>
+</div>
+
+<div class="boot" id="bootError" hidden>
+  <p class="boot-title"></p>
+  <p class="boot-detail"></p>
+</div>
+
+<div id="dashboard" hidden>
+
 <div class="layout">
 
 <nav class="sidenav" aria-label="Dashboards">
-  <p class="sidenav-title">Navigation</p>
-  <a class="navbtn" href="index.html">Domestic Trade</a>
-  <a class="navbtn" href="export.html">Ndugu Export</a>
-  <a class="navbtn" href="eudr.html">EUDR Compliance</a>
-  <a class="navbtn" href="impact.html">Impact Projects</a>
-  <a class="navbtn" href="production.html">Production</a>
-  <a class="navbtn" href="finance.html" aria-current="page">Financial Services</a>
-  <a class="navbtn" href="agritracker.html">Agritracker</a>
-  <a class="navbtn" href="coffee.html">Coffee Minds</a>
-  <a class="navbtn" href="about.html">About us</a>
+  <p class="sidenav-title" data-i18n="navTitle">Navigation</p>
+  <a class="navbtn" href="index.html"       data-i18n="navDomestic">Domestic Trade</a>
+  <a class="navbtn" href="export.html"      data-i18n="navExport">Ndugu Export</a>
+  <a class="navbtn" href="eudr.html"        data-i18n="navEudr">EUDR Compliance</a>
+  <a class="navbtn" href="impact.html"      data-i18n="navImpact">Impact Projects</a>
+  <a class="navbtn" href="production.html"  data-i18n="navProduction">Production</a>
+  <a class="navbtn" href="finance.html"     aria-current="page" data-i18n="navFinance">Financial Services</a>
+  <a class="navbtn" href="agritracker.html" data-i18n="navAgritracker">Agritracker</a>
+  <a class="navbtn" href="coffee.html"      data-i18n="navCoffee">Coffee Minds</a>
+  <a class="navbtn" href="about.html"       data-i18n="navAbout">About us</a>
 </nav>
 
 <div class="layout-main">
 
 <header class="topbar">
-  <div class="topbar-inner">
-    <svg class="brand-mark" viewBox="0 0 1080 283.07" xmlns="http://www.w3.org/2000/svg" aria-label="Ndugu"><path fill="#347e19" d="M240.49,8.16c23.92,0,77.27,38.63,98.88,117.28,18.77,68.29-39.55,149.46-67.6,149.46-58.41,0-45.53-94.28-43.23-104.85C251.07,79.45,214.74,8.16,240.49,8.16Z"/><path fill="#347e19" d="M211,274.9c-23.92,0-77.27-35.1-98.88-106.55-18.77-62.06,39.55-135.81,67.6-135.81,58.41,0,45.53,85.66,43.23,95.27C200.41,210.13,236.74,274.9,211,274.9Z"/></svg>
-    <div class="brand-text">Financial Services</div>
+  <div class="shell topbar-inner">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 1080 283.07" xmlns="http://www.w3.org/2000/svg"><style>.cls-1{fill:#347e19;}</style><path class="cls-1" d="M469.14,81.5c41.67,0,59.71,16.51,59.71,54.37v74.95H495.56V136.89c0-18.81-7.62-27.19-26.42-27.19-19.06,0-26.94,8.38-26.94,27.19v73.93h-33V135.87C409.17,98,426.7,81.5,469.14,81.5Z"></path><path class="cls-1" d="M593.37,81.5c20.32,0,30,6.6,37.6,13.46h1.78V28.46h33V148.83c0,44.21-20.58,64.28-63.52,64.28S538,193,538,148.83v-3.05C538,100.3,556.78,81.5,593.37,81.5Zm8.89,103.41c21.85,0,30.49-9.91,30.49-37.1v-1c0-27.18-8.64-37.09-30.49-37.09s-31,9.91-31,37.09v1C571.26,175,580.41,184.91,602.26,184.91Z"></path><path class="cls-1" d="M872.33,81.5c42.94,0,63.52,20.83,63.52,65.29V203c0,41.92-16.51,60-65.3,60a216.77,216.77,0,0,1-39.89-3.81V232.42a251.24,251.24,0,0,0,36.84,3.3c26.93,0,35.32-8.38,35.32-26.17v-9.91H901c-7.62,6.86-17.28,13.47-37.6,13.47-36.59,0-55.39-18.8-55.39-64.28v-3.05C808.05,101.57,829.39,81.5,872.33,81.5Zm0,103.41c21.85,0,30.49-9.91,30.49-37.1v-1c0-27.18-8.64-37.09-30.49-37.09s-31,9.91-31,37.09v1C841.33,175,850.48,184.91,872.33,184.91Z"></path><path class="cls-1" d="M948,80.84h33v76.88c0,18.8,7.88,27.19,26.94,27.19,18.8,0,26.42-8.39,26.42-27.19V80.84h33.29v77.9c0,37.85-18,54.37-59.71,54.37-42.44,0-60-16.52-60-54.37Z"></path><path class="cls-1" d="M799.15,80.85v77.9c0,37.85-18,54.36-59.7,54.36-42.42,0-60-16.51-60-54.36V80.85h42.64c-2.25,3.84-4.59,11-7,15.49-.92,1.93-1.78,3.86-2.55,5.77C701,130,702.28,156.31,716,174.48c0,.05,0,.07,0,.1A17.61,17.61,0,0,0,721,180.2a58.17,58.17,0,0,0,15.73,11,72,72,0,0,0,9.46,3.76,38.85,38.85,0,0,1-1.71-3.76,34.06,34.06,0,0,1-1.9-6.37c-4.07-19.62,8.9-37.66,15.57-56.5,2.36-6.62,5.87-14.37,7.78-25.68a142.1,142.1,0,0,0,1.36-19.93c0-.65,0-1.28,0-1.88Z"></path><path class="cls-1" d="M727.74,164.64c-.71-.78-8.53-11.11,9-59.73,1.05-2.93,1.9-5.66,2.63-8.32a48.22,48.22,0,0,0,7.18-1.21,121.65,121.65,0,0,1-4.47,11.82C724.22,147.81,727.46,163.44,727.74,164.64Z"></path><path class="cls-1" d="M240.49,8.16c23.92,0,77.27,38.63,98.88,117.28,18.77,68.29-39.55,149.46-67.6,149.46-58.41,0-45.53-94.28-43.23-104.85C251.07,79.45,214.74,8.16,240.49,8.16Z"></path><path class="cls-1" d="M211,274.9c-23.92,0-77.27-35.1-98.88-106.55-18.77-62.06,39.55-135.81,67.6-135.81,58.41,0,45.53,85.66,43.23,95.27C200.41,210.13,236.74,274.9,211,274.9Z"></path><path class="cls-1" d="M26.3,232.09a1.23,1.23,0,0,1,.21,1.67c-2.34,3.26-4.74,6.56-7.06,9.66-2.53,3.4-4.81,11.58-3.74,15.5s13.52,6.38,14.86,5.51,6.18-12.52,9.21-18.78c5.6-11.56,10.67-23.4,16.91-34.59,3.93-7.06,9.14-13.4,14.22-20.32a1.26,1.26,0,0,0-1.2-2c-12,1.85-20.42,10.16-28.44,18.17-.42.51-1.11.14-1-.28,7.62-14.37,20.45-20.79,35.69-22.2,12.23-1.13,20.52,5.89,26.66,16a1.19,1.19,0,0,1,.15.35A87.14,87.14,0,0,1,105,211.9c1.6,8.2,1,16.38-3.08,23.78C88.2,260.16,66.79,273,39.23,274.86c-6,.42-12.9-2.41-18.38-5.52a17.38,17.38,0,0,1-6.48-23.26c2.67-5,6.53-9.34,10-13.91a1.24,1.24,0,0,1,1.81-.2Zm34.57,24.78C75,245,81.15,230.78,90.41,217.9c5.1-7.09,3.94-20.8,1.35-24.06-2.36-3-5.24-3.55-8.43-4.55a1.24,1.24,0,0,0-1.49.58c-3.94,7.42-8.61,18.78-12.33,21.86-3.88,3.21-10.55,14.84-15.05,22.86-4.67,8.31-21.06,26.12-19.63,32.62S59.72,257.83,60.87,256.87Z"></path></svg>
+      <div class="brand-text">
+        <div class="role" data-i18n="brandRole">Financial services</div>
+      </div>
+    </div>
+    <div class="filterbar">
+      <div class="pillgroup" id="currencyPills">
+        <button class="pill active" data-currency="UGX">UGX</button>
+        <button class="pill" data-currency="USD">USD</button>
+      </div>
+      <div class="pillgroup" id="langPills">
+        <button class="pill active" data-lang="en">EN</button>
+        <button class="pill" data-lang="nl">NL</button>
+      </div>
+      <div class="asof"><span data-i18n="asofLabel">Position at</span> <span class="num" id="asOf">-</span></div>
+    </div>
   </div>
 </header>
 
-<main class="stage">
-  <div class="card">
-    <div class="rule"></div>
-    <p class="eyebrow">In development</p>
-    <h1>The Financial Services dashboard is still being built.</h1>
-    <p>This view is not ready yet. The sourcing and operations dashboard is live now, and the rest are being added in turn.</p>
-    <a class="back" href="index.html">Go to the Domestic dashboard</a>
-  </div>
+<main class="shell">
+
+  <section class="hero">
+    <div class="hero-head">
+      <p class="hero-eyebrow" data-i18n="heroEyebrow">Financial services</p>
+      <h1 data-i18n="heroH1">Credit to farmers, cooperatives and trade</h1>
+      <p class="lede" data-i18n="heroLede">-</p>
+    </div>
+    <div class="tilegrid" id="tileGrid"></div>
+    <p class="tilegrid-legend">
+      <span><b data-i18n="rowBookH">The book</b> <span data-i18n="rowBookN">what went out, what is owed, what has come back</span></span>
+      <span><b data-i18n="rowRiskH">Position</b> <span data-i18n="rowRiskN">what is late, and where the exposure sits</span></span>
+    </p>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="secBookH">The book by product</h2>
+        <p data-i18n="secBookP">-</p>
+      </div>
+      <div class="section-tag" data-i18n="secBookTag">Advanced, owed and recovered</div>
+    </div>
+    <div class="grid">
+      <div class="col-7 panel">
+        <p class="panel-title" data-i18n="panProdH">Lending by product</p>
+        <p class="panel-note" data-i18n="panProdN">Bar length is the amount advanced; the dark fill is the share recovered.</p>
+        <div id="prodList"></div>
+        <div class="insight-line" id="prodInsight">-</div>
+      </div>
+      <div class="col-5 panel">
+        <p class="panel-title" data-i18n="panFunderH">Who funds what</p>
+        <p class="panel-note" data-i18n="panFunderN">Amount advanced by funder.</p>
+        <div class="chart-box short"><canvas id="funderChart"></canvas></div>
+        <div class="insight-line" id="funderInsight">-</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="secAgeH">What is past due</h2>
+        <p data-i18n="secAgeP">-</p>
+      </div>
+      <div class="section-tag" data-i18n="secAgeTag">Measured from recorded repayment dates</div>
+    </div>
+    <div class="arrears" id="arrearsBand"></div>
+    <div class="grid">
+      <div class="col-6 panel">
+        <p class="panel-title" data-i18n="panBucketH">How far past due</p>
+        <p class="panel-note" data-i18n="panBucketN">Balance by days beyond the recorded repayment date.</p>
+        <div class="chart-box short"><canvas id="bucketChart"></canvas></div>
+        <div class="insight-line" id="bucketInsight">-</div>
+      </div>
+      <div class="col-6 panel">
+        <p class="panel-title" data-i18n="panAgeProdH">Overdue by product</p>
+        <p class="panel-note" data-i18n="panAgeProdN">Open balance against the part of it now past due.</p>
+        <div id="ageList"></div>
+        <div class="insight-line" id="ageInsight">-</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="secConcH">Where the exposure sits</h2>
+        <p data-i18n="secConcP">-</p>
+      </div>
+      <div class="section-tag" data-i18n="secConcTag">Concentration in the trade book</div>
+    </div>
+    <div class="grid">
+      <div class="col-6 panel">
+        <p class="panel-title" data-i18n="panSplitH">Internal against external lending</p>
+        <p class="panel-note" data-i18n="panSplitN">Trade principal, split by who borrowed it.</p>
+        <div class="splitbar" id="splitBar"></div>
+        <div class="splitkey" id="splitKey"></div>
+        <div class="insight-line" id="splitInsight">-</div>
+      </div>
+      <div class="col-6 panel">
+        <p class="panel-title" data-i18n="panBandH">External trade loans by size</p>
+        <p class="panel-note" data-i18n="panBandN">Borrowers are not named: several are private individuals.</p>
+        <div class="chart-box short"><canvas id="bandChart"></canvas></div>
+        <div class="insight-line" id="bandInsight">-</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="secFertH">Fertiliser on credit</h2>
+        <p data-i18n="secFertP">-</p>
+      </div>
+      <div class="section-tag" data-i18n="secFertTag">By cooperative, and what it bought</div>
+    </div>
+    <div class="grid">
+      <div class="col-6 panel">
+        <p class="panel-title" data-i18n="panFertCoopH">Lending by cooperative</p>
+        <p class="panel-note" data-i18n="panFertCoopN">Principal advanced, and the share recovered so far.</p>
+        <div id="fertList"></div>
+        <div class="insight-line" id="fertInsight">-</div>
+      </div>
+      <div class="col-6 panel">
+        <p class="panel-title" data-i18n="panBrandH">What the money bought</p>
+        <p class="panel-note" data-i18n="panBrandN">Bags distributed, by product.</p>
+        <div class="chart-box short"><canvas id="brandChart"></canvas></div>
+        <div class="insight-line" id="brandInsight">-</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="secSchoolH">School fees</h2>
+        <p data-i18n="secSchoolP">-</p>
+      </div>
+      <div class="section-tag" data-i18n="secSchoolTag">By cooperative and by loan size</div>
+    </div>
+    <div class="grid">
+      <div class="col-7 panel">
+        <div class="leaderboard-scroll">
+          <table class="leaderboard">
+            <colgroup>
+              <col style="width:4rem"><col style="width:30%"><col style="width:16%">
+              <col style="width:18%"><col style="width:16%"><col style="width:16%">
+            </colgroup>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th data-i18n="thCoop">Cooperative</th>
+                <th class="num" data-i18n="thLoans">Loans</th>
+                <th class="num" data-i18n="thAdvanced">Advanced</th>
+                <th class="num" data-i18n="thCleared">Cleared</th>
+                <th class="num" data-i18n="thBalance">Balance</th>
+              </tr>
+            </thead>
+            <tbody id="schoolBody"></tbody>
+          </table>
+        </div>
+        <div class="insight-line" id="schoolInsight">-</div>
+      </div>
+      <div class="col-5 panel">
+        <p class="panel-title" data-i18n="panSizeH">Loan size</p>
+        <p class="panel-note" data-i18n="panSizeN">School fees loans by amount advanced.</p>
+        <div class="chart-box short"><canvas id="sizeChart"></canvas></div>
+        <div class="statgrid" id="schoolStats" style="margin-top:12px;"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="secNotesH">What these figures can and cannot show</h2>
+        <p data-i18n="secNotesP">-</p>
+      </div>
+      <div class="section-tag" data-i18n="secNotesTag">Data notes</div>
+    </div>
+    <div class="grid">
+      <div class="col-12"><div id="notesBox"></div></div>
+    </div>
+  </section>
+
 </main>
+
+<footer>
+  <div class="shell fgrid">
+    <div>
+      <h4 data-i18n="footerAboutH">About this data</h4>
+      <p id="footerAboutP">-</p>
+    </div>
+    <div>
+      <h4 data-i18n="footerDefH">Definitions</h4>
+      <p data-i18n="footerDefP">-</p>
+    </div>
+  </div>
+</footer>
 
 </div><!-- /.layout-main -->
 </div><!-- /.layout -->
 
+</div><!-- /#dashboard -->
+
+<script>
+
+(function(){
+'use strict';
+
+var DATA = null;
+var REQUIRED_KEYS = ['meta','portfolio','funders','ageing','trade','fertiliser','school_fees','notes'];
+
+function showFatal(title, detail){
+  document.getElementById('bootLoading').hidden = true;
+  var b = document.getElementById('bootError');
+  b.hidden = false;
+  b.querySelector('.boot-title').textContent = title;
+  b.querySelector('.boot-detail').textContent = detail;
+}
+
+function boot(){
+  if (typeof Chart === 'undefined'){
+    showFatal('Charting library could not be loaded',
+      'The page loads Chart.js from cdnjs.cloudflare.com and the request did not complete. ' +
+      'This is usually a network or proxy restriction rather than a problem with the ' +
+      'dashboard itself.');
+    return;
+  }
+  fetch('./finance-data.json?v=' + Date.now(), {cache:'no-store'})
+    .then(function(r){
+      if (!r.ok) throw new Error('HTTP ' + r.status + ' ' + r.statusText);
+      return r.json();
+    })
+    .then(function(json){
+      var missing = REQUIRED_KEYS.filter(function(k){ return !(k in json); });
+      if (missing.length) throw new Error('finance-data.json is missing: ' + missing.join(', '));
+      DATA = json;
+      document.getElementById('bootLoading').hidden = true;
+      document.getElementById('dashboard').hidden = false;
+      start();
+    })
+    .catch(function(err){
+      var hint = (location.protocol === 'file:')
+        ? 'The page was opened straight from disk. Browsers block fetch() on file:// URLs. Serve the folder over HTTP instead (python -m http.server 8000) or use the deployed GitHub Pages URL.'
+        : 'Could not load ./finance-data.json next to this page. If this is a fresh deploy, check that the build workflow finished and published it.';
+      showFatal('Dashboard data could not be loaded', hint + '  [' + err.message + ']');
+    });
+}
+
+/* ============================= state ============================= */
+var state = { currency:'UGX', lang:'en' };
+function FX(){ return DATA.meta.fx_ugx_per_usd; }
+
+/* ============================= formatters ============================= */
+function numLocale(){ return state.lang==='nl' ? 'nl-NL' : 'en-US'; }
+function fmtInt(v){ return Math.round(v).toLocaleString(numLocale()); }
+function fmtPct(v){
+  if (v === null || v === undefined) return '-';
+  return (v*100).toLocaleString(numLocale(),{minimumFractionDigits:1, maximumFractionDigits:1}) + '%';
+}
+function fmtPct0(v){
+  if (v === null || v === undefined) return '-';
+  return (v*100).toLocaleString(numLocale(),{maximumFractionDigits:0}) + '%';
+}
+/* Shillings run to ten figures, so a full number is unreadable in a tile and
+   misreadable in a sentence. Scaled to m/bn with the unit attached, and the
+   currency switch converts at the rate the payload carries rather than one
+   written into this page. */
+function money(ugx, dp){
+  var v = state.currency === 'USD' ? ugx / FX() : ugx;
+  var unit = state.currency === 'USD' ? 'USD ' : 'UGX ';
+  var abs = Math.abs(v);
+  if (abs >= 1e9) return unit + (v/1e9).toLocaleString(numLocale(),{maximumFractionDigits:dp===undefined?2:dp}) + 'bn';
+  if (abs >= 1e6) return unit + (v/1e6).toLocaleString(numLocale(),{maximumFractionDigits:dp===undefined?1:dp}) + 'm';
+  if (abs >= 1e3) return unit + (v/1e3).toLocaleString(numLocale(),{maximumFractionDigits:0}) + 'k';
+  return unit + Math.round(v).toLocaleString(numLocale());
+}
+/* Axis ticks need more precision than a tile does. At 0 decimal places a
+   billions axis reads "UGX 1bn, UGX 1bn, UGX 1bn, UGX 2bn": four different
+   gridlines with two labels between them, which is worse than no axis. */
+function moneyAxis(ugx){
+  var v = state.currency === 'USD' ? ugx / FX() : ugx;
+  var unit = state.currency === 'USD' ? 'USD ' : 'UGX ';
+  var abs = Math.abs(v);
+  if (abs >= 1e9) return unit + (v/1e9).toLocaleString(numLocale(),{maximumFractionDigits:1}) + 'bn';
+  if (abs >= 1e6) return unit + (v/1e6).toLocaleString(numLocale(),{maximumFractionDigits:0}) + 'm';
+  if (abs >= 1e3) return unit + (v/1e3).toLocaleString(numLocale(),{maximumFractionDigits:0}) + 'k';
+  return unit + Math.round(v).toLocaleString(numLocale());
+}
+function moneyFull(ugx){
+  var v = state.currency === 'USD' ? ugx / FX() : ugx;
+  return (state.currency === 'USD' ? 'USD ' : 'UGX ') +
+         Math.round(v).toLocaleString(numLocale());
+}
+function fmtDate(d){
+  if (!d) return '-';
+  var M = state.lang==='nl'
+    ? ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec']
+    : ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var p = d.split('-');
+  return parseInt(p[2],10) + ' ' + M[parseInt(p[1],10)-1] + ' ' + p[0];
+}
+function fmtMonth(m){
+  var M = state.lang==='nl'
+    ? ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec']
+    : ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var p = m.split('-');
+  return M[parseInt(p[1],10)-1] + " '" + p[0].slice(2);
+}
+function esc(s){
+  return (s===null||s===undefined) ? '' :
+    String(s).replace(/[&<>]/g, function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});
+}
+
+/* ============================= palette ============================= */
+var GRID_DASH = [2, 3];
+var CHART_FONT = '"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif';
+var COLORS = {
+  roast:'#7B4A24', roastDeep:'#43260F', roastLight:'#A97244',
+  cherry:'#B23A1E', honey:'#D2911F', clay:'#9C5230',
+  ink:'#2A1A10', inkSoft:'#63483A', inkFaint:'#8A7059', line:'#EADCC7'
+};
+var GREEN = '#0D4D45';
+/* Sequential ramp, darkest first, so the largest bar is also the darkest and
+   rank reads from tone as well as length. */
+var RANK_GREEN = ['#0D4D45','#14655A','#1C7D6F','#2E9585','#57ACA0','#8AC4BA','#B8DAD3'];
+var RANK_ROAST = ['#663A18','#77431C','#884D20','#995724','#AA6128','#BC7434','#C98A52'];
+/* Ageing runs cool to hot: the further past due, the closer to the clay that
+   marks a problem everywhere else on the site. */
+var AGE_RAMP = ['#D2911F','#C2761E','#B05A1D','#9C3A1B'];
+
+function themeCharts(){
+  Chart.defaults.font.family = CHART_FONT;
+  Chart.defaults.color = COLORS.inkSoft;
+  Chart.defaults.font.size = 11.5;
+  Chart.defaults.scale.grid.borderDash = GRID_DASH;
+  Chart.defaults.scale.grid.color = COLORS.line;
+  Chart.defaults.scale.grid.tickBorderDash = GRID_DASH;
+}
+
+var CHARTS = {};
+function mountChart(canvasId, cfg){
+  var el = document.getElementById(canvasId);
+  if (!el) return null;
+  var prev = CHARTS[canvasId] || (typeof Chart.getChart === 'function' ? Chart.getChart(el) : null);
+  if (prev) prev.destroy();
+  CHARTS[canvasId] = new Chart(el.getContext('2d'), cfg);
+  return CHARTS[canvasId];
+}
+
+var ICONS = {
+  coin:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v9M9.5 10h4a1.8 1.8 0 0 1 0 3.6h-3a1.8 1.8 0 0 0 0 3.6h4"/>',
+  scale:'<path d="M12 4v16M5 8h14M7.5 8 4 15h7ZM16.5 8 13 15h7Z"/>',
+  back:'<path d="M4 12h12M11 7l5 5-5 5"/><path d="M20 5v14"/>',
+  clock:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7v5.2l3.2 2"/>',
+  stack:'<path d="M3 8.2 12 4l9 4.2-9 4.2Z"/><path d="M3 12.5 12 16.7l9-4.2M3 16.5 12 20.7l9-4.2"/>',
+  warn:'<path d="M12 4 2.8 20h18.4Z"/><path d="M12 10v4.5M12 17.4v.2"/>',
+  group:'<circle cx="9" cy="9" r="3.2"/><path d="M3 19c0-3.1 2.7-5.2 6-5.2s6 2.1 6 5.2"/><path d="M16 6.2a3 3 0 0 1 0 5.8M21 18.4c0-2.3-1.5-3.9-3.6-4.4"/>',
+  plant:'<path d="M12 20v-7"/><path d="M12 13C12 9 9 6.5 5 6.5c0 4 3 6.5 7 6.5Z"/><path d="M12 13c0-3.3 2.5-5.5 6-5.5 0 3.3-2.5 5.5-6 5.5Z"/>',
+  book:'<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H19v16H5.5A1.5 1.5 0 0 1 4 18.5Z"/><path d="M8 4v16"/>',
+  bank:'<path d="M3.5 9.5 12 4.5l8.5 5"/><path d="M5.5 9.5v9M10 9.5v9M14 9.5v9M18.5 9.5v9M3 19.5h18"/>'
+};
+function icon(name){
+  var d = ICONS[name];
+  if (!d) return '';
+  return '<svg class="tile-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" ' +
+         'fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" ' +
+         'stroke-linejoin="round">' + d + '</svg>';
+}
+function flat(text){ return text ? '<div class="tile-foot kpi-delta flat">' + text + '</div>' : ''; }
+
+/* ============================= derived facts ============================= */
+var FACTS = {};
+function computeFacts(){
+  var m = DATA.meta, t = DATA.portfolio.total, a = DATA.ageing, tr = DATA.trade;
+  var f = DATA.fertiliser, s = DATA.school_fees;
+  var worst = a.by_product.slice().sort(function(x,y){ return y.overdue_balance - x.overdue_balance; })[0]
+              || {product:'-', overdue_balance:0, max_days:0};
+  var topFunder = DATA.funders[0] || {funder:'-', advanced:0};
+  var topFert = f.by_cooperative[0] || {label:'-', principal:0};
+  var active = DATA.portfolio.products.filter(function(p){ return p.active; });
+  var biggest = active.slice().sort(function(x,y){ return y.advanced - x.advanced; })[0]
+                || {product:'-', advanced:0};
+
+  FACTS.advanced = money(t.advanced);
+  FACTS.due = money(t.due);
+  FACTS.recovered = money(t.recovered);
+  FACTS.balance = money(t.balance);
+  FACTS.recovery = fmtPct(t.recovery);
+  FACTS.nLoans = fmtInt(m.n_loans);
+  FACTS.nProducts = fmtInt(m.n_products);
+  FACTS.asOf = fmtDate(m.as_of);
+  FACTS.overdueN = fmtInt(a.overdue_n);
+  FACTS.overdueBal = money(a.overdue_balance);
+  FACTS.overdueShare = a.open_balance ? fmtPct0(a.overdue_balance / a.open_balance) : '-';
+  FACTS.maxDays = fmtInt(Math.max.apply(null, a.by_product.map(function(p){ return p.max_days; })));
+  FACTS.worstProduct = worst.product;
+  FACTS.worstBal = money(worst.overdue_balance);
+  FACTS.biggestProduct = biggest.product;
+  FACTS.biggestShare = fmtPct0(biggest.advanced / t.advanced);
+  FACTS.topFunder = topFunder.funder;
+  FACTS.topFunderShare = fmtPct0(topFunder.advanced / t.advanced);
+  FACTS.internalAmt = money(tr.internal.principal);
+  FACTS.internalShare = fmtPct0(tr.internal.share);
+  FACTS.internalOfBook = fmtPct0(tr.internal.principal / t.advanced);
+  FACTS.externalN = fmtInt(tr.external.n);
+  FACTS.tradeN = fmtInt(tr.n);
+  FACTS.fertCoops = fmtInt(f.by_cooperative.length);
+  FACTS.fertBags = fmtInt(f.bags);
+  FACTS.topFert = topFert.label;
+  FACTS.topFertAmt = money(topFert.principal);
+  FACTS.fertUnattributed = money(f.recoveries.unattributed);
+  FACTS.topBrand = (f.brands[0] || {label:'-'}).label;
+  FACTS.topBrandBags = fmtInt((f.brands[0] || {bags:0}).bags);
+  FACTS.schoolN = fmtInt(s.n);
+  FACTS.schoolCleared = fmtInt(s.cleared_n);
+  FACTS.schoolClearedPct = fmtPct0(s.cleared_n / s.n);
+  FACTS.schoolMedian = money(s.median_loan, 0);
+  FACTS.schoolCoops = fmtInt(s.by_cooperative.length);
+  FACTS.coopsReached = fmtInt(coopCount());
+  FACTS.fx = fmtInt(m.fx_ugx_per_usd);
+  FACTS.pooled = fmtInt(s.pooled_coops);
+  FACTS.minCoop = fmtInt(DATA.notes.min_coop_loans);
+}
+function coopCount(){
+  var seen = {};
+  DATA.fertiliser.by_cooperative.forEach(function(r){ seen[r.label] = 1; });
+  DATA.school_fees.by_cooperative.forEach(function(r){
+    if (r.label !== 'Other cooperatives') seen[r.label] = 1;
+  });
+  return Object.keys(seen).length;
+}
+
+/* ============================= i18n ============================= */
+var I18N = {
+  en: {
+    navTitle:'Navigation', navDomestic:'Domestic Trade', navExport:'Ndugu Export',
+    navEudr:'EUDR Compliance', navImpact:'Impact Projects', navProduction:'Production',
+    navFinance:'Financial Services', navAgritracker:'Agritracker', navCoffee:'Coffee Minds',
+    navAbout:'About us',
+    brandRole:'Financial services',
+    asofLabel:'Position at',
+    aboutP:function(f){
+      return 'Ndugu’s microfinance book as recorded to ' + f.asOf + ': ' + f.nLoans +
+        ' loans across ' + f.nProducts + ' active products, ' + f.advanced + ' advanced. ' +
+        'Recovery is measured against principal plus anticipated interest, not principal ' +
+        'alone. Overdue is computed from the recorded repayment dates rather than from the ' +
+        'workbook’s status text, which disagrees with its own dates. No borrower, pupil, ' +
+        'school or register code is published; the build fails rather than let one through.';
+    },
+    footerAboutH:'About this data', footerDefH:'Definitions',
+    footerDefP:'Advanced: principal paid out. Due: principal plus anticipated interest. ' +
+      'Recovered: cash received against that. Balance: what remains owed. Overdue: the ' +
+      'recorded repayment date has passed and a balance remains. Amounts are Ugandan ' +
+      'shillings unless USD is selected.',
+
+    heroEyebrow:'Financial services',
+    heroH1:'Credit to farmers, cooperatives and trade',
+    heroLede:function(f){
+      return 'Ndugu has advanced ' + f.advanced + ' across ' + f.nLoans + ' loans in ' +
+        f.nProducts + ' products. ' + f.recovered + ' has come back, ' + f.recovery +
+        ' of what is due, and ' + f.overdueBal + ' is now past its repayment date.';
+    },
+    rowBookH:'The book', rowBookN:'what went out, what is owed, what has come back',
+    rowRiskH:'Position', rowRiskN:'what is late, and where the exposure sits',
+
+    kpiAdvanced:'Advanced', lblLoans:'loans',
+    kpiDue:'Total due', lblPlusInterest:'principal plus interest',
+    kpiRecovered:'Recovered', lblOfDue:'of what is due',
+    kpiBalance:'Outstanding', lblStillOwed:'still owed',
+    kpiProducts:'Active products', lblProductsSub:'a fifth not yet started',
+    kpiOverdue:'Past due', lblLoansPastDue:'loans past their date',
+    kpiOldest:'Longest overdue', lblDaysPastDue:'days past the date',
+    kpiInternal:'Internal lending', lblOfTrade:'of the trade book',
+    kpiCoops:'Cooperatives', lblCoopsSub:'borrowing as groups',
+    kpiBags:'Fertiliser bags', lblBagsSub:'distributed on credit',
+    lblNotStarted:'no activity recorded', lblOpen:'open', lblExternal:'External borrowers',
+    lblBags:'bags', lblCleared:'cleared',
+
+    secBookH:'The book by product',
+    secBookP:function(f){
+      return f.biggestProduct + ' is ' + f.biggestShare + ' of everything advanced.';
+    },
+    secBookTag:'Advanced, owed and recovered',
+    panProdH:'Lending by product',
+    panProdN:'Bar length is the amount advanced; the dark fill is the share recovered.',
+    panFunderH:'Who funds what', panFunderN:'Amount advanced by funder.',
+    prodInsight:function(f){
+      return f.biggestProduct + ' carries ' + f.biggestShare + ' of the book. Recovery is ' +
+        'uneven across products and low everywhere: the portfolio as a whole stands at ' +
+        f.recovery + ' of what is due.';
+    },
+    funderInsight:function(f){
+      return f.topFunder + ' is behind ' + f.topFunderShare + ' of everything advanced. ' +
+        'A funder’s exposure is the balance beside it, not the amount it put in.';
+    },
+
+    secAgeH:'What is past due',
+    secAgeP:function(f){
+      return f.overdueBal + ' across ' + f.overdueN + ' loans, up to ' + f.maxDays + ' days late.';
+    },
+    secAgeTag:'Measured from recorded repayment dates',
+    arrearsH:'Most of the book is past its repayment date',
+    arrearsP:function(f){
+      return 'This is the position as recorded, not an estimate. Most of this money went ' +
+        'out between April and June against a harvest that has not been sold yet, which is ' +
+        'the ordinary shape of seasonal lending and not in itself a loss. It is reported ' +
+        'here as it stands because a reader who later finds the arrears were softened has ' +
+        'no reason to trust anything else on this site.';
+    },
+    arrearsK1:'past due', arrearsK2:'loans', arrearsK3:'of the open balance',
+    arrearsK4:'days, the oldest',
+    panBucketH:'How far past due',
+    panBucketN:'Balance by days beyond the recorded repayment date.',
+    panAgeProdH:'Overdue by product',
+    panAgeProdN:'Open balance against the part of it now past due.',
+    bucketInsight:function(f){
+      return 'The weight sits in the most recent band, which is what seasonal lending against ' +
+        'an unsold harvest looks like. The tail beyond 90 days is the part that needs a ' +
+        'different explanation.';
+    },
+    ageInsight:function(f){
+      return f.worstProduct + ' holds the largest overdue balance at ' + f.worstBal +
+        '. Amber marks a product where more than half the open balance is past its date.';
+    },
+
+    secConcH:'Where the exposure sits',
+    secConcP:function(f){
+      return 'One internal loan is ' + f.internalOfBook + ' of the entire portfolio.';
+    },
+    secConcTag:'Concentration in the trade book',
+    panSplitH:'Internal against external lending',
+    panSplitN:'Trade principal, split by who borrowed it.',
+    panBandH:'External trade loans by size',
+    panBandN:'Borrowers are not named: several are private individuals.',
+    splitInsight:function(f){
+      return 'The single largest position in the book is Ndugu lending to its own export ' +
+        'department: ' + f.internalAmt + ', ' + f.internalShare + ' of trade lending. It is ' +
+        'shown rather than netted off, because a portfolio that looks diversified only ' +
+        'because its largest exposure was removed is not a portfolio anyone can assess.';
+    },
+    bandInsight:function(f){
+      return f.externalN + ' external trade loans make up the rest. They are grouped by size ' +
+        'rather than listed, because several borrowers are private individuals and a list of ' +
+        'thirteen with the names taken off still identifies people to anyone in the trade.';
+    },
+
+    secFertH:'Fertiliser on credit',
+    secFertP:function(f){
+      return f.fertBags + ' bags to ' + f.fertCoops + ' cooperatives, repayable after harvest.';
+    },
+    secFertTag:'By cooperative, and what it bought',
+    panFertCoopH:'Lending by cooperative',
+    panFertCoopN:'Principal advanced, and the share recovered so far.',
+    panBrandH:'What the money bought', panBrandN:'Bags distributed, by product.',
+    fertInsight:function(f){
+      return f.topFert + ' took the largest share at ' + f.topFertAmt + '. Every fertiliser ' +
+        'loan was written against the same July repayment date, so they all came due together ' +
+        'rather than spreading across the season.';
+    },
+    brandInsight:function(f){
+      return f.topBrand + ' is the bulk of it at ' + f.topBrandBags + ' bags. This is input ' +
+        'credit rather than cash: the loan is the fertiliser, priced and delivered.';
+    },
+
+    secSchoolH:'School fees',
+    secSchoolP:function(f){
+      return f.schoolN + ' loans, median ' + f.schoolMedian + ', ' + f.schoolClearedPct + ' cleared.';
+    },
+    secSchoolTag:'By cooperative and by loan size',
+    thCoop:'Cooperative', thLoans:'Loans', thAdvanced:'Advanced',
+    thCleared:'Cleared', thBalance:'Balance',
+    panSizeH:'Loan size', panSizeN:'School fees loans by amount advanced.',
+    statMedian:'Median loan', statMedianFoot:'half are smaller than this',
+    statCleared:'Cleared', statClearedFoot:'loans repaid in full',
+    schoolInsight:function(f){
+      return f.schoolClearedPct + ' of school fees loans have cleared, the best recovery of ' +
+        'any product here and the smallest book. Cooperatives with fewer than ' + f.minCoop +
+        ' loans are pooled: at that size a row describes a household rather than a group.';
+    },
+
+    secNotesH:'What these figures can and cannot show',
+    secNotesP:'Read these before quoting a figure from this page.',
+    secNotesTag:'Data notes',
+    noteArrears:function(f){
+      return 'Overdue is computed here from the recorded repayment dates, not read from the ' +
+        'workbook’s own status column. The two disagree: that column reads "Loan ongoing" ' +
+        'on loans whose repayment date passed months ago and is blank on others. Where a loan ' +
+        'carries no repayment date at all it is counted as open but not as overdue, which ' +
+        'understates rather than overstates the arrears.';
+    },
+    noteConcentration:function(f){
+      return 'Half the portfolio is one loan to Ndugu’s own export department. Read the ' +
+        'recovery rate with that in mind: it is a transfer within the group, and it will not ' +
+        'behave like a loan to a third party. The figures for the rest of the book are the ' +
+        'ones that describe lending to farmers and cooperatives.';
+    },
+    noteUnattributed:function(f){
+      return f.fertUnattributed + ' of fertiliser recoveries is recorded against no ' +
+        'cooperative, so the recoveries log totals more than the per-cooperative figures add ' +
+        'up to. The per-cooperative rows here use the attributed amounts only. The workbook ' +
+        'flags this as worth checking against the original records, and it has not been.';
+    },
+    noteDerived:'On the older school fees rows, cleared and balance were inferred from a free-text status rather than recorded as amounts, and on the newer rows status was inferred from the balance. Those fields are derived, not sourced.',
+    noteNames:function(f){
+      return 'Cooperatives appear in the source under several spellings each, which the ' +
+        'workbook leaves unmerged. They are merged here, or Kalisizo would appear three ' +
+        'times at a third of its real size and the largest exposure on this page would be ' +
+        'the wrong cooperative.';
+    },
+    noteMedcare:'A fifth product, Medcare, is carried in the source summary with zero of everything and no detail sheet. It is shown as not yet started rather than dropped, so the product list matches the source.',
+    notePrivacy:'This workbook names five staff and what each personally owes their employer, the schoolchildren whose fees were lent against, their schools, their parents and their register codes. All of it is read by the build and none of it is published. Cooperatives, funders and fertiliser brands are named because they are organisations.',
+    lblOf:'of'
+  },
+  nl: {
+    navTitle:'Navigatie', navDomestic:'Binnenlandse handel', navExport:'Ndugu Export',
+    navEudr:'EUDR-naleving', navImpact:'Impactprojecten', navProduction:'Productie',
+    navFinance:'Financiële diensten', navAgritracker:'Agritracker', navCoffee:'Coffee Minds',
+    navAbout:'Over ons',
+    brandRole:'Financiële diensten',
+    asofLabel:'Stand per',
+    aboutP:function(f){
+      return 'De microfinancieringsportefeuille van Ndugu zoals vastgelegd tot ' + f.asOf +
+        ': ' + f.nLoans + ' leningen in ' + f.nProducts + ' actieve producten, ' + f.advanced +
+        ' uitgeleend. Terugbetaling wordt gemeten tegen hoofdsom plus verwachte rente, niet ' +
+        'tegen de hoofdsom alleen. Achterstand wordt berekend uit de vastgelegde ' +
+        'terugbetaaldata en niet uit de statuskolom van het bestand, die met die data in ' +
+        'tegenspraak is. Geen kredietnemer, leerling, school of registratiecode wordt ' +
+        'gepubliceerd; de build faalt liever dan er één door te laten.';
+    },
+    footerAboutH:'Over deze gegevens', footerDefH:'Definities',
+    footerDefP:'Uitgeleend: uitbetaalde hoofdsom. Verschuldigd: hoofdsom plus verwachte ' +
+      'rente. Terugbetaald: daarop ontvangen. Saldo: wat nog openstaat. Achterstallig: de ' +
+      'vastgelegde terugbetaaldatum is verstreken en er staat nog een saldo open. Bedragen ' +
+      'in Ugandese shilling, tenzij USD is gekozen.',
+
+    heroEyebrow:'Financiële diensten',
+    heroH1:'Krediet aan boeren, coöperaties en handel',
+    heroLede:function(f){
+      return 'Ndugu heeft ' + f.advanced + ' uitgeleend in ' + f.nLoans + ' leningen over ' +
+        f.nProducts + ' producten. ' + f.recovered + ' is terugbetaald, ' + f.recovery +
+        ' van het verschuldigde, en ' + f.overdueBal + ' is nu over de terugbetaaldatum heen.';
+    },
+    rowBookH:'De portefeuille', rowBookN:'wat eruit ging, wat verschuldigd is, wat terugkwam',
+    rowRiskH:'Stand', rowRiskN:'wat te laat is, en waar het risico zit',
+
+    kpiAdvanced:'Uitgeleend', lblLoans:'leningen',
+    kpiDue:'Totaal verschuldigd', lblPlusInterest:'hoofdsom plus rente',
+    kpiRecovered:'Terugbetaald', lblOfDue:'van het verschuldigde',
+    kpiBalance:'Openstaand', lblStillOwed:'nog verschuldigd',
+    kpiProducts:'Actieve producten', lblProductsSub:'een vijfde nog niet gestart',
+    kpiOverdue:'Achterstallig', lblLoansPastDue:'leningen over hun datum',
+    kpiOldest:'Langst achterstallig', lblDaysPastDue:'dagen over de datum',
+    kpiInternal:'Interne lening', lblOfTrade:'van de handelsportefeuille',
+    kpiCoops:'Coöperaties', lblCoopsSub:'lenen als groep',
+    kpiBags:'Zakken kunstmest', lblBagsSub:'op krediet geleverd',
+    lblNotStarted:'geen activiteit vastgelegd', lblOpen:'open',
+    lblExternal:'Externe kredietnemers', lblBags:'zakken', lblCleared:'afgelost',
+
+    secBookH:'De portefeuille per product',
+    secBookP:function(f){
+      return f.biggestProduct + ' is ' + f.biggestShare + ' van alles wat is uitgeleend.';
+    },
+    secBookTag:'Uitgeleend, verschuldigd en terugbetaald',
+    panProdH:'Kredietverlening per product',
+    panProdN:'De balklengte is het uitgeleende bedrag; de donkere vulling het terugbetaalde deel.',
+    panFunderH:'Wie financiert wat', panFunderN:'Uitgeleend bedrag per financier.',
+    prodInsight:function(f){
+      return f.biggestProduct + ' draagt ' + f.biggestShare + ' van de portefeuille. De ' +
+        'terugbetaling verschilt per product en is overal laag: de portefeuille als geheel ' +
+        'staat op ' + f.recovery + ' van het verschuldigde.';
+    },
+    funderInsight:function(f){
+      return f.topFunder + ' staat achter ' + f.topFunderShare + ' van alles wat is ' +
+        'uitgeleend. Het risico van een financier is het saldo ernaast, niet de inleg.';
+    },
+
+    secAgeH:'Wat achterstallig is',
+    secAgeP:function(f){
+      return f.overdueBal + ' over ' + f.overdueN + ' leningen, tot ' + f.maxDays + ' dagen te laat.';
+    },
+    secAgeTag:'Berekend uit de vastgelegde terugbetaaldata',
+    arrearsH:'Het grootste deel van de portefeuille is over de terugbetaaldatum heen',
+    arrearsP:function(f){
+      return 'Dit is de stand zoals vastgelegd, geen schatting. Het meeste geld ging tussen ' +
+        'april en juni de deur uit tegen een oogst die nog niet is verkocht, wat de gewone ' +
+        'vorm van seizoenskrediet is en op zichzelf geen verlies. Het staat hier zoals het ' +
+        'is, omdat een lezer die later merkt dat de achterstanden zijn verzacht geen reden ' +
+        'heeft de rest van deze site nog te geloven.';
+    },
+    arrearsK1:'achterstallig', arrearsK2:'leningen', arrearsK3:'van het openstaande saldo',
+    arrearsK4:'dagen, de oudste',
+    panBucketH:'Hoe ver over de datum',
+    panBucketN:'Saldo naar dagen voorbij de vastgelegde terugbetaaldatum.',
+    panAgeProdH:'Achterstallig per product',
+    panAgeProdN:'Openstaand saldo tegenover het deel dat over de datum heen is.',
+    bucketInsight:function(f){
+      return 'Het zwaartepunt ligt in de meest recente band, wat past bij seizoenskrediet ' +
+        'tegen een onverkochte oogst. De staart voorbij 90 dagen vraagt een andere verklaring.';
+    },
+    ageInsight:function(f){
+      return f.worstProduct + ' heeft het grootste achterstallige saldo met ' + f.worstBal +
+        '. Amber markeert een product waarvan meer dan de helft van het openstaande saldo ' +
+        'over de datum heen is.';
+    },
+
+    secConcH:'Waar het risico zit',
+    secConcP:function(f){
+      return 'Eén interne lening is ' + f.internalOfBook + ' van de hele portefeuille.';
+    },
+    secConcTag:'Concentratie in de handelsportefeuille',
+    panSplitH:'Intern tegenover extern krediet',
+    panSplitN:'Handelshoofdsom, gesplitst naar wie leende.',
+    panBandH:'Externe handelsleningen naar omvang',
+    panBandN:'Kredietnemers worden niet genoemd: meerdere zijn particulieren.',
+    splitInsight:function(f){
+      return 'De grootste positie in de portefeuille is Ndugu die aan de eigen ' +
+        'exportafdeling leent: ' + f.internalAmt + ', ' + f.internalShare + ' van de ' +
+        'handelsleningen. Die staat er wél in plaats van weggestreept, want een portefeuille ' +
+        'die er alleen gespreid uitziet doordat de grootste positie is weggelaten, is voor ' +
+        'niemand te beoordelen.';
+    },
+    bandInsight:function(f){
+      return f.externalN + ' externe handelsleningen vormen de rest. Ze zijn naar omvang ' +
+        'gegroepeerd in plaats van opgesomd, omdat meerdere kredietnemers particulieren zijn ' +
+        'en een lijst van dertien zonder namen voor wie de handel kent nog steeds personen ' +
+        'aanwijst.';
+    },
+
+    secFertH:'Kunstmest op krediet',
+    secFertP:function(f){
+      return f.fertBags + ' zakken naar ' + f.fertCoops + ' coöperaties, terug te betalen na de oogst.';
+    },
+    secFertTag:'Per coöperatie, en wat ervoor is gekocht',
+    panFertCoopH:'Krediet per coöperatie',
+    panFertCoopN:'Uitgeleende hoofdsom, en het tot nu toe terugbetaalde deel.',
+    panBrandH:'Wat ervoor is gekocht', panBrandN:'Geleverde zakken, per product.',
+    fertInsight:function(f){
+      return f.topFert + ' nam het grootste deel met ' + f.topFertAmt + '. Elke ' +
+        'kunstmestlening kreeg dezelfde terugbetaaldatum in juli mee, dus ze werden allemaal ' +
+        'tegelijk opeisbaar in plaats van verspreid over het seizoen.';
+    },
+    brandInsight:function(f){
+      return f.topBrand + ' is het grootste deel met ' + f.topBrandBags + ' zakken. Dit is ' +
+        'krediet in natura en niet in geld: de lening is de kunstmest, geprijsd en geleverd.';
+    },
+
+    secSchoolH:'Schoolgeld',
+    secSchoolP:function(f){
+      return f.schoolN + ' leningen, mediaan ' + f.schoolMedian + ', ' + f.schoolClearedPct + ' afgelost.';
+    },
+    secSchoolTag:'Per coöperatie en naar omvang',
+    thCoop:'Coöperatie', thLoans:'Leningen', thAdvanced:'Uitgeleend',
+    thCleared:'Afgelost', thBalance:'Saldo',
+    panSizeH:'Omvang van de lening', panSizeN:'Schoolgeldleningen naar uitgeleend bedrag.',
+    statMedian:'Mediane lening', statMedianFoot:'de helft is kleiner dan dit',
+    statCleared:'Afgelost', statClearedFoot:'volledig terugbetaalde leningen',
+    schoolInsight:function(f){
+      return f.schoolClearedPct + ' van de schoolgeldleningen is afgelost, de beste ' +
+        'terugbetaling van alle producten hier en de kleinste portefeuille. Coöperaties met ' +
+        'minder dan ' + f.minCoop + ' leningen zijn samengevoegd: bij die omvang beschrijft ' +
+        'een regel een huishouden en geen groep.';
+    },
+
+    secNotesH:'Wat deze cijfers wel en niet kunnen laten zien',
+    secNotesP:'Lees deze punten voordat u een cijfer van deze pagina citeert.',
+    secNotesTag:'Toelichting',
+    noteArrears:function(f){
+      return 'Achterstand wordt hier berekend uit de vastgelegde terugbetaaldata, niet ' +
+        'overgenomen uit de statuskolom van het bestand. Die twee spreken elkaar tegen: die ' +
+        'kolom zegt "Loan ongoing" bij leningen waarvan de datum maanden geleden verstreek, ' +
+        'en is elders leeg. Een lening zonder terugbetaaldatum telt wel als open maar niet ' +
+        'als achterstallig, wat de achterstand eerder onderschat dan overschat.';
+    },
+    noteConcentration:function(f){
+      return 'De helft van de portefeuille is één lening aan de eigen exportafdeling van ' +
+        'Ndugu. Lees het terugbetalingspercentage met dat in gedachten: het is een overdracht ' +
+        'binnen de groep en gedraagt zich niet als een lening aan een derde. De cijfers voor ' +
+        'de rest van de portefeuille beschrijven het krediet aan boeren en coöperaties.';
+    },
+    noteUnattributed:function(f){
+      return f.fertUnattributed + ' aan kunstmestterugbetalingen staat op geen enkele ' +
+        'coöperatie geboekt, waardoor het logboek hoger uitkomt dan de cijfers per coöperatie ' +
+        'bij elkaar. De regels per coöperatie gebruiken hier alleen de toegewezen bedragen. ' +
+        'Het bestand merkt dit aan als na te trekken in de oorspronkelijke administratie, en ' +
+        'dat is niet gebeurd.';
+    },
+    noteDerived:'Bij de oudere schoolgeldregels zijn afgelost en saldo afgeleid uit een vrije-tekststatus in plaats van als bedrag vastgelegd, en bij de nieuwere regels is de status afgeleid uit het saldo. Die velden zijn afgeleid, niet uit de bron.',
+    noteNames:function(f){
+      return 'Coöperaties komen in de bron onder meerdere schrijfwijzen voor, die het bestand ' +
+        'niet samenvoegt. Hier zijn ze wel samengevoegd, anders zou Kalisizo drie keer ' +
+        'verschijnen op een derde van zijn werkelijke omvang en zou de grootste positie op ' +
+        'deze pagina de verkeerde coöperatie zijn.';
+    },
+    noteMedcare:'Een vijfde product, Medcare, staat in het bronoverzicht met overal nul en zonder detailblad. Het wordt getoond als nog niet gestart in plaats van weggelaten, zodat de productlijst met de bron overeenkomt.',
+    notePrivacy:'Dit bestand noemt vijf medewerkers en wat ieder van hen persoonlijk aan de werkgever schuldig is, de schoolkinderen voor wie schoolgeld is geleend, hun scholen, hun ouders en hun registratiecodes. Dat alles wordt door de build gelezen en niets ervan wordt gepubliceerd. Coöperaties, financiers en kunstmestmerken worden genoemd omdat het organisaties zijn.',
+    lblOf:'van'
+  }
+};
+function t(key){
+  var v = I18N[state.lang][key];
+  if (v === undefined) v = I18N.en[key];
+  return (typeof v === 'function') ? v(FACTS) : v;
+}
+function t18(k){ return (I18N[state.lang][k] !== undefined) ? I18N[state.lang][k] : I18N.en[k]; }
+function applyStaticI18n(){
+  document.querySelectorAll('[data-i18n]').forEach(function(el){
+    var v = t(el.getAttribute('data-i18n'));
+    if (v !== undefined && v !== null) el.textContent = v;
+  });
+  document.documentElement.lang = state.lang;
+}
+
+/* ============================= renderers ============================= */
+function renderTiles(){
+  var m = DATA.meta, t2 = DATA.portfolio.total, a = DATA.ageing, tr = DATA.trade;
+  document.getElementById('asOf').textContent = fmtDate(m.as_of);
+
+  var cells = [
+    {tone:'tone-s1', icon:'coin', label:t('kpiAdvanced'), value:money(t2.advanced),
+     sub:flat(fmtInt(m.n_loans) + ' ' + t('lblLoans'))},
+    {tone:'tone-s2', icon:'scale', label:t('kpiDue'), value:money(t2.due),
+     sub:flat(t('lblPlusInterest'))},
+    {tone:'tone-s3', icon:'back', label:t('kpiRecovered'), value:money(t2.recovered),
+     sub:flat(fmtPct(t2.recovery) + ' ' + t('lblOfDue'))},
+    {tone:'tone-s4', icon:'stack', label:t('kpiBalance'), value:money(t2.balance),
+     sub:flat(t('lblStillOwed'))},
+    {tone:'tone-s5', icon:'bank', label:t('kpiProducts'), value:fmtInt(m.n_products),
+     sub:flat(t('lblProductsSub'))},
+
+    {tone:'tone-m1', icon:'warn', label:t('kpiOverdue'), value:money(a.overdue_balance),
+     sub:flat(fmtInt(a.overdue_n) + ' ' + t('lblLoansPastDue'))},
+    {tone:'tone-m2', icon:'clock', label:t('kpiOldest'),
+     value:fmtInt(Math.max.apply(null, a.by_product.map(function(p){ return p.max_days; }))),
+     sub:flat(t('lblDaysPastDue'))},
+    {tone:'tone-m3', icon:'book', label:t('kpiInternal'), value:money(tr.internal.principal),
+     sub:flat(fmtPct0(tr.internal.share) + ' ' + t('lblOfTrade'))},
+    {tone:'tone-m4', icon:'group', label:t('kpiCoops'), value:fmtInt(coopCount()),
+     sub:flat(t('lblCoopsSub'))},
+    {tone:'tone-m5', icon:'plant', label:t('kpiBags'), value:fmtInt(DATA.fertiliser.bags),
+     sub:flat(t('lblBagsSub'))}
+  ];
+  document.getElementById('tileGrid').innerHTML = cells.map(function(x){
+    return '<div class="tile ' + x.tone + '">' + icon(x.icon) +
+           '<p class="tile-label">' + x.label + '</p>' +
+           '<div class="tile-value num">' + x.value + '</div>' + x.sub + '</div>';
+  }).join('');
+}
+
+function renderProducts(){
+  var rows = DATA.portfolio.products;
+  var max = Math.max.apply(null, rows.map(function(r){ return r.advanced; })) || 1;
+  document.getElementById('prodList').innerHTML = rows.map(function(r){
+    if (!r.active){
+      return '<div class="prow idle"><div class="nm">' + esc(r.product) +
+        '<small>' + esc(t('lblNotStarted')) + '</small></div>' +
+        '<div class="track"></div><div class="amt">-</div><div class="pct">-</div></div>';
+    }
+    var w = r.advanced / max * 100;
+    var rec = r.recovery || 0;
+    return '<div class="prow">' +
+      '<div class="nm">' + esc(r.product) +
+        '<small>' + esc(r.funder || '') + '</small></div>' +
+      '<div class="track" style="width:' + w.toFixed(1) + '%">' +
+        '<span class="adv"></span>' +
+        '<span class="rec" style="width:' + (Math.min(rec,1)*100).toFixed(1) + '%"></span>' +
+      '</div>' +
+      '<div class="amt">' + money(r.advanced) + '</div>' +
+      '<div class="pct' + (rec < 0.25 ? ' bad' : '') + '">' + fmtPct0(rec) + '</div>' +
+    '</div>';
+  }).join('');
+  document.getElementById('prodInsight').innerHTML = t('prodInsight');
+}
+
+function renderFunders(){
+  var rows = DATA.funders.filter(function(f){ return f.advanced > 0; });
+  mountChart('funderChart', {
+    type:'bar',
+    data:{
+      labels: rows.map(function(r){ return r.funder; }),
+      datasets:[{
+        data: rows.map(function(r){ return r.advanced; }),
+        backgroundColor: rows.map(function(_, i){ return RANK_GREEN[Math.min(i, RANK_GREEN.length-1)]; }),
+        borderRadius:3, borderSkipped:false, barPercentage:0.74
+      }]
+    },
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label:function(c){
+        return ' ' + moneyFull(rows[c.dataIndex].advanced);
+      }}}},
+      scales:{
+        x:{grid:{color:COLORS.line, borderDash:GRID_DASH}, border:{display:false},
+           ticks:{callback:moneyAxis}},
+        y:{grid:{display:false}, border:{display:false},
+           ticks:{font:{family:CHART_FONT, size:11.5}, color:COLORS.ink}}
+      }
+    }
+  });
+  document.getElementById('funderInsight').innerHTML = t('funderInsight');
+}
+
+function renderArrears(){
+  var a = DATA.ageing;
+  document.getElementById('arrearsBand').innerHTML =
+    '<h3>' + esc(t('arrearsH')) + '</h3>' +
+    '<p>' + t('arrearsP') + '</p>' +
+    '<div class="figs">' +
+      '<div><div class="v">' + money(a.overdue_balance) + '</div>' +
+        '<div class="k">' + esc(t('arrearsK1')) + '</div></div>' +
+      '<div><div class="v">' + fmtInt(a.overdue_n) + '</div>' +
+        '<div class="k">' + esc(t('arrearsK2')) + '</div></div>' +
+      '<div><div class="v">' + (a.open_balance ? fmtPct0(a.overdue_balance/a.open_balance) : '-') + '</div>' +
+        '<div class="k">' + esc(t('arrearsK3')) + '</div></div>' +
+      '<div><div class="v">' + FACTS.maxDays + '</div>' +
+        '<div class="k">' + esc(t('arrearsK4')) + '</div></div>' +
+    '</div>';
+}
+
+function renderBuckets(){
+  var rows = DATA.ageing.by_bucket;
+  mountChart('bucketChart', {
+    type:'bar',
+    data:{
+      labels: rows.map(function(r){ return r.label; }),
+      datasets:[{
+        data: rows.map(function(r){ return r.balance; }),
+        backgroundColor: rows.map(function(_, i){ return AGE_RAMP[Math.min(i, AGE_RAMP.length-1)]; }),
+        borderRadius:3, borderSkipped:false, barPercentage:0.7
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label:function(c){
+        var r = rows[c.dataIndex];
+        return ' ' + moneyFull(r.balance) + '  (' + fmtInt(r.n) + ' ' + t('lblLoans') + ')';
+      }}}},
+      scales:{
+        x:{grid:{display:false}, border:{display:false}},
+        y:{grid:{color:COLORS.line, borderDash:GRID_DASH}, border:{display:false},
+           ticks:{callback:moneyAxis}}
+      }
+    }
+  });
+  document.getElementById('bucketInsight').innerHTML = t('bucketInsight');
+}
+
+function renderAgeByProduct(){
+  var rows = DATA.ageing.by_product.filter(function(r){ return r.open_balance > 0; })
+    .sort(function(a,b){ return b.open_balance - a.open_balance; });
+  var max = Math.max.apply(null, rows.map(function(r){ return r.open_balance; })) || 1;
+  document.getElementById('ageList').innerHTML = rows.map(function(r){
+    var share = r.open_balance ? r.overdue_balance / r.open_balance : 0;
+    return '<div class="prow">' +
+      '<div class="nm">' + esc(r.product) +
+        '<small>' + fmtInt(r.open_n) + ' ' + esc(t('lblOpen')) + '</small></div>' +
+      '<div class="track" style="width:' + (r.open_balance/max*100).toFixed(1) + '%">' +
+        '<span class="adv" style="background:#EFE3D0"></span>' +
+        '<span class="rec" style="background:#B05A1D;width:' + (share*100).toFixed(1) + '%"></span>' +
+      '</div>' +
+      '<div class="amt">' + money(r.overdue_balance) + '</div>' +
+      '<div class="pct' + (share > 0.5 ? ' bad' : '') + '">' + fmtPct0(share) + '</div>' +
+    '</div>';
+  }).join('');
+  document.getElementById('ageInsight').innerHTML = t('ageInsight');
+}
+
+function renderSplit(){
+  var tr = DATA.trade, tot = tr.principal || 1;
+  var parts = [
+    {label:tr.internal.label, v:tr.internal.principal, c:'#0D4D45'},
+    {label:t('lblExternal'), v:tr.external.principal, c:'#A97244'}
+  ];
+  document.getElementById('splitBar').innerHTML = parts.map(function(p){
+    var w = p.v / tot * 100;
+    return '<span style="background:' + p.c + ';width:' + w.toFixed(1) + '%">' +
+           (w > 12 ? fmtPct0(p.v/tot) : '') + '</span>';
+  }).join('');
+  document.getElementById('splitKey').innerHTML = parts.map(function(p){
+    return '<span><i style="background:' + p.c + '"></i>' + esc(p.label) + ' &middot; ' +
+           money(p.v) + '</span>';
+  }).join('');
+  document.getElementById('splitInsight').innerHTML = t('splitInsight');
+
+  var bands = tr.by_band;
+  mountChart('bandChart', {
+    type:'bar',
+    data:{
+      labels: bands.map(function(r){ return r.label; }),
+      datasets:[{
+        data: bands.map(function(r){ return r.n; }),
+        backgroundColor: bands.map(function(_, i){ return RANK_ROAST[Math.min(i, RANK_ROAST.length-1)]; }),
+        borderRadius:3, borderSkipped:false, barPercentage:0.7
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label:function(c){
+        var r = bands[c.dataIndex];
+        return ' ' + fmtInt(r.n) + ' ' + t('lblLoans') + '  (' + moneyFull(r.principal) + ')';
+      }}}},
+      scales:{
+        x:{grid:{display:false}, border:{display:false}},
+        y:{grid:{color:COLORS.line, borderDash:GRID_DASH}, border:{display:false},
+           ticks:{precision:0}}
+      }
+    }
+  });
+  document.getElementById('bandInsight').innerHTML = t('bandInsight');
+}
+
+function renderFertiliser(){
+  var rows = DATA.fertiliser.by_cooperative;
+  var max = Math.max.apply(null, rows.map(function(r){ return r.principal; })) || 1;
+  document.getElementById('fertList').innerHTML = rows.map(function(r){
+    return '<div class="prow">' +
+      '<div class="nm">' + esc(r.label) + '</div>' +
+      '<div class="track" style="width:' + (r.principal/max*100).toFixed(1) + '%">' +
+        '<span class="adv"></span>' +
+        '<span class="rec" style="width:' + (Math.min(r.recovery,1)*100).toFixed(1) + '%"></span>' +
+      '</div>' +
+      '<div class="amt">' + money(r.principal) + '</div>' +
+      '<div class="pct' + (r.recovery < 0.25 ? ' bad' : '') + '">' + fmtPct0(r.recovery) + '</div>' +
+    '</div>';
+  }).join('');
+  document.getElementById('fertInsight').innerHTML = t('fertInsight');
+
+  var brands = DATA.fertiliser.brands;
+  mountChart('brandChart', {
+    type:'bar',
+    data:{
+      labels: brands.map(function(r){ return r.label; }),
+      datasets:[{
+        data: brands.map(function(r){ return r.bags; }),
+        backgroundColor: brands.map(function(_, i){ return RANK_GREEN[Math.min(i, RANK_GREEN.length-1)]; }),
+        borderRadius:3, borderSkipped:false, barPercentage:0.74
+      }]
+    },
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label:function(c){
+        var r = brands[c.dataIndex];
+        return ' ' + fmtInt(r.bags) + ' ' + t('lblBags') + '  (' + moneyFull(r.value) + ')';
+      }}}},
+      scales:{
+        x:{grid:{color:COLORS.line, borderDash:GRID_DASH}, border:{display:false},
+           ticks:{precision:0}},
+        y:{grid:{display:false}, border:{display:false},
+           ticks:{font:{family:CHART_FONT, size:11.5}, color:COLORS.ink}}
+      }
+    }
+  });
+  document.getElementById('brandInsight').innerHTML = t('brandInsight');
+}
+
+function renderSchool(){
+  var s = DATA.school_fees;
+  document.getElementById('schoolBody').innerHTML = s.by_cooperative.map(function(r, i){
+    return '<tr>' +
+      '<td class="rank">' + (i+1) + '</td>' +
+      '<td class="name">' + esc(r.label) + '</td>' +
+      '<td class="num">' + fmtInt(r.n) + '</td>' +
+      '<td class="num">' + money(r.principal) + '</td>' +
+      '<td class="num">' + fmtInt(r.cleared_n) + '</td>' +
+      '<td class="num">' + money(r.balance) + '</td>' +
+    '</tr>';
+  }).join('');
+  document.getElementById('schoolInsight').innerHTML = t('schoolInsight');
+
+  var sizes = s.by_size;
+  mountChart('sizeChart', {
+    type:'bar',
+    data:{
+      labels: sizes.map(function(r){ return r.label; }),
+      datasets:[{
+        data: sizes.map(function(r){ return r.n; }),
+        backgroundColor: sizes.map(function(_, i){ return RANK_GREEN[Math.min(i, RANK_GREEN.length-1)]; }),
+        borderRadius:3, borderSkipped:false, barPercentage:0.7
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label:function(c){
+        return ' ' + fmtInt(sizes[c.dataIndex].n) + ' ' + t('lblLoans');
+      }}}},
+      scales:{
+        x:{grid:{display:false}, border:{display:false}, ticks:{maxRotation:0, autoSkip:false}},
+        y:{grid:{color:COLORS.line, borderDash:GRID_DASH}, border:{display:false}, ticks:{precision:0}}
+      }
+    }
+  });
+
+  var eras = s.by_era;
+  document.getElementById('schoolStats').innerHTML = [
+    {lab:t('statMedian'), val:money(s.median_loan, 0), foot:t('statMedianFoot')},
+    {lab:t('statCleared'), val:fmtInt(s.cleared_n) + ' / ' + fmtInt(s.n), foot:t('statClearedFoot')}
+  ].concat(eras.map(function(e){
+    return {lab:e.label, val:fmtInt(e.n), foot:fmtInt(e.cleared_n) + ' ' + t('lblCleared')};
+  })).map(function(x){
+    return '<div><div class="lab">' + x.lab + '</div><div class="val">' + x.val +
+           '</div><div class="foot">' + x.foot + '</div></div>';
+  }).join('');
+}
+
+function renderNotes(){
+  var out = [
+    '<div class="callout warn">' + t('noteArrears') + '</div>',
+    '<div class="callout warn">' + t('noteConcentration') + '</div>'
+  ];
+  if (DATA.notes.unattributed_recovery > 0){
+    out.push('<div class="callout warn">' + t('noteUnattributed') + '</div>');
+  }
+  out = out.concat([
+    '<div class="callout">' + t('noteDerived') + '</div>',
+    '<div class="callout">' + t('noteNames') + '</div>',
+    '<div class="callout">' + t('noteMedcare') + '</div>',
+    '<div class="callout">' + t('notePrivacy') + '</div>'
+  ]);
+  document.getElementById('notesBox').innerHTML = out.join('');
+}
+
+function renderAll(){
+  computeFacts();
+  applyStaticI18n();
+  document.getElementById('footerAboutP').textContent = t('aboutP');
+  renderTiles();
+  renderProducts();
+  renderFunders();
+  renderArrears();
+  renderBuckets();
+  renderAgeByProduct();
+  renderSplit();
+  renderFertiliser();
+  renderSchool();
+  renderNotes();
+}
+
+/* ============================= controls ============================= */
+function bindControls(){
+  document.getElementById('currencyPills').addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    state.currency = b.dataset.currency;
+    this.querySelectorAll('button').forEach(function(x){
+      x.classList.toggle('active', x.dataset.currency === state.currency);
+    });
+    renderAll();
+  });
+  document.getElementById('langPills').addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    state.lang = b.dataset.lang;
+    this.querySelectorAll('button').forEach(function(x){
+      x.classList.toggle('active', x.dataset.lang === state.lang);
+    });
+    renderAll();
+  });
+}
+
+function start(){
+  themeCharts();
+  bindControls();
+  renderAll();
+}
+
+boot();
+})();
+
+</script>
 <!-- ndugu:analytics -->
 <!-- Visit counting. No cookie, no localStorage, no fingerprinting;
      figures are private to the Ndugu Cloudflare account. Managed by

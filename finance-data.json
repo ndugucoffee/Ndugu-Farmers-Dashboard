@@ -1,0 +1,440 @@
+{
+ "meta": {
+  "source": "Ndugu_financial_services.xlsx",
+  "generated": "2026-09-21",
+  "as_of": "2026-09-21",
+  "currency": "UGX",
+  "fx_ugx_per_usd": 3777,
+  "n_products": 4,
+  "n_loans": 70
+ },
+ "portfolio": {
+  "products": [
+   {
+    "product": "Trade working capital",
+    "advanced": 1620000000,
+    "interest": 52600000,
+    "due": 1672600000,
+    "recovered": 210000000,
+    "balance": 1462600000,
+    "recovery": 0.1256,
+    "funder": "Rabo",
+    "partner": "NDUGU",
+    "active": true
+   },
+   {
+    "product": "Fertiliser",
+    "advanced": 320908000,
+    "interest": 26474910,
+    "due": 347382910,
+    "recovered": 40272682,
+    "balance": 307110228,
+    "recovery": 0.1159,
+    "funder": "Emata",
+    "partner": "NDUGU",
+    "active": true
+   },
+   {
+    "product": "Staff",
+    "advanced": 46200000,
+    "interest": 4750000,
+    "due": 50950000,
+    "recovered": 10748333,
+    "balance": 40201667,
+    "recovery": 0.211,
+    "funder": "Internal (Ndugu)",
+    "partner": "NDUGU",
+    "active": true
+   },
+   {
+    "product": "School fees",
+    "advanced": 27120500,
+    "interest": 3686169,
+    "due": 30806669,
+    "recovered": 7932425,
+    "balance": 22874244,
+    "recovery": 0.2575,
+    "funder": "Macbee Fund",
+    "partner": "SACCOS/ VSLAS",
+    "active": true
+   },
+   {
+    "product": "Medcare",
+    "advanced": 0,
+    "interest": 0,
+    "due": 0,
+    "recovered": 0,
+    "balance": 0,
+    "recovery": null,
+    "funder": "RVO",
+    "partner": "ELUCID",
+    "active": false
+   }
+  ],
+  "total": {
+   "advanced": 2014228500,
+   "interest": 87511079,
+   "due": 2101739579,
+   "recovered": 268953440,
+   "balance": 1832786138,
+   "recovery": 0.128
+  }
+ },
+ "funders": [
+  {
+   "funder": "Rabo",
+   "advanced": 1620000000,
+   "balance": 1462600000,
+   "products": [
+    "Trade working capital"
+   ]
+  },
+  {
+   "funder": "Emata",
+   "advanced": 320908000,
+   "balance": 307110228,
+   "products": [
+    "Fertiliser"
+   ]
+  },
+  {
+   "funder": "Internal (Ndugu)",
+   "advanced": 46200000,
+   "balance": 40201667,
+   "products": [
+    "Staff"
+   ]
+  },
+  {
+   "funder": "Macbee Fund",
+   "advanced": 27120500,
+   "balance": 22874244,
+   "products": [
+    "School fees"
+   ]
+  },
+  {
+   "funder": "RVO",
+   "advanced": 0,
+   "balance": 0,
+   "products": []
+  }
+ ],
+ "ageing": {
+  "by_product": [
+   {
+    "product": "Trade working capital",
+    "open_n": 11,
+    "open_balance": 1462600000,
+    "overdue_n": 9,
+    "overdue_balance": 1329000000,
+    "undated_n": 1,
+    "max_days": 94
+   },
+   {
+    "product": "Fertiliser",
+    "open_n": 6,
+    "open_balance": 307110228,
+    "overdue_n": 6,
+    "overdue_balance": 307110228,
+    "undated_n": 0,
+    "max_days": 68
+   },
+   {
+    "product": "School fees",
+    "open_n": 29,
+    "open_balance": 22874244,
+    "overdue_n": 19,
+    "overdue_balance": 13029400,
+    "undated_n": 0,
+    "max_days": 261
+   },
+   {
+    "product": "Staff",
+    "open_n": 6,
+    "open_balance": 40201667,
+    "overdue_n": 0,
+    "overdue_balance": 0,
+    "undated_n": 1,
+    "max_days": 0
+   }
+  ],
+  "by_bucket": [
+   {
+    "label": "1 to 30 days",
+    "n": 5,
+    "balance": 1163600000
+   },
+   {
+    "label": "31 to 60 days",
+    "n": 3,
+    "balance": 164800000
+   },
+   {
+    "label": "61 to 90 days",
+    "n": 11,
+    "balance": 311521229
+   },
+   {
+    "label": "Over 90 days",
+    "n": 15,
+    "balance": 9218400
+   }
+  ],
+  "undated_balance": 41320000,
+  "overdue_n": 34,
+  "overdue_balance": 1649139628,
+  "open_balance": 1832786139
+ },
+ "trade": {
+  "n": 14,
+  "principal": 1620000000,
+  "internal": {
+   "label": "Ndugu export department",
+   "n": 1,
+   "principal": 1000000000,
+   "balance": 1040000000,
+   "share": 0.6173
+  },
+  "external": {
+   "n": 13,
+   "principal": 620000000,
+   "balance": 422600000
+  },
+  "by_band": [
+   {
+    "label": "Up to 30m",
+    "n": 3,
+    "principal": 85000000
+   },
+   {
+    "label": "30m to 50m",
+    "n": 7,
+    "principal": 305000000
+   },
+   {
+    "label": "50m to 100m",
+    "n": 3,
+    "principal": 230000000
+   }
+  ]
+ },
+ "fertiliser": {
+  "by_cooperative": [
+   {
+    "label": "Kalisizo",
+    "principal": 102015000,
+    "due": 110431238,
+    "recovered": 7831400,
+    "balance": 102599838,
+    "recovery": 0.0709
+   },
+   {
+    "label": "Kyannamukaaka",
+    "principal": 86224000,
+    "due": 93337480,
+    "recovered": 15000000,
+    "balance": 78337480,
+    "recovery": 0.1607
+   },
+   {
+    "label": "Kyotera",
+    "principal": 44860000,
+    "due": 48560950,
+    "recovered": 17441282,
+    "balance": 31119668,
+    "recovery": 0.3592
+   },
+   {
+    "label": "Bukakkata",
+    "principal": 43994000,
+    "due": 47623505,
+    "recovered": 0,
+    "balance": 47623505,
+    "recovery": 0.0
+   },
+   {
+    "label": "Central Coffee",
+    "principal": 27215000,
+    "due": 29460238,
+    "recovered": 0,
+    "balance": 29460238,
+    "recovery": 0.0
+   },
+   {
+    "label": "Biganda",
+    "principal": 16600000,
+    "due": 17969500,
+    "recovered": 0,
+    "balance": 17969500,
+    "recovery": 0.0
+   }
+  ],
+  "brands": [
+   {
+    "label": "Expresso",
+    "bags": 916,
+    "value": 166712000
+   },
+   {
+    "label": "Kyno plus S",
+    "bags": 528,
+    "value": 88176000
+   },
+   {
+    "label": "NPK",
+    "bags": 120,
+    "value": 21840000
+   },
+   {
+    "label": "Urea",
+    "bags": 142,
+    "value": 21300000
+   },
+   {
+    "label": "Proteen",
+    "bags": 170,
+    "value": 14790000
+   },
+   {
+    "label": "Panda power",
+    "bags": 20,
+    "value": 3740000
+   }
+  ],
+  "bags": 1896,
+  "recoveries": {
+   "n": 8,
+   "total": 51272682,
+   "unattributed": 11000000,
+   "monthly": [
+    {
+     "month": "2026-06",
+     "amount": 18085842
+    },
+    {
+     "month": "2026-07",
+     "amount": 1506840
+    },
+    {
+     "month": "2026-08",
+     "amount": 16680000
+    },
+    {
+     "month": "2026-09",
+     "amount": 15000000
+    }
+   ]
+  }
+ },
+ "school_fees": {
+  "n": 44,
+  "cleared_n": 15,
+  "by_cooperative": [
+   {
+    "label": "Lwanda",
+    "n": 11,
+    "principal": 12219000,
+    "due": 14337425,
+    "cleared_n": 8,
+    "balance": 5470000
+   },
+   {
+    "label": "Kasasa",
+    "n": 16,
+    "principal": 11839000,
+    "due": 13122900,
+    "cleared_n": 3,
+    "balance": 9344400
+   },
+   {
+    "label": "St. Kizito",
+    "n": 6,
+    "principal": 3650000,
+    "due": 4015000,
+    "cleared_n": 0,
+    "balance": 4015000
+   },
+   {
+    "label": "Other cooperatives",
+    "n": 5,
+    "principal": 2720000,
+    "due": 2992000,
+    "cleared_n": 2,
+    "balance": 2530000
+   },
+   {
+    "label": "Kitasiba",
+    "n": 3,
+    "principal": 1427500,
+    "due": 1547844,
+    "cleared_n": 2,
+    "balance": 634844
+   },
+   {
+    "label": "Miti",
+    "n": 3,
+    "principal": 800000,
+    "due": 880000,
+    "cleared_n": 0,
+    "balance": 880000
+   }
+  ],
+  "by_era": [
+   {
+    "label": "Newer per-disbursement log",
+    "n": 35,
+    "principal": 27120500,
+    "cleared_n": 6,
+    "balance": 22874244
+   },
+   {
+    "label": "Older applicant list",
+    "n": 9,
+    "principal": 5535000,
+    "cleared_n": 9,
+    "balance": 0
+   }
+  ],
+  "by_size": [
+   {
+    "label": "Up to 300k",
+    "n": 7
+   },
+   {
+    "label": "300k to 600k",
+    "n": 15
+   },
+   {
+    "label": "600k to 1m",
+    "n": 14
+   },
+   {
+    "label": "Over 1m",
+    "n": 8
+   }
+  ],
+  "pooled_coops": 1,
+  "median_loan": 615000
+ },
+ "notes": {
+  "min_coop_loans": 3,
+  "name_merges": [
+   "Biganda",
+   "Bukakkata",
+   "Central Coffee",
+   "Kalisizo",
+   "Kasasa",
+   "Kitasiba",
+   "Kyannamukaaka",
+   "Kyotera",
+   "Lwanda",
+   "Miti",
+   "St. Kizito"
+  ],
+  "n_aliases": 22,
+  "derived_school_status": true,
+  "medcare_inactive": true,
+  "unattributed_recovery": 11000000
+ }
+}
