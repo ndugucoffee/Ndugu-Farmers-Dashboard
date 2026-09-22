@@ -702,7 +702,7 @@
     <button id="edRevert" type="button" disabled>Revert plot</button>
     <button id="edRevertAll" type="button" disabled>Revert all</button>
     <button id="edExport" type="button" class="primary" disabled>Export changes</button>
-    <span class="warn">Nothing here is saved centrally. Export and apply at source.</span>
+    <span class="warn">Autosaved in this browser only. Export and apply at source to make it real.</span>
   </div>
   <div class="edmain">
     <div id="edMap"></div>
@@ -804,6 +804,72 @@ function movedCount(i){
   return n;
 }
 
+/* ---------- draft autosave ----------
+   Everything above lived only in this tab's memory: a refresh, a closed tab
+   or a crash threw away whatever hadn't been exported yet. This saves the
+   edited rings to localStorage, keyed by district, so reopening the same
+   district in the same browser offers to pick the draft back up. It is
+   still not a save to anywhere else — the warning in the toolbar says so —
+   and it never touches export or the workbook; it only protects the work
+   between one drag and the next export. */
+var DRAFT_PREFIX = 'ndugu-editor-draft:';
+
+function draftKey(district){ return DRAFT_PREFIX + district; }
+
+function saveDraft(){
+  if (!DKEY) return;
+  var keys = Object.keys(changed);
+  if (!keys.length){
+    try { localStorage.removeItem(draftKey(DKEY.district)); } catch (e) {}
+    return;
+  }
+  var plots = {};
+  keys.forEach(function(k){
+    var i = +k, r = ROWS[i];
+    plots[k] = {u: r.u || null, c: r.c || null, n: r.n || null, ring: ringOf(shapes[i])};
+  });
+  var draft = {district: DKEY.district, savedAt: new Date().toISOString(), plots: plots};
+  try { localStorage.setItem(draftKey(DKEY.district), JSON.stringify(draft)); }
+  catch (e) { /* private mode, quota, etc. — the tool still works, it just can't autosave */ }
+}
+
+function loadDraft(district){
+  try {
+    var raw = localStorage.getItem(draftKey(district));
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) { return null; }
+}
+
+function clearDraft(district){
+  try { localStorage.removeItem(draftKey(district)); } catch (e) {}
+}
+
+/* Matched by identity (farm unit id, else farmer code + plot name) rather
+   than by array index: if polygon-data.json was rebuilt between saving the
+   draft and reopening it, the same plot may no longer sit at the same
+   index, and applying the edit to whatever happens to be at that index now
+   would silently move the wrong farmer's boundary. */
+function applyDraft(draft){
+  var n = 0;
+  Object.keys(draft.plots).forEach(function(k){
+    var dp = draft.plots[k], idx = +k, r = ROWS[idx];
+    var match = r && r.u === dp.u && r.c === dp.c && r.n === dp.n;
+    if (!match){
+      idx = ROWS.findIndex(function(rr){
+        return dp.u ? rr.u === dp.u : (rr.c === dp.c && rr.n === dp.n);
+      });
+    }
+    if (idx < 0 || !shapes[idx]) return;
+    orig[idx] = ringOf(shapes[idx]);
+    shapes[idx].setLatLngs([dp.ring]);
+    changed[idx] = true;
+    shapes[idx].setStyle(style(idx));
+    n++;
+  });
+  status(n + ' restored plot' + (n===1?'':'s') + ' from a saved draft.');
+  renderSide(); renderChanged();
+}
+
 function style(i){
   var r = ROWS[i], on = (i === sel), ch = !!changed[i];
   return {
@@ -868,7 +934,7 @@ function drawHandles(){
       poly.setLatLngs([ll]);
       touch();
     });
-    mk.on('dragend', function(){ drawHandles(); });
+    mk.on('dragend', function(){ drawHandles(); saveDraft(); });
     /* Alt-click or right-click removes this corner. A ring with two points is
        a line, not a boundary, so three is the floor. */
     var kill = function(e){
@@ -877,7 +943,7 @@ function drawHandles(){
       if (ll.length <= 3){ status('A boundary needs at least three corners.'); return; }
       ll.splice(i,1);
       poly.setLatLngs([ll]);
-      touch(); drawHandles();
+      touch(); drawHandles(); saveDraft();
     };
     mk.on('contextmenu', kill);
     mk.on('click', function(e){ if (e.originalEvent && e.originalEvent.altKey) kill(e); });
@@ -908,7 +974,7 @@ function drawHandles(){
         poly.setLatLngs([ll]);
         touch();
       });
-      mk.on('dragend', function(){ drawHandles(); });
+      mk.on('dragend', function(){ drawHandles(); saveDraft(); });
       mk.addTo(map); handles.push(mk);
     })(i);
   }
@@ -1030,7 +1096,7 @@ function loadDistrict(key){
           var up = function(){
             map.off('mousemove', move); map.off('mouseup', up);
             map.dragging.enable();
-            drawHandles();
+            drawHandles(); saveDraft();
           };
           map.on('mousemove', move); map.on('mouseup', up);
         });
@@ -1040,6 +1106,18 @@ function loadDistrict(key){
       m.fitBounds(L.latLngBounds([d.bbox[0],d.bbox[1]],[d.bbox[2],d.bbox[3]]).pad(0.05));
       status(fmt(rows.length) + ' plots in ' + d.district);
       renderSide(); renderChanged();
+
+      var draft = loadDraft(d.district);
+      if (draft && Object.keys(draft.plots).length){
+        var when = new Date(draft.savedAt).toLocaleString();
+        if (confirm('This browser has ' + Object.keys(draft.plots).length +
+            ' unsaved edit(s) for ' + d.district + ', autosaved ' + when +
+            '. Restore them?')){
+          applyDraft(draft);
+        } else {
+          clearDraft(d.district);
+        }
+      }
     })
     .catch(function(err){ status('Could not load: ' + err.message); });
 }
@@ -1052,6 +1130,7 @@ function revert(i){
   if (i === sel) drawHandles();
   renderSide(); renderChanged();
   $('edRevert').disabled = true;
+  saveDraft();
 }
 
 /* ---------- export ---------- */
