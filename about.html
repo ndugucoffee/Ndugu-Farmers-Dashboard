@@ -574,6 +574,11 @@
   .cardgrid{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px;}
   @media (max-width:980px){ .cardgrid{grid-template-columns:repeat(2,minmax(0,1fr));} }
   @media (max-width:560px){ .cardgrid{grid-template-columns:1fr;} }
+  /* Six steps reads better as 2x3 than 4+2, so .steps overrides the shared
+     4-column grid rather than using it as-is. */
+  .cardgrid.steps{grid-template-columns:repeat(3,minmax(0,1fr));}
+  @media (max-width:980px){ .cardgrid.steps{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  @media (max-width:560px){ .cardgrid.steps{grid-template-columns:1fr;} }
   .acard{
     border:1px solid var(--line-strong); border-top:3px solid var(--roast);
     border-radius:var(--radius-sm); background:var(--surface); padding:14px 16px;
@@ -584,10 +589,15 @@
   }
   .acard h4{font-size:14px; margin:0 0 6px 0; font-weight:600; color:var(--ink);}
   .acard p{margin:0; font-size:12.5px; color:var(--ink-soft); line-height:1.55;}
+  /* The two quality-testing checkpoints (3, 5) get the teal used for
+     verification/assurance elsewhere on the site, so they read as a
+     different kind of step from the roast-toned flow around them. */
   .steps .acard:nth-child(1){border-top-color:#663A18;}
-  .steps .acard:nth-child(2){border-top-color:#884D20;}
-  .steps .acard:nth-child(3){border-top-color:#AA6128;}
-  .steps .acard:nth-child(4){border-top-color:#11675C;}
+  .steps .acard:nth-child(2){border-top-color:#77431C;}
+  .steps .acard:nth-child(3){border-top-color:#0F5A50;}
+  .steps .acard:nth-child(4){border-top-color:#995724;}
+  .steps .acard:nth-child(5){border-top-color:#137568;}
+  .steps .acard:nth-child(6){border-top-color:#AA6128;}
 
   /* Business-line cards are links: the whole card, not just a title, so the
      click target matches what looks clickable. Pages still being built keep
@@ -666,7 +676,7 @@
     <div class="hero-head">
       <p class="hero-eyebrow" data-i18n="heroEyebrow">About us</p>
       <h1 data-i18n="heroH1">Coffee, traced back to the farmer who grew it.</h1>
-      <p class="lede" data-i18n="heroLede">Ndugu Farmers Ltd buys FAQ-grade robusta from smallholder cooperatives across ten districts in Uganda's Greater Masaka region, bulks it into export-ready lots, and ships it to buyers who need to know exactly where it came from. The dashboards on this site are not a brochure &mdash; they are the same reporting the business runs on, published as it is.</p>
+      <p class="lede" data-i18n="heroLede">Ndugu Farmers Ltd buys FAQ-grade robusta from smallholder cooperatives across ten districts in Uganda's Greater Masaka region, bulks it into export-ready lots, and ships it to buyers who need to know exactly where it came from. The dashboards on this site are not a brochure: they are the same reporting the business runs on, published as it is.</p>
     </div>
   </section>
 
@@ -676,14 +686,14 @@
     <div class="section-head">
       <div>
         <h2 data-i18n="processH2">From farm gate to export</h2>
-        <p data-i18n="processP">Four steps, the same four every season.</p>
+        <p data-i18n="processP">Six steps, the same six every season.</p>
       </div>
     </div>
     <div class="cardgrid steps">
       <div class="acard">
         <p class="n" data-i18n="step1N">Step 1</p>
         <h4 data-i18n="step1H">Registration</h4>
-        <p data-i18n="step1P">A farmer joins through a cooperative in one of ten districts. Their record &mdash; name, plot, district &mdash; starts here and follows the coffee for as long as they keep delivering.</p>
+        <p data-i18n="step1P">A farmer joins through a cooperative in one of ten districts. Their record (name, plot, district) starts here and follows the coffee for as long as they keep delivering.</p>
       </div>
       <div class="acard">
         <p class="n" data-i18n="step2N">Step 2</p>
@@ -692,13 +702,23 @@
       </div>
       <div class="acard">
         <p class="n" data-i18n="step3N">Step 3</p>
-        <h4 data-i18n="step3H">Bulking &amp; grading</h4>
-        <p data-i18n="step3P">Deliveries are bulked into lots, graded by screen size, and checked against certification and geolocation requirements before they're offered to a buyer.</p>
+        <h4 data-i18n="step3H">Intake testing</h4>
+        <p data-i18n="step3P">Coffee Minds checks moisture and defect levels against Ndugu's standard as each delivery arrives, before it's bulked with anything else.</p>
       </div>
       <div class="acard">
         <p class="n" data-i18n="step4N">Step 4</p>
-        <h4 data-i18n="step4H">Export</h4>
-        <p data-i18n="step4P">Graded lots ship to UGACOF, ETG and other buyers, with the record &mdash; farmer, plot, certification, delivery date &mdash; intact behind every bag.</p>
+        <h4 data-i18n="step4H">Bulking &amp; grading</h4>
+        <p data-i18n="step4P">Deliveries are bulked into lots and graded by screen size, ready to be matched against a buyer's specification.</p>
+      </div>
+      <div class="acard">
+        <p class="n" data-i18n="step5N">Step 5</p>
+        <h4 data-i18n="step5H">Export testing</h4>
+        <p data-i18n="step5P">Coffee Minds runs a final cupping and moisture check on the graded lot, confirmed against certification and geolocation requirements, before it's offered to a buyer.</p>
+      </div>
+      <div class="acard">
+        <p class="n" data-i18n="step6N">Step 6</p>
+        <h4 data-i18n="step6H">Export</h4>
+        <p data-i18n="step6P">Graded lots ship to UGACOF, ETG and other buyers, with the record (farmer, plot, certification, delivery date) intact behind every bag.</p>
       </div>
     </div>
   </section>
@@ -751,7 +771,7 @@
       <a class="acard" href="coffee.html">
         <p class="n" data-i18n="lblBuilding">In development</p>
         <h4 data-i18n="lineCoffH">Coffee Minds</h4>
-        <p data-i18n="lineCoffP">Agronomy training and advisory for the farmers we buy from.</p>
+        <p data-i18n="lineCoffP">Quality testing and quality assurance for the coffee we buy, from intake through export.</p>
       </a>
     </div>
   </section>
@@ -761,7 +781,7 @@
   <section id="sec-where">
     <div class="section-head">
       <div>
-        <h2 data-i18n="whereH2">Ten districts, one lake basin</h2>
+        <h2 data-i18n="whereH2">Eight districts, one lake basin</h2>
       </div>
     </div>
     <div class="grid">
@@ -771,7 +791,6 @@
           <span class="badge">Masaka</span><span class="badge">Kyotera</span>
           <span class="badge">Rakai</span><span class="badge">Lwengo</span>
           <span class="badge">Ntungamo</span><span class="badge">Bukomansimbi</span>
-          <span class="badge">Luuka</span><span class="badge">Mukono</span>
           <span class="badge">Kiboga</span><span class="badge">Luwero</span>
         </div>
       </div>
@@ -788,7 +807,7 @@
     </div>
     <div class="grid">
       <div class="col-12 panel">
-        <p data-i18n="standardsP">Certified Rainforest Alliance, Fairtrade and 4C, and working toward full EUDR compliance ahead of the regulation's deadlines &mdash; see the EUDR Compliance dashboard for exactly where that stands today.</p>
+        <p data-i18n="standardsP">Certified Rainforest Alliance, Fairtrade and 4C, and working toward full EUDR compliance ahead of the regulation's deadlines: see the EUDR Compliance dashboard for exactly where that stands today.</p>
         <div class="badgerow">
           <span class="badge">Rainforest Alliance</span>
           <span class="badge">Fairtrade</span>
@@ -834,17 +853,21 @@ en:{
   brandRole:'About us',
   heroEyebrow:'About us',
   heroH1:'Coffee, traced back to the farmer who grew it.',
-  heroLede:'Ndugu Farmers Ltd buys FAQ-grade robusta from smallholder cooperatives across ten districts in Uganda’s Greater Masaka region, bulks it into export-ready lots, and ships it to buyers who need to know exactly where it came from. The dashboards on this site are not a brochure — they are the same reporting the business runs on, published as it is.',
+  heroLede:'Ndugu Farmers Ltd buys FAQ-grade robusta from smallholder cooperatives across ten districts in Uganda’s Greater Masaka region, bulks it into export-ready lots, and ships it to buyers who need to know exactly where it came from. The dashboards on this site are not a brochure: they are the same reporting the business runs on, published as it is.',
   partProcess:'How the trade works',
-  processH2:'From farm gate to export', processP:'Four steps, the same four every season.',
+  processH2:'From farm gate to export', processP:'Six steps, the same six every season.',
   step1N:'Step 1', step1H:'Registration',
-  step1P:'A farmer joins through a cooperative in one of ten districts. Their record — name, plot, district — starts here and follows the coffee for as long as they keep delivering.',
+  step1P:'A farmer joins through a cooperative in one of ten districts. Their record (name, plot, district) starts here and follows the coffee for as long as they keep delivering.',
   step2N:'Step 2', step2H:'Delivery',
   step2P:'Cherry and parchment are weighed and paid for at the buying site, on the day, and logged against the farmer who brought it in.',
-  step3N:'Step 3', step3H:'Bulking & grading',
-  step3P:'Deliveries are bulked into lots, graded by screen size, and checked against certification and geolocation requirements before they’re offered to a buyer.',
-  step4N:'Step 4', step4H:'Export',
-  step4P:'Graded lots ship to UGACOF, ETG and other buyers, with the record — farmer, plot, certification, delivery date — intact behind every bag.',
+  step3N:'Step 3', step3H:'Intake testing',
+  step3P:'Coffee Minds checks moisture and defect levels against Ndugu’s standard as each delivery arrives, before it’s bulked with anything else.',
+  step4N:'Step 4', step4H:'Bulking & grading',
+  step4P:'Deliveries are bulked into lots and graded by screen size, ready to be matched against a buyer’s specification.',
+  step5N:'Step 5', step5H:'Export testing',
+  step5P:'Coffee Minds runs a final cupping and moisture check on the graded lot, confirmed against certification and geolocation requirements, before it’s offered to a buyer.',
+  step6N:'Step 6', step6H:'Export',
+  step6P:'Graded lots ship to UGACOF, ETG and other buyers, with the record (farmer, plot, certification, delivery date) intact behind every bag.',
   partLines:'What we do',
   linesH2:'Eight lines of work', linesP:'Reported here as they run, not summarised after the fact.',
   lblLive:'Live', lblBuilding:'In development',
@@ -855,15 +878,15 @@ en:{
   lineFinH:'Financial Services', lineFinP:'Microfinance for farmers in the network, from input loans to school-fees credit.',
   lineProdH:'Production', lineProdP:'Farm-level production records, from planting through harvest.',
   lineAgriH:'Agritracker', lineAgriP:'Field data collection and record-keeping down to the plot.',
-  lineCoffH:'Coffee Minds', lineCoffP:'Agronomy training and advisory for the farmers we buy from.',
+  lineCoffH:'Coffee Minds', lineCoffP:'Quality testing and quality assurance for the coffee we buy, from intake through export.',
   partWhere:'Where we work',
-  whereH2:'Ten districts, one lake basin',
-  whereP:'Ndugu sources from smallholder cooperatives across ten districts in Uganda’s Greater Masaka region and the wider Lake Victoria basin. Most of the farmers we work with farm small plots — __PCT__ of the registry holds under two hectares.',
+  whereH2:'Eight districts, one lake basin',
+  whereP:'Ndugu sources from smallholder cooperatives across eight districts in Uganda’s Greater Masaka region and the wider Lake Victoria basin. Most of the farmers we work with farm small plots: __PCT__ of the registry holds under two hectares.',
   partStandards:'Standards',
   standardsH2:'Certifications & standards',
-  standardsP:'Certified Rainforest Alliance, Fairtrade and 4C, and working toward full EUDR compliance ahead of the regulation’s deadlines — see the EUDR Compliance dashboard for exactly where that stands today.',
+  standardsP:'Certified Rainforest Alliance, Fairtrade and 4C, and working toward full EUDR compliance ahead of the regulation’s deadlines: see the EUDR Compliance dashboard for exactly where that stands today.',
   partReport:'How we report',
-  closingP:'Every figure on this site is published as a total — by district, season, product or cooperative — <b>never as an individual farmer, borrower or pupil.</b> Nothing here is a summary written after the fact: these are the live dashboards Ndugu uses to run the business, the same ones a funder, a buyer or an auditor would be shown.',
+  closingP:'Every figure on this site is published as a total, by district, season, product or cooperative, <b>never as an individual farmer, borrower or pupil.</b> Nothing here is a summary written after the fact: these are the live dashboards Ndugu uses to run the business, the same ones a funder, a buyer or an auditor would be shown.',
   footTag:'Ndugu Farmers Ltd'
 },
 nl:{
@@ -874,17 +897,21 @@ nl:{
   brandRole:'Over ons',
   heroEyebrow:'Over ons',
   heroH1:'Koffie, te herleiden tot de boer die hem verbouwde.',
-  heroLede:'Ndugu Farmers Ltd koopt robusta van FAQ-kwaliteit van kleinschalige coöperaties in tien districten in de regio Groot-Masaka in Oeganda, bundelt dit tot exportklare partijen en verscheept het naar afnemers die precies willen weten waar het vandaan komt. De dashboards op deze site zijn geen brochure — het is dezelfde rapportage waarop het bedrijf draait, gepubliceerd zoals ze is.',
+  heroLede:'Ndugu Farmers Ltd koopt robusta van FAQ-kwaliteit van kleinschalige coöperaties in tien districten in de regio Groot-Masaka in Oeganda, bundelt dit tot exportklare partijen en verscheept het naar afnemers die precies willen weten waar het vandaan komt. De dashboards op deze site zijn geen brochure: het is dezelfde rapportage waarop het bedrijf draait, gepubliceerd zoals ze is.',
   partProcess:'Hoe de handel werkt',
-  processH2:'Van erf tot export', processP:'Vier stappen, elk seizoen dezelfde vier.',
+  processH2:'Van erf tot export', processP:'Zes stappen, elk seizoen dezelfde zes.',
   step1N:'Stap 1', step1H:'Registratie',
-  step1P:'Een boer sluit zich aan via een coöperatie in een van tien districten. Het dossier — naam, perceel, district — begint hier en volgt de koffie zolang er geleverd wordt.',
+  step1P:'Een boer sluit zich aan via een coöperatie in een van tien districten. Het dossier (naam, perceel, district) begint hier en volgt de koffie zolang er geleverd wordt.',
   step2N:'Stap 2', step2H:'Levering',
   step2P:'Kersen en parchment worden gewogen en op de dag zelf uitbetaald op de inkooplocatie, geregistreerd op naam van de boer die ze bracht.',
-  step3N:'Stap 3', step3H:'Bundelen & sorteren',
-  step3P:'Leveringen worden gebundeld tot partijen, gesorteerd op zeefmaat, en getoetst aan certificerings- en geolocatie-eisen voordat ze aan een afnemer worden aangeboden.',
-  step4N:'Stap 4', step4H:'Export',
-  step4P:'Gesorteerde partijen gaan naar UGACOF, ETG en andere afnemers, met het dossier — boer, perceel, certificering, leverdatum — intact achter elke baal.',
+  step3N:'Stap 3', step3H:'Kwaliteitscontrole bij inkoop',
+  step3P:'Coffee Minds controleert vochtgehalte en gebreken tegen de norm van Ndugu bij elke levering, voordat deze met de rest van de partij wordt gebundeld.',
+  step4N:'Stap 4', step4H:'Bundelen & sorteren',
+  step4P:'Leveringen worden gebundeld tot partijen en gesorteerd op zeefmaat, klaar om te worden afgestemd op de specificatie van een afnemer.',
+  step5N:'Stap 5', step5H:'Kwaliteitscontrole voor export',
+  step5P:'Coffee Minds voert een laatste cupping- en vochtcontrole uit op de gesorteerde partij, getoetst aan certificerings- en geolocatie-eisen, voordat deze aan een afnemer wordt aangeboden.',
+  step6N:'Stap 6', step6H:'Export',
+  step6P:'Gesorteerde partijen gaan naar UGACOF, ETG en andere afnemers, met het dossier (boer, perceel, certificering, leverdatum) intact achter elke baal.',
   partLines:'Wat we doen',
   linesH2:'Acht bedrijfsonderdelen', linesP:'Hier gerapporteerd zoals ze lopen, niet achteraf samengevat.',
   lblLive:'Actief', lblBuilding:'In ontwikkeling',
@@ -895,15 +922,15 @@ nl:{
   lineFinH:'Financiële diensten', lineFinP:'Microfinanciering voor boeren in het netwerk, van inputleningen tot schoolgeldkrediet.',
   lineProdH:'Productie', lineProdP:'Productiegegevens op boerderijniveau, van aanplant tot oogst.',
   lineAgriH:'Agritracker', lineAgriP:'Verzameling van velddata en registratie tot op perceelniveau.',
-  lineCoffH:'Coffee Minds', lineCoffP:'Agronomische training en advies voor de boeren bij wie we inkopen.',
+  lineCoffH:'Coffee Minds', lineCoffP:'Kwaliteitscontrole en kwaliteitsborging voor de koffie die we inkopen, van inkoop tot export.',
   partWhere:'Waar we werken',
-  whereH2:'Tien districten, één merengebied',
-  whereP:'Ndugu koopt in bij kleinschalige coöperaties in tien districten in de regio Groot-Masaka in Oeganda en het bredere Victoriameer-gebied. De meeste boeren in ons netwerk werken kleine percelen — __PCT__ van het register bewerkt minder dan twee hectare.',
+  whereH2:'Acht districten, één merengebied',
+  whereP:'Ndugu koopt in bij kleinschalige coöperaties in acht districten in de regio Groot-Masaka in Oeganda en het bredere Victoriameer-gebied. De meeste boeren in ons netwerk werken kleine percelen: __PCT__ van het register bewerkt minder dan twee hectare.',
   partStandards:'Normen',
   standardsH2:'Certificeringen & normen',
-  standardsP:'Gecertificeerd Rainforest Alliance, Fairtrade en 4C, en op weg naar volledige EUDR-naleving voor de deadlines van de verordening — zie het EUDR-nalevingsdashboard voor de actuele stand van zaken.',
+  standardsP:'Gecertificeerd Rainforest Alliance, Fairtrade en 4C, en op weg naar volledige EUDR-naleving voor de deadlines van de verordening: zie het EUDR-nalevingsdashboard voor de actuele stand van zaken.',
   partReport:'Hoe we rapporteren',
-  closingP:'Elk cijfer op deze site wordt gepubliceerd als totaal — per district, seizoen, product of coöperatie — <b>nooit als individuele boer, kredietnemer of leerling.</b> Niets hier is een achteraf geschreven samenvatting: dit zijn de dashboards waarop Ndugu het bedrijf draait, dezelfde die een financier, afnemer of auditor te zien krijgt.',
+  closingP:'Elk cijfer op deze site wordt gepubliceerd als totaal, per district, seizoen, product of coöperatie, <b>nooit als individuele boer, kredietnemer of leerling.</b> Niets hier is een achteraf geschreven samenvatting: dit zijn de dashboards waarop Ndugu het bedrijf draait, dezelfde die een financier, afnemer of auditor te zien krijgt.',
   footTag:'Ndugu Farmers Ltd'
 }
 };
