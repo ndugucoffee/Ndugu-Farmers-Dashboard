@@ -905,7 +905,6 @@
             <div class="foot" id="flow4sub">-</div>
           </div>
         </div>
-        <div id="notesBox"></div>
       </div>
     </div>
   </section>
@@ -1322,9 +1321,6 @@ function computeFacts(){
     volumeDir: prev ? dirWord(pctChange(s.volume_kg, prev.sales.volume_kg)) : '',
     priceDelta: prev ? fmtPct(Math.abs(pctChange(s.avg_realised_usd_per_kg, prev.sales.avg_realised_usd_per_kg))) : '',
     priceDir: prev ? dirWord(pctChange(s.avg_realised_usd_per_kg, prev.sales.avg_realised_usd_per_kg)) : '',
-    settled: d.settlement ? fmtPct(d.settlement.pct_collected) : null,
-    settledLots: d.settlement ? fmtInt(d.settlement.n_lots_covered) : '',
-    settledOf: d.settlement ? fmtInt(d.settlement.n_lots) : '',
     topSite: site ? site.site : '-',
     topSitePct: site && p.net_kg ? fmtPct(site.net_kg/p.net_kg) : '-',
     topSupplierPct: d.notes.top_supplier_share !== null ? fmtPct(d.notes.top_supplier_share) : '-',
@@ -1334,7 +1330,6 @@ function computeFacts(){
     nContracts: fmtInt((d.contracts || []).length),
     nShort: fmtInt(short.length),
     shortKg: fmtTonnes(shortKg),
-    noRevenue: d.notes.lots_without_revenue || 0,
     yoyA: yoy ? yoy.a : '', yoyB: yoy ? yoy.b : '',
     yoyN: yoy ? fmtInt(yoy.n) : '', yoyPct: yoy ? yoy.pct : '', yoyDir: yoy ? yoy.dir : '',
     hasYoy: !!yoy,
@@ -1447,7 +1442,7 @@ var I18N = {
     secFlowP:function(f){
       return f.shipShare + ' of the season’s intake left as export lots.';
     },
-    secFlowTag:'Volume reconciliation and data notes',
+    secFlowTag:'Volume reconciliation',
     flow1:'Bought in, FAQ', flow2:'Bought in, already graded',
     flow3:'Total intake', flow3sub:'before grading losses', flow4:'Shipped',
     footerDefH:'Definitions',
@@ -1475,29 +1470,6 @@ var I18N = {
     },
     suppFoot:function(f){
       return 'Top 10 of ' + f.suppliers + ' suppliers, by net weight delivered within the season.';
-    },
-    noteSettle:function(f){
-      return 'Collection: ' + f.settled + ' of the value invoiced has been received, across the ' +
-        f.settledLots + ' of ' + f.settledOf + ' lots that carry a receipt line. The remaining ' +
-        'lots record no receipt either way.';
-    },
-    noteNoRevenue:function(f){
-      return f.noRevenue + ' lot(s) shipped with no price or revenue recorded. Their volume is ' +
-        'included in the season total and excluded from revenue and from the average realised ' +
-        'price.';
-    },
-    noteDupe:function(n){
-      return n + ' pair(s) of suppliers appear under the same name entered in both word orders. ' +
-        'They are counted separately here, in line with the source sheet, so the supplier count ' +
-        'is an upper bound.';
-    },
-    noteMerge:function(list){
-      return 'Buyers recorded under more than one spelling are combined on this page: ' + list + '.';
-    },
-    noteRecon:function(f){
-      return 'Intake and shipment are measured at different points in the process: ' +
-        f.purchased + ' bought in against ' + f.volume + ' shipped, with the difference in ' +
-        'stock, grading loss and lots carrying into the next season.';
     }
   },
   nl: {
@@ -1601,7 +1573,7 @@ var I18N = {
     secFlowP:function(f){
       return f.shipShare + ' van de inkoop van het seizoen vertrok als exportpartij.';
     },
-    secFlowTag:'Volumeaansluiting en aantekeningen bij de data',
+    secFlowTag:'Volumeaansluiting',
     flow1:'Ingekocht, FAQ', flow2:'Ingekocht, al gesorteerd',
     flow3:'Totale inkoop', flow3sub:'vóór sorteerverlies', flow4:'Verscheept',
     footerDefH:'Definities',
@@ -1630,29 +1602,6 @@ var I18N = {
     },
     suppFoot:function(f){
       return 'Top 10 van ' + f.suppliers + ' leveranciers, naar netto geleverd gewicht binnen het seizoen.';
-    },
-    noteSettle:function(f){
-      return 'Ontvangsten: ' + f.settled + ' van de gefactureerde waarde is binnengekomen, over de ' +
-        f.settledLots + ' van ' + f.settledOf + ' partijen met een ontvangstregel. Bij de overige ' +
-        'partijen is geen ontvangst vastgelegd.';
-    },
-    noteNoRevenue:function(f){
-      return f.noRevenue + ' partij(en) is verscheept zonder vastgelegde prijs of omzet. Het volume ' +
-        'telt mee in het seizoenstotaal en blijft buiten de omzet en buiten de gemiddelde ' +
-        'gerealiseerde prijs.';
-    },
-    noteDupe:function(n){
-      return n + ' paar leveranciers staan onder dezelfde naam in beide woordvolgordes. Zij worden ' +
-        'hier apart geteld, in lijn met het bronblad, dus het aantal leveranciers is een bovengrens.';
-    },
-    noteMerge:function(list){
-      return 'Afnemers die onder meer dan één schrijfwijze zijn vastgelegd, worden op deze pagina ' +
-        'samengevoegd: ' + list + '.';
-    },
-    noteRecon:function(f){
-      return 'Inkoop en verscheping worden op verschillende momenten in het proces gemeten: ' +
-        f.purchased + ' ingekocht tegenover ' + f.volume + ' verscheept, met het verschil in ' +
-        'voorraad, sorteerverlies en partijen die doorlopen naar het volgende seizoen.';
     }
   }
 };
@@ -2136,21 +2085,6 @@ function renderFlow(){
   document.getElementById('flow4').textContent = fmtTonnes(s.volume_kg);
   document.getElementById('flow4sub').textContent =
     fmtPct(p.net_kg ? s.volume_kg/p.net_kg : 0) + ' ' + t('lblOfIntake');
-
-  var notes = ['<div class="callout">' + t('noteRecon') + '</div>'];
-  if (d.settlement) notes.push('<div class="callout">' + t('noteSettle') + '</div>');
-  if (FACTS.noRevenue) notes.push('<div class="callout">' + t('noteNoRevenue') + '</div>');
-  if (d.notes.duplicate_supplier_pairs){
-    notes.push('<div class="callout">' +
-      esc(I18N[state.lang].noteDupe(d.notes.duplicate_supplier_pairs)) + '</div>');
-  }
-  if (DATA.buyer_merges && DATA.buyer_merges.length){
-    notes.push('<div class="callout">' +
-      esc(I18N[state.lang].noteMerge(DATA.buyer_merges.map(function(m){
-        return m.name + ' (' + m.recorded_as.length + ')';
-      }).join(', '))) + '</div>');
-  }
-  document.getElementById('notesBox').innerHTML = notes.join('');
 }
 
 /* Panels render in the order the page reads: what was bought, when it moved,
