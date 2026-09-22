@@ -627,18 +627,24 @@
     border:1px solid var(--line-strong); border-radius:3px; padding:1px 5px;
   }
   .edstatus{font-size:12px; color:var(--ink-faint);}
-  /* Vertex handles. Square for a real vertex, hollow circle for the midpoint
-     that inserts one: different shapes, so which is which does not depend on
-     size alone at a glance. */
+  /* vtx-hit is the real, invisible click/drag target — sized by the marker's
+     iconSize in JS (22px for a corner, 18px for a midpoint) — centered on
+     the small visible dot rather than matching it. A mouse missing an
+     11px/9px dot by a couple of pixels used to fall through to the polygon
+     underneath and drag the whole plot instead of the corner; this gives it
+     somewhere to land. Square for a real vertex, hollow circle for the
+     midpoint that inserts one: different shapes, so which is which does not
+     depend on size alone at a glance. */
+  .vtx-hit{width:100%; height:100%; display:flex; align-items:center; justify-content:center; cursor:grab;}
+  .vtx-hit:active{cursor:grabbing;}
   .vtx{
-    width:11px; height:11px; margin:-5px 0 0 -5px; background:#FFFCF6;
-    border:2px solid #0D4D45; border-radius:2px; cursor:grab;
+    width:11px; height:11px; background:#FFFCF6;
+    border:2px solid #0D4D45; border-radius:2px; pointer-events:none;
   }
   .vtx.mid{
-    width:9px; height:9px; margin:-4px 0 0 -4px; border-radius:50%;
-    background:rgba(255,252,246,.55); border:1.5px dashed #0D4D45; cursor:grab;
+    width:9px; height:9px; border-radius:50%;
+    background:rgba(255,252,246,.55); border:1.5px dashed #0D4D45; pointer-events:none;
   }
-  .vtx:active{cursor:grabbing;}
 
   /* ---------- access gate ----------
      A client-side password prompt, not a real access control: the check runs
@@ -923,8 +929,17 @@ function drawHandles(){
   var poly = shapes[sel];
   var ring = poly.getLatLngs()[0];
 
-  var icon = L.divIcon({className:'', html:'<div class="vtx"></div>', iconSize:[0,0]});
-  var midIcon = L.divIcon({className:'', html:'<div class="vtx mid"></div>', iconSize:[0,0]});
+  /* The visible dot stays small so a dense boundary doesn't turn into a wall
+     of squares, but the clickable area used to be exactly that dot — 11px
+     and 9px — which on a mouse is easy to miss by a pixel or two, and a
+     missed click lands on the polygon body underneath and drags the whole
+     plot instead. vtx-hit is invisible and much bigger than the dot it
+     centers, so the target you can actually hit is bigger than the one you
+     can see. */
+  var icon = L.divIcon({className:'', html:'<div class="vtx-hit"><div class="vtx"></div></div>',
+                         iconSize:[22,22], iconAnchor:[11,11]});
+  var midIcon = L.divIcon({className:'', html:'<div class="vtx-hit"><div class="vtx mid"></div></div>',
+                            iconSize:[18,18], iconAnchor:[9,9]});
 
   ring.forEach(function(pt, i){
     var mk = L.marker(pt, {icon:icon, draggable:true, zIndexOffset:1000});
