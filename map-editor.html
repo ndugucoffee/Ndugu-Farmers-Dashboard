@@ -577,16 +577,22 @@
     background:var(--surface); flex:none;
   }
   .edbar .grow{flex:1 1 auto;}
-  .edbar select, .edbar button{
+  .edbar select, .edbar button, .edmodal select, .edmodal button, .edmodal input{
     font-family:inherit; font-size:12.5px; padding:6px 11px;
     border:1px solid var(--line-strong); border-radius:var(--radius-sm);
     background:var(--surface); color:var(--ink); cursor:pointer;
   }
-  .edbar button:hover{background:var(--roast-wash);}
-  .edbar button[disabled]{opacity:.45; cursor:default;}
-  .edbar button.primary{background:#0D4D45; border-color:#0D4D45; color:#fff;}
-  .edbar button.primary[disabled]{background:var(--surface); color:var(--ink-faint);
-    border-color:var(--line-strong);}
+  .edbar button:hover, .edmodal button:hover{background:var(--roast-wash);}
+  .edbar button[disabled], .edmodal button[disabled]{opacity:.45; cursor:default;}
+  .edbar button.primary, .edmodal button.primary{background:#0D4D45; border-color:#0D4D45; color:#fff;}
+  .edbar button.primary[disabled], .edmodal button.primary[disabled]{background:var(--surface);
+    color:var(--ink-faint); border-color:var(--line-strong);}
+  .edds{
+    font-size:12px; color:var(--ink-soft); background:var(--surface-sunk);
+    border:1px solid var(--line); border-radius:var(--radius-sm); padding:5px 10px;
+    max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .edwrap [hidden]{display:none !important;}
   .edbar .warn{
     font-size:12px; color:#7A3E16; background:#FBEED4;
     border:1px solid #E6C98A; border-radius:var(--radius-sm); padding:5px 10px;
@@ -627,6 +633,37 @@
     border:1px solid var(--line-strong); border-radius:3px; padding:1px 5px;
   }
   .edstatus{font-size:12px; color:var(--ink-faint);}
+
+  /* ---------- export dialog and drop target ---------- */
+  .edmodal{
+    position:fixed; inset:0; z-index:900; display:flex; align-items:center;
+    justify-content:center; background:rgba(36,28,21,.45); padding:16px;
+  }
+  .edmodal-box{
+    width:min(440px, 100%); border:1px solid var(--line-strong);
+    border-radius:var(--radius-md); background:var(--surface);
+    box-shadow:var(--shadow-panel); padding:20px 22px;
+  }
+  .edmodal-box h3{font-size:15px; margin:0 0 14px; color:var(--ink);}
+  .edform{display:flex; flex-direction:column; gap:5px; font-size:12px;
+    color:var(--ink-soft); margin-bottom:12px;}
+  .edform select{width:100%;}
+  .edname{display:flex; align-items:center; gap:4px;}
+  .edname input{flex:1 1 auto; min-width:0; cursor:text;}
+  .edname span{font-size:12.5px; color:var(--ink-faint);}
+  .edcheck{display:flex; gap:8px; align-items:flex-start; font-size:12px;
+    color:var(--ink-soft); margin-bottom:12px; line-height:1.45;}
+  .edcheck input{margin-top:2px; padding:0;}
+  .edmodal .muted{font-size:11.5px; color:var(--ink-faint); line-height:1.5; min-height:1.5em;}
+  .edmodal-actions{display:flex; justify-content:flex-end; gap:8px; margin-top:14px;}
+  .eddrop{
+    position:fixed; inset:0; z-index:950; display:flex; align-items:center;
+    justify-content:center; background:rgba(13,77,69,.18); pointer-events:none;
+  }
+  .eddrop div{
+    font-size:15px; font-weight:600; color:#0D4D45; background:var(--surface);
+    border:2px dashed #0D4D45; border-radius:var(--radius-md); padding:26px 34px;
+  }
   /* vtx-hit is the real, invisible click/drag target — sized by the marker's
      iconSize in JS (22px for a corner, 18px for a midpoint) — centered on
      the small visible dot rather than matching it. A mouse missing an
@@ -701,13 +738,19 @@
   <div class="edbar">
     <svg class="brand-mark" viewBox="0 0 1080 283.07" xmlns="http://www.w3.org/2000/svg"><style>.cls-1{fill:#347e19;}</style><path class="cls-1" d="M469.14,81.5c41.67,0,59.71,16.51,59.71,54.37v74.95H495.56V136.89c0-18.81-7.62-27.19-26.42-27.19-19.06,0-26.94,8.38-26.94,27.19v73.93h-33V135.87C409.17,98,426.7,81.5,469.14,81.5Z"></path><path class="cls-1" d="M593.37,81.5c20.32,0,30,6.6,37.6,13.46h1.78V28.46h33V148.83c0,44.21-20.58,64.28-63.52,64.28S538,193,538,148.83v-3.05C538,100.3,556.78,81.5,593.37,81.5Zm8.89,103.41c21.85,0,30.49-9.91,30.49-37.1v-1c0-27.18-8.64-37.09-30.49-37.09s-31,9.91-31,37.09v1C571.26,175,580.41,184.91,602.26,184.91Z"></path><path class="cls-1" d="M872.33,81.5c42.94,0,63.52,20.83,63.52,65.29V203c0,41.92-16.51,60-65.3,60a216.77,216.77,0,0,1-39.89-3.81V232.42a251.24,251.24,0,0,0,36.84,3.3c26.93,0,35.32-8.38,35.32-26.17v-9.91H901c-7.62,6.86-17.28,13.47-37.6,13.47-36.59,0-55.39-18.8-55.39-64.28v-3.05C808.05,101.57,829.39,81.5,872.33,81.5Zm0,103.41c21.85,0,30.49-9.91,30.49-37.1v-1c0-27.18-8.64-37.09-30.49-37.09s-31,9.91-31,37.09v1C841.33,175,850.48,184.91,872.33,184.91Z"></path><path class="cls-1" d="M948,80.84h33v76.88c0,18.8,7.88,27.19,26.94,27.19,18.8,0,26.42-8.39,26.42-27.19V80.84h33.29v77.9c0,37.85-18,54.37-59.71,54.37-42.44,0-60-16.52-60-54.37Z"></path><path class="cls-1" d="M799.15,80.85v77.9c0,37.85-18,54.36-59.7,54.36-42.42,0-60-16.51-60-54.36V80.85h42.64c-2.25,3.84-4.59,11-7,15.49-.92,1.93-1.78,3.86-2.55,5.77C701,130,702.28,156.31,716,174.48c0,.05,0,.07,0,.1A17.61,17.61,0,0,0,721,180.2a58.17,58.17,0,0,0,15.73,11,72,72,0,0,0,9.46,3.76,38.85,38.85,0,0,1-1.71-3.76,34.06,34.06,0,0,1-1.9-6.37c-4.07-19.62,8.9-37.66,15.57-56.5,2.36-6.62,5.87-14.37,7.78-25.68a142.1,142.1,0,0,0,1.36-19.93c0-.65,0-1.28,0-1.88Z"></path><path class="cls-1" d="M727.74,164.64c-.71-.78-8.53-11.11,9-59.73,1.05-2.93,1.9-5.66,2.63-8.32a48.22,48.22,0,0,0,7.18-1.21,121.65,121.65,0,0,1-4.47,11.82C724.22,147.81,727.46,163.44,727.74,164.64Z"></path><path class="cls-1" d="M240.49,8.16c23.92,0,77.27,38.63,98.88,117.28,18.77,68.29-39.55,149.46-67.6,149.46-58.41,0-45.53-94.28-43.23-104.85C251.07,79.45,214.74,8.16,240.49,8.16Z"></path><path class="cls-1" d="M211,274.9c-23.92,0-77.27-35.1-98.88-106.55-18.77-62.06,39.55-135.81,67.6-135.81,58.41,0,45.53,85.66,43.23,95.27C200.41,210.13,236.74,274.9,211,274.9Z"></path><path class="cls-1" d="M26.3,232.09a1.23,1.23,0,0,1,.21,1.67c-2.34,3.26-4.74,6.56-7.06,9.66-2.53,3.4-4.81,11.58-3.74,15.5s13.52,6.38,14.86,5.51,6.18-12.52,9.21-18.78c5.6-11.56,10.67-23.4,16.91-34.59,3.93-7.06,9.14-13.4,14.22-20.32a1.26,1.26,0,0,0-1.2-2c-12,1.85-20.42,10.16-28.44,18.17-.42.51-1.11.14-1-.28,7.62-14.37,20.45-20.79,35.69-22.2,12.23-1.13,20.52,5.89,26.66,16a1.19,1.19,0,0,1,.15.35A87.14,87.14,0,0,1,105,211.9c1.6,8.2,1,16.38-3.08,23.78C88.2,260.16,66.79,273,39.23,274.86c-6,.42-12.9-2.41-18.38-5.52a17.38,17.38,0,0,1-6.48-23.26c2.67-5,6.53-9.34,10-13.91a1.24,1.24,0,0,1,1.81-.2Zm34.57,24.78C75,245,81.15,230.78,90.41,217.9c5.1-7.09,3.94-20.8,1.35-24.06-2.36-3-5.24-3.55-8.43-4.55a1.24,1.24,0,0,0-1.49.58c-3.94,7.42-8.61,18.78-12.33,21.86-3.88,3.21-10.55,14.84-15.05,22.86-4.67,8.31-21.06,26.12-19.63,32.62S59.72,257.83,60.87,256.87Z"></path></svg>
     <strong style="font-size:13px;">Boundary editor</strong>
-    <select id="edDistrict" aria-label="District"></select>
+    <select id="edDistrict" aria-label="Register district"></select>
+    <button id="edOpen" type="button" title="GeoJSON, KML/KMZ, shapefile, GeoPackage, GPX, CSV, Excel, WKT - or drop files on the page">Open file…</button>
+    <input id="edFile" type="file" multiple hidden
+      accept=".geojson,.json,.topojson,.kml,.kmz,.zip,.shp,.shx,.dbf,.prj,.cpg,.gpkg,.sqlite,.gpx,.csv,.tsv,.txt,.wkt,.xlsx,.xls,.xlsm,.ods">
+    <span class="edds" id="edDs" hidden></span>
     <button id="edSat" type="button">Plain basemap</button>
+    <button id="edSwap" type="button" hidden
+      title="For a file whose latitude and longitude came in the wrong way round">Swap lat/lng</button>
     <span class="grow"></span>
-    <span class="edstatus" id="edStatus">Pick a district</span>
+    <span class="edstatus" id="edStatus">Pick a district or open a file</span>
     <button id="edRevert" type="button" disabled>Revert plot</button>
     <button id="edRevertAll" type="button" disabled>Revert all</button>
-    <button id="edExport" type="button" class="primary" disabled>Export changes</button>
+    <button id="edExport" type="button" class="primary" disabled>Export…</button>
     <span class="warn">Autosaved in this browser only. Export and apply at source to make it real.</span>
   </div>
   <div class="edmain">
@@ -726,12 +769,41 @@
         <p><kbd>Alt</kbd>-click or right-click a square handle to delete that corner.
            A ring needs at least three.</p>
         <p><kbd>Esc</kbd> deselects.</p>
-        <p style="margin-top:10px;">Export writes only the plots you changed, as GeoJSON
-           and as polygon rows, with the register area and the recomputed area side by
-           side. Apply it at source; this page cannot.</p>
+        <p style="margin-top:10px;"><b>Open file…</b>, or drop files anywhere on the page:
+           GeoJSON, KML/KMZ, shapefile (.zip, or .shp + .dbf + .prj together),
+           GeoPackage, GPX, CSV/Excel with a WKT or lat/lng column, WKT, TopoJSON.
+           Files are read in this browser and are not uploaded anywhere.</p>
+        <p style="margin-top:10px;"><b>Export…</b> writes the changed plots, or all of
+           them, in the format you choose. Apply register edits at source; this page
+           cannot.</p>
       </div>
     </div>
   </div>
+
+  <div class="edmodal" id="edExportDlg" hidden>
+    <div class="edmodal-box" role="dialog" aria-modal="true" aria-labelledby="edExportTitle">
+      <h3 id="edExportTitle">Export</h3>
+      <label class="edform">Format<select id="edFmt"></select></label>
+      <label class="edform">Plots
+        <select id="edScope">
+          <option value="changed">Only the ones I changed</option>
+          <option value="all">Every plot in this layer</option>
+        </select>
+      </label>
+      <label class="edcheck"><input type="checkbox" id="edMeta">
+        <span>Add edit columns: area before and after, corners moved, and whether the
+        edit crosses the 4 ha EUDR threshold</span></label>
+      <label class="edform">File name
+        <span class="edname"><input id="edName" type="text" spellcheck="false"><span id="edExt"></span></span>
+      </label>
+      <p class="muted" id="edFmtNote"></p>
+      <div class="edmodal-actions">
+        <button id="edCancel" type="button">Cancel</button>
+        <button id="edGo" type="button" class="primary">Export</button>
+      </div>
+    </div>
+  </div>
+  <div class="eddrop" id="edDrop" hidden><div>Drop polygon files to open them</div></div>
 </div>
 
 <script>
@@ -739,10 +811,19 @@
 (function(){
 'use strict';
 
-var POLY = null, ROWS = null, DKEY = null;
+var POLY = null;   /* polygon-data.json: the register's index of districts */
+/* The open layer, whichever way it arrived:
+     kind      'register' (a district from polygon-data.json) or 'file'
+     key       what its autosaved draft is stored under
+     name      what the toolbar calls it
+     format    the export format it round-trips to by default
+     swapped   whether "Swap lat/lng" has been applied
+     feats     [{props, geom, row, band}]; row is the polygons/*.json row
+               when there is one, and geom is described under GEOMETRY */
+var DS = null;
 var map = null, tiles = null, layer = null, shapes = null, handles = null;
 var sel = -1, mode = 'sat';
-var orig = {};      /* index -> the untouched ring, kept for revert and diff */
+var orig = {};      /* index -> the untouched geometry, kept for revert and diff */
 var changed = {};   /* index -> true */
 
 var SAT_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
@@ -781,6 +862,39 @@ function fmt(n, dp){
   return Number(n).toLocaleString('en-US',
     {minimumFractionDigits:dp||0, maximumFractionDigits:dp||0});
 }
+function plural(n, word){ return fmt(n) + ' ' + word + (n === 1 ? '' : 's'); }
+/* Same cut points as band() in build_polygons.py, so a plot from a file is
+   coloured the way the register would colour a plot of that size. */
+function bandOf(ha){
+  if (ha > EUDR_HA) return 'over4';
+  if (ha > 2) return '2to4';
+  if (ha > 1) return '1to2';
+  if (ha > 0.5) return 'half1';
+  return 'under_half';
+}
+function cellVal(v){
+  if (v === null || v === undefined) return '';
+  return typeof v === 'object' ? JSON.stringify(v) : String(v);
+}
+
+/* ---------- geometry ----------
+   Every layer, whatever it was read from, is held the same way: a list of
+   parts, each a list of rings (the first the outline, any after it holes),
+   each ring a list of [lat, lng] with the closing point left off. A register
+   plot is one part with one ring; a MultiPolygon from a shapefile is
+   several. Leaflet takes exactly this nesting, so what is drawn is what is
+   stored, and every edit below is a change to these arrays followed by
+   setLatLngs. */
+function clone(g){
+  return g.map(function(part){ return part.map(function(ring){
+    return ring.map(function(p){ return [p[0], p[1]]; }); }); });
+}
+function ringsOf(g){
+  var out = [];
+  g.forEach(function(part){ part.forEach(function(r){ out.push(r); }); });
+  return out;
+}
+function closed(r){ return r.concat([r[0]]); }
 
 /* Spherical excess on the WGS84 ellipsoid radius. Good to a few parts in ten
    thousand at this size, which is far finer than a hand-walked boundary, and
@@ -795,95 +909,142 @@ function ringHa(ring){
   }
   return Math.abs(area * R * R / 2) / 10000;
 }
-function ringOf(poly){
-  var ll = poly.getLatLngs()[0];
-  return ll.map(function(p){ return [p.lat, p.lng]; });
+function geomHa(g){
+  var t = 0;
+  g.forEach(function(part){
+    part.forEach(function(r, ri){ t += (ri ? -1 : 1) * ringHa(r); });
+  });
+  return Math.max(t, 0);
+}
+function cornerCount(g){
+  return ringsOf(g).reduce(function(n, r){ return n + r.length; }, 0);
 }
 function movedCount(i){
-  var a = orig[i], b = ringOf(shapes[i]);
+  var a = orig[i], b = DS.feats[i].geom;
   if (!a) return 0;
-  if (a.length !== b.length) return Math.abs(a.length - b.length) + 1;
-  var n = 0;
-  for (var k=0;k<a.length;k++){
-    if (Math.abs(a[k][0]-b[k][0]) > 1e-7 || Math.abs(a[k][1]-b[k][1]) > 1e-7) n++;
+  var ra = ringsOf(a), rb = ringsOf(b), n = 0;
+  if (ra.length !== rb.length) return Math.max(cornerCount(a), cornerCount(b));
+  for (var j=0;j<ra.length;j++){
+    var x = ra[j], y = rb[j];
+    if (x.length !== y.length){ n += Math.abs(x.length - y.length) + 1; continue; }
+    for (var k=0;k<x.length;k++){
+      if (Math.abs(x[k][0]-y[k][0]) > 1e-7 || Math.abs(x[k][1]-y[k][1]) > 1e-7) n++;
+    }
   }
   return n;
 }
+/* Enough to tell whether the plot at an index in a re-opened file is the
+   same plot a draft was saved against. */
+function fingerprint(g){
+  var p = g[0][0][0];
+  return cornerCount(g) + '@' + p[0].toFixed(6) + ',' + p[1].toFixed(6);
+}
+
+var NAME_KEYS = ['name','title','plot_name','plot','farmer_code','farm_unit_id','farmer',
+                 'producername','productionplace','id','fid','objectid','code'];
+function labelOf(i){
+  var f = DS.feats[i], r = f.row;
+  if (r && (r.u || r.c || r.n)) return r.u || r.c || r.n;
+  var lower = {};
+  Object.keys(f.props).forEach(function(k){
+    lower[k.toLowerCase().replace(/\s+/g, '_')] = f.props[k];
+  });
+  for (var j=0;j<NAME_KEYS.length;j++){
+    var v = lower[NAME_KEYS[j]];
+    if (v !== null && v !== undefined && v !== '' && typeof v !== 'object') return String(v);
+  }
+  return (DS.kind === 'register' ? 'plot ' : 'Feature ') + (i + 1);
+}
 
 /* ---------- draft autosave ----------
-   Everything above lived only in this tab's memory: a refresh, a closed tab
-   or a crash threw away whatever hadn't been exported yet. This saves the
-   edited rings to localStorage, keyed by district, so reopening the same
-   district in the same browser offers to pick the draft back up. It is
-   still not a save to anywhere else — the warning in the toolbar says so —
-   and it never touches export or the workbook; it only protects the work
-   between one drag and the next export. */
+   Edits live only in this tab's memory until exported: a refresh, a closed
+   tab or a crash would throw them away. This saves the edited geometry to
+   localStorage, keyed by layer (the district, or the file's name and plot
+   count), so reopening the same layer in the same browser offers to pick the
+   draft back up. It is still not a save to anywhere else — the warning in
+   the toolbar says so — and it never touches export or the workbook; it only
+   protects the work between one drag and the next export. */
 var DRAFT_PREFIX = 'ndugu-editor-draft:';
 
-function draftKey(district){ return DRAFT_PREFIX + district; }
+function draftKey(key){ return DRAFT_PREFIX + key; }
 
 function saveDraft(){
-  if (!DKEY) return;
+  if (!DS) return;
   var keys = Object.keys(changed);
   if (!keys.length){
-    try { localStorage.removeItem(draftKey(DKEY.district)); } catch (e) {}
+    try { localStorage.removeItem(draftKey(DS.key)); } catch (e) {}
     return;
   }
   var plots = {};
   keys.forEach(function(k){
-    var i = +k, r = ROWS[i];
-    plots[k] = {u: r.u || null, c: r.c || null, n: r.n || null, ring: ringOf(shapes[i])};
+    var i = +k, r = DS.feats[i].row || {};
+    plots[k] = {u: r.u || null, c: r.c || null, n: r.n || null,
+                fp: fingerprint(orig[i]), geom: DS.feats[i].geom};
   });
-  var draft = {district: DKEY.district, savedAt: new Date().toISOString(), plots: plots};
-  try { localStorage.setItem(draftKey(DKEY.district), JSON.stringify(draft)); }
+  var draft = {key: DS.key, savedAt: new Date().toISOString(), swapped: !!DS.swapped, plots: plots};
+  try { localStorage.setItem(draftKey(DS.key), JSON.stringify(draft)); }
   catch (e) { /* private mode, quota, etc. — the tool still works, it just can't autosave */ }
 }
 
-function loadDraft(district){
+function loadDraft(key){
   try {
-    var raw = localStorage.getItem(draftKey(district));
+    var raw = localStorage.getItem(draftKey(key));
     return raw ? JSON.parse(raw) : null;
   } catch (e) { return null; }
 }
 
-function clearDraft(district){
-  try { localStorage.removeItem(draftKey(district)); } catch (e) {}
+function clearDraft(key){
+  try { localStorage.removeItem(draftKey(key)); } catch (e) {}
 }
 
-/* Matched by identity (farm unit id, else farmer code + plot name) rather
-   than by array index: if polygon-data.json was rebuilt between saving the
-   draft and reopening it, the same plot may no longer sit at the same
-   index, and applying the edit to whatever happens to be at that index now
-   would silently move the wrong farmer's boundary. */
+/* A register plot is matched by identity (farm unit id, else farmer code +
+   plot name) rather than by array index: if polygon-data.json was rebuilt
+   between saving the draft and reopening it, the same plot may no longer sit
+   at the same index, and applying the edit to whatever happens to be at that
+   index now would silently move the wrong farmer's boundary. A file has no
+   such identity, so its plots are matched by index and then checked against
+   the fingerprint of the geometry the draft was saved against; a plot that
+   no longer matches is left alone rather than guessed at. */
 function applyDraft(draft){
-  var n = 0;
+  if (!!draft.swapped !== !!DS.swapped) swapAxes();
+  var n = 0, reg = DS.kind === 'register';
+  var same = function(a, b){ return (a || null) === (b || null); };
   Object.keys(draft.plots).forEach(function(k){
-    var dp = draft.plots[k], idx = +k, r = ROWS[idx];
-    var match = r && r.u === dp.u && r.c === dp.c && r.n === dp.n;
-    if (!match){
-      idx = ROWS.findIndex(function(rr){
-        return dp.u ? rr.u === dp.u : (rr.c === dp.c && rr.n === dp.n);
-      });
+    var dp = draft.plots[k], idx = +k, f = DS.feats[idx];
+    /* drafts saved before multi-ring support held a single ring */
+    var geom = dp.geom || (dp.ring ? [[dp.ring]] : null);
+    if (!geom) return;
+    if (reg){
+      var r = f && f.row;
+      if (!(r && same(r.u, dp.u) && same(r.c, dp.c) && same(r.n, dp.n))){
+        idx = DS.feats.findIndex(function(ff){
+          var rr = ff.row;
+          return dp.u ? same(rr.u, dp.u) : (same(rr.c, dp.c) && same(rr.n, dp.n));
+        });
+      }
+    } else if (!f || fingerprint(f.geom) !== dp.fp){
+      idx = -1;
     }
     if (idx < 0 || !shapes[idx]) return;
-    orig[idx] = ringOf(shapes[idx]);
-    shapes[idx].setLatLngs([dp.ring]);
+    orig[idx] = clone(DS.feats[idx].geom);
+    DS.feats[idx].geom = clone(geom);
+    shapes[idx].setLatLngs(DS.feats[idx].geom);
     changed[idx] = true;
     shapes[idx].setStyle(style(idx));
     n++;
   });
-  status(n + ' restored plot' + (n===1?'':'s') + ' from a saved draft.');
+  status(plural(n, 'restored plot') + ' from a saved draft.');
   renderSide(); renderChanged();
 }
 
 function style(i){
-  var r = ROWS[i], on = (i === sel), ch = !!changed[i];
+  var f = DS.feats[i], r = f.row, on = (i === sel), ch = !!changed[i];
   return {
     color: on ? '#F2C14E' : (ch ? '#D24422' : PLOT_STROKE),
     weight: on ? 3 : (ch ? 2.2 : (mode==='sat' ? 1.4 : 1.1)),
-    fillColor: BAND_FILL[r.b] || '#579C8E',
+    fillColor: BAND_FILL[f.band] || '#579C8E',
     fillOpacity: on ? 0.32 : (mode==='sat' ? 0.16 : 0.85),
-    dashArray: r.s === 'provisional' ? '4,3' : null
+    dashArray: (r && r.s === 'provisional') ? '4,3' : null
   };
 }
 function restyle(){
@@ -916,6 +1077,13 @@ function ensureMap(){
   return map;
 }
 
+function fitLayer(){
+  if (!shapes || !shapes.length) return;
+  var b = L.latLngBounds([]);
+  shapes.forEach(function(s){ b.extend(s.getBounds()); });
+  if (b.isValid()) map.fitBounds(b.pad(0.05), {maxZoom:SAT_MAX});
+}
+
 /* ---------- selection and handles ---------- */
 function clearHandles(){
   if (handles){ handles.forEach(function(h){ map.removeLayer(h); }); }
@@ -926,8 +1094,8 @@ function drawHandles(){
   clearHandles();
   if (sel < 0) return;
   handles = [];
-  var poly = shapes[sel];
-  var ring = poly.getLatLngs()[0];
+  var f = DS.feats[sel], poly = shapes[sel];
+  var redraw = function(){ poly.setLatLngs(f.geom); };
 
   /* The visible dot stays small so a dense boundary doesn't turn into a wall
      of squares, but the clickable area used to be exactly that dot — 11px
@@ -941,58 +1109,60 @@ function drawHandles(){
   var midIcon = L.divIcon({className:'', html:'<div class="vtx-hit"><div class="vtx mid"></div></div>',
                             iconSize:[18,18], iconAnchor:[9,9]});
 
-  ring.forEach(function(pt, i){
-    var mk = L.marker(pt, {icon:icon, draggable:true, zIndexOffset:1000});
-    mk.on('drag', function(e){
-      var ll = poly.getLatLngs()[0];
-      ll[i] = e.target.getLatLng();
-      poly.setLatLngs([ll]);
-      touch();
-    });
-    mk.on('dragend', function(){ drawHandles(); saveDraft(); });
-    /* Alt-click or right-click removes this corner. A ring with two points is
-       a line, not a boundary, so three is the floor. */
-    var kill = function(e){
-      if (e.originalEvent) e.originalEvent.preventDefault();
-      var ll = poly.getLatLngs()[0];
-      if (ll.length <= 3){ status('A boundary needs at least three corners.'); return; }
-      ll.splice(i,1);
-      poly.setLatLngs([ll]);
-      touch(); drawHandles(); saveDraft();
-    };
-    mk.on('contextmenu', kill);
-    mk.on('click', function(e){ if (e.originalEvent && e.originalEvent.altKey) kill(e); });
-    mk.addTo(map); handles.push(mk);
-  });
-
-  /* Midpoint handles: dragging one inserts a real vertex there. Shown only
-     when the corners are far enough apart on screen to tell them apart,
-     otherwise a dense boundary becomes a wall of handles. */
-  for (var i=0;i<ring.length;i++){
-    var a = ring[i], b = ring[(i+1)%ring.length];
-    var pa = map.latLngToContainerPoint(a), pb = map.latLngToContainerPoint(b);
-    if (pa.distanceTo(pb) < 34) continue;
-    var mid = L.latLng((a.lat+b.lat)/2, (a.lng+b.lng)/2);
-    (function(at){
-      var mk = L.marker(mid, {icon:midIcon, draggable:true, zIndexOffset:900});
-      var inserted = false;
-      mk.on('dragstart', function(){
-        var ll = poly.getLatLngs()[0];
-        ll.splice(at+1, 0, mk.getLatLng());
-        poly.setLatLngs([ll]);
-        inserted = true;
-      });
+  /* Every ring of the plot gets handles, holes and extra parts included.
+     Handlers look the ring up through f.geom each time rather than holding
+     on to it, because a revert or a restored draft replaces f.geom. */
+  f.geom.forEach(function(part, pi){ part.forEach(function(ring, ri){
+    ring.forEach(function(pt, k){
+      var mk = L.marker(pt, {icon:icon, draggable:true, zIndexOffset:1000});
       mk.on('drag', function(e){
-        if (!inserted) return;
-        var ll = poly.getLatLngs()[0];
-        ll[at+1] = e.target.getLatLng();
-        poly.setLatLngs([ll]);
-        touch();
+        var ll = e.target.getLatLng();
+        f.geom[pi][ri][k] = [ll.lat, ll.lng];
+        redraw(); touch();
       });
       mk.on('dragend', function(){ drawHandles(); saveDraft(); });
+      /* Alt-click or right-click removes this corner. A ring with two points
+         is a line, not a boundary, so three is the floor. */
+      var kill = function(e){
+        if (e.originalEvent) e.originalEvent.preventDefault();
+        var rg = f.geom[pi][ri];
+        if (rg.length <= 3){ status('A boundary needs at least three corners.'); return; }
+        rg.splice(k, 1);
+        redraw(); touch(); drawHandles(); saveDraft();
+      };
+      mk.on('contextmenu', kill);
+      mk.on('click', function(e){ if (e.originalEvent && e.originalEvent.altKey) kill(e); });
       mk.addTo(map); handles.push(mk);
-    })(i);
-  }
+    });
+
+    /* Midpoint handles: dragging one inserts a real vertex there. Shown only
+       when the corners are far enough apart on screen to tell them apart,
+       otherwise a dense boundary becomes a wall of handles. */
+    for (var k=0;k<ring.length;k++){
+      var a = L.latLng(ring[k]), b = L.latLng(ring[(k+1)%ring.length]);
+      var pa = map.latLngToContainerPoint(a), pb = map.latLngToContainerPoint(b);
+      if (pa.distanceTo(pb) < 34) continue;
+      var mid = L.latLng((a.lat+b.lat)/2, (a.lng+b.lng)/2);
+      (function(at){
+        var mk = L.marker(mid, {icon:midIcon, draggable:true, zIndexOffset:900});
+        var inserted = false;
+        mk.on('dragstart', function(){
+          var ll = mk.getLatLng();
+          f.geom[pi][ri].splice(at+1, 0, [ll.lat, ll.lng]);
+          redraw();
+          inserted = true;
+        });
+        mk.on('drag', function(e){
+          if (!inserted) return;
+          var ll = e.target.getLatLng();
+          f.geom[pi][ri][at+1] = [ll.lat, ll.lng];
+          redraw(); touch();
+        });
+        mk.on('dragend', function(){ drawHandles(); saveDraft(); });
+        mk.addTo(map); handles.push(mk);
+      })(k);
+    }
+  }); });
 }
 
 function select(i){
@@ -1002,10 +1172,10 @@ function select(i){
   clearHandles();
   if (i >= 0){
     shapes[i].setStyle(style(i));
-    if (orig[i] === undefined) orig[i] = ringOf(shapes[i]);
+    if (orig[i] === undefined) orig[i] = clone(DS.feats[i].geom);
     drawHandles();
   }
-  renderSide();
+  renderSide(); renderChanged();
   $('edRevert').disabled = (i < 0) || !changed[i];
 }
 
@@ -1021,31 +1191,43 @@ function touch(){
 /* ---------- side panel ---------- */
 function renderSide(){
   var t = $('edTitle'), f = $('edFields');
-  if (sel < 0){
+  if (!DS || sel < 0){
     t.textContent = 'No plot selected';
-    f.innerHTML = '<p class="muted">Click a boundary on the map. Its corners appear as ' +
-                  'handles you can drag.</p>';
+    f.innerHTML = '<p class="muted">' + (DS
+      ? 'Click a boundary on the map. Its corners appear as handles you can drag.'
+      : 'Pick a register district, or open a polygon file of your own.') + '</p>';
     return;
   }
-  var r = ROWS[sel];
-  var live = ringHa(ringOf(shapes[sel]));
-  var base = orig[sel] ? ringHa(orig[sel]) : live;
+  var feat = DS.feats[sel], r = feat.row, g = feat.geom;
+  var live = geomHa(g);
+  var base = orig[sel] ? geomHa(orig[sel]) : live;
   var moved = movedCount(sel);
   var crossed = (base >= EUDR_HA) !== (live >= EUDR_HA);
-  var label = r.u || r.c || r.n || ('plot ' + sel);
-  t.textContent = label;
+  t.textContent = labelOf(sel);
 
-  var rows = [
-    ['Register area', fmt(r.h,2) + ' ha'],
-    ['Geometry as filed', fmt(base,2) + ' ha'],
-    ['Geometry now', fmt(live,2) + ' ha', moved ? 'moved' : ''],
-    ['Corners', shapes[sel].getLatLngs()[0].length + (moved ? ' (' + moved + ' changed)' : '')],
-    ['Band', r.b],
-    ['Status', r.s + (r.i ? ' · submitted to ITC' : '')]
-  ];
+  var rows = [];
+  if (r && typeof r.h === 'number') rows.push(['Register area', fmt(r.h,2) + ' ha']);
+  rows.push(['Geometry as filed', fmt(base,2) + ' ha']);
+  rows.push(['Geometry now', fmt(live,2) + ' ha', moved ? 'moved' : '']);
+  rows.push(['Corners', cornerCount(g) + (moved ? ' (' + moved + ' changed)' : '')]);
+  var holes = ringsOf(g).length - g.length;
+  if (g.length > 1 || holes) rows.push(['Parts / holes', g.length + ' / ' + holes]);
   if (crossed){
     rows.push(['EUDR 4 ha threshold',
       (live >= EUDR_HA ? 'now above' : 'now below') + ', was the other side', 'cross']);
+  }
+  if (DS.kind === 'register'){
+    rows.push(['Band', r.b]);
+    rows.push(['Status', r.s + (r.i ? ' · submitted to ITC' : '')]);
+  } else {
+    /* A file's attributes are whatever it carries; show the first few so the
+       plot can be recognised, not all of them. */
+    var keys = Object.keys(feat.props).filter(function(k){ return k !== 'p'; });
+    keys.slice(0, 14).forEach(function(k){
+      var v = cellVal(feat.props[k]);
+      rows.push([k, v.length > 60 ? v.slice(0, 57) + '…' : v]);
+    });
+    if (keys.length > 14) rows.push(['', '+ ' + (keys.length - 14) + ' more attributes']);
   }
   f.innerHTML = rows.map(function(x){
     return '<div class="edfield"><span class="k">' + esc(x[0]) + '</span>' +
@@ -1056,21 +1238,90 @@ function renderSide(){
 function renderChanged(){
   var keys = Object.keys(changed);
   $('edCount').textContent = keys.length;
-  $('edExport').disabled = keys.length === 0;
+  $('edExport').disabled = !DS || !DS.feats.length;
   $('edRevertAll').disabled = keys.length === 0;
   var host = $('edChanged');
   if (!keys.length){ host.innerHTML = '<p class="muted">Nothing changed yet.</p>'; return; }
   host.innerHTML = keys.map(function(k){
-    var i = +k, r = ROWS[i];
+    var i = +k;
     return '<div class="edrow' + (i===sel?' sel':'') + '" data-i="'+i+'">' +
-      '<span>' + esc(r.u || r.c || r.n || ('plot '+i)) + '</span>' +
-      '<span class="d">' + fmt(ringHa(ringOf(shapes[i])),2) + ' ha</span></div>';
+      '<span>' + esc(labelOf(i)) + '</span>' +
+      '<span class="d">' + fmt(geomHa(DS.feats[i].geom),2) + ' ha</span></div>';
   }).join('');
 }
 
 function status(msg){ $('edStatus').textContent = msg; }
 
-/* ---------- load ---------- */
+/* ---------- opening a layer ---------- */
+function openLayer(ds, note){
+  DS = ds; sel = -1; orig = {}; changed = {};
+  ds.feats.forEach(function(f){ f.band = (f.row && f.row.b) || bandOf(geomHa(f.geom)); });
+  var m = ensureMap();
+  if (layer) m.removeLayer(layer);
+  clearHandles();
+  var grp = L.layerGroup();
+  shapes = ds.feats.map(function(f, i){
+    var poly = L.polygon(f.geom, style(i));
+    poly._i = i;
+    poly.on('click', function(e){
+      L.DomEvent.stop(e);
+      select(this._i);
+      map.fitBounds(this.getBounds().pad(3), {maxZoom:SAT_MAX});
+    });
+    /* Dragging the body moves the whole boundary, rigidly: every corner of
+       every ring by the same delta, so the shape and area are preserved and
+       only the position changes. That is the right tool when a GPS was
+       offset, and the wrong one when a single corner was walked badly, which
+       is what the vertex handles are for. */
+    poly.on('mousedown', function(e){
+      if (this._i !== sel) return;
+      var self = this, feat = DS.feats[this._i], start = e.latlng, g0 = clone(feat.geom);
+      L.DomEvent.stop(e);
+      map.dragging.disable();
+      clearHandles();
+      var move = function(ev){
+        var dLat = ev.latlng.lat - start.lat, dLng = ev.latlng.lng - start.lng;
+        feat.geom = g0.map(function(part){ return part.map(function(ring){
+          return ring.map(function(p){ return [p[0]+dLat, p[1]+dLng]; }); }); });
+        self.setLatLngs(feat.geom);
+        touch();
+      };
+      var up = function(){
+        map.off('mousemove', move); map.off('mouseup', up);
+        map.dragging.enable();
+        drawHandles(); saveDraft();
+      };
+      map.on('mousemove', move); map.on('mouseup', up);
+    });
+    grp.addLayer(poly);
+    return poly;
+  });
+  layer = grp.addTo(m);
+  if (ds.bbox) m.fitBounds(L.latLngBounds([ds.bbox[0],ds.bbox[1]],[ds.bbox[2],ds.bbox[3]]).pad(0.05));
+  else fitLayer();
+
+  $('edDs').hidden = ds.kind !== 'file';
+  $('edDs').textContent = ds.name;
+  $('edDs').title = ds.name;
+  $('edSwap').hidden = ds.kind !== 'file';
+  $('edRevert').disabled = true;
+  status(plural(ds.feats.length, ds.kind === 'register' ? 'plot' : 'polygon') + ' in ' + ds.name +
+         (note ? ' · ' + note : ''));
+  renderSide(); renderChanged();
+
+  var draft = loadDraft(ds.key);
+  if (draft && draft.plots && Object.keys(draft.plots).length){
+    var when = new Date(draft.savedAt).toLocaleString();
+    if (confirm('This browser has ' + Object.keys(draft.plots).length +
+        ' unsaved edit(s) for ' + ds.name + ', autosaved ' + when +
+        '. Restore them?')){
+      applyDraft(draft);
+    } else {
+      clearDraft(ds.key);
+    }
+  }
+}
+
 function loadDistrict(key){
   var d = POLY.districts.find(function(x){ return x.district === key; });
   if (!d) return;
@@ -1078,68 +1329,44 @@ function loadDistrict(key){
   fetch('./' + d.file + '?v=' + Date.now(), {cache:'no-store'})
     .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
     .then(function(rows){
-      DKEY = d; ROWS = rows; sel = -1; orig = {}; changed = {};
-      var m = ensureMap();
-      if (layer) m.removeLayer(layer);
-      clearHandles();
-      var grp = L.layerGroup();
-      shapes = new Array(rows.length);
-      for (var i=0;i<rows.length;i++){
-        var poly = L.polygon(rows[i].p, style(i));
-        poly._i = i;
-        poly.on('click', function(e){
-          L.DomEvent.stop(e);
-          select(this._i);
-          map.fitBounds(this.getBounds().pad(3), {maxZoom:SAT_MAX});
-        });
-        /* Dragging the body moves the whole boundary, rigidly: every corner
-           by the same delta, so the shape and area are preserved and only the
-           position changes. That is the right tool when a GPS was offset, and
-           the wrong one when a single corner was walked badly, which is what
-           the vertex handles are for. */
-        poly.on('mousedown', function(e){
-          if (this._i !== sel) return;
-          var self = this, start = e.latlng, ring0 = ringOf(this);
-          L.DomEvent.stop(e);
-          map.dragging.disable();
-          clearHandles();
-          var move = function(ev){
-            var dLat = ev.latlng.lat - start.lat, dLng = ev.latlng.lng - start.lng;
-            self.setLatLngs([ring0.map(function(p){ return [p[0]+dLat, p[1]+dLng]; })]);
-            touch();
-          };
-          var up = function(){
-            map.off('mousemove', move); map.off('mouseup', up);
-            map.dragging.enable();
-            drawHandles(); saveDraft();
-          };
-          map.on('mousemove', move); map.on('mouseup', up);
-        });
-        shapes[i] = poly; grp.addLayer(poly);
-      }
-      layer = grp.addTo(m);
-      m.fitBounds(L.latLngBounds([d.bbox[0],d.bbox[1]],[d.bbox[2],d.bbox[3]]).pad(0.05));
-      status(fmt(rows.length) + ' plots in ' + d.district);
-      renderSide(); renderChanged();
-
-      var draft = loadDraft(d.district);
-      if (draft && Object.keys(draft.plots).length){
-        var when = new Date(draft.savedAt).toLocaleString();
-        if (confirm('This browser has ' + Object.keys(draft.plots).length +
-            ' unsaved edit(s) for ' + d.district + ', autosaved ' + when +
-            '. Restore them?')){
-          applyDraft(draft);
-        } else {
-          clearDraft(d.district);
-        }
-      }
+      openLayer({
+        kind:'register', key:d.district, name:d.district, format:'geojson', swapped:false,
+        bbox:d.bbox,
+        feats: rows.map(function(r){
+          return {row:r, props:{}, geom:[[r.p.map(function(p){ return [p[0], p[1]]; })]]};
+        })
+      });
     })
     .catch(function(err){ status('Could not load: ' + err.message); });
 }
 
+/* Some files put latitude first where the format says longitude, or the
+   other way round, and nothing in the file says which. Both numbers look
+   plausible on their own, so this is a button rather than a guess. */
+function swapAxes(){
+  if (!DS) return;
+  var sw = function(g){
+    return g.map(function(part){ return part.map(function(ring){
+      return ring.map(function(p){ return [p[1], p[0]]; }); }); });
+  };
+  DS.feats.forEach(function(f, i){
+    f.geom = sw(f.geom);
+    f.band = (f.row && f.row.b) || bandOf(geomHa(f.geom));
+    shapes[i].setLatLngs(f.geom);
+    shapes[i].setStyle(style(i));
+  });
+  Object.keys(orig).forEach(function(k){ orig[k] = sw(orig[k]); });
+  DS.swapped = !DS.swapped;
+  if (sel >= 0) drawHandles();
+  fitLayer();
+  renderSide(); renderChanged();
+  saveDraft();
+}
+
 function revert(i){
   if (orig[i] === undefined) return;
-  shapes[i].setLatLngs([orig[i]]);
+  DS.feats[i].geom = clone(orig[i]);
+  shapes[i].setLatLngs(DS.feats[i].geom);
   delete changed[i];
   shapes[i].setStyle(style(i));
   if (i === sel) drawHandles();
@@ -1148,93 +1375,1352 @@ function revert(i){
   saveDraft();
 }
 
-/* ---------- export ---------- */
-function download(name, text, type){
-  var blob = new Blob([text], {type:type});
+/* ======================================================================
+   READING FILES
+   ======================================================================
+   Every reader turns its format into one or more "batches":
+     {label, format, features: [GeoJSON Feature], crs, openLines}
+   and everything after that — reprojection, dropping points and lines,
+   stripping closing points — happens once, in convertBatch, whatever the
+   file was. crs is null for plain lat/lng, an EPSG number or a proj4/WKT
+   string when the file says what it is, and undefined when it doesn't: then
+   the coordinates are looked at, and only if they cannot be degrees is the
+   person asked. */
+
+var LIBS = {
+  jszip:    ['https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js', 'JSZip'],
+  shp:      ['https://cdn.jsdelivr.net/npm/shpjs@4.0.4/dist/shp.min.js', 'shp'],
+  proj4:    ['https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.11.0/proj4.js', 'proj4'],
+  xlsx:     ['https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js', 'XLSX'],
+  topojson: ['https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js', 'topojson'],
+  sqljs:    ['https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js', 'initSqlJs']
+};
+var SQLJS_BASE = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/';
+var libWait = {};
+
+/* Loaded on first use, not with the page: most sessions only ever open a
+   register district and should not pay for a spreadsheet parser. */
+function lib(name){
+  if (libWait[name]) return libWait[name];
+  var spec = LIBS[name];
+  if (window[spec[1]]) return (libWait[name] = Promise.resolve(window[spec[1]]));
+  libWait[name] = new Promise(function(ok, no){
+    var s = document.createElement('script');
+    s.src = spec[0]; s.async = true;
+    s.onload = function(){
+      if (window[spec[1]]) ok(window[spec[1]]);
+      else no(new Error('the ' + name + ' library loaded but did not start'));
+    };
+    s.onerror = function(){
+      delete libWait[name];
+      no(new Error('could not download the ' + name + ' library this format needs (offline?)'));
+    };
+    document.head.appendChild(s);
+  });
+  return libWait[name];
+}
+var sqlWait = null;
+function sqlJs(){
+  if (!sqlWait){
+    sqlWait = lib('sqljs').then(function(init){
+      return init({locateFile: function(f){ return SQLJS_BASE + f; }});
+    });
+    sqlWait.catch(function(){ sqlWait = null; });
+  }
+  return sqlWait;
+}
+
+function extOf(name){ var m = /\.([^.\/\\]+)$/.exec(name || ''); return m ? m[1].toLowerCase() : ''; }
+function baseOf(name){ return String(name || '').replace(/^.*[\/\\]/, '').replace(/\.[^.]+$/, ''); }
+function decode(u8){
+  var t = new TextDecoder('utf-8').decode(u8);
+  /* A CSV saved from Excel on Windows is often Windows-1252, not UTF-8,
+     and decoding it as UTF-8 turns every accented name into U+FFFD. */
+  if (t.indexOf('�') >= 0){
+    try { t = new TextDecoder('windows-1252').decode(u8); } catch (e) {}
+  }
+  return t.replace(/^﻿/, '');
+}
+
+/* ---------- coordinate systems ---------- */
+var ARC1960 = ' +ellps=clrk80 +towgs84=-160,-6,-302,0,0,0,0 +units=m +no_defs';
+/* null: already lat/lng. undefined: not built in. Otherwise a definition
+   proj4 takes. UTM on WGS 84 and on Arc 1960 cover what East African survey
+   data usually comes in; anything else can be pasted as a proj4 string. */
+function projDef(code){
+  code = +code;
+  if (code === 4326 || code === 4269 || code === 4258 || code === 4979) return null;
+  if (code === 3857 || code === 900913 || code === 102100 || code === 102113) return 'EPSG:3857';
+  if (code > 32600 && code < 32661) return '+proj=utm +zone=' + (code - 32600) + ' +datum=WGS84 +units=m +no_defs';
+  if (code > 32700 && code < 32761) return '+proj=utm +zone=' + (code - 32700) + ' +south +datum=WGS84 +units=m +no_defs';
+  if (code >= 21095 && code <= 21097) return '+proj=utm +zone=' + (code - 21060) + ARC1960;
+  if (code >= 21035 && code <= 21037) return '+proj=utm +zone=' + (code - 21000) + ' +south' + ARC1960;
+  return undefined;
+}
+
+function crsFromName(name){
+  if (!name) return undefined;
+  if (/CRS84/i.test(name)) return null;
+  var m = /EPSG:(?:[\d.]*:)?(\d+)\s*$/i.exec(name);
+  return m ? +m[1] : undefined;
+}
+
+function coordsOut(a){
+  if (!a || !a.length) return false;
+  if (typeof a[0] === 'number') return Math.abs(a[0]) > 180 || Math.abs(a[1]) > 90;
+  for (var i=0;i<a.length;i++) if (coordsOut(a[i])) return true;
+  return false;
+}
+function geomOut(g){
+  if (!g) return false;
+  if (g.type === 'GeometryCollection') return (g.geometries || []).some(geomOut);
+  return coordsOut(g.coordinates);
+}
+function featGeom(ft){ return ft && (ft.type === 'Feature' ? ft.geometry : ft); }
+
+function resolveCrs(b){
+  if (b.crs !== undefined) return Promise.resolve(b.crs);
+  if (!b.features.some(function(ft){ return geomOut(featGeom(ft)); })) return Promise.resolve(null);
+  var ans = window.prompt(
+    'The coordinates in ' + b.label + ' are not latitude/longitude, and the file does not ' +
+    'say what they are.\n\nEnter the EPSG code of their coordinate system, for example\n' +
+    '  32636   WGS 84 / UTM zone 36N\n  32736   WGS 84 / UTM zone 36S\n' +
+    '  21096   Arc 1960 / UTM zone 36N\n  3857    Web Mercator\n' +
+    'or paste a proj4 definition.', '32636');
+  if (!ans) return Promise.reject(new Error(b.label + ': coordinate system not given'));
+  return Promise.resolve(ans.trim());
+}
+
+/* Resolves to null (no reprojection needed) or a function [x, y] -> [lng, lat]. */
+function projector(crs){
+  if (crs === null) return Promise.resolve(null);
+  var s = String(crs).trim(), m = /^(?:EPSG:)?(\d+)$/i.exec(s), def = s;
+  if (m){
+    def = projDef(+m[1]);
+    if (def === null) return Promise.resolve(null);
+    if (def === undefined){
+      var ans = window.prompt('EPSG:' + m[1] + ' is not built into this editor. Paste its proj4 ' +
+        'definition (epsg.io/' + m[1] + ', export as PROJ.4):', '');
+      if (!ans) return Promise.reject(new Error('EPSG:' + m[1] + ' is not built in and no definition was given'));
+      def = ans.trim();
+    }
+  }
+  return lib('proj4').then(function(p4){
+    var t;
+    try { t = p4(def, 'EPSG:4326'); }
+    catch (e){ throw new Error('could not understand the coordinate system "' + s.slice(0, 60) + '"'); }
+    return function(xy){ return t.forward([xy[0], xy[1]]); };
+  });
+}
+
+/* ---------- from GeoJSON-ish geometry to the editor's own ---------- */
+function lineParts(lines, open){
+  return (lines || []).filter(function(l){
+    if (!l || l.length < 3) return false;
+    var a = l[0], z = l[l.length-1];
+    return open || (a[0] === z[0] && a[1] === z[1]);
+  }).map(function(l){ return [l]; });
+}
+/* Polygons are kept; a line is kept only when it closes on itself (or, for
+   GPX, where a walked boundary is a track, whenever it has three points);
+   points are dropped and counted, so the status line can say so. */
+function polyParts(g, open){
+  if (!g || !g.type) return [];
+  var c = g.coordinates;
+  switch (g.type){
+    case 'Polygon': return c && c.length ? [c] : [];
+    case 'MultiPolygon': return c || [];
+    case 'LineString': return lineParts([c], open);
+    case 'MultiLineString': return lineParts(c, open);
+    case 'GeometryCollection':
+      return [].concat.apply([], (g.geometries || []).map(function(x){ return polyParts(x, open); }));
+  }
+  return [];
+}
+function cleanRing(ring, proj){
+  var out = [];
+  (ring || []).forEach(function(pt){
+    if (!pt || pt.length < 2) return;
+    var x = +pt[0], y = +pt[1];
+    if (!isFinite(x) || !isFinite(y)) return;
+    var ll = proj ? proj([x, y]) : [x, y];
+    var p = [ll[1], ll[0]], last = out[out.length-1];
+    if (last && last[0] === p[0] && last[1] === p[1]) return;
+    out.push(p);
+  });
+  if (out.length > 1 && out[0][0] === out[out.length-1][0] && out[0][1] === out[out.length-1][1]) out.pop();
+  return out.length >= 3 ? out : null;
+}
+function toGeom(g, proj, open){
+  var out = [];
+  polyParts(g, open).forEach(function(part){
+    var rs = [];
+    for (var j=0;j<part.length;j++){
+      var r = cleanRing(part[j], proj);
+      if (r) rs.push(r);
+      else if (j === 0) return;   /* no usable outline, no polygon */
+    }
+    if (rs.length) out.push(rs);
+  });
+  return out.length ? out : null;
+}
+
+function convertBatch(b){
+  return resolveCrs(b).then(projector).then(function(proj){
+    var feats = [], skipped = 0;
+    b.features.forEach(function(ft){
+      var geom = toGeom(featGeom(ft), proj, b.openLines);
+      if (!geom){ skipped++; return; }
+      var props = (ft && ft.type === 'Feature' && ft.properties) ? ft.properties : {};
+      feats.push({props: props, geom: geom, row: (ft && ft._row) || null});
+    });
+    return {label: b.label, format: b.format, feats: feats, skipped: skipped, projected: !!proj};
+  });
+}
+
+/* ---------- JSON family: GeoJSON, TopoJSON, Esri JSON, polygon rows ---------- */
+function signedArea(xy){
+  var s = 0;
+  for (var i=0, n=xy.length; i<n; i++){
+    var a = xy[i], b = xy[(i+1)%n];
+    s += a[0]*b[1] - b[0]*a[1];
+  }
+  return s / 2;
+}
+/* Esri rings are all in one list: clockwise ones are outlines, anticlockwise
+   ones are holes in the outline before them. */
+function esriPolygon(rings){
+  var polys = [];
+  (rings || []).forEach(function(r){
+    if (signedArea(r) <= 0 || !polys.length) polys.push([r]);
+    else polys[polys.length-1].push(r);
+  });
+  return {type:'MultiPolygon', coordinates:polys};
+}
+
+function parseJSONDoc(name, obj){
+  var label = baseOf(name);
+  if (Array.isArray(obj)){
+    if (obj.length && obj[0] && Array.isArray(obj[0].p)){
+      /* polygons/*.json rows, or the editor's own row export: [lat, lng] */
+      return [{label:label, format:'rows', crs:null, features: obj.map(function(r){
+        var props = {};
+        Object.keys(r).forEach(function(k){ if (k !== 'p') props[k] = r[k]; });
+        return {type:'Feature', properties:props, _row:r,
+                geometry:{type:'Polygon', coordinates:[(r.p || []).map(function(q){ return [q[1], q[0]]; })]}};
+      })}];
+    }
+    if (obj.length && obj[0] && obj[0].type)
+      return parseJSONDoc(name, {type:'FeatureCollection', features:obj});
+    throw new Error(name + ' is a JSON list, but not of features or polygon rows');
+  }
+  if (!obj || typeof obj !== 'object') throw new Error(name + ' is not a GeoJSON object');
+
+  if (obj.type === 'Topology'){
+    return lib('topojson').then(function(tj){
+      var keys = Object.keys(obj.objects || {});
+      return keys.map(function(k){
+        var fc = tj.feature(obj, obj.objects[k]);
+        return {label: keys.length > 1 ? k : label, format:'geojson', crs:undefined,
+                features: fc.features || [fc]};
+      });
+    });
+  }
+  if (Array.isArray(obj.features) && obj.features.length && obj.features[0] &&
+      obj.features[0].geometry && obj.features[0].geometry.rings){
+    var sr = obj.spatialReference || {}, wkid = sr.latestWkid || sr.wkid;
+    return [{label:label, format:'geojson', crs: wkid ? (wkid === 4326 ? null : wkid) : undefined,
+             features: obj.features.map(function(f){
+               return {type:'Feature', properties:f.attributes || {},
+                       geometry: f.geometry ? esriPolygon(f.geometry.rings) : null};
+             })}];
+  }
+  var crs = crsFromName(obj.crs && obj.crs.properties && obj.crs.properties.name);
+  if (obj.type === 'FeatureCollection')
+    return [{label:label, format:'geojson', crs:crs, features:obj.features || []}];
+  if (obj.type === 'Feature')
+    return [{label:label, format:'geojson', crs:crs, features:[obj]}];
+  if (obj.type && (obj.coordinates || obj.geometries))
+    return [{label:label, format:'geojson', crs:crs, features:[{type:'Feature', properties:{}, geometry:obj}]}];
+  throw new Error(name + ' is JSON, but not GeoJSON, TopoJSON, Esri JSON or polygon rows');
+}
+
+/* ---------- XML family: KML, GPX ---------- */
+function xmlDoc(text, name){
+  var doc = new DOMParser().parseFromString(text, 'application/xml');
+  if (doc.getElementsByTagName('parsererror').length) throw new Error(name + ' is not valid XML');
+  return doc;
+}
+function tags(el, name){ return el ? Array.prototype.slice.call(el.getElementsByTagNameNS('*', name)) : []; }
+function child(el, name){
+  if (!el) return null;
+  for (var c = el.firstElementChild; c; c = c.nextElementSibling) if (c.localName === name) return c;
+  return null;
+}
+function textOf(el){ return el ? el.textContent.trim() : ''; }
+function kmlCoords(el){
+  return textOf(el).split(/\s+/).map(function(t){ return t.split(',').map(Number); })
+    .filter(function(p){ return p.length >= 2 && isFinite(p[0]) && isFinite(p[1]); });
+}
+
+function parseKML(name, text){
+  var doc = xmlDoc(text, name), feats = [];
+  tags(doc, 'Placemark').forEach(function(pm){
+    var props = {};
+    var nm = child(pm, 'name'), ds = child(pm, 'description');
+    if (nm) props.name = textOf(nm);
+    if (ds && textOf(ds)) props.description = textOf(ds);
+    tags(pm, 'Data').forEach(function(d){
+      var k = d.getAttribute('name');
+      if (k) props[k] = textOf(child(d, 'value'));
+    });
+    tags(pm, 'SimpleData').forEach(function(d){
+      var k = d.getAttribute('name');
+      if (k) props[k] = textOf(d);
+    });
+    var polys = tags(pm, 'Polygon').map(function(poly){
+      var rings = [kmlCoords(tags(child(poly, 'outerBoundaryIs'), 'coordinates')[0])];
+      tags(poly, 'innerBoundaryIs').forEach(function(ib){ rings.push(kmlCoords(tags(ib, 'coordinates')[0])); });
+      return rings;
+    });
+    var lines = tags(pm, 'LineString').concat(
+      tags(pm, 'LinearRing').filter(function(r){ return r.parentNode.localName === 'MultiGeometry' ||
+                                                      r.parentNode.localName === 'Placemark'; }))
+      .map(function(l){ return kmlCoords(tags(l, 'coordinates')[0]); });
+    var geoms = [];
+    if (polys.length) geoms.push({type:'MultiPolygon', coordinates:polys});
+    if (lines.length) geoms.push({type:'MultiLineString', coordinates:lines});
+    feats.push({type:'Feature', properties:props,
+                geometry: geoms.length === 1 ? geoms[0] : {type:'GeometryCollection', geometries:geoms}});
+  });
+  return [{label:baseOf(name), format:'kml', crs:null, features:feats}];
+}
+
+/* A GPX file has no polygons, only tracks, routes and waypoints, but a
+   boundary walked with a handheld GPS arrives exactly as one of those. Each
+   track segment or route is read as one ring; with neither, the waypoints
+   in order are read as the corners of one plot. */
+function parseGPX(name, text){
+  var doc = xmlDoc(text, name), feats = [];
+  var pts = function(els){
+    return els.map(function(p){ return [+p.getAttribute('lon'), +p.getAttribute('lat')]; });
+  };
+  var meta = function(el){
+    var p = {};
+    if (child(el, 'name')) p.name = textOf(child(el, 'name'));
+    if (child(el, 'desc')) p.description = textOf(child(el, 'desc'));
+    return p;
+  };
+  tags(doc, 'trk').forEach(function(trk){
+    feats.push({type:'Feature', properties:meta(trk), geometry:{type:'MultiLineString',
+      coordinates: tags(trk, 'trkseg').map(function(s){ return pts(tags(s, 'trkpt')); })}});
+  });
+  tags(doc, 'rte').forEach(function(rte){
+    feats.push({type:'Feature', properties:meta(rte),
+                geometry:{type:'LineString', coordinates:pts(tags(rte, 'rtept'))}});
+  });
+  if (!feats.length){
+    var w = tags(doc, 'wpt');
+    if (w.length >= 3) feats.push({type:'Feature', properties:{name:baseOf(name)},
+                                    geometry:{type:'LineString', coordinates:pts(w)}});
+  }
+  return [{label:baseOf(name), format:'gpx', crs:null, openLines:true, features:feats}];
+}
+
+/* ---------- text family: WKT, CSV/TSV, spreadsheets ---------- */
+function wktGeom(s){
+  var srid;
+  s = String(s).trim().replace(/^SRID=(\d+);\s*/i, function(_, c){ srid = +c; return ''; });
+  var m = /^(MULTIPOLYGON|POLYGON|MULTILINESTRING|LINESTRING)\s*(?:ZM|Z|M)?\s*(\(.*\))\s*$/i
+          .exec(s.replace(/\s+/g, ' '));
+  if (!m) return null;
+  var src = m[2], i = 0;
+  var ws = function(){ while (src[i] === ' ') i++; };
+  var list = function(){
+    i++; ws();
+    if (src[i] === '('){
+      var out = [];
+      for (;;){
+        out.push(list()); ws();
+        if (src[i] === ','){ i++; ws(); continue; }
+        if (src[i] === ')'){ i++; return out; }
+        throw new Error('bad WKT');
+      }
+    }
+    var j = src.indexOf(')', i);
+    if (j < 0) throw new Error('bad WKT');
+    var pts = src.slice(i, j).split(',').map(function(t){ return t.trim().split(' ').map(Number); });
+    i = j + 1;
+    return pts;
+  };
+  var c;
+  try { c = list(); } catch (e){ return null; }
+  var type = {POLYGON:'Polygon', MULTIPOLYGON:'MultiPolygon', LINESTRING:'LineString',
+              MULTILINESTRING:'MultiLineString'}[m[1].toUpperCase()];
+  var g = {type:type, coordinates:c};
+  if (srid) g.srid = srid;
+  return g;
+}
+
+/* One spreadsheet cell holding a whole boundary, in any of the ways field
+   tools and GIS exports write one. */
+function cellGeom(v){
+  if (typeof v !== 'string') return null;
+  var s = v.trim();
+  if (!s) return null;
+  if (/^(SRID=\d+;\s*)?(MULTI)?(POLYGON|LINESTRING)\b/i.test(s)) return wktGeom(s);
+  if (s[0] === '{' || s[0] === '['){
+    var j;
+    try { j = JSON.parse(s); } catch (e){ return null; }
+    if (j && j.type === 'Feature') return j.geometry;
+    if (j && j.type && j.coordinates) return j;
+    if (Array.isArray(j) && j.length >= 3){
+      var p0 = j[0];
+      /* [{"lat":..,"lng":..}] is how the register workbook stores a plot */
+      if (p0 && typeof p0 === 'object' && !Array.isArray(p0)){
+        var lat = function(o){ return +(o.lat !== undefined ? o.lat : o.latitude); };
+        var lng = function(o){ return +(o.lng !== undefined ? o.lng : o.lon !== undefined ? o.lon :
+                                         o.long !== undefined ? o.long : o.longitude); };
+        return {type:'Polygon', coordinates:[j.map(function(o){ return [lng(o), lat(o)]; })]};
+      }
+      /* bare pairs are read [lat, lng], this project's own convention;
+         "Swap lat/lng" is there for a file that meant the other */
+      if (Array.isArray(p0) && typeof p0[0] === 'number')
+        return {type:'Polygon', coordinates:[j.map(function(p){ return [p[1], p[0]]; })]};
+      if (Array.isArray(p0) && Array.isArray(p0[0])) return {type:'Polygon', coordinates:j};
+    }
+    return null;
+  }
+  /* ODK / KoboToolbox geoshape: "lat lng alt accuracy;lat lng alt accuracy;…" */
+  if (/^-?\d+(\.\d+)?[ ,]+-?\d+(\.\d+)?([ ,]+-?[\d.]+)*\s*;/.test(s)){
+    var ring = s.split(';').map(function(t){ return t.trim().split(/[\s,]+/).map(Number); })
+      .filter(function(p){ return p.length >= 2 && isFinite(p[0]) && isFinite(p[1]); })
+      .map(function(p){ return [p[1], p[0]]; });
+    return ring.length >= 3 ? {type:'Polygon', coordinates:[ring]} : null;
+  }
+  return null;
+}
+
+var GEOM_COL = /^(wkt|geom|geometry|the_geom|shape|polygon|boundary|plot[ _]?polygon|geoshape|.*_?geoshape)$/i;
+var LAT_COL = /(^|[^a-z])(lat|latitude)([^a-z]|$)/i;
+var LNG_COL = /(^|[^a-z])(lon|lng|long|longitude)([^a-z]|$)/i;
+var ORDER_COL = /^(order|seq|sequence|vertex|vertex[ _]?(no|num|index|id)|point[ _]?(no|num|index|order)|idx|index|pt)$/i;
+var STRONG_ID_COL = /(^|[^a-z])(id|code|uid|key)([^a-z]|$)/i;
+var ID_COL = /(^|[^a-z])(id|code|name|plot|polygon|parcel|farm|field|group|feature)([^a-z]|$)/i;
+
+/* Any table, from a CSV or a spreadsheet, as a list of rows of cells. Two
+   layouts are recognised: a column whose cells each hold a whole boundary,
+   or latitude and longitude columns with one row per corner, grouped into
+   plots by an id-like column and ordered by an order-like one. */
+function tableBatch(rows, label){
+  rows = (rows || []).filter(function(r){
+    return r && r.some(function(c){ return c !== '' && c !== null && c !== undefined; });
+  });
+  if (!rows.length) return null;
+  var width = rows.reduce(function(w, r){ return Math.max(w, r.length); }, 0), head, body;
+  var headerless = rows[0].some(function(c){ return cellGeom(c); });
+  if (headerless){
+    head = []; for (var h=0; h<width; h++) head.push('field_' + (h+1));
+    body = rows;
+  } else {
+    head = rows[0].map(function(c, k){ var s = String(c === null || c === undefined ? '' : c).trim();
+                                       return s || ('field_' + (k+1)); });
+    while (head.length < width) head.push('field_' + (head.length+1));
+    body = rows.slice(1);
+  }
+  var propsOf = function(r, skip){
+    var p = {};
+    head.forEach(function(k, j){ if (skip.indexOf(j) < 0) p[k] = r[j] === undefined ? '' : r[j]; });
+    return p;
+  };
+
+  var order = head.map(function(_, j){ return j; });
+  order.sort(function(a, b){ return (GEOM_COL.test(head[b]) ? 1 : 0) - (GEOM_COL.test(head[a]) ? 1 : 0); });
+  var gcol = -1;
+  for (var q=0; q<order.length && gcol < 0; q++){
+    var j = order[q], seen = 0, ok = 0;
+    for (var k=0; k<body.length && seen < 10; k++){
+      var v = body[k][j];
+      if (v === '' || v === null || v === undefined) continue;
+      seen++;
+      if (cellGeom(v)) ok++;
+    }
+    if (seen && ok * 2 >= seen) gcol = j;
+  }
+  if (gcol >= 0){
+    var srid;
+    var feats = body.map(function(r){
+      var g = cellGeom(r[gcol]);
+      if (g && g.srid && srid === undefined) srid = g.srid;
+      return {type:'Feature', properties:propsOf(r, [gcol]), geometry:g};
+    });
+    return {label:label, format:'csv', features:feats,
+            crs: srid ? (srid === 4326 ? null : srid) : undefined};
+  }
+
+  var latC = head.findIndex(function(x){ return LAT_COL.test(x); });
+  var lngC = head.findIndex(function(x){ return LNG_COL.test(x); });
+  if (latC < 0 || lngC < 0){
+    latC = head.findIndex(function(x){ return /^y$/i.test(x); });
+    lngC = head.findIndex(function(x){ return /^x$/i.test(x); });
+  }
+  if (latC < 0 || lngC < 0) return null;
+  var ordC = head.findIndex(function(x, j){ return j !== latC && j !== lngC && ORDER_COL.test(x); });
+  /* an "id" or "code" column says which plot a corner belongs to more
+     reliably than a "name" one: one farmer's name can cover several plots */
+  var idFree = function(j){ return j !== latC && j !== lngC && j !== ordC; };
+  var idC = head.findIndex(function(x, j){ return idFree(j) && STRONG_ID_COL.test(x); });
+  if (idC < 0) idC = head.findIndex(function(x, j){ return idFree(j) && ID_COL.test(x); });
+  var groups = [], byId = {};
+  body.forEach(function(r, n){
+    var x = parseFloat(r[lngC]), y = parseFloat(r[latC]);
+    if (!isFinite(x) || !isFinite(y)) return;
+    var id = idC >= 0 ? String(r[idC]) : '';
+    if (!byId.hasOwnProperty(id)){ byId[id] = {rows:[], first:r}; groups.push(byId[id]); }
+    byId[id].rows.push({xy:[x, y], o: ordC >= 0 ? parseFloat(r[ordC]) : n});
+  });
+  return {label:label, format:'csv', crs:undefined, openLines:true, features: groups.map(function(g){
+    g.rows.sort(function(a, b){ return a.o - b.o; });
+    return {type:'Feature', properties:propsOf(g.first, [latC, lngC, ordC]),
+            geometry:{type:'LineString', coordinates:g.rows.map(function(p){ return p.xy; })}};
+  })};
+}
+
+function parseCSV(text){
+  var first = text.split(/\r?\n/, 1)[0], best = ',', bestN = 0;
+  [',', ';', '\t', '|'].forEach(function(d){
+    var n = 0, q = false;
+    for (var i=0;i<first.length;i++){
+      if (first[i] === '"') q = !q; else if (!q && first[i] === d) n++;
+    }
+    if (n > bestN){ best = d; bestN = n; }
+  });
+  var rows = [], row = [], cell = '', inQ = false;
+  for (var i=0;i<text.length;i++){
+    var ch = text[i];
+    if (inQ){
+      if (ch === '"'){ if (text[i+1] === '"'){ cell += '"'; i++; } else inQ = false; }
+      else cell += ch;
+    } else if (ch === '"') inQ = true;
+    else if (ch === best){ row.push(cell); cell = ''; }
+    else if (ch === '\n' || ch === '\r'){
+      if (ch === '\r' && text[i+1] === '\n') i++;
+      row.push(cell); rows.push(row); row = []; cell = '';
+    } else cell += ch;
+  }
+  if (cell !== '' || row.length){ row.push(cell); rows.push(row); }
+  return rows;
+}
+
+function parseWKTLines(name, text){
+  var geoms = text.split(/\r?\n/).map(wktGeom).filter(Boolean);
+  if (!geoms.length){ var one = wktGeom(text); if (one) geoms = [one]; }
+  if (!geoms.length) return null;
+  var srid = geoms[0].srid;
+  return {label:baseOf(name), format:'csv', crs: srid ? (srid === 4326 ? null : srid) : undefined,
+          features: geoms.map(function(g){ return {type:'Feature', properties:{}, geometry:g}; })};
+}
+
+function parseTextTable(name, text){
+  var b = extOf(name) === 'wkt' ? null : tableBatch(parseCSV(text), baseOf(name));
+  if (!b || !b.features.length) b = parseWKTLines(name, text);
+  if (!b) throw new Error(name + ': found no polygons. A table needs a column of WKT, GeoJSON, ' +
+                          'geoshape or [{lat,lng}] cells, or latitude and longitude columns.');
+  return [b];
+}
+
+function parseSheet(name, buf){
+  return lib('xlsx').then(function(XLSX){
+    var wb = XLSX.read(new Uint8Array(buf), {type:'array'}), out = [];
+    wb.SheetNames.forEach(function(sn){
+      var rows = XLSX.utils.sheet_to_json(wb.Sheets[sn], {header:1, raw:true, defval:''});
+      var b = tableBatch(rows, wb.SheetNames.length > 1 ? baseOf(name) + ' / ' + sn : baseOf(name));
+      if (b && b.features.length){ b.format = 'xlsx'; out.push(b); }
+    });
+    if (!out.length) throw new Error(name + ': no sheet has a column of polygons (WKT, GeoJSON, ' +
+                                     'geoshape) or latitude and longitude columns');
+    return out;
+  });
+}
+
+/* ---------- binary family: zip (shapefile, KMZ), GeoPackage ---------- */
+function parseZip(name, buf){
+  return lib('jszip').then(function(JSZip){ return JSZip.loadAsync(buf); }).then(function(zip){
+    var names = Object.keys(zip.files).filter(function(n){
+      return !zip.files[n].dir && !/(^|\/)(__MACOSX\/|\._)/.test(n);
+    });
+    if (names.some(function(n){ return extOf(n) === 'shp'; })){
+      return lib('shp').then(function(shp){ return shp(buf); }).then(function(res){
+        return [].concat(res).map(function(fc){
+          return {label: fc.fileName ? baseOf(fc.fileName) : baseOf(name), format:'shp',
+                  crs:undefined, features: fc.features || []};
+        });
+      });
+    }
+    var usable = names.filter(function(n){
+      return /^(kml|geojson|json|topojson|gpx|csv|tsv|txt|wkt|xlsx|xls|ods|gpkg)$/.test(extOf(n));
+    });
+    if (!usable.length) throw new Error(name + ' holds nothing this editor can read');
+    return Promise.all(usable.map(function(n){
+      return zip.files[n].async('arraybuffer').then(function(b){ return parseAny(n, b); });
+    })).then(function(lists){
+      var out = [].concat.apply([], lists);
+      if (extOf(name) === 'kmz') out.forEach(function(b){ b.format = 'kmz'; b.label = baseOf(name); });
+      return out;
+    });
+  });
+}
+
+/* Loose shapefile parts picked together. .prj, where present, lets shpjs
+   reproject to lat/lng itself; without it the coordinates are checked and
+   the person is asked, as for any other file. */
+function parseShpParts(g){
+  var read = function(f, asText){
+    return f ? (asText ? f.text() : f.arrayBuffer()) : Promise.resolve(null);
+  };
+  return Promise.all([lib('shp'), read(g.shp), read(g.dbf), read(g.prj, true), read(g.cpg, true)])
+    .then(function(a){
+      var shp = a[0];
+      var geoms = shp.parseShp(a[1], a[3] || undefined);
+      var props = a[2] ? shp.parseDbf(a[2], a[4] || undefined) : [];
+      return [{label: baseOf(g.shp.name), format:'shp', crs:undefined,
+               features: geoms.map(function(geom, i){
+                 return {type:'Feature', geometry:geom, properties:props[i] || {}};
+               })}];
+    });
+}
+
+/* A GeoPackage geometry is a small header (magic, flags, srs id, optional
+   envelope) and then plain WKB. */
+function gpBlobGeom(u8){
+  if (!u8 || u8.length < 8 || u8[0] !== 0x47 || u8[1] !== 0x50) return null;
+  var flags = u8[3];
+  if (flags & 0x10) return null;   /* empty geometry */
+  var envLen = [0, 32, 48, 48, 64][(flags >> 1) & 7] || 0;
+  return wkbGeom(u8, 8 + envLen);
+}
+function wkbGeom(u8, off){
+  var dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength), p = off;
+  var geom = function(){
+    var le = dv.getUint8(p) === 1; p += 1;
+    var t = dv.getUint32(p, le); p += 4;
+    var dim = 2;
+    if (t & 0x80000000) dim++;
+    if (t & 0x40000000) dim++;
+    if (t & 0x20000000) p += 4;    /* EWKB srid */
+    t &= 0x0fffffff;
+    if (t >= 3000){ dim = 4; t -= 3000; } else if (t >= 2000){ dim = 3; t -= 2000; }
+    else if (t >= 1000){ dim = 3; t -= 1000; }
+    var pt = function(){ var x = dv.getFloat64(p, le), y = dv.getFloat64(p+8, le); p += 8*dim; return [x, y]; };
+    var pts = function(){ var n = dv.getUint32(p, le), a = []; p += 4; for (var i=0;i<n;i++) a.push(pt()); return a; };
+    var rings = function(){ var n = dv.getUint32(p, le), a = []; p += 4; for (var i=0;i<n;i++) a.push(pts()); return a; };
+    var many = function(){ var n = dv.getUint32(p, le), a = []; p += 4; for (var i=0;i<n;i++) a.push(geom()); return a; };
+    switch (t){
+      case 1: return {type:'Point', coordinates:pt()};
+      case 2: return {type:'LineString', coordinates:pts()};
+      case 3: return {type:'Polygon', coordinates:rings()};
+      case 4: return {type:'MultiPoint', coordinates:many().map(function(g){ return g.coordinates; })};
+      case 5: return {type:'MultiLineString', coordinates:many().map(function(g){ return g.coordinates; })};
+      case 6: return {type:'MultiPolygon', coordinates:many().map(function(g){ return g.coordinates; })};
+      case 7: return {type:'GeometryCollection', geometries:many()};
+    }
+    throw new Error('unsupported WKB geometry type ' + t);
+  };
+  try { return geom(); } catch (e){ return null; }
+}
+
+function gpkgCrs(db, srs){
+  if (srs === 4326) return null;
+  var r = db.exec('SELECT organization, organization_coordsys_id, definition FROM gpkg_spatial_ref_sys WHERE srs_id = ' + (+srs));
+  if (!r.length || !r[0].values.length) return undefined;
+  var org = String(r[0].values[0][0]).toUpperCase(), code = r[0].values[0][1], def = r[0].values[0][2];
+  if (org === 'EPSG' && projDef(code) !== undefined) return projDef(code) === null ? null : code;
+  if (def && def !== 'undefined') return def;
+  return org === 'EPSG' ? code : undefined;
+}
+
+function parseGPKG(name, buf){
+  return sqlJs().then(function(SQL){
+    var db = new SQL.Database(new Uint8Array(buf));
+    try {
+      var gc = db.exec('SELECT table_name, column_name, srs_id FROM gpkg_geometry_columns');
+      if (!gc.length || !gc[0].values.length) throw new Error(name + ' has no feature tables');
+      var many = gc[0].values.length > 1;
+      return gc[0].values.map(function(row){
+        var t = String(row[0]), col = row[1], qt = '"' + t.replace(/"/g, '""') + '"';
+        var res = db.exec('SELECT * FROM ' + qt), feats = [];
+        /* the integer primary key (fid) is the file's row number, not an
+           attribute; carrying it would add a column on every round trip */
+        var info = db.exec('PRAGMA table_info(' + qt + ')'), pk = {};
+        if (info.length) info[0].values.forEach(function(c){
+          if (c[5] && /INT/i.test(c[2])) pk[c[1]] = 1;
+        });
+        if (res.length){
+          var cols = res[0].columns, gi = cols.indexOf(col);
+          res[0].values.forEach(function(v){
+            var props = {};
+            cols.forEach(function(c, j){
+              if (j !== gi && !pk[c] && !(v[j] instanceof Uint8Array)) props[c] = v[j];
+            });
+            feats.push({type:'Feature', properties:props, geometry: v[gi] ? gpBlobGeom(v[gi]) : null});
+          });
+        }
+        return {label: many ? t : baseOf(name), format:'gpkg', crs:gpkgCrs(db, row[2]), features:feats};
+      });
+    } finally { db.close(); }
+  });
+}
+
+/* ---------- dispatch ---------- */
+function parseAny(name, buf){
+  return Promise.resolve().then(function(){
+    var e = extOf(name), u8 = new Uint8Array(buf);
+    /* before the zip check: .xlsx and .ods are zip files too */
+    if (/^(xlsx|xls|xlsm|ods)$/.test(e)) return parseSheet(name, buf);
+    if (u8[0] === 0x50 && u8[1] === 0x4B) return parseZip(name, buf);
+    if (String.fromCharCode.apply(null, u8.subarray(0, 15)) === 'SQLite format 3') return parseGPKG(name, buf);
+    var text = decode(u8), head = text.slice(0, 2000).trim();
+    if (e === 'kml' || /<kml[\s>]/i.test(head)) return parseKML(name, text);
+    if (e === 'gpx' || /<gpx[\s>]/i.test(head)) return parseGPX(name, text);
+    if (head[0] === '{' || head[0] === '['){
+      var obj;
+      try { obj = JSON.parse(text); }
+      catch (err){ throw new Error(name + ' looks like JSON but does not parse: ' + err.message); }
+      return parseJSONDoc(name, obj);
+    }
+    return parseTextTable(name, text);
+  });
+}
+
+var SHP_PARTS = ['shp', 'shx', 'dbf', 'prj', 'cpg', 'sbn', 'sbx', 'qix', 'qmd'];
+
+function readAll(files){
+  /* A shapefile is several files that only mean something together, so
+     they are grouped by name before anything is parsed. */
+  var groups = {}, jobs = [];
+  files.forEach(function(f){
+    var e = extOf(f.name);
+    if (SHP_PARTS.indexOf(e) >= 0){
+      var b = baseOf(f.name).toLowerCase();
+      (groups[b] = groups[b] || {})[e] = f;
+    } else {
+      jobs.push(f.arrayBuffer().then(function(buf){ return parseAny(f.name, buf); }));
+    }
+  });
+  Object.keys(groups).forEach(function(b){
+    var g = groups[b];
+    if (!g.shp){
+      jobs.push(Promise.reject(new Error(b + ': a shapefile needs its .shp as well as the ' +
+        Object.keys(g).map(function(e){ return '.' + e; }).join(', '))));
+      return;
+    }
+    jobs.push(parseShpParts(g));
+  });
+  return Promise.all(jobs).then(function(lists){ return [].concat.apply([], lists); });
+}
+
+function openFiles(list){
+  var files = Array.prototype.slice.call(list || []);
+  if (!files.length) return;
+  var name = files.length === 1 ? files[0].name : files[0].name + ' + ' + (files.length - 1) + ' more';
+  status('Reading ' + name + '…');
+  readAll(files)
+    .then(function(batches){
+      /* one at a time, so that two files that each need a coordinate
+         system asked for do not put up two prompts at once */
+      return batches.reduce(function(p, b){
+        return p.then(function(acc){ return convertBatch(b).then(function(c){ acc.push(c); return acc; }); });
+      }, Promise.resolve([]));
+    })
+    .then(function(conv){
+      var feats = [], skipped = 0, projected = false, multi = conv.length > 1;
+      conv.forEach(function(c){
+        skipped += c.skipped;
+        projected = projected || c.projected;
+        c.feats.forEach(function(f){
+          /* several layers go into one; keep which each plot came from */
+          if (multi){ var p = {source_layer: c.label}; Object.keys(f.props).forEach(function(k){ p[k] = f.props[k]; }); f.props = p; }
+          feats.push(f);
+        });
+      });
+      if (!feats.length)
+        throw new Error('no polygons found' + (skipped ? ' (' + plural(skipped, 'point or open line') + ' skipped)' : ''));
+      var notes = [];
+      if (skipped) notes.push(plural(skipped, 'non-polygon feature') + ' skipped');
+      if (projected) notes.push('reprojected to WGS 84');
+      $('edDistrict').value = '';
+      openLayer({kind:'file', key:'file:' + name + ':' + feats.length, name:name,
+                 format: conv[0].format, swapped:false, feats:feats}, notes.join(', '));
+    })
+    .catch(function(err){
+      status('Could not open ' + name + '.');
+      window.alert('Could not open ' + name + ':\n\n' + (err && err.message ? err.message : err));
+    });
+}
+
+/* ======================================================================
+   WRITING FILES
+   ====================================================================== */
+function download(name, data){
+  var blob = data instanceof Blob ? data : new Blob([data], {type:'application/octet-stream'});
   var a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = name;
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
 }
+function xesc(s){
+  return String(s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]; });
+}
 
-function exportChanges(){
-  var keys = Object.keys(changed).map(Number).sort(function(a,b){return a-b;});
-  if (!keys.length) return;
-  var stamp = new Date().toISOString().slice(0,10);
-  var slug = DKEY.district.toLowerCase().replace(/[^a-z0-9]+/g,'-');
+/* GeoJSON is [lng, lat] and the editor is [lat, lng]. Getting this
+   backwards puts Masaka in the Indian Ocean, and silently: both numbers are
+   plausible on their own. Every writer below goes through these. */
+function lngLatParts(g){
+  return g.map(function(part){ return part.map(function(r){
+    return closed(r).map(function(p){ return [p[1], p[0]]; }); }); });
+}
+function gjGeom(g){
+  var parts = lngLatParts(g);
+  return parts.length === 1 ? {type:'Polygon', coordinates:parts[0]}
+                            : {type:'MultiPolygon', coordinates:parts};
+}
+function wktOf(g){
+  var poly = function(part){
+    return '(' + part.map(function(r){
+      return '(' + r.map(function(p){ return p[0] + ' ' + p[1]; }).join(', ') + ')';
+    }).join(', ') + ')';
+  };
+  var parts = lngLatParts(g);
+  return parts.length === 1 ? 'POLYGON ' + poly(parts[0])
+                            : 'MULTIPOLYGON (' + parts.map(poly).join(', ') + ')';
+}
 
-  var feats = [], rowsOut = [];
-  keys.forEach(function(i){
-    var r = ROWS[i], ring = ringOf(shapes[i]);
-    var before = ringHa(orig[i]), after = ringHa(ring);
-    var props = {
-      district: DKEY.district,
-      farm_unit_id: r.u || null, farmer_code: r.c || null, plot_name: r.n || null,
-      band: r.b, status: r.s, itc_submitted: !!r.i,
-      register_ha: r.h,
-      geometry_ha_before: Number(before.toFixed(4)),
-      geometry_ha_after: Number(after.toFixed(4)),
-      corners_before: orig[i].length, corners_after: ring.length,
-      corners_moved: movedCount(i),
-      crosses_eudr_4ha: (before >= EUDR_HA) !== (after >= EUDR_HA),
-      edited_on: stamp
-    };
-    /* GeoJSON is [lng, lat] and the source file is [lat, lng]. Getting this
-       backwards puts Masaka in the Indian Ocean, and silently: both numbers
-       are plausible on their own. */
-    var coords = ring.map(function(p){ return [p[1], p[0]]; });
-    coords.push(coords[0].slice());   /* GeoJSON rings must close */
-    feats.push({type:'Feature', properties:props,
-                geometry:{type:'Polygon', coordinates:[coords]}});
-    /* The polygons/*.json row shape, so an edit can go back the way it came.
-       h is the recomputed area, not the register's: the geometry is what was
-       edited, and carrying the old number beside a new shape is how the two
-       drift apart. */
-    var row = {h:Number(after.toFixed(4)), b:r.b, s:r.s, i:r.i,
-               p:ring.map(function(p){ return [Number(p[0].toFixed(6)),
-                                               Number(p[1].toFixed(6))]; })};
-    if (r.c) row.c = r.c;
-    if (r.n) row.n = r.n;
-    if (r.u) row.u = r.u;
-    rowsOut.push(row);
+function columnsOf(items){
+  var keys = [], seen = {};
+  items.forEach(function(it){
+    Object.keys(it.props).forEach(function(k){ if (!seen[k]){ seen[k] = 1; keys.push(k); } });
   });
+  return keys.map(function(k){
+    var vals = items.map(function(it){ return it.props[k]; })
+      .filter(function(v){ return v !== null && v !== undefined && v !== ''; });
+    var type = 'text';
+    if (vals.length && vals.every(function(v){ return typeof v === 'boolean'; })) type = 'bool';
+    else if (vals.length && vals.every(function(v){ return typeof v === 'number' && isFinite(v); }))
+      type = vals.every(function(v){ return Number.isInteger(v); }) ? 'int' : 'real';
+    return {key:k, type:type};
+  });
+}
 
-  download('edited-plots-' + slug + '-' + stamp + '.geojson',
-    JSON.stringify({type:'FeatureCollection',
-                    crs:{type:'name', properties:{name:'urn:ogc:def:crs:OGC:1.3:CRS84'}},
-                    features:feats}, null, 1), 'application/geo+json');
-  download('edited-plots-' + slug + '-' + stamp + '.json',
-    JSON.stringify(rowsOut, null, 1), 'application/json');
-  status('Exported ' + keys.length + ' plot' + (keys.length===1?'':'s') + '.');
+function tableOf(items){
+  var keys = columnsOf(items).map(function(c){ return c.key; })
+    .filter(function(k){ return k !== 'area_ha' && k !== 'wkt'; });
+  var aoa = [keys.concat(['area_ha', 'wkt'])];
+  items.forEach(function(it){
+    aoa.push(keys.map(function(k){
+      var v = it.props[k];
+      return (v === null || v === undefined) ? '' : (typeof v === 'object' ? JSON.stringify(v) : v);
+    }).concat([Number(geomHa(it.geom).toFixed(4)), wktOf(it.geom)]));
+  });
+  return aoa;
+}
+
+function kmlText(items, title){
+  var ring = function(r){
+    return '<LinearRing><coordinates>' + r.map(function(p){ return p[0] + ',' + p[1]; }).join(' ') +
+           '</coordinates></LinearRing>';
+  };
+  var out = ['<?xml version="1.0" encoding="UTF-8"?>',
+    '<kml xmlns="http://www.opengis.net/kml/2.2">', '<Document>', '<name>' + xesc(title) + '</name>',
+    '<Style id="plot"><LineStyle><color>ff1c79e8</color><width>2</width></LineStyle>' +
+    '<PolyStyle><color>4d6a7527</color></PolyStyle></Style>'];
+  items.forEach(function(it){
+    var keys = Object.keys(it.props);
+    var polys = lngLatParts(it.geom).map(function(part){
+      return '<Polygon><outerBoundaryIs>' + ring(part[0]) + '</outerBoundaryIs>' +
+        part.slice(1).map(function(h){ return '<innerBoundaryIs>' + ring(h) + '</innerBoundaryIs>'; }).join('') +
+        '</Polygon>';
+    });
+    out.push('<Placemark><name>' + xesc(it.label) + '</name><styleUrl>#plot</styleUrl>' +
+      (keys.length ? '<ExtendedData>' + keys.map(function(k){
+        return '<Data name="' + xesc(k) + '"><value>' + xesc(cellVal(it.props[k])) + '</value></Data>';
+      }).join('') + '</ExtendedData>' : '') +
+      (polys.length > 1 ? '<MultiGeometry>' + polys.join('') + '</MultiGeometry>' : polys[0]) +
+      '</Placemark>');
+  });
+  out.push('</Document>', '</kml>');
+  return out.join('\n');
+}
+
+/* ---------- shapefile ----------
+   Written by hand rather than with a library: polygons in WGS 84 are a
+   small, fixed part of the format, and this way what is written is visible
+   here. Outlines go clockwise and holes anticlockwise, which the format
+   requires and GeoJSON does not. */
+var WGS84_PRJ = 'GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],' +
+                'PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]';
+
+function dbfBytes(items){
+  var enc = new TextEncoder(), cols = columnsOf(items), used = {}, renamed = 0;
+  if (!cols.length){
+    items = items.map(function(_, k){ return {props:{id:k+1}}; });
+    cols = [{key:'id', type:'int'}];
+  }
+  var fit = function(s, max){
+    var b = enc.encode(s);
+    if (b.length <= max) return b;
+    var k = max;
+    while (k > 0 && (b[k] & 0xC0) === 0x80) k--;   /* do not cut a character in half */
+    return b.slice(0, k);
+  };
+  var fields = cols.map(function(c){
+    var nm = c.key.replace(/[^A-Za-z0-9_]+/g, '_').replace(/^_+|_+$/g, '') || 'field';
+    nm = nm.slice(0, 10);
+    var stem = nm, j = 1;
+    while (used[nm.toUpperCase()]){ var suf = String(j++); nm = stem.slice(0, 10 - suf.length) + suf; }
+    used[nm.toUpperCase()] = 1;
+    if (nm !== c.key) renamed++;
+    var vals = items.map(function(it){ return it.props[c.key]; });
+    var f = {name:nm};
+    if (c.type === 'bool'){
+      f.type = 'L'; f.len = 1; f.dec = 0;
+      f.cells = vals.map(function(v){ return enc.encode(v === true ? 'T' : v === false ? 'F' : '?'); });
+      return f;
+    }
+    if (c.type === 'int' || c.type === 'real'){
+      var dec = 0;
+      vals.forEach(function(v){
+        if (typeof v === 'number' && !Number.isInteger(v)){
+          var m = /\.(\d+)$/.exec(String(v));
+          dec = Math.max(dec, m ? Math.min(8, m[1].length) : 8);
+        }
+      });
+      var strs = vals.map(function(v){ return typeof v === 'number' ? v.toFixed(dec) : ''; });
+      var len = Math.max(1, Math.max.apply(null, strs.map(function(s){ return s.length; })));
+      if (len <= 20){
+        f.type = 'N'; f.len = len; f.dec = dec;
+        f.cells = strs.map(function(s){ var pad = ''; while (pad.length + s.length < len) pad += ' '; return enc.encode(pad + s); });
+        return f;
+      }
+    }
+    f.type = 'C'; f.dec = 0;
+    f.cells = vals.map(function(v){ return fit(cellVal(v), 254); });
+    f.len = Math.max(1, Math.max.apply(null, f.cells.map(function(b){ return b.length; })));
+    return f;
+  });
+  var hlen = 32 + 32 * fields.length + 1;
+  var rlen = 1 + fields.reduce(function(n, f){ return n + f.len; }, 0);
+  var buf = new Uint8Array(hlen + rlen * items.length + 1), dv = new DataView(buf.buffer), d = new Date();
+  buf[0] = 0x03; buf[1] = d.getFullYear() - 1900; buf[2] = d.getMonth() + 1; buf[3] = d.getDate();
+  dv.setUint32(4, items.length, true); dv.setUint16(8, hlen, true); dv.setUint16(10, rlen, true);
+  fields.forEach(function(f, j){
+    var o = 32 + 32 * j;
+    for (var q=0; q<f.name.length; q++) buf[o+q] = f.name.charCodeAt(q);
+    buf[o+11] = f.type.charCodeAt(0); buf[o+16] = f.len; buf[o+17] = f.dec;
+  });
+  buf[hlen-1] = 0x0D;
+  var o = hlen;
+  items.forEach(function(_, k){
+    buf[o++] = 0x20;
+    fields.forEach(function(f){ buf.fill(0x20, o, o + f.len); buf.set(f.cells[k], o); o += f.len; });
+  });
+  buf[o] = 0x1A;
+  return {bytes:buf, renamed:renamed};
+}
+
+function shpZip(items, base){
+  var recs = items.map(function(it){
+    var parts = [];
+    lngLatParts(it.geom).forEach(function(part){
+      part.forEach(function(c, ri){
+        if ((ri === 0) !== (signedArea(c) < 0)) c.reverse();
+        parts.push(c);
+      });
+    });
+    return parts;
+  });
+  var bboxOf = function(parts){
+    var b = [Infinity, Infinity, -Infinity, -Infinity];
+    parts.forEach(function(r){ r.forEach(function(p){
+      b[0] = Math.min(b[0], p[0]); b[1] = Math.min(b[1], p[1]);
+      b[2] = Math.max(b[2], p[0]); b[3] = Math.max(b[3], p[1]);
+    }); });
+    return b;
+  };
+  var all = bboxOf([].concat.apply([], recs));
+  var shpLen = 100, shxLen = 100 + 8 * recs.length;
+  recs.forEach(function(parts){
+    var np = parts.reduce(function(n, r){ return n + r.length; }, 0);
+    shpLen += 8 + 44 + 4 * parts.length + 16 * np;
+  });
+  var shp = new DataView(new ArrayBuffer(shpLen)), shx = new DataView(new ArrayBuffer(shxLen));
+  [[shp, shpLen], [shx, shxLen]].forEach(function(x){
+    var dv = x[0];
+    dv.setInt32(0, 9994); dv.setInt32(24, x[1] / 2);
+    dv.setInt32(28, 1000, true); dv.setInt32(32, 5, true);
+    for (var q=0;q<4;q++) dv.setFloat64(36 + 8*q, all[q], true);
+  });
+  var o = 100;
+  recs.forEach(function(parts, k){
+    var np = parts.reduce(function(n, r){ return n + r.length; }, 0);
+    var content = 44 + 4 * parts.length + 16 * np, bb = bboxOf(parts);
+    shx.setInt32(100 + 8*k, o / 2); shx.setInt32(104 + 8*k, content / 2);
+    shp.setInt32(o, k + 1); shp.setInt32(o + 4, content / 2); o += 8;
+    shp.setInt32(o, 5, true);
+    for (var q=0;q<4;q++) shp.setFloat64(o + 4 + 8*q, bb[q], true);
+    shp.setInt32(o + 36, parts.length, true); shp.setInt32(o + 40, np, true); o += 44;
+    var at = 0;
+    parts.forEach(function(r){ shp.setInt32(o, at, true); o += 4; at += r.length; });
+    parts.forEach(function(r){ r.forEach(function(p){
+      shp.setFloat64(o, p[0], true); shp.setFloat64(o + 8, p[1], true); o += 16;
+    }); });
+  });
+  var dbf = dbfBytes(items);
+  return lib('jszip').then(function(JSZip){
+    var zip = new JSZip();
+    zip.file(base + '.shp', shp.buffer);
+    zip.file(base + '.shx', shx.buffer);
+    zip.file(base + '.dbf', dbf.bytes);
+    zip.file(base + '.prj', WGS84_PRJ);
+    zip.file(base + '.cpg', 'UTF-8');
+    return zip.generateAsync({type:'blob', compression:'DEFLATE'});
+  }).then(function(blob){
+    return {data:blob, note: dbf.renamed ? plural(dbf.renamed, 'attribute name') +
+      ' shortened or cleaned to fit the 10-character limit' : ''};
+  });
+}
+
+/* ---------- GeoPackage ----------
+   The minimum a GeoPackage 1.4 reader (QGIS, ArcGIS, GDAL) needs: the
+   three metadata tables, one feature table in EPSG:4326, and each geometry
+   as a GeoPackage header around little-endian WKB. */
+var WGS84_WKT = 'GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563,' +
+  'AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],' +
+  'UNIT["degree",0.0174532925199433,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]';
+
+function gpkgGeom(g){
+  var polys = lngLatParts(g), size = 40 + 9, bb = [Infinity, -Infinity, Infinity, -Infinity];
+  polys.forEach(function(part){
+    size += 9;
+    part.forEach(function(r){
+      size += 4 + 16 * r.length;
+      r.forEach(function(p){
+        bb[0] = Math.min(bb[0], p[0]); bb[1] = Math.max(bb[1], p[0]);
+        bb[2] = Math.min(bb[2], p[1]); bb[3] = Math.max(bb[3], p[1]);
+      });
+    });
+  });
+  var buf = new ArrayBuffer(size), dv = new DataView(buf), o = 0;
+  dv.setUint8(0, 0x47); dv.setUint8(1, 0x50); dv.setUint8(2, 0); dv.setUint8(3, 0x03);
+  dv.setInt32(4, 4326, true);
+  for (var q=0;q<4;q++) dv.setFloat64(8 + 8*q, bb[q], true);
+  o = 40;
+  dv.setUint8(o, 1); dv.setUint32(o + 1, 6, true); dv.setUint32(o + 5, polys.length, true); o += 9;
+  polys.forEach(function(part){
+    dv.setUint8(o, 1); dv.setUint32(o + 1, 3, true); dv.setUint32(o + 5, part.length, true); o += 9;
+    part.forEach(function(r){
+      dv.setUint32(o, r.length, true); o += 4;
+      r.forEach(function(p){ dv.setFloat64(o, p[0], true); dv.setFloat64(o + 8, p[1], true); o += 16; });
+    });
+  });
+  return {blob:new Uint8Array(buf), bb:bb};
+}
+
+function gpkgFile(items, base){
+  return sqlJs().then(function(SQL){
+    var db = new SQL.Database();
+    var q = function(s){ return '"' + String(s).replace(/"/g, '""') + '"'; };
+    var table = (base.replace(/[^A-Za-z0-9_]+/g, '_').replace(/^(\d)/, '_$1') || 'plots').slice(0, 60);
+    var cols = columnsOf(items), taken = {fid:1, geom:1};
+    cols.forEach(function(c){
+      var nm = c.key, j = 1;
+      while (taken[nm.toLowerCase()]) nm = c.key + '_' + (j++);
+      taken[nm.toLowerCase()] = 1;
+      c.name = nm;
+    });
+    db.exec(
+      'PRAGMA application_id = 1196444487; PRAGMA user_version = 10400;' +
+      'CREATE TABLE gpkg_spatial_ref_sys (srs_name TEXT NOT NULL, srs_id INTEGER NOT NULL PRIMARY KEY,' +
+      ' organization TEXT NOT NULL, organization_coordsys_id INTEGER NOT NULL, definition TEXT NOT NULL, description TEXT);' +
+      'CREATE TABLE gpkg_contents (table_name TEXT NOT NULL PRIMARY KEY, data_type TEXT NOT NULL,' +
+      ' identifier TEXT UNIQUE, description TEXT DEFAULT \'\',' +
+      ' last_change DATETIME NOT NULL DEFAULT (strftime(\'%Y-%m-%dT%H:%M:%fZ\',\'now\')),' +
+      ' min_x DOUBLE, min_y DOUBLE, max_x DOUBLE, max_y DOUBLE, srs_id INTEGER,' +
+      ' CONSTRAINT fk_gc_r_srs_id FOREIGN KEY (srs_id) REFERENCES gpkg_spatial_ref_sys(srs_id));' +
+      'CREATE TABLE gpkg_geometry_columns (table_name TEXT NOT NULL, column_name TEXT NOT NULL,' +
+      ' geometry_type_name TEXT NOT NULL, srs_id INTEGER NOT NULL, z TINYINT NOT NULL, m TINYINT NOT NULL,' +
+      ' CONSTRAINT pk_geom_cols PRIMARY KEY (table_name, column_name));');
+    var srs = db.prepare('INSERT INTO gpkg_spatial_ref_sys VALUES (?,?,?,?,?,?)');
+    srs.run(['Undefined cartesian SRS', -1, 'NONE', -1, 'undefined', 'undefined cartesian coordinate reference system']);
+    srs.run(['Undefined geographic SRS', 0, 'NONE', 0, 'undefined', 'undefined geographic coordinate reference system']);
+    srs.run(['WGS 84 geodetic', 4326, 'EPSG', 4326, WGS84_WKT, 'longitude/latitude coordinates in decimal degrees on the WGS 84 spheroid']);
+    srs.free();
+    var sqlType = {int:'INTEGER', real:'REAL', bool:'BOOLEAN', text:'TEXT'};
+    db.exec('CREATE TABLE ' + q(table) + ' (fid INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, geom MULTIPOLYGON' +
+            cols.map(function(c){ return ', ' + q(c.name) + ' ' + sqlType[c.type]; }).join('') + ')');
+    var ins = db.prepare('INSERT INTO ' + q(table) + ' (geom' +
+      cols.map(function(c){ return ', ' + q(c.name); }).join('') + ') VALUES (?' +
+      cols.map(function(){ return ',?'; }).join('') + ')');
+    var bb = [Infinity, -Infinity, Infinity, -Infinity];
+    items.forEach(function(it){
+      var g = gpkgGeom(it.geom);
+      bb = [Math.min(bb[0], g.bb[0]), Math.max(bb[1], g.bb[1]), Math.min(bb[2], g.bb[2]), Math.max(bb[3], g.bb[3])];
+      ins.run([g.blob].concat(cols.map(function(c){
+        var v = it.props[c.key];
+        if (v === null || v === undefined || v === '') return null;
+        if (c.type === 'bool') return v ? 1 : 0;
+        if (c.type === 'text') return cellVal(v);
+        return v;
+      })));
+    });
+    ins.free();
+    db.run('INSERT INTO gpkg_contents (table_name, data_type, identifier, description, min_x, min_y, max_x, max_y, srs_id)' +
+           ' VALUES (?,?,?,?,?,?,?,?,?)', [table, 'features', table, '', bb[0], bb[2], bb[1], bb[3], 4326]);
+    db.run('INSERT INTO gpkg_geometry_columns VALUES (?,?,?,?,?,?)', [table, 'geom', 'MULTIPOLYGON', 4326, 0, 0]);
+    var bytes = db.export();
+    db.close();
+    return new Blob([bytes], {type:'application/geopackage+sqlite3'});
+  });
+}
+
+/* ---------- polygons/*.json rows ---------- */
+function rowOf(it){
+  var f = DS.feats[it.i], src = f.row || {}, P = f.props || {}, ha = geomHa(it.geom);
+  /* h is the recomputed area, not the register's: the geometry is what was
+     edited, and carrying the old number beside a new shape is how the two
+     drift apart. */
+  var row = {h: Number(ha.toFixed(4)), b: src.b || bandOf(ha)};
+  var s = src.s || P.s || P.status;
+  if (s) row.s = s;
+  var itc = src.i !== undefined ? src.i : (P.i !== undefined ? P.i : P.itc_submitted);
+  if (itc !== undefined) row.i = typeof itc === 'boolean' ? (itc ? 1 : 0) : itc;
+  row.p = it.geom[0][0].map(function(p){ return [Number(p[0].toFixed(6)), Number(p[1].toFixed(6))]; });
+  var c = src.c || P.c || P.farmer_code, n = src.n || P.n || P.plot_name, u = src.u || P.u || P.farm_unit_id;
+  if (c) row.c = c;
+  if (n) row.n = n;
+  if (u) row.u = u;
+  return row;
+}
+
+var FORMATS = [
+  {id:'geojson', ext:'geojson', label:'GeoJSON',
+   note:'Keeps every attribute, holes and multi-part plots. For a register district, this is ' +
+        'the file scripts/apply_polygon_edits.py applies to the workbook.',
+   write:function(items){
+     return JSON.stringify({type:'FeatureCollection',
+       crs:{type:'name', properties:{name:'urn:ogc:def:crs:OGC:1.3:CRS84'}},
+       features: items.map(function(it){
+         return {type:'Feature', properties:it.props, geometry:gjGeom(it.geom)}; })}, null, 1);
+   }},
+  {id:'kml', ext:'kml', label:'KML (Google Earth)',
+   note:'Attributes go in ExtendedData. Opens in Google Earth, Google My Maps and QGIS.',
+   write:function(items, base){ return kmlText(items, base); }},
+  {id:'kmz', ext:'kmz', label:'KMZ (zipped KML)',
+   note:'The same as KML, zipped; smaller, and what some phone apps expect.',
+   write:function(items, base){
+     return lib('jszip').then(function(JSZip){
+       var zip = new JSZip();
+       zip.file('doc.kml', kmlText(items, base));
+       return zip.generateAsync({type:'blob', compression:'DEFLATE'});
+     });
+   }},
+  {id:'shp', ext:'zip', label:'Shapefile (zipped)',
+   note:'A .zip holding .shp, .shx, .dbf, .prj and .cpg, in WGS 84. The format limits attribute ' +
+        'names to 10 characters and text to 254 bytes.',
+   write:function(items, base){ return shpZip(items, base); }},
+  {id:'gpkg', ext:'gpkg', label:'GeoPackage',
+   note:'One table, in WGS 84 (EPSG:4326). Opens in QGIS, ArcGIS Pro and anything built on GDAL.',
+   write:function(items, base){ return gpkgFile(items, base); }},
+  {id:'csv', ext:'csv', label:'CSV with WKT',
+   note:'One row per plot: its attributes, its area in hectares, and its boundary as WKT ' +
+        '(longitude before latitude, as WKT requires).',
+   write:function(items){
+     return '﻿' + tableOf(items).map(function(r){
+       return r.map(function(v){
+         var s = String(v);
+         return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+       }).join(',');
+     }).join('\r\n');
+   }},
+  {id:'xlsx', ext:'xlsx', label:'Excel with WKT',
+   note:'The same columns as the CSV. Excel cuts a cell at 32,767 characters, so a very ' +
+        'detailed boundary is safer as CSV or GeoJSON.',
+   write:function(items){
+     return lib('xlsx').then(function(XLSX){
+       var aoa = tableOf(items), wb = XLSX.utils.book_new();
+       XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa), 'plots');
+       var long = aoa.slice(1).filter(function(r){ return String(r[r.length-1]).length > 32767; }).length;
+       return {data: new Blob([XLSX.write(wb, {bookType:'xlsx', type:'array'})]),
+               note: long ? plural(long, 'boundary') + ' too long for an Excel cell; use CSV or GeoJSON for those' : ''};
+     });
+   }},
+  {id:'gpx', ext:'gpx', label:'GPX tracks',
+   note:'Each plot becomes a closed track to load onto a handheld GPS. GPX has no attributes ' +
+        'beyond a name and description, and no holes: each ring becomes its own segment.',
+   write:function(items){
+     var out = ['<?xml version="1.0" encoding="UTF-8"?>',
+       '<gpx version="1.1" creator="Ndugu boundary editor" xmlns="http://www.topografix.com/GPX/1/1">'];
+     items.forEach(function(it){
+       var desc = Object.keys(it.props).map(function(k){ return k + ': ' + cellVal(it.props[k]); }).join('; ');
+       out.push('<trk><name>' + xesc(it.label) + '</name>' + (desc ? '<desc>' + xesc(desc) + '</desc>' : '') +
+         ringsOf(it.geom).map(function(r){
+           return '<trkseg>' + closed(r).map(function(p){
+             return '<trkpt lat="' + p[0] + '" lon="' + p[1] + '"/>'; }).join('') + '</trkseg>';
+         }).join('') + '</trk>');
+     });
+     out.push('</gpx>');
+     return out.join('\n');
+   }},
+  {id:'rows', ext:'json', label:'Ndugu polygon rows (polygons/*.json)',
+   note:'The row shape the dashboard reads, [lat, lng] to 6 decimals. It holds one outline per ' +
+        'plot, so holes and extra parts are dropped.',
+   write:function(items){
+     var cut = items.filter(function(it){ return it.geom.length > 1 || it.geom[0].length > 1; }).length;
+     return {data: JSON.stringify(items.map(rowOf), null, 1),
+             note: cut ? plural(cut, 'plot') + ' lost holes or extra parts' : ''};
+   }}
+];
+var FORMAT_BY_ID = {};
+FORMATS.forEach(function(f){ FORMAT_BY_ID[f.id] = f; });
+var FMT_KEY = 'ndugu-editor-export-format';
+
+function exportProps(i, withEdit, stamp){
+  var f = DS.feats[i], r = f.row, p = {};
+  if (DS.kind === 'register'){
+    p = {district: DS.name, farm_unit_id: r.u || null, farmer_code: r.c || null,
+         plot_name: r.n || null, band: r.b, status: r.s, itc_submitted: !!r.i, register_ha: r.h};
+  } else {
+    Object.keys(f.props).forEach(function(k){ p[k] = f.props[k]; });
+  }
+  if (withEdit){
+    var g0 = orig[i] || f.geom, before = geomHa(g0), after = geomHa(f.geom);
+    p.geometry_ha_before = Number(before.toFixed(4));
+    p.geometry_ha_after = Number(after.toFixed(4));
+    p.corners_before = cornerCount(g0);
+    p.corners_after = cornerCount(f.geom);
+    p.corners_moved = movedCount(i);
+    p.crosses_eudr_4ha = (before >= EUDR_HA) !== (after >= EUDR_HA);
+    p.edited = !!changed[i];
+    p.edited_on = changed[i] ? stamp : null;
+  }
+  return p;
+}
+
+var nameTouched = false;
+function suggestedName(){
+  var stamp = new Date().toISOString().slice(0, 10);
+  var slug = function(s){ return String(s).toLowerCase().replace(/\.[a-z0-9]+$/, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); };
+  var only = $('edScope').value === 'changed';
+  if (DS.kind === 'register')
+    return (only ? 'edited-plots-' : 'plots-') + slug(DS.name) + '-' + stamp;
+  return slug(DS.name.replace(/ \+ \d+ more$/, '')) + (only ? '-changed' : '-edited') + '-' + stamp;
+}
+
+function updateExportDlg(){
+  var f = FORMAT_BY_ID[$('edFmt').value];
+  var n = $('edScope').value === 'changed' ? Object.keys(changed).length : DS.feats.length;
+  $('edExt').textContent = '.' + f.ext;
+  $('edFmtNote').textContent = f.note;
+  $('edGo').disabled = n === 0;
+  $('edGo').textContent = n ? 'Export ' + plural(n, DS.kind === 'register' ? 'plot' : 'polygon')
+                            : 'Nothing changed yet';
+  if (!nameTouched) $('edName').value = suggestedName();
+}
+
+function openExport(){
+  if (!DS) return;
+  var last = null;
+  try { last = localStorage.getItem(FMT_KEY); } catch (e) {}
+  /* A file goes back out in its own format unless told otherwise; a register
+     district in whatever was used last, GeoJSON the first time, since that
+     is what apply_polygon_edits.py reads. */
+  var def = DS.kind === 'file' && FORMAT_BY_ID[DS.format] ? DS.format
+          : (FORMAT_BY_ID[last] ? last : 'geojson');
+  $('edFmt').value = def;
+  $('edScope').value = Object.keys(changed).length && DS.kind === 'register' ? 'changed' : 'all';
+  $('edMeta').checked = DS.kind === 'register';
+  nameTouched = false;
+  updateExportDlg();
+  $('edExportDlg').hidden = false;
+  $('edFmt').focus();
+}
+
+function closeExport(){ $('edExportDlg').hidden = true; }
+
+function doExport(){
+  var f = FORMAT_BY_ID[$('edFmt').value], withEdit = $('edMeta').checked;
+  var idx = $('edScope').value === 'changed'
+    ? Object.keys(changed).map(Number).sort(function(a, b){ return a - b; })
+    : DS.feats.map(function(_, i){ return i; });
+  if (!idx.length) return;
+  var stamp = new Date().toISOString().slice(0, 10);
+  var base = $('edName').value.trim().replace(/[\\\/:*?"<>|]+/g, '-').replace(new RegExp('\\.' + f.ext + '$', 'i'), '') || 'plots';
+  var items = idx.map(function(i){
+    return {i:i, label:labelOf(i), props:exportProps(i, withEdit, stamp), geom:DS.feats[i].geom};
+  });
+  $('edGo').disabled = true;
+  status('Writing ' + f.label + '…');
+  Promise.resolve().then(function(){ return f.write(items, base); })
+    .then(function(out){
+      var data = (out && out.data !== undefined) ? out.data : out;
+      download(base + '.' + f.ext, data);
+      try { localStorage.setItem(FMT_KEY, f.id); } catch (e) {}
+      closeExport();
+      status('Exported ' + plural(items.length, DS.kind === 'register' ? 'plot' : 'polygon') +
+             ' as ' + f.label + ((out && out.note) ? ' · ' + out.note : '') + '.');
+    })
+    .catch(function(err){
+      status('Export failed.');
+      window.alert('Export failed:\n\n' + (err && err.message ? err.message : err));
+    })
+    .then(function(){ $('edGo').disabled = false; });
 }
 
 /* ---------- boot ---------- */
 function startEditor(){
   fetch('./polygon-data.json?v=' + Date.now(), {cache:'no-store'})
-    .then(function(r){ return r.json(); })
+    .then(function(r){ if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
     .then(function(d){
       POLY = d;
       var sel0 = $('edDistrict');
-      sel0.innerHTML = '<option value="">Choose a district…</option>' +
+      sel0.innerHTML = '<option value="">Register district…</option>' +
         d.districts.map(function(x){
           return '<option value="'+esc(x.district)+'">'+esc(x.district)+
                  ' ('+fmt(x.plots)+')</option>';
         }).join('');
-      sel0.addEventListener('change', function(){
-        if (this.value) loadDistrict(this.value);
-      });
-      status('Pick a district');
+      status('Pick a district or open a file');
     })
-    .catch(function(err){ status('Could not load polygon-data.json: ' + err.message); });
+    .catch(function(err){
+      $('edDistrict').innerHTML = '<option value="">Register unavailable</option>';
+      status('Could not load polygon-data.json (' + err.message + '). Files can still be opened.');
+    });
+  $('edDistrict').addEventListener('change', function(){
+    if (this.value) loadDistrict(this.value);
+  });
 
+  $('edFmt').innerHTML = FORMATS.map(function(f){
+    return '<option value="' + f.id + '">' + esc(f.label) + ' (.' + f.ext + ')</option>';
+  }).join('');
+  $('edOpen').addEventListener('click', function(){ $('edFile').click(); });
+  $('edFile').addEventListener('change', function(){ openFiles(this.files); this.value = ''; });
   $('edSat').addEventListener('click', function(){ setMode(mode === 'sat' ? 'plain' : 'sat'); });
+  $('edSwap').addEventListener('click', function(){
+    swapAxes();
+    status('Swapped latitude and longitude for every plot in ' + DS.name + '.');
+  });
   $('edRevert').addEventListener('click', function(){ if (sel >= 0) revert(sel); });
   $('edRevertAll').addEventListener('click', function(){
     Object.keys(changed).map(Number).forEach(revert);
     status('Reverted everything.');
   });
-  $('edExport').addEventListener('click', exportChanges);
+  $('edExport').addEventListener('click', openExport);
+  $('edFmt').addEventListener('change', updateExportDlg);
+  $('edScope').addEventListener('change', updateExportDlg);
+  $('edName').addEventListener('input', function(){ nameTouched = true; });
+  $('edCancel').addEventListener('click', closeExport);
+  $('edGo').addEventListener('click', doExport);
+  $('edExportDlg').addEventListener('click', function(e){ if (e.target === this) closeExport(); });
   $('edChanged').addEventListener('click', function(e){
     var row = e.target.closest('.edrow');
     if (!row) return;
@@ -1243,8 +2729,32 @@ function startEditor(){
     map.fitBounds(shapes[i].getBounds().pad(3), {maxZoom:SAT_MAX});
   });
   document.addEventListener('keydown', function(e){
-    if (e.key === 'Escape') select(-1);
+    if (e.key !== 'Escape') return;
+    if (!$('edExportDlg').hidden) closeExport(); else select(-1);
   });
+
+  /* Dropping files anywhere on the page opens them. The overlay is shown
+     only while files are being dragged, not for a vertex drag, which is a
+     Leaflet mouse drag and never fires these events. */
+  var depth = 0;
+  var hasFiles = function(e){
+    return e.dataTransfer && Array.prototype.indexOf.call(e.dataTransfer.types || [], 'Files') >= 0;
+  };
+  document.addEventListener('dragenter', function(e){
+    if (!hasFiles(e)) return;
+    e.preventDefault(); depth++; $('edDrop').hidden = false;
+  });
+  document.addEventListener('dragleave', function(e){
+    if (!hasFiles(e)) return;
+    if (--depth <= 0){ depth = 0; $('edDrop').hidden = true; }
+  });
+  document.addEventListener('dragover', function(e){ if (hasFiles(e)) e.preventDefault(); });
+  document.addEventListener('drop', function(e){
+    if (!hasFiles(e)) return;
+    e.preventDefault(); depth = 0; $('edDrop').hidden = true;
+    openFiles(e.dataTransfer.files);
+  });
+  renderSide();
 }
 
 /* ---------- access gate ----------
