@@ -633,6 +633,12 @@
     border:1px solid var(--line-strong); border-radius:3px; padding:1px 5px;
   }
   .edstatus{font-size:12px; color:var(--ink-faint);}
+  .edsave{display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--ink);
+    border:1px solid var(--line-strong); border-radius:var(--radius-sm); padding:5px 10px;
+    background:var(--surface); cursor:pointer;}
+  .edsave input{margin:0;}
+  .edrow .st{font-size:11px; margin-left:6px;}
+  .edrow .st.ok{color:#0CA30C;} .edrow .st.wait{color:var(--ink-faint);} .edrow .st.bad{color:#B23A1E;}
 
   /* ---------- export dialog and drop target ---------- */
   .edmodal{
@@ -795,7 +801,10 @@
     <button id="edRevert" type="button" disabled>Revert plot</button>
     <button id="edRevertAll" type="button" disabled>Revert all</button>
     <button id="edExport" type="button" class="primary" disabled>Export…</button>
-    <span class="warn">Autosaved in this browser only. Export and apply at source to make it real.</span>
+    <label class="edsave" id="edSaveBox" hidden
+      title="Write each edited register plot to data/Ndugu_data_cleaned.xlsx as soon as the drag ends">
+      <input type="checkbox" id="edAutoSave" checked> Save to register</label>
+    <span class="warn" id="edWarn">Autosaved in this browser only. Export and apply at source to make it real.</span>
   </div>
   <div class="edmain">
     <div id="edMap"><div class="edlegend" id="edLegend" hidden></div></div>
@@ -827,8 +836,10 @@
            that and does nothing else. Results are a screening, not a finding of
            illegality, and they never leave this machine.</p>
         <p style="margin-top:10px;"><b>Export…</b> writes the changed plots, or all of
-           them, in the format you choose. Apply register edits at source; this page
-           cannot.</p>
+           them, in the format you choose.</p>
+        <p style="margin-top:10px;">Opened through <code>edit-boundaries.bat</code>, register
+           edits save straight to the workbook as you make them. Online they are
+           exported and applied at source.</p>
       </div>
     </div>
   </div>
@@ -1023,7 +1034,9 @@ function draftKey(key){ return DRAFT_PREFIX + key; }
 
 function saveDraft(){
   if (!DS) return;
-  var keys = Object.keys(changed);
+  /* Once a plot is in the register, the register is its copy; a draft of it
+     would only re-offer an edit that already happened. */
+  var keys = regSaving() ? Object.keys(unsaved) : Object.keys(changed);
   if (!keys.length){
     try { localStorage.removeItem(draftKey(DS.key)); } catch (e) {}
     return;
@@ -1084,6 +1097,7 @@ function applyDraft(draft){
     shapes[idx].setLatLngs(DS.feats[idx].geom);
     changed[idx] = true;
     shapes[idx].setStyle(style(idx));
+    afterEdit(idx);
     n++;
   });
   status(plural(n, 'restored plot') + ' from a saved draft.');
@@ -1168,7 +1182,7 @@ function drawHandles(){
   clearHandles();
   if (sel < 0) return;
   handles = [];
-  var f = DS.feats[sel], poly = shapes[sel];
+  var fi = sel, f = DS.feats[sel], poly = shapes[sel];
   var redraw = function(){ poly.setLatLngs(f.geom); };
 
   /* The visible dot stays small so a dense boundary doesn't turn into a wall
@@ -1194,7 +1208,7 @@ function drawHandles(){
         f.geom[pi][ri][k] = [ll.lat, ll.lng];
         redraw(); touch();
       });
-      mk.on('dragend', function(){ drawHandles(); saveDraft(); });
+      mk.on('dragend', function(){ drawHandles(); afterEdit(fi); });
       /* Alt-click or right-click removes this corner. A ring with two points
          is a line, not a boundary, so three is the floor. */
       var kill = function(e){
@@ -1202,7 +1216,7 @@ function drawHandles(){
         var rg = f.geom[pi][ri];
         if (rg.length <= 3){ status('A boundary needs at least three corners.'); return; }
         rg.splice(k, 1);
-        redraw(); touch(); drawHandles(); saveDraft();
+        redraw(); touch(); drawHandles(); afterEdit(fi);
       };
       mk.on('contextmenu', kill);
       mk.on('click', function(e){ if (e.originalEvent && e.originalEvent.altKey) kill(e); });
@@ -1232,7 +1246,7 @@ function drawHandles(){
           f.geom[pi][ri][at+1] = [ll.lat, ll.lng];
           redraw(); touch();
         });
-        mk.on('dragend', function(){ drawHandles(); saveDraft(); });
+        mk.on('dragend', function(){ drawHandles(); afterEdit(fi); });
         mk.addTo(map); handles.push(mk);
       })(k);
     }
@@ -1292,7 +1306,7 @@ function renderSide(){
   }
   var sv = verdictOf(sel);
   if (sv){
-    rows.push(['Screening', pill(sv)]);
+    rows.push(['Screening', pill(sv) + (sv.stale ? ' <span class="muted">re-screening…</span>' : ''), '', true]);
     if (sv.baseline_tested){
       rows.push(['Forest at cutoff',
         fmt(sv.forest_share * 100, 1) + '% (' + fmt(sv.forest_ha, 2) + ' ha)']);
@@ -1318,12 +1332,15 @@ function renderSide(){
   }
   f.innerHTML = rows.map(function(x){
     return '<div class="edfield"><span class="k">' + esc(x[0]) + '</span>' +
-           '<span class="v ' + (x[2]||'') + '">' + esc(x[1]) + '</span></div>';
+           '<span class="v ' + (x[2]||'') + '">' + (x[3] ? x[1] : esc(x[1])) + '</span></div>';
   }).join('');
 }
 
 function renderChanged(){
   var keys = Object.keys(changed);
+  /* a plot reverted after it was saved is back to its old shape but still
+     has to be written back, so it stays listed until it is */
+  Object.keys(unsaved).forEach(function(k){ if (keys.indexOf(k) < 0) keys.push(k); });
   $('edCount').textContent = keys.length;
   $('edExport').disabled = !DS || !DS.feats.length;
   /* Screening needs a layer for the same reason exporting does. */
@@ -1333,8 +1350,14 @@ function renderChanged(){
   if (!keys.length){ host.innerHTML = '<p class="muted">Nothing changed yet.</p>'; return; }
   host.innerHTML = keys.map(function(k){
     var i = +k;
+    var st = '';
+    if (regSaving()){
+      st = REG.failed[i] ? '<span class="st bad" title="' + esc(REG.failed[i]) + '">not saved</span>'
+         : unsaved[i]    ? '<span class="st wait">saving…</span>'
+         :                 '<span class="st ok">saved</span>';
+    }
     return '<div class="edrow' + (i===sel?' sel':'') + '" data-i="'+i+'">' +
-      '<span>' + esc(labelOf(i)) + '</span>' +
+      '<span>' + esc(labelOf(i)) + st + '</span>' +
       '<span class="d">' + fmt(geomHa(DS.feats[i].geom),2) + ' ha</span></div>';
   }).join('');
 }
@@ -1343,11 +1366,19 @@ function status(msg){ $('edStatus').textContent = msg; }
 
 /* ---------- opening a layer ---------- */
 function openLayer(ds, note){
-  DS = ds; sel = -1; orig = {}; changed = {};
   /* A screening belongs to the layer it was run on. Carrying it across to a
      different file would leave every plot wearing a verdict computed for
-     somebody else's geometry, which is the worst kind of wrong: plausible. */
-  if (typeof screenOff === 'function' && (SCR.on || SCR.busy)) screenOff();
+     somebody else's geometry, which is the worst kind of wrong: plausible.
+     Cleared BEFORE DS changes: screenOff restyles every shape, and the shapes
+     on the map still belong to the old layer until they are rebuilt below. */
+  if (SCR.on || SCR.busy) screenOff();
+  /* An edit still waiting on its save debounce goes out now, for the layer
+     it was made on, rather than being dropped with that layer. */
+  clearTimeout(REG.timer);
+  if (regSaving() && Object.keys(unsaved).length) saveNow();
+  clearTimeout(rescreenTimer); rescreenWant = {};
+  DS = ds; sel = -1; orig = {}; changed = {};
+  unsaved = {}; REG.failed = {}; REG.pending = false;
   $('edScreen').textContent = 'Screen for deforestation';
   ds.feats.forEach(function(f){ f.band = (f.row && f.row.b) || bandOf(geomHa(f.geom)); });
   var m = ensureMap();
@@ -1383,7 +1414,7 @@ function openLayer(ds, note){
       var up = function(){
         map.off('mousemove', move); map.off('mouseup', up);
         map.dragging.enable();
-        drawHandles(); saveDraft();
+        drawHandles(); afterEdit(self._i);
       };
       map.on('mousemove', move); map.on('mouseup', up);
     });
@@ -1402,6 +1433,8 @@ function openLayer(ds, note){
   status(plural(ds.feats.length, ds.kind === 'register' ? 'plot' : 'polygon') + ' in ' + ds.name +
          (note ? ' · ' + note : ''));
   renderSide(); renderChanged();
+  renderSaveBox();
+  if (ds.kind === 'register') regAvailable().then(renderSaveBox);
 
   var draft = loadDraft(ds.key);
   if (draft && draft.plots && Object.keys(draft.plots).length){
@@ -1425,7 +1458,7 @@ function loadDistrict(key){
     .then(function(rows){
       openLayer({
         kind:'register', key:d.district, name:d.district, format:'geojson', swapped:false,
-        bbox:d.bbox,
+        bbox:d.bbox, file:d.file,
         feats: rows.map(function(r){
           return {row:r, props:{}, geom:[[r.p.map(function(p){ return [p[0], p[1]]; })]]};
         })
@@ -1466,7 +1499,7 @@ function revert(i){
   if (i === sel) drawHandles();
   renderSide(); renderChanged();
   $('edRevert').disabled = true;
-  saveDraft();
+  afterEdit(i);
 }
 
 /* ======================================================================
@@ -2687,6 +2720,14 @@ function exportProps(i, withEdit, stamp){
   } else {
     Object.keys(f.props).forEach(function(k){ p[k] = f.props[k]; });
   }
+  var sv = verdictOf(i);
+  if (sv && !sv.stale){
+    p.screening_verdict = vlabel(sv.verdict);
+    p.screening_forest_share = sv.baseline_tested ? sv.forest_share : null;
+    p.screening_loss_ha = sv.change_tested ? sv.loss_ha : null;
+    p.screening_loss_years = Object.keys(sv.loss_years || {}).join(' ') || null;
+    p.screening_cutoff = SCR.cutoff || null;
+  }
   if (withEdit){
     var g0 = orig[i] || f.geom, before = geomHa(g0), after = geomHa(f.geom);
     p.geometry_ha_before = Number(before.toFixed(4));
@@ -2847,7 +2888,9 @@ function screenAvailable(){
     SCR.cutoff = j.cutoff || '31 December 2020';
     return SCR.available;
   }).catch(function(err){
-    SCR.checked = true; SCR.available = false; SCR.reachable = false;
+    /* not cached: the server may be started after the page was opened, and
+       the next click should find it rather than repeat this answer */
+    SCR.checked = false; SCR.available = false; SCR.reachable = false;
     SCR.detail = err.message;
     return false;
   });
@@ -2929,6 +2972,7 @@ function loadZones(){
 
 function screenNow(){
   if (!DS || SCR.busy) return;
+  var ds = DS;
   SCR.busy = true; renderScreen();
   status('Checking the screening tool…');
   screenAvailable().then(function(ok){
@@ -2945,6 +2989,9 @@ function screenNow(){
         return {pid: String(i), label: labelOf(i), geom: f.geom};
       })
     }).then(function(j){
+      /* opened something else while this ran: these verdicts are for
+         geometry that is no longer on the map */
+      if (ds !== DS){ SCR.busy = false; return; }
       SCR.busy = false;
       SCR.on = true;
       SCR.by = {};
@@ -3029,9 +3076,12 @@ function renderScreen(){
   var h = ['<h3>Deforestation screening</h3>'];
 
   if (SCR.busy){
+    var n = DS ? DS.feats.length : 0;
     h.push('<p class="muted"><span class="edbusy"></span>Reading the forest '
-      + 'rasters. The first run of a session fetches them, which can take a '
-      + 'moment.</p>');
+      + 'rasters for ' + plural(n, 'plot') + '. Streamed rasters run at roughly '
+      + 'fifty plots a second, so this takes about '
+      + (n > 3000 ? Math.round(n / 3000) + ' minute' + (n > 4500 ? 's' : '')
+                  : Math.max(5, Math.round(n / 50)) + ' seconds') + '.</p>');
     box.innerHTML = h.join(''); renderLegend(); return;
   }
 
@@ -3121,6 +3171,164 @@ function renderScreen(){
   renderLegend();
 }
 
+/* ============ saving to the register, and re-screening edits ============
+   Two things happen after an edit ends (a drag lets go, a corner is deleted,
+   a plot is reverted), never during one: the plot is written to the register
+   when the page is served by the local server, and, if a screening is
+   showing, the plot is screened again so its verdict is about the boundary
+   now on the map rather than the one it replaced. Both are debounced, so a
+   run of quick drags becomes one write and one screening request. */
+var unsaved = {};   /* index -> true: a register plot whose shape has not reached the workbook */
+var REG = {checked:false, available:false, detail:'', timer:null, busy:false,
+           pending:false, failed:{}};
+var AUTOSAVE_KEY = 'ndugu-editor-autosave';
+var SAVE_DELAY = 1200, RESCREEN_DELAY = 700;
+var rescreenWant = {}, rescreenTimer = null;
+
+function regSaving(){
+  return !!(DS && DS.kind === 'register' && REG.available && $('edAutoSave').checked);
+}
+
+function regAvailable(){
+  if (REG.checked) return Promise.resolve(REG.available);
+  return apiCall('/api/register/status', null).then(function(j){
+    REG.checked = true; REG.available = !!j.ok; REG.detail = j.detail || '';
+    return REG.available;
+  }).catch(function(err){
+    /* not served by the local server (the published site, a file:// URL):
+       nothing to say, the page works the way it did before, by export */
+    REG.available = false; REG.detail = '';
+    return false;
+  });
+}
+
+function renderSaveBox(){
+  var reg = DS && DS.kind === 'register';
+  $('edSaveBox').hidden = !(reg && REG.available);
+  $('edWarn').textContent = regSaving()
+    ? 'Edits are written to the register as you make them. Commit the workbook to publish them.'
+    : (reg && REG.checked && !REG.available && REG.detail
+        ? REG.detail
+        : 'Autosaved in this browser only. Export and apply at source to make it real.');
+  if (DS) renderChanged();
+}
+
+function afterEdit(i){
+  saveDraft();
+  if (!DS || i < 0) return;
+  if (DS.kind === 'register'){
+    unsaved[i] = true;
+    delete REG.failed[i];
+    scheduleSave();
+  }
+  if (SCR.on && SCR.available && SCR.by[String(i)]){
+    SCR.by[String(i)].stale = true;
+    rescreenWant[i] = true;
+    clearTimeout(rescreenTimer);
+    rescreenTimer = setTimeout(rescreen, RESCREEN_DELAY);
+  }
+  renderChanged();
+}
+
+function scheduleSave(){
+  if (!regSaving()) return;
+  clearTimeout(REG.timer);
+  REG.timer = setTimeout(saveNow, SAVE_DELAY);
+}
+
+function saveNow(){
+  if (!regSaving()) return;
+  if (REG.busy){ REG.pending = true; return; }
+  var idx = Object.keys(unsaved).map(Number).filter(function(i){ return !REG.failed[i]; });
+  if (!idx.length) return;
+  var ds = DS, sent = {};
+  idx.forEach(function(i){ sent[i] = JSON.stringify(ds.feats[i].geom); });
+  REG.busy = true;
+  renderChanged();
+  status('Saving ' + plural(idx.length, 'plot') + ' to the register…');
+  var retry = false;
+  apiCall('/api/register/save', {
+    file: ds.file,
+    plots: idx.map(function(i){
+      var r = ds.feats[i].row;
+      return {u:r.u || null, c:r.c || null, n:r.n || null, s:r.s || null,
+              ring: ds.feats[i].geom[0][0]};
+    })
+  }).then(function(j){
+    if (ds !== DS){
+      /* the layer changed while this was in flight: the register has these
+         edits now, so the old layer's draft must not offer them again */
+      if ((j.results || []).every(function(r){ return r.ok; })) clearDraft(ds.key);
+      return;
+    }
+    var ok = 0, bad = [];
+    (j.results || []).forEach(function(res, k){
+      var i = idx[k], f = ds.feats[i];
+      if (res.ok){
+        f.row.p = f.geom[0][0].map(function(p){ return [p[0], p[1]]; });
+        f.row.h = res.h; f.row.b = res.b;
+        /* dragged again while the save was in flight: that newer shape is
+           still unsaved and goes out with the next save */
+        if (JSON.stringify(f.geom) === sent[i]) delete unsaved[i];
+        ok++;
+      } else {
+        REG.failed[i] = res.reason || 'not saved';
+        bad.push(labelOf(i) + ': ' + REG.failed[i]);
+      }
+    });
+    saveDraft();
+    renderSide(); renderChanged();
+    status(ok ? 'Saved ' + plural(ok, 'plot') + ' to ' + (j.workbook || 'the register')
+                + (j.backup ? ' (backed up first as ' + j.backup + ')' : '') + '.'
+              : 'Nothing saved.');
+    if (bad.length) window.alert('These plots could not be saved to the register and are kept ' +
+      'as unsaved edits. Export them and apply them by hand:\n\n' + bad.join('\n'));
+  }).catch(function(err){
+    retry = true;
+    status('Not saved: ' + err.message + '. The edit is kept in this browser and will be retried.');
+  }).then(function(){
+    REG.busy = false;
+    renderChanged();
+    var left = Object.keys(unsaved).some(function(k){ return !REG.failed[k]; });
+    if (REG.pending || left){
+      clearTimeout(REG.timer);
+      /* a failure (Excel holding the file) waits before trying again;
+         an edit made during the save goes straight out */
+      REG.timer = setTimeout(saveNow, retry ? 10000 : 0);
+    }
+    REG.pending = false;
+  });
+}
+
+/* Re-screen just the plots edited since the last reply; the counts in the
+   panel are recomputed from the per-plot results so they stay honest. */
+function rescreen(){
+  var idx = Object.keys(rescreenWant).map(Number);
+  rescreenWant = {};
+  if (!idx.length || !SCR.on) return;
+  var ds = DS;
+  apiCall('/api/screen', {plots: idx.map(function(i){
+    return {pid:String(i), label:labelOf(i), geom:ds.feats[i].geom};
+  })}).then(function(j){
+    if (ds !== DS || !SCR.on) return;
+    (j.results || []).forEach(function(r){ SCR.by[r.pid] = r; });
+    var counts = {}, ha = {}, total = 0;
+    Object.keys(SCR.by).forEach(function(k){
+      var r = SCR.by[k];
+      counts[r.verdict] = (counts[r.verdict] || 0) + 1;
+      ha[r.verdict] = (ha[r.verdict] || 0) + r.ha;
+      total++;
+    });
+    SCR.summary = {plots:total, counts:counts, ha:ha};
+    idx.forEach(function(i){ if (shapes[i]) shapes[i].setStyle(style(i)); });
+    renderScreen(); renderSide();
+    var one = j.results && j.results.length === 1 ? j.results[0] : null;
+    if (one) status('Re-screened ' + labelOf(+one.pid) + ': ' + vlabel(one.verdict) + '.');
+  }).catch(function(err){
+    status('Re-screening failed: ' + err.message);
+  });
+}
+
 function startEditor(){
   fetch('./polygon-data.json?v=' + Date.now(), {cache:'no-store'})
     .then(function(r){ if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
@@ -3162,6 +3370,19 @@ function startEditor(){
     this.textContent = (SCR.on || SCR.busy) ? 'Clear screening' : 'Screen for deforestation';
   });
   $('edExport').addEventListener('click', openExport);
+  try { $('edAutoSave').checked = localStorage.getItem(AUTOSAVE_KEY) !== 'off'; } catch (e) {}
+  $('edAutoSave').addEventListener('change', function(){
+    try { localStorage.setItem(AUTOSAVE_KEY, this.checked ? 'on' : 'off'); } catch (e) {}
+    renderSaveBox();
+    if (this.checked) scheduleSave();
+  });
+  /* a save still waiting on its debounce is lost with the tab */
+  window.addEventListener('beforeunload', function(e){
+    if (regSaving() && (REG.busy || Object.keys(unsaved).length)){
+      saveNow();
+      e.preventDefault(); e.returnValue = '';
+    }
+  });
   $('edFmt').addEventListener('change', updateExportDlg);
   $('edScope').addEventListener('change', updateExportDlg);
   $('edName').addEventListener('input', function(){ nameTouched = true; });
