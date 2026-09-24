@@ -720,6 +720,48 @@
   .edgate-box button:hover{background:#0A3E37;}
   .edgate-err{font-size:12px; color:#B23A1E; margin-top:10px; min-height:1.4em;}
   .edwrap[hidden]{display:none;}
+
+  /* ---------- deforestation screening ---------- */
+  /* Verdict colours are the reserved status set, never a plot band colour, so
+     a screened plot can never be mistaken for a size class. Every one of them
+     is paired with a glyph and a word in the legend and the panel: this page
+     gets printed and screenshotted in black and white, and a verdict carried
+     by hue alone does not survive that. */
+  .edscreen{border-top:1px solid var(--line);margin-top:14px;padding-top:12px;}
+  .edscreen h3{margin:0 0 8px;font-size:13px;}
+  .edscreen .muted{font-size:12.5px;}
+  .edverdict{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;
+    font-weight:600;padding:2px 9px;border-radius:999px;border:1px solid;
+    white-space:nowrap;}
+  .edscreen .sum{display:grid;grid-template-columns:auto 1fr auto;gap:3px 8px;
+    align-items:center;font-size:12.5px;margin:8px 0 0;}
+  .edscreen .sum .n{text-align:right;font-variant-numeric:tabular-nums;
+    font-weight:600;}
+  .edscreen .bar{height:6px;border-radius:3px;background:var(--surface-sunk);
+    overflow:hidden;}
+  .edscreen .bar i{display:block;height:100%;border-radius:3px;}
+  .edzones{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0 0;font-size:12px;}
+  .edzones label{display:inline-flex;align-items:center;gap:5px;cursor:pointer;}
+  .edzones .sw{width:13px;height:13px;border-radius:3px;border:1.5px solid;
+    flex:0 0 auto;}
+  .edscreen .why{margin:8px 0 0;font-size:12px;color:var(--ink-soft);}
+  .edscreen .why li{margin:2px 0;}
+  .edwarn{margin:9px 0 0;padding:8px 10px;border-radius:7px;font-size:12px;
+    background:#FBEADF;border:1px solid #C9713F;color:#5A3A2A;}
+  .edwarn b{color:#8E2A12;}
+  .edlegend{position:absolute;left:12px;bottom:26px;z-index:640;
+    background:rgba(255,252,246,.94);border:1px solid var(--line-strong);
+    border-radius:8px;padding:9px 11px;font-size:11.5px;line-height:1.5;
+    box-shadow:0 2px 10px rgba(0,0,0,.18);max-width:230px;}
+  .edlegend h4{margin:0 0 5px;font-size:11px;letter-spacing:.06em;
+    text-transform:uppercase;color:var(--ink-faint);}
+  .edlegend .row{display:flex;align-items:center;gap:6px;}
+  .edlegend .sw{width:12px;height:12px;border-radius:3px;border:1.5px solid;
+    flex:0 0 auto;}
+  .edbusy{display:inline-block;width:11px;height:11px;border-radius:50%;
+    border:2px solid var(--line-strong);border-top-color:var(--roast);
+    animation:edspin .7s linear infinite;vertical-align:-1px;margin-right:5px;}
+  @keyframes edspin{to{transform:rotate(360deg);}}
 </style>
 </head>
 <body>
@@ -746,6 +788,8 @@
     <button id="edSat" type="button">Plain basemap</button>
     <button id="edSwap" type="button" hidden
       title="For a file whose latitude and longitude came in the wrong way round">Swap lat/lng</button>
+    <button id="edScreen" type="button" disabled
+      title="Screen these plots against the forest map for 31 December 2020 and tree-cover loss since">Screen for deforestation</button>
     <span class="grow"></span>
     <span class="edstatus" id="edStatus">Pick a district or open a file</span>
     <button id="edRevert" type="button" disabled>Revert plot</button>
@@ -754,10 +798,11 @@
     <span class="warn">Autosaved in this browser only. Export and apply at source to make it real.</span>
   </div>
   <div class="edmain">
-    <div id="edMap"></div>
+    <div id="edMap"><div class="edlegend" id="edLegend" hidden></div></div>
     <div class="edside">
       <h3 id="edTitle">No plot selected</h3>
       <div id="edFields"></div>
+      <div class="edscreen" id="edScreenBox" hidden></div>
       <div class="edlist">
         <h3 style="margin-top:16px;">Changed plots (<span id="edCount">0</span>)</h3>
         <div id="edChanged"><p class="muted">Nothing changed yet.</p></div>
@@ -773,6 +818,14 @@
            GeoJSON, KML/KMZ, shapefile (.zip, or .shp + .dbf + .prj together),
            GeoPackage, GPX, CSV/Excel with a WKT or lat/lng column, WKT, TopoJSON.
            Files are read in this browser and are not uploaded anywhere.</p>
+        <p style="margin-top:10px;"><b>Screen for deforestation</b> sends these
+           boundaries to the screening tool running on this computer and colours
+           each plot by what the satellite record shows, with the mapped 2020
+           forest and any loss since drawn underneath. It needs
+           <code>serve-dashboards.bat</code> running and this page opened from
+           <code>127.0.0.1</code>; on the published site the button explains
+           that and does nothing else. Results are a screening, not a finding of
+           illegality, and they never leave this machine.</p>
         <p style="margin-top:10px;"><b>Export…</b> writes the changed plots, or all of
            them, in the format you choose. Apply register edits at source; this page
            cannot.</p>
@@ -1039,11 +1092,32 @@ function applyDraft(draft){
 
 function style(i){
   var f = DS.feats[i], r = f.row, on = (i === sel), ch = !!changed[i];
+  /* While a screening is showing, the fill carries the verdict instead of the
+     size band. The two are never mixed: a reader who saw one colour meaning
+     "over 4 ha" and the same colour meaning "loss detected" on the same map
+     would have no way to tell which was which. The legend says which scheme is
+     in force. Selection and edit colours are untouched either way, because
+     those are states this tool needs visible at all times. */
+  var v = (typeof verdictOf === 'function') ? verdictOf(i) : null;
+  var fill = v ? vstyle(v).c : (BAND_FILL[f.band] || '#579C8E');
+  /* With zones drawn underneath, a translucent verdict fill on top of a
+     translucent zone fill gives a third colour that is neither: a salmon
+     "forest at cutoff" plot over the dark teal forest block comes out brown,
+     and a red "loss detected" plot over a red loss patch disappears into it.
+     So when zones are showing, the fill gets out of the way and the OUTLINE
+     carries the verdict. That is also the right reading order for this map:
+     the zones are the evidence, the boundary is the frame around it. */
+  var zoned = v && SCR.on && (SCR.forest || SCR.loss);
+  var op;
+  if (on) op = 0.32;
+  else if (zoned) op = 0.10;
+  else if (v) op = (mode==='sat' ? 0.34 : 0.62);
+  else op = (mode==='sat' ? 0.16 : 0.85);
   return {
-    color: on ? '#F2C14E' : (ch ? '#D24422' : PLOT_STROKE),
-    weight: on ? 3 : (ch ? 2.2 : (mode==='sat' ? 1.4 : 1.1)),
-    fillColor: BAND_FILL[f.band] || '#579C8E',
-    fillOpacity: on ? 0.32 : (mode==='sat' ? 0.16 : 0.85),
+    color: on ? '#F2C14E' : (ch ? '#D24422' : (v ? vstyle(v).c : PLOT_STROKE)),
+    weight: on ? 3 : (ch ? 2.2 : (zoned ? 2.4 : (mode==='sat' ? 1.4 : 1.1))),
+    fillColor: fill,
+    fillOpacity: op,
     dashArray: (r && r.s === 'provisional') ? '4,3' : null
   };
 }
@@ -1216,6 +1290,19 @@ function renderSide(){
     rows.push(['EUDR 4 ha threshold',
       (live >= EUDR_HA ? 'now above' : 'now below') + ', was the other side', 'cross']);
   }
+  var sv = verdictOf(sel);
+  if (sv){
+    rows.push(['Screening', pill(sv)]);
+    if (sv.baseline_tested){
+      rows.push(['Forest at cutoff',
+        fmt(sv.forest_share * 100, 1) + '% (' + fmt(sv.forest_ha, 2) + ' ha)']);
+    }
+    if (sv.change_tested && sv.loss_px){
+      rows.push(['Loss since cutoff',
+        fmt(sv.loss_share * 100, 1) + '% (' + fmt(sv.loss_ha, 2) + ' ha), '
+        + Object.keys(sv.loss_years || {}).join(', ')]);
+    }
+  }
   if (DS.kind === 'register'){
     rows.push(['Band', r.b]);
     rows.push(['Status', r.s + (r.i ? ' · submitted to ITC' : '')]);
@@ -1239,6 +1326,8 @@ function renderChanged(){
   var keys = Object.keys(changed);
   $('edCount').textContent = keys.length;
   $('edExport').disabled = !DS || !DS.feats.length;
+  /* Screening needs a layer for the same reason exporting does. */
+  $('edScreen').disabled = !DS || !DS.feats.length;
   $('edRevertAll').disabled = keys.length === 0;
   var host = $('edChanged');
   if (!keys.length){ host.innerHTML = '<p class="muted">Nothing changed yet.</p>'; return; }
@@ -1255,6 +1344,11 @@ function status(msg){ $('edStatus').textContent = msg; }
 /* ---------- opening a layer ---------- */
 function openLayer(ds, note){
   DS = ds; sel = -1; orig = {}; changed = {};
+  /* A screening belongs to the layer it was run on. Carrying it across to a
+     different file would leave every plot wearing a verdict computed for
+     somebody else's geometry, which is the worst kind of wrong: plausible. */
+  if (typeof screenOff === 'function' && (SCR.on || SCR.busy)) screenOff();
+  $('edScreen').textContent = 'Screen for deforestation';
   ds.feats.forEach(function(f){ f.band = (f.row && f.row.b) || bandOf(geomHa(f.geom)); });
   var m = ensureMap();
   if (layer) m.removeLayer(layer);
@@ -2678,6 +2772,355 @@ function doExport(){
 }
 
 /* ---------- boot ---------- */
+/* =================== deforestation screening ====================== */
+/* The rasters are read by Python on this machine, not here. The browser could
+   range-read the JRC cloud-optimised GeoTIFF directly, but only if that host
+   sends cross-origin headers, which an open-data file mirror has no reason to
+   do; and it would mean pulling a raster library into a published page to read
+   a 38 GB file. So this posts geometry to 127.0.0.1 and draws what comes back.
+   Nothing is uploaded anywhere: the server is the one already serving this
+   page, bound to loopback. */
+
+var SCR = {
+  on:false, busy:false, checked:false, available:false, reachable:false, detail:'',
+  by:{},            /* pid -> result */
+  summary:null, meta:null,
+  forest:null, loss:null,       /* Leaflet layers */
+  showForest:true, showLoss:true,
+  zoneNote:'', zoneBusy:false, zoneSeq:0
+};
+
+/* The reserved status palette, matching the HTML report exactly so a plot is
+   the same colour in both. */
+var VSTYLE = {
+  critical:  {c:'#D03B3B', g:'■'},   /* filled square   */
+  serious:   {c:'#EC835A', g:'▲'},   /* filled triangle */
+  warning:   {c:'#FAB219', g:'◆'},   /* filled diamond  */
+  good:      {c:'#0CA30C', g:'●'},   /* filled circle   */
+  unverified:{c:'#8A7059', g:'○'}    /* hollow circle   */
+};
+var VMETA = null;   /* filled from /api/screen/status */
+
+/* Zone fills, chosen against satellite imagery rather than against white.
+   Forest keeps the dashboard's dark teal with a pale stroke so it reads on top
+   of green canopy; loss is the critical red at a higher opacity so it wins the
+   eye, which is right because it is the thing that matters. */
+var ZONE = {
+  forest:{fill:'#0D4D45', stroke:'#8FD8C8', op:0.30},
+  loss:  {fill:'#D03B3B', stroke:'#FFD9D9', op:0.48}
+};
+
+function apiURL(path){ return path; }
+
+function apiCall(path, body){
+  var opt = {cache:'no-store'};
+  if (body){
+    opt.method = 'POST';
+    opt.headers = {'Content-Type':'application/json'};
+    opt.body = JSON.stringify(body);
+  }
+  return fetch(apiURL(path), opt).then(function(r){
+    return r.json().then(function(j){
+      if (!r.ok) throw new Error(j && j.error ? j.error : ('HTTP ' + r.status));
+      return j;
+    }, function(){ throw new Error('HTTP ' + r.status + ', and the reply was not JSON'); });
+  });
+}
+
+/* Opened as a file:// URL or from the published site there is no API behind
+   this page at all, and fetch fails in a way that looks like a bug. Saying so
+   once, plainly, is better than a red console line nobody sees. */
+function screenAvailable(){
+  if (SCR.checked) return Promise.resolve(SCR.available);
+  return apiCall('/api/screen/status', null).then(function(j){
+    SCR.checked = true;
+    /* Reachable and available are different failures with different fixes.
+       Reachable means this page is being served by the local server at all;
+       available means that server can also read rasters. Telling someone to
+       start a server that is already running, because rasterio is missing,
+       sends them the wrong way. */
+    SCR.reachable = true;
+    SCR.available = !!j.ok;
+    SCR.detail = j.detail || '';
+    VMETA = j.verdicts || null;
+    if (j.thresholds) SCR.thresholds = j.thresholds;
+    SCR.cutoff = j.cutoff || '31 December 2020';
+    return SCR.available;
+  }).catch(function(err){
+    SCR.checked = true; SCR.available = false; SCR.reachable = false;
+    SCR.detail = err.message;
+    return false;
+  });
+}
+
+function zonePane(){
+  var m = ensureMap();
+  if (!m.getPane('edZones')){
+    /* Below the boundaries, above the imagery. Drawn into its own pane so a
+       restyle of the plots never has to think about z-order. */
+    var p = m.createPane('edZones');
+    p.style.zIndex = 390;
+    p.style.pointerEvents = 'none';
+  }
+  return 'edZones';
+}
+
+function clearZones(){
+  var m = map;
+  if (!m) return;
+  if (SCR.forest){ m.removeLayer(SCR.forest); SCR.forest = null; }
+  if (SCR.loss){ m.removeLayer(SCR.loss); SCR.loss = null; }
+}
+
+function drawZones(j){
+  var m = ensureMap(), pane = zonePane();
+  clearZones();
+  var mk = function(fc, spec){
+    if (!fc || !fc.features || !fc.features.length) return null;
+    return L.geoJSON(fc, {
+      pane: pane, interactive: false,
+      style: function(){
+        return {color:spec.stroke, weight:1, opacity:0.85,
+                fillColor:spec.fill, fillOpacity:spec.op};
+      }
+    }).addTo(m);
+  };
+  if (SCR.showForest) SCR.forest = mk(j.forest, ZONE.forest);
+  if (SCR.showLoss)   SCR.loss   = mk(j.loss, ZONE.loss);
+
+  var fm = j.forest_meta || {}, lm = j.loss_meta || {};
+  var nf = (j.forest && j.forest.features ? j.forest.features.length : 0);
+  var nl = (j.loss && j.loss.features ? j.loss.features.length : 0);
+  var gen = fm.generalised || lm.generalised;
+  var res = fm.res_m || lm.res_m;
+  SCR.zoneNote = nf + ' forest and ' + nl + ' loss shape' + (nl === 1 ? '' : 's')
+    + ' in view' + (res ? ', at about ' + res + ' m' : '')
+    + (gen ? '. Generalised at this zoom; zoom in for the exact outlines.' : '.');
+  if (fm.truncated || lm.truncated){
+    SCR.zoneNote += ' The view holds more shapes than will draw; zoom in.';
+  }
+  SCR.meta = j;
+  restyle();   /* the fill backs off once there are zones to see through it */
+  renderScreen();
+}
+
+function loadZones(){
+  if (!SCR.on || !map || !SCR.available) return;
+  if (!SCR.showForest && !SCR.showLoss){ clearZones(); SCR.zoneNote = ''; renderScreen(); return; }
+  var b = map.getBounds();
+  var seq = ++SCR.zoneSeq;
+  SCR.zoneBusy = true; renderScreen();
+  apiCall('/api/screen/zones', {
+    bbox:[b.getSouth(), b.getWest(), b.getNorth(), b.getEast()],
+    forest: SCR.showForest, loss: SCR.showLoss
+  }).then(function(j){
+    /* A slow reply for a view the user has already paned away from must not
+       repaint the map. Panning fires this faster than the raster reads. */
+    if (seq !== SCR.zoneSeq) return;
+    SCR.zoneBusy = false;
+    drawZones(j);
+  }).catch(function(err){
+    if (seq !== SCR.zoneSeq) return;
+    SCR.zoneBusy = false;
+    SCR.zoneNote = 'Could not draw the zones: ' + err.message;
+    renderScreen();
+  });
+}
+
+function screenNow(){
+  if (!DS || SCR.busy) return;
+  SCR.busy = true; renderScreen();
+  status('Checking the screening tool…');
+  screenAvailable().then(function(ok){
+    if (!ok){
+      SCR.busy = false;
+      SCR.on = true;          /* so the panel shows, explaining why it cannot */
+      renderScreen();
+      status('The screening tool is not reachable from this page.');
+      return;
+    }
+    status('Screening ' + plural(DS.feats.length, 'plot') + '…');
+    return apiCall('/api/screen', {
+      plots: DS.feats.map(function(f, i){
+        return {pid: String(i), label: labelOf(i), geom: f.geom};
+      })
+    }).then(function(j){
+      SCR.busy = false;
+      SCR.on = true;
+      SCR.by = {};
+      (j.results || []).forEach(function(r){ SCR.by[r.pid] = r; });
+      SCR.summary = j.summary || null;
+      SCR.result = j;
+      restyle();
+      renderScreen(); renderSide();
+      $('edLegend').hidden = false;
+      map.on('moveend', loadZones);
+      loadZones();
+      var c = (j.summary && j.summary.counts) || {};
+      var flagged = (c.loss_detected||0) + (c.forest_at_cutoff||0);
+      status('Screened ' + plural(DS.feats.length, 'plot') + ': '
+        + fmt(flagged) + (flagged === 1 ? ' needs' : ' need')
+        + ' an explanation. This is a screening, not a compliance finding.');
+    });
+  }).catch(function(err){
+    SCR.busy = false; SCR.on = true;
+    SCR.error = err.message;
+    renderScreen();
+    status('Screening failed: ' + err.message);
+  });
+}
+
+function screenOff(){
+  SCR.on = false; SCR.by = {}; SCR.summary = null; SCR.error = null;
+  SCR.zoneNote = ''; SCR.result = null;
+  clearZones();
+  if (map) map.off('moveend', loadZones);
+  $('edLegend').hidden = true;
+  restyle(); renderScreen(); renderSide();
+  status(DS ? DS.name : 'Pick a district or open a file');
+}
+
+function verdictOf(i){
+  return SCR.on ? SCR.by[String(i)] : null;
+}
+
+function vstyle(v){ return VSTYLE[v && v.status] || VSTYLE.unverified; }
+
+function vlabel(key){
+  return (VMETA && VMETA[key] && VMETA[key].label) || key || 'Not verified';
+}
+
+function pill(v){
+  var st = vstyle(v);
+  return '<span class="edverdict" style="border-color:' + st.c
+    + ';background:' + st.c + '1F;color:var(--ink)">'
+    + '<span style="color:' + st.c + '">' + st.g + '</span>'
+    + esc(vlabel(v && v.verdict)) + '</span>';
+}
+
+function renderLegend(){
+  var el = $('edLegend');
+  if (!SCR.on || !SCR.summary){ el.hidden = true; return; }
+  var counts = SCR.summary.counts || {};
+  var order = ['loss_detected','forest_at_cutoff','partial_overlap',
+               'no_loss_only','clear','unverified'];
+  var rows = order.filter(function(k){ return counts[k]; }).map(function(k){
+    var st = VSTYLE[(VMETA && VMETA[k] && VMETA[k].status) || 'unverified'];
+    return '<div class="row"><span class="sw" style="background:' + st.c
+      + '1F;border-color:' + st.c + '"></span><span style="color:' + st.c
+      + '">' + st.g + '</span> ' + esc(vlabel(k)) + ' (' + fmt(counts[k]) + ')</div>';
+  });
+  var zrows = [];
+  if (SCR.showForest) zrows.push('<div class="row"><span class="sw" style="background:'
+    + ZONE.forest.fill + ';border-color:' + ZONE.forest.stroke
+    + '"></span>Forest at the cutoff</div>');
+  if (SCR.showLoss) zrows.push('<div class="row"><span class="sw" style="background:'
+    + ZONE.loss.fill + ';border-color:' + ZONE.loss.stroke
+    + '"></span>Loss since the cutoff</div>');
+  el.innerHTML = '<h4>Screening</h4>' + rows.join('')
+    + (zrows.length ? '<h4 style="margin-top:7px;">Zones</h4>' + zrows.join('') : '');
+  el.hidden = false;
+}
+
+function renderScreen(){
+  var box = $('edScreenBox');
+  if (!SCR.on && !SCR.busy){ box.hidden = true; renderLegend(); return; }
+  box.hidden = false;
+  var h = ['<h3>Deforestation screening</h3>'];
+
+  if (SCR.busy){
+    h.push('<p class="muted"><span class="edbusy"></span>Reading the forest '
+      + 'rasters. The first run of a session fetches them, which can take a '
+      + 'moment.</p>');
+    box.innerHTML = h.join(''); renderLegend(); return;
+  }
+
+  if (!SCR.available){
+    if (SCR.reachable){
+      h.push('<div class="edwarn"><b>The screening tool cannot read the forest '
+        + 'rasters.</b><br>The local server is running, so this is a missing '
+        + 'library rather than a missing server.'
+        + (SCR.detail ? '<pre style="white-space:pre-wrap;margin:6px 0 0;'
+            + 'font-size:11.5px;">' + esc(SCR.detail) + '</pre>' : '')
+        + '</div>');
+    } else {
+      h.push('<div class="edwarn"><b>The screening tool is not reachable.</b><br>'
+        + 'This needs the local server: run <code>serve-dashboards.bat</code> and '
+        + 'open this page from <code>http://127.0.0.1:8000/map-editor.html</code> '
+        + 'rather than from a file or the published site. Everything else on this '
+        + 'page works without it.'
+        + (SCR.detail ? '<br><span class="muted">' + esc(SCR.detail) + '</span>' : '')
+        + '</div>');
+    }
+    box.innerHTML = h.join(''); renderLegend(); return;
+  }
+  if (SCR.error){
+    h.push('<div class="edwarn"><b>Screening failed.</b><br>' + esc(SCR.error) + '</div>');
+    box.innerHTML = h.join(''); renderLegend(); return;
+  }
+
+  var r = SCR.result || {}, sum = SCR.summary || {};
+  var counts = sum.counts || {}, has = sum.ha || {};
+  var total = sum.plots || 0;
+  var order = ['loss_detected','forest_at_cutoff','partial_overlap',
+               'no_loss_only','clear','unverified'];
+
+  h.push('<p class="muted">Against the mapped forest state on '
+    + esc(SCR.cutoff || '31 December 2020') + ', and tree-cover loss since. '
+    + 'A screening result, not a finding of illegality.</p>');
+
+  if (r.baseline_is_proxy){
+    h.push('<div class="edwarn"><b>The baseline is tree cover, not forest.</b><br>'
+      + 'Shade trees and woodlots count toward the cutoff figure, so Ndugu\'s own '
+      + 'shaded plots will read high. Treat the cutoff column as indicative.</div>');
+  }
+  if (r.baseline == null){
+    h.push('<div class="edwarn"><b>No cutoff baseline was read.</b><br>'
+      + 'Only the change signal ran, so nothing here speaks to the state of the '
+      + 'land on the cutoff date.</div>');
+  }
+
+  h.push('<div class="sum">');
+  order.forEach(function(k){
+    if (!counts[k]) return;
+    var st = VSTYLE[(VMETA && VMETA[k] && VMETA[k].status) || 'unverified'];
+    var pct = total ? (100 * counts[k] / total) : 0;
+    h.push('<span style="color:' + st.c + '">' + st.g + '</span>'
+      + '<span>' + esc(vlabel(k))
+      + '<span class="bar" style="margin-top:3px;"><i style="width:'
+      + pct.toFixed(1) + '%;background:' + st.c + '"></i></span></span>'
+      + '<span class="n">' + fmt(counts[k])
+      + (has[k] ? '<br><span class="muted" style="font-weight:400">'
+        + fmt(has[k],1) + ' ha</span>' : '') + '</span>');
+  });
+  h.push('</div>');
+
+  h.push('<div class="edzones">'
+    + '<label><input type="checkbox" id="edZF"' + (SCR.showForest ? ' checked' : '')
+    + '><span class="sw" style="background:' + ZONE.forest.fill + ';border-color:'
+    + ZONE.forest.stroke + '"></span>Forest at cutoff</label>'
+    + '<label><input type="checkbox" id="edZL"' + (SCR.showLoss ? ' checked' : '')
+    + '><span class="sw" style="background:' + ZONE.loss.fill + ';border-color:'
+    + ZONE.loss.stroke + '"></span>Loss since</label></div>');
+
+  if (SCR.zoneBusy){
+    h.push('<p class="why"><span class="edbusy"></span>Tracing the zones in view…</p>');
+  } else if (SCR.zoneNote){
+    h.push('<p class="why">' + esc(SCR.zoneNote) + '</p>');
+  }
+
+  var src = [];
+  if (r.baseline) src.push('Cutoff: ' + esc(r.baseline));
+  if (r.change) src.push('Change: ' + esc(r.change));
+  if (src.length) h.push('<p class="why muted">' + src.join('<br>') + '</p>');
+
+  box.innerHTML = h.join('');
+  var zf = $('edZF'), zl = $('edZL');
+  if (zf) zf.addEventListener('change', function(){ SCR.showForest = this.checked; loadZones(); });
+  if (zl) zl.addEventListener('change', function(){ SCR.showLoss = this.checked; loadZones(); });
+  renderLegend();
+}
+
 function startEditor(){
   fetch('./polygon-data.json?v=' + Date.now(), {cache:'no-store'})
     .then(function(r){ if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
@@ -2713,6 +3156,10 @@ function startEditor(){
   $('edRevertAll').addEventListener('click', function(){
     Object.keys(changed).map(Number).forEach(revert);
     status('Reverted everything.');
+  });
+  $('edScreen').addEventListener('click', function(){
+    if (SCR.on || SCR.busy) screenOff(); else screenNow();
+    this.textContent = (SCR.on || SCR.busy) ? 'Clear screening' : 'Screen for deforestation';
   });
   $('edExport').addEventListener('click', openExport);
   $('edFmt').addEventListener('change', updateExportDlg);
