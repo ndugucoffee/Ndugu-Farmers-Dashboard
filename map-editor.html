@@ -2985,8 +2985,13 @@ function screenNow(){
     }
     status('Screening ' + plural(DS.feats.length, 'plot') + '…');
     return apiCall('/api/screen', {
+      /* a full screening is also written to reports/ as HTML, CSV, XLSX
+         and JSON, the same report deforestation_check.py writes */
+      save_report: true,
+      source: DS.name,
+      source_kind: DS.kind === 'register' ? 'register district' : (DS.format || 'file'),
       plots: DS.feats.map(function(f, i){
-        return {pid: String(i), label: labelOf(i), geom: f.geom};
+        return {pid: String(i), label: labelOf(i), geom: f.geom, attrs: reportAttrs(i)};
       })
     }).then(function(j){
       /* opened something else while this ran: these verdicts are for
@@ -2998,6 +3003,8 @@ function screenNow(){
       (j.results || []).forEach(function(r){ SCR.by[r.pid] = r; });
       SCR.summary = j.summary || null;
       SCR.result = j;
+      SCR.report = j.report || null;
+      SCR.editedSince = false;
       restyle();
       renderScreen(); renderSide();
       $('edLegend').hidden = false;
@@ -3019,12 +3026,27 @@ function screenNow(){
 
 function screenOff(){
   SCR.on = false; SCR.by = {}; SCR.summary = null; SCR.error = null;
-  SCR.zoneNote = ''; SCR.result = null;
+  SCR.zoneNote = ''; SCR.result = null; SCR.report = null; SCR.editedSince = false;
   clearZones();
   if (map) map.off('moveend', loadZones);
   $('edLegend').hidden = true;
   restyle(); renderScreen(); renderSide();
   status(DS ? DS.name : 'Pick a district or open a file');
+}
+
+/* What a report row carries besides the verdict: for a register plot its
+   identity and district, for a file whatever simple attributes it has. */
+function reportAttrs(i){
+  var f = DS.feats[i], r = f.row, out = {};
+  if (DS.kind === 'register'){
+    return {district: DS.name, farm_unit_id: r.u || null, farmer_code: r.c || null,
+            plot_name: r.n || null, status: r.s || null, itc_submitted: !!r.i};
+  }
+  Object.keys(f.props).slice(0, 24).forEach(function(k){
+    var v = f.props[k];
+    if (v === null || ['string','number','boolean'].indexOf(typeof v) >= 0) out[k] = v;
+  });
+  return out;
 }
 
 function verdictOf(i){
@@ -3163,6 +3185,19 @@ function renderScreen(){
   if (r.baseline) src.push('Cutoff: ' + esc(r.baseline));
   if (r.change) src.push('Change: ' + esc(r.change));
   if (src.length) h.push('<p class="why muted">' + src.join('<br>') + '</p>');
+
+  if (SCR.report && SCR.report.html){
+    h.push('<p class="why">Report saved to <code>reports/</code>: '
+      + '<a href="' + esc(SCR.report.html) + '" target="_blank" rel="noopener">'
+      + esc(SCR.report.html.replace(/^reports\//, '')) + '</a>'
+      + (SCR.report.files && SCR.report.files.length > 1
+          ? ', with ' + esc(SCR.report.files.filter(function(n){ return !/\.html$/.test(n); })
+                                 .map(function(n){ return n.split('.').pop().toUpperCase(); }).join(', '))
+            + ' beside it' : '') + '.'
+      + (SCR.editedSince ? '<br><span class="muted">Plots have been edited since. Screen '
+          + 'again to save a report of the boundaries as they are now.</span>' : '')
+      + '</p>');
+  }
 
   box.innerHTML = h.join('');
   var zf = $('edZF'), zl = $('edZL');
@@ -3320,6 +3355,7 @@ function rescreen(){
       total++;
     });
     SCR.summary = {plots:total, counts:counts, ha:ha};
+    SCR.editedSince = true;
     idx.forEach(function(i){ if (shapes[i]) shapes[i].setStyle(style(i)); });
     renderScreen(); renderSide();
     var one = j.results && j.results.length === 1 ? j.results[0] : null;

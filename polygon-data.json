@@ -10,8 +10,8 @@
  "summary": {
   "plots": 9919,
   "districts": 13,
-  "total_ha": 5812.9,
-  "median_ha": 0.377,
+  "total_ha": 5813.8,
+  "median_ha": 0.376,
   "mean_ha": 0.586,
   "over4": 69,
   "provisional": 969,
@@ -43,7 +43,7 @@
    "district": "Masaka",
    "file": "polygons/masaka.json",
    "plots": 5629,
-   "ha": 3545.88,
+   "ha": 3546.01,
    "over4": 48,
    "provisional": 93,
    "itc": 3214,
@@ -53,13 +53,13 @@
     -0.038563,
     31.971533
    ],
-   "kb": 1919.7
+   "kb": 1919.6
   },
   {
    "district": "Rakai",
    "file": "polygons/rakai.json",
    "plots": 2035,
-   "ha": 967.92,
+   "ha": 968.69,
    "over4": 10,
    "provisional": 7,
    "itc": 963,
@@ -69,7 +69,7 @@
     -0.143693,
     31.829711
    ],
-   "kb": 532.2
+   "kb": 532.1
   },
   {
    "district": "Bukomansimbi",
