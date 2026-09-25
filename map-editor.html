@@ -752,6 +752,12 @@
     flex:0 0 auto;}
   .edscreen .why{margin:8px 0 0;font-size:12px;color:var(--ink-soft);}
   .edscreen .why li{margin:2px 0;}
+  .qarow{display:grid;grid-template-columns:14px 1fr auto;gap:6px;align-items:center;
+    padding:5px 6px;border-radius:var(--radius-sm);cursor:pointer;font-size:12.5px;}
+  .qarow:hover{background:var(--roast-wash);}
+  .qarow .n{font-variant-numeric:tabular-nums;font-weight:600;color:var(--ink);}
+  .qalist{margin:2px 0 6px 20px;max-height:220px;overflow:auto;}
+  .qaissue{display:block;margin:2px 0;font-size:12px;line-height:1.45;text-align:right;}
   .edwarn{margin:9px 0 0;padding:8px 10px;border-radius:7px;font-size:12px;
     background:#FBEADF;border:1px solid #C9713F;color:#5A3A2A;}
   .edwarn b{color:#8E2A12;}
@@ -796,6 +802,8 @@
       title="For a file whose latitude and longitude came in the wrong way round">Swap lat/lng</button>
     <button id="edScreen" type="button" disabled
       title="Screen these plots against the forest map for 31 December 2020 and tree-cover loss since">Screen for deforestation</button>
+    <button id="edQA" type="button" disabled
+      title="Flag malformed boundaries, self-intersections, spikes and overlaps, and boundaries in buildings, water, wetlands or protected areas">Check plots</button>
     <span class="grow"></span>
     <span class="edstatus" id="edStatus">Pick a district or open a file</span>
     <button id="edRevert" type="button" disabled>Revert plot</button>
@@ -812,6 +820,7 @@
       <h3 id="edTitle">No plot selected</h3>
       <div id="edFields"></div>
       <div class="edscreen" id="edScreenBox" hidden></div>
+      <div class="edscreen" id="edQABox" hidden></div>
       <div class="edlist">
         <h3 style="margin-top:16px;">Changed plots (<span id="edCount">0</span>)</h3>
         <div id="edChanged"><p class="muted">Nothing changed yet.</p></div>
@@ -926,7 +935,7 @@ function fmt(n, dp){
   return Number(n).toLocaleString('en-US',
     {minimumFractionDigits:dp||0, maximumFractionDigits:dp||0});
 }
-function plural(n, word){ return fmt(n) + ' ' + word + (n === 1 ? '' : 's'); }
+function plural(n, word, many){ return fmt(n) + ' ' + (n === 1 ? word : (many || word + 's')); }
 /* Same cut points as band() in build_polygons.py, so a plot from a file is
    coloured the way the register would colour a plot of that size. */
 function bandOf(ha){
@@ -1264,6 +1273,7 @@ function select(i){
     drawHandles();
   }
   renderSide(); renderChanged();
+  if (QA.on) drawQADetail();
   $('edRevert').disabled = (i < 0) || !changed[i];
 }
 
@@ -1317,6 +1327,15 @@ function renderSide(){
         + Object.keys(sv.loss_years || {}).join(', ')]);
     }
   }
+  if (QA.on && QA.by[sel] && QA.by[sel].length){
+    QA.by[sel].forEach(function(it, n){
+      var sv2 = QA_SEV[QA_CODES[it.code].sev];
+      rows.push([n ? '' : 'Checks', '<span class="qaissue"><span style="color:' + sv2.c + '">' + sv2.g + '</span> '
+        + '<b>' + esc(QA_CODES[it.code].label) + '</b>: ' + esc(it.msg) + '</span>', '', true]);
+    });
+  } else if (QA.on && !QA.busy){
+    rows.push(['Checks', 'nothing flagged']);
+  }
   if (DS.kind === 'register'){
     rows.push(['Band', r.b]);
     rows.push(['Status', r.s + (r.i ? ' · submitted to ITC' : '')]);
@@ -1345,6 +1364,7 @@ function renderChanged(){
   $('edExport').disabled = !DS || !DS.feats.length;
   /* Screening needs a layer for the same reason exporting does. */
   $('edScreen').disabled = !DS || !DS.feats.length;
+  $('edQA').disabled = !DS || !DS.feats.length;
   $('edRevertAll').disabled = keys.length === 0;
   var host = $('edChanged');
   if (!keys.length){ host.innerHTML = '<p class="muted">Nothing changed yet.</p>'; return; }
@@ -1372,6 +1392,8 @@ function openLayer(ds, note){
      Cleared BEFORE DS changes: screenOff restyles every shape, and the shapes
      on the map still belong to the old layer until they are rebuilt below. */
   if (SCR.on || SCR.busy) screenOff();
+  if (QA.on || QA.busy) qaOff();
+  $('edQA').textContent = 'Check plots';
   /* An edit still waiting on its save debounce goes out now, for the layer
      it was made on, rather than being dropped with that layer. */
   clearTimeout(REG.timer);
@@ -2720,6 +2742,11 @@ function exportProps(i, withEdit, stamp){
   } else {
     Object.keys(f.props).forEach(function(k){ p[k] = f.props[k]; });
   }
+  if (QA.on && !QA.busy){
+    var qi = QA.by[i] || [];
+    p.check_severity = qi.length ? QA_SEV[QA_CODES[qi[0].code].sev].label : null;
+    p.check_flags = qi.map(function(it){ return QA_CODES[it.code].label + ': ' + it.msg; }).join('; ') || null;
+  }
   var sv = verdictOf(i);
   if (sv && !sv.stale){
     p.screening_verdict = vlabel(sv.verdict);
@@ -3251,6 +3278,7 @@ function renderSaveBox(){
 function afterEdit(i){
   saveDraft();
   if (!DS || i < 0) return;
+  if (QA.on && !QA.busy) qaRecheck(i);
   if (DS.kind === 'register'){
     unsaved[i] = true;
     delete REG.failed[i];
@@ -3365,6 +3393,986 @@ function rescreen(){
   });
 }
 
+/* ============================ plot checks ============================
+   Two kinds of check, run together by "Check plots":
+
+   GEOMETRY, worked out here from the boundaries alone, so it is instant and
+   works on the published site: malformed rings, repeated corners,
+   self-intersections, spikes, implausible sizes, and plots that overlap or
+   duplicate one another.
+
+   LAND COVER, against OpenStreetMap, fetched from the Overpass API by the
+   browser: buildings the boundary runs through (or that sit inside it),
+   water bodies, wetlands and swamps, rivers and streams, and protected
+   areas (Central Forest Reserves, national parks, wildlife and game
+   reserves). OpenStreetMap is volunteer-mapped and incomplete, so a flag
+   is a reason to look and an absence of flags is not proof of anything; the
+   panel says so.
+
+   Only the ground near the plots is asked for: plots are grouped into cells
+   about a kilometre across and each query covers a batch of cells, so a
+   district costs a few dozen requests rather than a download of the map.
+   Very large features (Lake Victoria) are too big to fetch whole; for those
+   only the shoreline near the plots is fetched, and a plot is flagged when
+   its boundary crosses it. */
+
+var QA = {on:false, busy:false, by:{}, osm:null, osmNote:'', osmErr:'', progress:'',
+          markers:null, detail:null, overlay:null, showMap:true, open:{}, report:null};
+
+var QA_SEV = {
+  error:  {c:'#B23A1E', g:'■', label:'Problem'},
+  warning:{c:'#C9820E', g:'▲', label:'Warning'},
+  info:   {c:'#3F6E8C', g:'●', label:'Note'}
+};
+var QA_CODES = {
+  malformed:      {label:'Malformed boundary',            sev:'error'},
+  selfint:        {label:'Self-intersection',             sev:'error'},
+  duplicate:      {label:'Duplicate of another plot',     sev:'error'},
+  protected:      {label:'Inside a protected area',       sev:'error'},
+  spike:          {label:'Spike',                         sev:'warning'},
+  overlap:        {label:'Overlaps another plot',         sev:'warning'},
+  size:           {label:'Implausible size',              sev:'warning'},
+  building_cross: {label:'Boundary runs through a building', sev:'warning'},
+  water:          {label:'In a water body',               sev:'warning'},
+  shore:          {label:'Crosses a lake shore',          sev:'warning'},
+  wetland:        {label:'In a wetland or swamp',         sev:'warning'},
+  building_inside:{label:'Building inside the plot',      sev:'info'},
+  stream:         {label:'Crossed by a river or stream',  sev:'info'},
+  touch:          {label:'Touches another plot',          sev:'info'},
+  dupvertex:      {label:'Repeated corners',              sev:'info'}
+};
+var QA_ORDER = ['malformed','selfint','duplicate','protected','spike','overlap','size',
+                'building_cross','water','shore','wetland','building_inside','stream',
+                'touch','dupvertex'];
+var SEV_RANK = {error:0, warning:1, info:2};
+
+/* thresholds, in one place, printed in the report */
+var QA_T = {
+  spikeDeg: 10,          /* a corner sharper than this, with arms over spikeArm m */
+  spikeArm: 2,
+  dupM: 0.3,             /* corners closer than this are the same corner */
+  minM2: 100,            /* below this a "plot" is a mistake, not a field */
+  maxHa: 50,             /* above this it is not a smallholding */
+  overlapM2: 25,         /* shared ground below this is GPS noise at a shared edge */
+  overlapShare: 0.02,
+  dupShare: 0.9,         /* both plots this much inside each other: the same plot twice */
+  waterShare: 0.02, wetlandShare: 0.02, protectedShare: 0.01
+};
+
+/* ---------- local metric geometry ---------- */
+function mproj(lat0){
+  var kx = 111320 * Math.cos(lat0 * Math.PI / 180), ky = 110540;
+  return function(p){ return [p[1] * kx, p[0] * ky]; };
+}
+function segX(a, b, c, d){
+  /* proper or touching intersection of segments ab and cd; returns the point or null */
+  var r1 = b[0]-a[0], r2 = b[1]-a[1], s1 = d[0]-c[0], s2 = d[1]-c[1];
+  var den = r1 * s2 - r2 * s1;
+  if (Math.abs(den) < 1e-12) return null;              /* parallel: ignored, not a crossing */
+  var t = ((c[0]-a[0]) * s2 - (c[1]-a[1]) * s1) / den;
+  var u = ((c[0]-a[0]) * r2 - (c[1]-a[1]) * r1) / den;
+  if (t < 0 || t > 1 || u < 0 || u > 1) return null;
+  return [a[0] + t * r1, a[1] + t * r2];
+}
+function pipRing(pt, ring){
+  var x = pt[0], y = pt[1], inside = false;
+  for (var i = 0, j = ring.length - 1; i < ring.length; j = i++){
+    var xi = ring[i][0], yi = ring[i][1], xj = ring[j][0], yj = ring[j][1];
+    if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+/* [lat, lng] point in an editor geometry (parts of rings, holes after the first) */
+function pipGeom(p, g){
+  for (var a = 0; a < g.length; a++){
+    if (!pipRing([p[1], p[0]], g[a][0].map(function(q){ return [q[1], q[0]]; }))) continue;
+    var inHole = false;
+    for (var h = 1; h < g[a].length && !inHole; h++){
+      inHole = pipRing([p[1], p[0]], g[a][h].map(function(q){ return [q[1], q[0]]; }));
+    }
+    if (!inHole) return true;
+  }
+  return false;
+}
+function gBBox(g){
+  var b = [Infinity, Infinity, -Infinity, -Infinity];
+  g.forEach(function(part){ part.forEach(function(r){ r.forEach(function(p){
+    if (p[0] < b[0]) b[0] = p[0]; if (p[1] < b[1]) b[1] = p[1];
+    if (p[0] > b[2]) b[2] = p[0]; if (p[1] > b[3]) b[3] = p[1];
+  }); }); });
+  return b;
+}
+function bbHit(a, b){ return a[0] <= b[2] && b[0] <= a[2] && a[1] <= b[3] && b[1] <= a[3]; }
+function gCenter(g){ var b = gBBox(g); return [(b[0]+b[2])/2, (b[1]+b[3])/2]; }
+/* a point inside the plot, for the marker: the bbox centre if it is inside,
+   otherwise the first corner, which always is on the boundary */
+function gAnchor(g){
+  var c = gCenter(g);
+  return pipGeom(c, g) ? c : g[0][0][0];
+}
+/* every edge of a geometry, as [lat,lng] pairs */
+function gEdges(g){
+  var out = [];
+  g.forEach(function(part){ part.forEach(function(r){
+    for (var k = 0; k < r.length; k++) out.push([r[k], r[(k+1) % r.length]]);
+  }); });
+  return out;
+}
+
+/* ---------- geometry checks for one plot ---------- */
+function qaGeometry(i){
+  var g = DS.feats[i].geom, out = [];
+  var P = mproj(gCenter(g)[0]);
+  var ha = geomHa(g);
+  g.forEach(function(part, pi){ part.forEach(function(ring, ri){
+    var xy = ring.map(P), n = xy.length;
+    var where = (g.length > 1 || part.length > 1) ? ' (part ' + (pi+1) + (ri ? ', hole ' + ri : '') + ')' : '';
+    var distinct = {}, dups = 0;
+    xy.forEach(function(q, k){
+      distinct[Math.round(q[0]/QA_T.dupM) + ',' + Math.round(q[1]/QA_T.dupM)] = 1;
+      var nx = xy[(k+1) % n];
+      if (Math.hypot(nx[0]-q[0], nx[1]-q[1]) < QA_T.dupM) dups++;
+    });
+    if (Object.keys(distinct).length < 3){
+      out.push({code:'malformed', msg:'fewer than three distinct corners' + where});
+      return;
+    }
+    if (dups) out.push({code:'dupvertex', msg:dups + ' corner' + (dups === 1 ? ' repeats' : 's repeat')
+                        + ' the one before it' + where});
+
+    /* self-intersection: every pair of edges that are not neighbours */
+    if (n <= 3000){
+      var hits = [];
+      for (var a = 0; a < n && hits.length < 20; a++){
+        for (var b = a + 2; b < n; b++){
+          if (a === 0 && b === n - 1) continue;              /* they share corner 0 */
+          var x = segX(xy[a], xy[(a+1) % n], xy[b], xy[(b+1) % n]);
+          if (x){ hits.push(ring[a]); if (hits.length >= 20) break; }
+        }
+      }
+      if (hits.length) out.push({code:'selfint', pts:hits,
+        msg:'the boundary crosses itself' + (hits.length > 1 ? ' at ' + (hits.length >= 20 ? '20+' : hits.length) + ' places' : '') + where});
+    }
+
+    /* spikes: a corner the boundary goes out to and straight back from */
+    var spikes = [];
+    for (var k = 0; k < n; k++){
+      var p0 = xy[(k-1+n) % n], p1 = xy[k], p2 = xy[(k+1) % n];
+      var ax = p0[0]-p1[0], ay = p0[1]-p1[1], bx = p2[0]-p1[0], by = p2[1]-p1[1];
+      var la = Math.hypot(ax, ay), lb = Math.hypot(bx, by);
+      if (la < QA_T.spikeArm || lb < QA_T.spikeArm) continue;
+      var ang = Math.acos(Math.max(-1, Math.min(1, (ax*bx + ay*by) / (la * lb)))) * 180 / Math.PI;
+      if (ang < QA_T.spikeDeg) spikes.push({p:ring[k], k:k, ang:ang, len:Math.min(la, lb)});
+    }
+    if (spikes.length){
+      var s0 = spikes[0];
+      out.push({code:'spike', pts:spikes.map(function(s){ return s.p; }),
+        msg:(spikes.length === 1 ? 'corner ' + (s0.k+1) : spikes.length + ' corners')
+            + ' turn back on themselves (' + Math.round(s0.ang) + '°, ' + Math.round(s0.len) + ' m arm)' + where});
+    }
+  }); });
+
+  var m2 = ha * 10000;
+  var crosses = out.some(function(it){ return it.code === 'selfint'; });
+  if (m2 < QA_T.minM2 && !crosses) out.push({code:'malformed', msg:'encloses only ' + Math.round(m2) + ' m²'});
+  else if (ha > QA_T.maxHa) out.push({code:'size', msg:fmt(ha, 1) + ' ha, larger than any smallholding should be'});
+  return out;
+}
+
+/* ---------- overlaps between plots ---------- */
+var QA_GRID = 0.005;
+function gridKeys(b){
+  var out = [];
+  for (var y = Math.floor(b[0] / QA_GRID); y <= Math.floor(b[2] / QA_GRID); y++)
+    for (var x = Math.floor(b[1] / QA_GRID); x <= Math.floor(b[3] / QA_GRID); x++) out.push(y + ':' + x);
+  return out;
+}
+function plotIndex(){
+  var idx = {}, boxes = DS.feats.map(function(f){ return gBBox(f.geom); });
+  boxes.forEach(function(b, i){ gridKeys(b).forEach(function(k){ (idx[k] = idx[k] || []).push(i); }); });
+  return {idx:idx, boxes:boxes};
+}
+function neighbours(PI, i){
+  var seen = {}, out = [];
+  gridKeys(PI.boxes[i]).forEach(function(k){
+    (PI.idx[k] || []).forEach(function(j){
+      if (j !== i && !seen[j] && bbHit(PI.boxes[i], PI.boxes[j])){ seen[j] = 1; out.push(j); }
+    });
+  });
+  return out;
+}
+function edgesCross(g1, g2){
+  var P = mproj(gCenter(g1)[0]);
+  var e1 = gEdges(g1).map(function(e){ return [P(e[0]), P(e[1])]; });
+  var e2 = gEdges(g2).map(function(e){ return [P(e[0]), P(e[1])]; });
+  for (var a = 0; a < e1.length; a++) for (var b = 0; b < e2.length; b++)
+    if (segX(e1[a][0], e1[a][1], e2[b][0], e2[b][1])) return true;
+  return false;
+}
+/* shared ground of two plots, estimated on a 24 by 24 grid over the overlap
+   of their bounding boxes: exact clipping of arbitrary walked rings is a lot
+   of code for a number that only has to decide "noise or not" */
+function sharedM2(g1, g2, b1, b2){
+  var s = [Math.max(b1[0], b2[0]), Math.max(b1[1], b2[1]), Math.min(b1[2], b2[2]), Math.min(b1[3], b2[3])];
+  if (s[0] >= s[2] || s[1] >= s[3]) return 0;
+  var N = 24, hit = 0;
+  for (var a = 0; a < N; a++) for (var b = 0; b < N; b++){
+    var p = [s[0] + (a + 0.5) * (s[2]-s[0]) / N, s[1] + (b + 0.5) * (s[3]-s[1]) / N];
+    if (pipGeom(p, g1) && pipGeom(p, g2)) hit++;
+  }
+  var P = mproj((s[0]+s[2])/2), lo = P([s[0], s[1]]), hi = P([s[2], s[3]]);
+  return hit / (N * N) * (hi[0]-lo[0]) * (hi[1]-lo[1]);
+}
+function pairIssues(i, j, PI){
+  var gi = DS.feats[i].geom, gj = DS.feats[j].geom;
+  var crossing = edgesCross(gi, gj);
+  var nested = !crossing && (pipGeom(gi[0][0][0], gj) || pipGeom(gj[0][0][0], gi));
+  if (!crossing && !nested) return null;
+  var m2 = sharedM2(gi, gj, PI.boxes[i], PI.boxes[j]);
+  var ai = geomHa(gi) * 10000, aj = geomHa(gj) * 10000;
+  var si = ai ? m2 / ai : 0, sj = aj ? m2 / aj : 0;
+  if (si >= QA_T.dupShare && sj >= QA_T.dupShare) return {code:'duplicate', m2:m2, si:si, sj:sj};
+  if (m2 >= QA_T.overlapM2 && Math.max(si, sj) >= QA_T.overlapShare) return {code:'overlap', m2:m2, si:si, sj:sj};
+  return {code:'touch', m2:m2, si:si, sj:sj};
+}
+function pairMsg(p, other, share){
+  if (p.code === 'duplicate') return 'the same ground as ' + labelOf(other) + ' (' + Math.round(share * 100) + '% shared)';
+  if (p.code === 'overlap') return 'overlaps ' + labelOf(other) + ' by ≈' + (p.m2 >= 1000 ? fmt(p.m2 / 10000, 2) + ' ha' : Math.round(p.m2) + ' m²')
+                                   + ' (' + Math.round(share * 100) + '% of this plot)';
+  return 'touches ' + labelOf(other) + (p.m2 >= 1 ? ' (≈' + Math.round(p.m2) + ' m² shared, within GPS error)' : '');
+}
+/* all pairs involving i, written to both plots */
+function qaPairs(i, PI){
+  neighbours(PI, i).forEach(function(j){
+    var p = pairIssues(i, j, PI);
+    if (!p) return;
+    addIssue(i, {code:p.code, other:j, msg:pairMsg(p, j, p.si)});
+    addIssue(j, {code:p.code, other:i, msg:pairMsg(p, i, p.sj)});
+  });
+}
+function addIssue(i, it){ (QA.by[i] = QA.by[i] || []).push(it); }
+function dropPairIssues(i){
+  /* before re-checking an edited plot: its pair issues, and its neighbours' about it */
+  Object.keys(QA.by).forEach(function(k){
+    QA.by[k] = QA.by[k].filter(function(it){ return !(it.other === i || (+k === i && it.other !== undefined)); });
+  });
+}
+
+/* ---------- OpenStreetMap ---------- */
+/* The public Overpass servers are shared and often busy. Three things keep
+   a district-sized run workable on them:
+     - before each query the server's own status page is read, and the
+       editor waits for the free slot it announces instead of being refused;
+     - a refusal (429) or timeout (504) is retried with growing waits, on the
+       main server first and a mirror after that (the mirror's data can be a
+       few months older, which is fine for buildings and wetlands);
+     - every answer is kept in this browser (IndexedDB) for two weeks, keyed
+       by the exact query, so running the checks again, or after reopening
+       the page, costs nothing. */
+var OVERPASS = ['https://overpass-api.de/api/interpreter',
+                'https://overpass.private.coffee/api/interpreter'];
+var OSM_PAD = 0.0003, OSM_PLOT_PAD = 0.00005, OSM_PLOTS_PER_Q = 250,
+    OSM_BIG_DEG = 0.3, OSM_TILE_DEG = 0.5, OSM_TTL = 14 * 864e5;
+var OSM_BACKOFF = [5, 15, 30, 45, 60, 60, 90, 90];
+
+var idbWait = null;
+function idb(){
+  if (!idbWait){
+    idbWait = new Promise(function(ok){
+      try {
+        var r = indexedDB.open('ndugu-editor-osm', 1);
+        r.onupgradeneeded = function(){ r.result.createObjectStore('q'); };
+        r.onsuccess = function(){ ok(r.result); };
+        r.onerror = function(){ ok(null); };
+      } catch (e){ ok(null); }
+    });
+  }
+  return idbWait;
+}
+function cacheGet(key){
+  return idb().then(function(db){
+    if (!db) return null;
+    return new Promise(function(ok){
+      try {
+        var t = db.transaction('q').objectStore('q').get(key);
+        t.onsuccess = function(){ var v = t.result; ok(v && Date.now() - v.t < OSM_TTL ? v.j : null); };
+        t.onerror = function(){ ok(null); };
+      } catch (e){ ok(null); }
+    });
+  });
+}
+function cachePut(key, j){
+  idb().then(function(db){
+    if (!db) return;
+    try { db.transaction('q', 'readwrite').objectStore('q').put({t:Date.now(), j:j}, key); } catch (e) {}
+  });
+}
+/* two 32-bit FNV-1a hashes and the length: enough to tell queries apart */
+function hashKey(s){
+  var a = 0x811c9dc5, b = 0x01000193 ^ 0x5bd1e995;
+  for (var i = 0; i < s.length; i++){
+    var c = s.charCodeAt(i);
+    a = Math.imul(a ^ c, 16777619) >>> 0;
+    b = Math.imul(b ^ c, 2246822519) >>> 0;
+  }
+  return a.toString(16) + b.toString(16) + ':' + s.length;
+}
+function sleep(ms){ return new Promise(function(ok){ setTimeout(ok, ms); }); }
+function osmWaitNote(msg){ QA.waitNote = msg; renderQA(); }
+
+/* how long until this server will take a query from us, from its status page */
+function slotWait(url){
+  return fetch(url.replace(/interpreter$/, 'status'), {cache:'no-store'})
+    .then(function(r){ return r.ok ? r.text() : ''; })
+    .then(function(t){
+      var m = /(\d+) slots? available now/.exec(t);
+      if (m && +m[1] > 0) return 0;
+      var w = (t.match(/in (\d+) seconds/g) || []).map(function(x){ return +x.replace(/\D+/g, ''); });
+      return w.length ? (Math.min.apply(null, w) + 1) * 1000 : 0;
+    })
+    .catch(function(){ return 0; });
+}
+
+function overpass(q){
+  var key = 'q:' + hashKey(q);
+  return cacheGet(key).then(function(hit){
+    if (hit){ QA.cacheHits = (QA.cacheHits || 0) + 1; return hit; }
+    var attempt = 0;
+    var go = function(){
+      var url = OVERPASS[attempt >= 3 && attempt % 2 ? 1 : 0];
+      return slotWait(url).then(function(w){
+        if (!w) return null;
+        osmWaitNote('the OpenStreetMap server is busy; the next free slot is in ' + Math.round(w / 1000) + ' s');
+        return sleep(Math.min(w, 120000));
+      }).then(function(){
+        return fetch(url, {method:'POST', body:'data=' + encodeURIComponent(q),
+                           headers:{'Content-Type':'application/x-www-form-urlencoded'}});
+      }).then(function(r){
+        if ([429, 502, 503, 504].indexOf(r.status) >= 0) throw {retry:true, msg:'server is busy (HTTP ' + r.status + ')'};
+        if (!r.ok) throw {retry:false, msg:'query failed (HTTP ' + r.status + ')'};
+        return r.json();
+      }, function(e){
+        throw (e && e.retry !== undefined) ? e : {retry:true, msg:'server could not be reached'};
+      }).then(function(j){
+        /* a query the server gave up on still answers 200, with a remark */
+        if (j && j.remark && /runtime error|timed out|out of memory/i.test(j.remark)){
+          throw {retry:true, msg:'server gave up on the query (' + j.remark.slice(0, 80) + ')'};
+        }
+        osmWaitNote('');
+        cachePut(key, j);
+        return j;
+      }).catch(function(e){
+        if (e && e.retry && attempt < OSM_BACKOFF.length){
+          var wait = OSM_BACKOFF[attempt++] * 1000;
+          osmWaitNote('the OpenStreetMap ' + e.msg + '; trying again in ' + (wait / 1000) + ' s');
+          return sleep(wait).then(go);
+        }
+        osmWaitNote('');
+        throw new Error('the OpenStreetMap ' + (e && e.msg ? e.msg : String(e)));
+      });
+    };
+    return go();
+  });
+}
+
+/* Every kind a feature counts as. One feature can be several: Uganda's
+   gazetted wetlands (Kafu, Katonga) are mapped as a wetland AND a protected
+   area, and a plot in one is both, so it gets both flags. */
+function osmKinds(t){
+  var out = [];
+  if (!t) return out;
+  if (t.boundary === 'protected_area' || t.boundary === 'national_park' || t.leisure === 'nature_reserve') out.push('protected');
+  if (t.natural === 'wetland') out.push('wetland');
+  else if (t.natural === 'water' || t.waterway === 'riverbank' || t.landuse === 'reservoir' || t.water) out.push('water');
+  if (t.building) out.push('building');
+  if (/^(river|stream|canal|drain|ditch)$/.test(t.waterway || '')) out.push('stream');
+  return out;
+}
+function osmKind(t){ return osmKinds(t)[0] || null; }
+function osmName(t, kind){
+  var n = t.name || t['name:en'];
+  if (kind === 'protected') return n || t.protection_title || 'a protected area';
+  if (kind === 'wetland') return n || ('a ' + (t.wetland === 'swamp' ? 'swamp' : 'wetland'));
+  if (kind === 'water') return n || 'a water body';
+  if (kind === 'stream') return n || ('a ' + (t.waterway || 'stream'));
+  return n || 'building';
+}
+function llOf(geom){ return (geom || []).map(function(p){ return [p.lat, p.lon]; }); }
+function sameLL(a, b){ return a && b && a[0] === b[0] && a[1] === b[1]; }
+/* join a relation's member ways end to end into closed rings */
+function assemble(members, role){
+  var segs = members.filter(function(m){
+    return m.type === 'way' && m.geometry && ((m.role || 'outer') === role);
+  }).map(function(m){ return llOf(m.geometry); });
+  var rings = [];
+  while (segs.length){
+    var cur = segs.shift(), grew = true;
+    while (!sameLL(cur[0], cur[cur.length-1]) && grew){
+      grew = false;
+      for (var k = 0; k < segs.length; k++){
+        var s = segs[k], last = cur[cur.length-1];
+        if (sameLL(last, s[0])) cur = cur.concat(s.slice(1));
+        else if (sameLL(last, s[s.length-1])) cur = cur.concat(s.slice().reverse().slice(1));
+        else if (sameLL(cur[0], s[s.length-1])) cur = s.concat(cur.slice(1));
+        else if (sameLL(cur[0], s[0])) cur = s.slice().reverse().concat(cur.slice(1));
+        else continue;
+        segs.splice(k, 1); grew = true; break;
+      }
+    }
+    if (sameLL(cur[0], cur[cur.length-1]) && cur.length >= 4) rings.push(cur.slice(0, -1));
+  }
+  return rings;
+}
+/* a polygon with its edges bucketed by latitude, so point-in-polygon against
+   a wetland with twenty thousand corners only looks at the few edges that
+   cross the point's latitude band */
+function banded(ring){
+  var b = [Infinity, Infinity, -Infinity, -Infinity];
+  ring.forEach(function(p){
+    if (p[0] < b[0]) b[0] = p[0]; if (p[1] < b[1]) b[1] = p[1];
+    if (p[0] > b[2]) b[2] = p[0]; if (p[1] > b[3]) b[3] = p[1];
+  });
+  var N = Math.max(1, Math.min(256, Math.ceil(ring.length / 16))), h = (b[2] - b[0]) / N || 1e-9;
+  var bands = [];
+  for (var k = 0; k < N; k++) bands.push([]);
+  for (var i = 0, j = ring.length - 1; i < ring.length; j = i++){
+    var lo = Math.min(ring[i][0], ring[j][0]), hi = Math.max(ring[i][0], ring[j][0]);
+    var from = Math.max(0, Math.floor((lo - b[0]) / h)), to = Math.min(N - 1, Math.floor((hi - b[0]) / h));
+    for (var q = from; q <= to; q++) bands[q].push([ring[j], ring[i]]);
+  }
+  return {bbox:b, bands:bands, h:h, n:N, ring:ring};
+}
+function bandPip(p, B){
+  if (p[0] < B.bbox[0] || p[0] > B.bbox[2] || p[1] < B.bbox[1] || p[1] > B.bbox[3]) return false;
+  var q = Math.min(B.n - 1, Math.floor((p[0] - B.bbox[0]) / B.h)), inside = false;
+  B.bands[q].forEach(function(e){
+    var a = e[0], c = e[1];
+    if ((a[0] > p[0]) !== (c[0] > p[0]) &&
+        p[1] < (c[1] - a[1]) * (p[0] - a[0]) / (c[0] - a[0]) + a[1]) inside = !inside;
+  });
+  return inside;
+}
+function areaFeature(id, kind, name, outers, inners){
+  if (!outers.length) return null;
+  var o = outers.map(banded), h = inners.map(banded);
+  var b = [Infinity, Infinity, -Infinity, -Infinity];
+  o.forEach(function(x){ b = [Math.min(b[0], x.bbox[0]), Math.min(b[1], x.bbox[1]),
+                               Math.max(b[2], x.bbox[2]), Math.max(b[3], x.bbox[3])]; });
+  return {id:id, kind:kind, name:name, outers:o, inners:h, bbox:b,
+          contains:function(p){
+            if (!o.some(function(x){ return bandPip(p, x); })) return false;
+            return !h.some(function(x){ return bandPip(p, x); });
+          }};
+}
+
+function padBox(b, pad){
+  return [b[0]-pad, b[1]-pad, b[2]+pad, b[3]+pad].map(function(v){ return v.toFixed(5); }).join(',');
+}
+/* The layer's extent in tiles of at most OSM_TILE_DEG, keeping only tiles
+   that hold plots: a file with plots all over the country should not ask for
+   every wetland in between. */
+function qaTiles(boxes){
+  var L0 = [Infinity, Infinity, -Infinity, -Infinity];
+  boxes.forEach(function(b){ L0 = [Math.min(L0[0], b[0]), Math.min(L0[1], b[1]), Math.max(L0[2], b[2]), Math.max(L0[3], b[3])]; });
+  var ny = Math.max(1, Math.ceil((L0[2] - L0[0]) / OSM_TILE_DEG)), nx = Math.max(1, Math.ceil((L0[3] - L0[1]) / OSM_TILE_DEG));
+  var hy = (L0[2] - L0[0]) / ny, hx = (L0[3] - L0[1]) / nx, out = [];
+  for (var y = 0; y < ny; y++) for (var x = 0; x < nx; x++){
+    var t = [L0[0] + y * hy, L0[1] + x * hx, L0[0] + (y + 1) * hy, L0[1] + (x + 1) * hx];
+    if (boxes.some(function(b){ return bbHit(b, t); })) out.push(padBox(t, OSM_PAD));
+  }
+  return out;
+}
+
+/* Everything an answer holds, into the right list. Shoreline ways of the very
+   large features come after a "sep" element naming the feature. */
+function osmTake(osm, j){
+  var cur = null;
+  (j.elements || []).forEach(function(e){
+    if (e.type === 'sep'){ cur = osm.big.filter(function(r){ return String(r.id) === String(e.tags.rel); })[0]; return; }
+    if (e.type !== 'way' || !e.geometry) return;
+    var ll = llOf(e.geometry);
+    if (cur){
+      if (osm.seen['h' + e.id]) return;
+      osm.seen['h' + e.id] = 1;
+      osm.shores.push({id:'w' + e.id, kind:cur.kind, name:cur.name, line:ll});
+      return;
+    }
+    if (osm.seen['w' + e.id]) return;
+    osm.seen['w' + e.id] = 1;
+    var closed = ll.length >= 4 && sameLL(ll[0], ll[ll.length-1]);
+    osmKinds(e.tags).forEach(function(k){
+      if (k === 'stream'){ osm.streams.push({id:'w' + e.id, name:osmName(e.tags, k), line:ll}); return; }
+      if (!closed) return;
+      if (k === 'building'){
+        osm.buildings.push({id:'w' + e.id, ring:ll.slice(0, -1), bbox:lineBBox(ll)});
+        return;
+      }
+      var f = areaFeature('w' + e.id + k, k, osmName(e.tags, k), [ll.slice(0, -1)], []);
+      if (f) osm.areas.push(f);
+    });
+  });
+}
+
+/* Buildings, streams and lake shoreline for a set of plots: each plot's own
+   box, padded by a few metres, since only what touches a boundary matters. */
+function osmPlotQuery(osm, idxs){
+  var boxes = idxs.map(function(i){ return padBox(gBBox(DS.feats[i].geom), OSM_PLOT_PAD); });
+  var q = '[out:json][timeout:90];(' + boxes.map(function(b){
+    return 'way["building"](' + b + ');way["waterway"~"^(river|stream|canal|drain|ditch)$"](' + b + ');';
+  }).join('') + ');out geom;';
+  osm.big.forEach(function(r){
+    q += 'make sep rel="' + r.id + '";out;rel(' + r.id + ')->.r;(' +
+         boxes.map(function(b){ return 'way(r.r)(' + b + ');'; }).join('') + ');out geom;';
+  });
+  return q;
+}
+
+/* Fetch in stages, calling onStage as each lands so the panel fills in as it
+   goes: 'areas' once water, wetlands and protected areas are in for the whole
+   layer, then 'plots' with the indexes of each batch whose buildings,
+   streams and shoreline have arrived. */
+function fetchOSM(ds, onStage){
+  var osm = {areas:[], buildings:[], streams:[], shores:[], big:[], seen:{}, grid:{}};
+  var boxes = DS.feats.map(function(f){ return gBBox(f.geom); });
+  var tiles = qaTiles(boxes);
+  var stillHere = function(){ if (ds !== DS || !QA.on) throw new Error('cancelled'); };
+  var AREA_TAGS = function(t){
+    return 'way["natural"~"^(water|wetland)$"](' + t + ');way["waterway"="riverbank"](' + t + ');' +
+           'way["landuse"="reservoir"](' + t + ');way["boundary"~"^(protected_area|national_park)$"](' + t + ');' +
+           'way["leisure"="nature_reserve"](' + t + ');';
+  };
+  var REL_TAGS = function(t){ return AREA_TAGS(t).replace(/way\[/g, 'rel['); };
+
+  QA.progress = 'looking for water, wetlands and protected areas…'; renderQA();
+  return overpass('[out:json][timeout:90];(' + tiles.map(REL_TAGS).join('') + ');out tags bb;').then(function(j){
+    stillHere();
+    var small = [];
+    (j.elements || []).forEach(function(e){
+      var ks = osmKinds(e.tags).filter(function(k){ return k !== 'building' && k !== 'stream'; }), b = e.bounds;
+      if (!ks.length || !b) return;
+      var rec = {id:e.id, kind:ks[0], name:osmName(e.tags, ks[0])};
+      if (b.maxlat - b.minlat > OSM_BIG_DEG || b.maxlon - b.minlon > OSM_BIG_DEG) osm.big.push(rec); else small.push(rec);
+    });
+    if (!small.length) return null;
+    return overpass('[out:json][timeout:170];(' + small.map(function(r){ return 'rel(' + r.id + ');'; }).join('') +
+                    ');out geom;').then(function(g){
+      stillHere();
+      (g.elements || []).forEach(function(e){
+        var outers = assemble(e.members || [], 'outer'), inners = assemble(e.members || [], 'inner');
+        osmKinds(e.tags).forEach(function(k){
+          if (k === 'building' || k === 'stream') return;
+          var f = areaFeature('r' + e.id + k, k, osmName(e.tags, k), outers, inners);
+          if (f){ osm.areas.push(f); osm.seen['r' + e.id] = 1; }
+        });
+      });
+    });
+  }).then(function(){
+    /* area ways over the whole layer rather than near each plot: a plot deep
+       inside a large wetland has none of the wetland's outline near it */
+    return overpass('[out:json][timeout:170];(' + tiles.map(AREA_TAGS).join('') + ');out geom;');
+  }).then(function(j){
+    stillHere();
+    osmTake(osm, j);
+    indexOSM(osm);
+    QA.osm = osm;
+    onStage('areas');
+
+    var order = DS.feats.map(function(_, i){ return i; });
+    /* batches of neighbours, so each query covers one compact patch */
+    order.sort(function(a, b){ return boxes[a][0] - boxes[b][0] || boxes[a][1] - boxes[b][1]; });
+    var batches = [];
+    for (var s = 0; s < order.length; s += OSM_PLOTS_PER_Q) batches.push(order.slice(s, s + OSM_PLOTS_PER_Q));
+    var done = 0;
+    QA.progress = 'buildings, streams and shoreline: 0 of ' + fmt(DS.feats.length) + ' plots…'; renderQA();
+    return batches.reduce(function(p, idxs){
+      return p.then(function(){
+        return overpass(osmPlotQuery(osm, idxs)).then(function(j2){
+          stillHere();
+          osmTake(osm, j2);
+          indexOSM(osm);
+          done += idxs.length;
+          QA.progress = 'buildings, streams and shoreline: ' + fmt(done) + ' of ' + fmt(DS.feats.length) + ' plots…';
+          onStage('plots', idxs);
+        });
+      });
+    }, Promise.resolve());
+  }).then(function(){ return osm; });
+}
+
+/* Buildings, streams and shorelines bucketed on the same grid as the plots,
+   so a plot only ever looks at the few features near it. */
+function lineBBox(line){
+  var b = [Infinity, Infinity, -Infinity, -Infinity];
+  line.forEach(function(p){ b = [Math.min(b[0], p[0]), Math.min(b[1], p[1]), Math.max(b[2], p[0]), Math.max(b[3], p[1])]; });
+  return b;
+}
+function indexOSM(osm){
+  var grid = {};
+  var put = function(kind, item, b){
+    item.bbox = item.bbox || b;
+    gridKeys(item.bbox).forEach(function(k){ (grid[k] = grid[k] || []).push([kind, item]); });
+  };
+  osm.buildings.forEach(function(b){ put('b', b, b.bbox); });
+  osm.streams.forEach(function(s){ put('s', s, lineBBox(s.line)); });
+  osm.shores.forEach(function(s){ put('h', s, lineBBox(s.line)); });
+  osm.grid = grid;
+}
+function osmNear(b){
+  var seen = new Set(), out = {b:[], s:[], h:[]};
+  gridKeys(b).forEach(function(k){
+    (QA.osm.grid[k] || []).forEach(function(x){
+      if (seen.has(x[1]) || !bbHit(b, x[1].bbox)) return;
+      seen.add(x[1]); out[x[0]].push(x[1]);
+    });
+  });
+  return out;
+}
+
+/* ---------- land cover checks for one plot ---------- */
+function samplePoints(g){
+  var b = gBBox(g), pts = [], N = 8;
+  for (var a = 0; a < N; a++) for (var c = 0; c < N; c++){
+    var p = [b[0] + (a + 0.5) * (b[2]-b[0]) / N, b[1] + (c + 0.5) * (b[3]-b[1]) / N];
+    if (pipGeom(p, g)) pts.push(p);
+  }
+  if (pts.length < 6) g.forEach(function(part){ part[0].forEach(function(p){ pts.push(p); }); });
+  return pts;
+}
+function lineCrossesGeom(line, g){
+  var P = mproj(gCenter(g)[0]), ge = gEdges(g).map(function(e){ return [P(e[0]), P(e[1])]; });
+  for (var k = 0; k + 1 < line.length; k++){
+    var a = P(line[k]), b = P(line[k+1]);
+    for (var m = 0; m < ge.length; m++) if (segX(a, b, ge[m][0], ge[m][1])) return true;
+  }
+  return line.some(function(p){ return pipGeom(p, g); });
+}
+function qaLandcover(i){
+  var osm = QA.osm, out = [];
+  if (!osm) return out;
+  var g = DS.feats[i].geom, b = gBBox(g), pts = null;
+  var near = osmNear(b);
+  var byKind = {};
+  osm.areas.forEach(function(f){
+    if (!bbHit(b, f.bbox)) return;
+    pts = pts || samplePoints(g);
+    var n = pts.filter(function(p){ return f.contains(p); }).length;
+    if (!n) return;
+    var share = n / pts.length, cur = byKind[f.kind];
+    if (!cur || share > cur.share) byKind[f.kind] = {share:share, name:f.name};
+  });
+  var pct = function(s){ return s >= 0.995 ? 'all' : (s < 0.01 ? 'under 1%' : '≈' + Math.round(s * 100) + '%'); };
+  if (byKind.protected && byKind.protected.share >= QA_T.protectedShare)
+    out.push({code:'protected', msg:pct(byKind.protected.share) + ' of the plot is inside ' + byKind.protected.name});
+  if (byKind.wetland && byKind.wetland.share >= QA_T.wetlandShare)
+    out.push({code:'wetland', msg:pct(byKind.wetland.share) + ' of the plot is in ' + byKind.wetland.name});
+  if (byKind.water && byKind.water.share >= QA_T.waterShare)
+    out.push({code:'water', msg:pct(byKind.water.share) + ' of the plot is in ' + byKind.water.name});
+
+  var shoreNames = {};
+  near.h.forEach(function(s){ if (!shoreNames[s.name] && lineCrossesGeom(s.line, g)) shoreNames[s.name] = 1; });
+  Object.keys(shoreNames).forEach(function(n){
+    out.push({code:'shore', msg:'the boundary crosses the shore of ' + n + ', so part of it is in the water'});
+  });
+
+  var cross = 0, inside = 0, insideM2 = 0, P = mproj(gCenter(g)[0]);
+  near.b.forEach(function(bd){
+    if (lineCrossesGeom(bd.ring.concat([bd.ring[0]]), g) && !bd.ring.every(function(p){ return pipGeom(p, g); })){
+      cross++; return;
+    }
+    if (bd.ring.every(function(p){ return pipGeom(p, g); })){
+      inside++;
+      var xy = bd.ring.map(P), s = 0;
+      for (var k = 0; k < xy.length; k++){ var a = xy[k], c = xy[(k+1) % xy.length]; s += a[0]*c[1] - c[0]*a[1]; }
+      insideM2 += Math.abs(s) / 2;
+    }
+  });
+  if (cross) out.push({code:'building_cross', msg:'the boundary runs through ' + plural(cross, 'building')});
+  if (inside) out.push({code:'building_inside', msg:plural(inside, 'building') + ' inside (≈' + Math.round(insideM2) + ' m²)'});
+
+  var streams = {};
+  near.s.forEach(function(s){ if (!streams[s.name] && lineCrossesGeom(s.line, g)) streams[s.name] = 1; });
+  Object.keys(streams).forEach(function(n){ out.push({code:'stream', msg:'crossed by ' + n}); });
+  return out;
+}
+
+/* ---------- running, re-running, showing ---------- */
+function qaSort(i){
+  (QA.by[i] || []).sort(function(a, b){
+    return (SEV_RANK[QA_CODES[a.code].sev] - SEV_RANK[QA_CODES[b.code].sev]) ||
+           (QA_ORDER.indexOf(a.code) - QA_ORDER.indexOf(b.code));
+  });
+}
+function qaWorst(i){
+  var l = QA.by[i];
+  return l && l.length ? QA_CODES[l[0].code].sev : null;
+}
+function qaRunGeometry(){
+  QA.by = {};
+  var PI = plotIndex();
+  DS.feats.forEach(function(_, i){
+    qaGeometry(i).forEach(function(it){ addIssue(i, it); });
+  });
+  /* pairs once each: only look forwards */
+  DS.feats.forEach(function(_, i){
+    neighbours(PI, i).forEach(function(j){
+      if (j < i) return;
+      var p = pairIssues(i, j, PI);
+      if (!p) return;
+      addIssue(i, {code:p.code, other:j, msg:pairMsg(p, j, p.si)});
+      addIssue(j, {code:p.code, other:i, msg:pairMsg(p, i, p.sj)});
+    });
+  });
+  QA.PI = PI;
+}
+/* land-cover findings are marked, so they can be replaced as data arrives */
+function qaRelandcover(i){
+  QA.by[i] = (QA.by[i] || []).filter(function(it){ return !it.lc; });
+  qaLandcover(i).forEach(function(it){ it.lc = true; addIssue(i, it); });
+}
+function qaFinish(){
+  Object.keys(QA.by).forEach(function(k){ qaSort(+k); if (!QA.by[k].length) delete QA.by[k]; });
+  drawQAMarkers(); drawQADetail(); renderQA(); renderSide();
+}
+function osmSummary(osm){
+  var n = function(kind){ return osm.areas.filter(function(a){ return a.kind === kind; }).length; };
+  return fmt(osm.buildings.length) + ' buildings, ' + plural(n('water'), 'water body', 'water bodies') + ', ' +
+    plural(n('wetland'), 'wetland') + ', ' + plural(n('protected'), 'protected area') + ', ' +
+    plural(osm.streams.length, 'river or stream', 'rivers or streams') +
+    (osm.shores.length ? ', and the shoreline of ' + osm.big.map(function(r){ return r.name; }).join(', ') : '');
+}
+
+function qaNow(){
+  if (!DS || QA.busy) return;
+  var ds = DS;
+  QA.on = true; QA.busy = true; QA.osm = null; QA.osmErr = ''; QA.osmNote = ''; QA.report = null;
+  QA.stale = false; QA.cacheHits = 0; QA.waitNote = '';
+  QA.progress = 'checking geometry…';
+  renderQA();
+  setTimeout(function(){
+    if (ds !== DS) return;
+    qaRunGeometry();
+    qaFinish();
+    status('Geometry checked: ' + plural(Object.keys(QA.by).length, 'plot') +
+           ' flagged. Fetching map features from OpenStreetMap…');
+    var lastDraw = 0;
+    fetchOSM(ds, function(stage, idxs){
+      if (ds !== DS || !QA.on) return;
+      if (stage === 'areas'){
+        DS.feats.forEach(function(_, i){ qaRelandcover(i); });
+        drawOSMOverlay();
+      } else {
+        idxs.forEach(qaRelandcover);
+      }
+      QA.osmNote = osmSummary(QA.osm) + ' so far';
+      /* redrawing thousands of markers per batch would stall the page */
+      if (stage === 'areas' || Date.now() - lastDraw > 4000){ lastDraw = Date.now(); qaFinish(); }
+      else renderQA();
+    }).then(function(osm){
+      if (ds !== DS || !QA.on) return;
+      QA.busy = false; QA.progress = ''; QA.waitNote = '';
+      QA.osmNote = osmSummary(osm) + (QA.cacheHits ? ' (partly from this browser\'s copy of earlier answers)' : '');
+      qaFinish(); drawOSMOverlay();
+      status('Checked ' + plural(DS.feats.length, 'plot') + ': ' + plural(Object.keys(QA.by).length, 'plot') + ' flagged.');
+      saveQAReport();
+    }).catch(function(err){
+      if (ds !== DS || !QA.on) return;
+      QA.busy = false; QA.progress = ''; QA.waitNote = '';
+      QA.osmErr = err.message;
+      if (QA.osm) QA.osmNote = osmSummary(QA.osm) + ' before it stopped';
+      qaFinish(); drawOSMOverlay();
+      status('Checked, but not all map features could be fetched: ' + err.message);
+      saveQAReport();
+    });
+  }, 30);
+}
+function qaOff(){
+  QA.on = false; QA.busy = false; QA.by = {}; QA.osm = null; QA.report = null; QA.waitNote = '';
+  [QA.markers, QA.detail, QA.overlay].forEach(function(l){ if (l && map) map.removeLayer(l); });
+  QA.markers = QA.detail = QA.overlay = null;
+  renderQA(); renderSide();
+}
+/* After an edit: the plot's own checks and its pairs at once, then its
+   buildings, streams and shoreline for its new outline (one small query,
+   usually already in this browser's copy). */
+function qaRecheck(i){
+  if (!QA.on || !DS || !DS.feats[i]) return;
+  dropPairIssues(i);
+  QA.by[i] = [];
+  var PI = plotIndex(); QA.PI = PI;
+  qaGeometry(i).forEach(function(it){ addIssue(i, it); });
+  qaPairs(i, PI);
+  QA.stale = true;
+  if (!QA.osm){ qaFinish(); return; }
+  qaRelandcover(i);
+  qaFinish();
+  var ds = DS, g = JSON.stringify(DS.feats[i].geom);
+  overpass(osmPlotQuery(QA.osm, [i])).then(function(j){
+    if (ds !== DS || !QA.on || !QA.osm || JSON.stringify(DS.feats[i].geom) !== g) return;
+    osmTake(QA.osm, j); indexOSM(QA.osm);
+    qaRelandcover(i); qaFinish();
+  }).catch(function(){ /* the check against what is already loaded stands */ });
+}
+
+function drawQAMarkers(){
+  if (QA.markers) map.removeLayer(QA.markers);
+  QA.markers = null;
+  if (!QA.on) return;
+  var grp = L.layerGroup();
+  Object.keys(QA.by).forEach(function(k){
+    var i = +k, sev = qaWorst(i);
+    if (!sev) return;
+    var m = L.circleMarker(gAnchor(DS.feats[i].geom), {radius:6, weight:2, color:'#FFFCF6',
+      fillColor:QA_SEV[sev].c, fillOpacity:1, pane:'markerPane'});
+    m.on('click', function(e){ L.DomEvent.stop(e); select(i); map.fitBounds(shapes[i].getBounds().pad(3), {maxZoom:SAT_MAX}); });
+    m.bindTooltip(esc(labelOf(i)) + ': ' + esc(QA_CODES[QA.by[i][0].code].label), {direction:'top'});
+    grp.addLayer(m);
+  });
+  QA.markers = grp.addTo(map);
+}
+/* the exact spots on the selected plot: where it crosses itself, where it spikes */
+function drawQADetail(){
+  if (QA.detail) map.removeLayer(QA.detail);
+  QA.detail = null;
+  if (!QA.on || sel < 0 || !QA.by[sel]) return;
+  var grp = L.layerGroup();
+  QA.by[sel].forEach(function(it){
+    (it.pts || []).forEach(function(p){
+      grp.addLayer(L.circleMarker(p, {radius:8, weight:2.5, color:QA_SEV[QA_CODES[it.code].sev].c,
+        fill:false, pane:'markerPane', interactive:false}));
+    });
+  });
+  QA.detail = grp.addTo(map);
+}
+/* what was fetched, drawn under the plots so a flag can be seen for what it is */
+function drawOSMOverlay(){
+  if (QA.overlay) map.removeLayer(QA.overlay);
+  QA.overlay = null;
+  if (!QA.on || !QA.osm || !QA.showMap) return;
+  var pane = zonePane(), grp = L.layerGroup(), o = QA.osm;
+  var AREA = {water:{c:'#3A7BD5', f:0.35, d:null}, wetland:{c:'#2E8B7A', f:0.30, d:'5,4'},
+              protected:{c:'#7B3FA0', f:0.12, d:'8,5'}};
+  o.areas.forEach(function(f){
+    var s = AREA[f.kind];
+    f.outers.forEach(function(r){
+      grp.addLayer(L.polygon(r.ring, {pane:pane, interactive:false, color:s.c, weight:1.5,
+        dashArray:s.d, fillColor:s.c, fillOpacity:s.f}));
+    });
+  });
+  o.streams.forEach(function(s){ grp.addLayer(L.polyline(s.line, {pane:pane, interactive:false, color:'#3A7BD5', weight:2})); });
+  o.shores.forEach(function(s){ grp.addLayer(L.polyline(s.line, {pane:pane, interactive:false, color:'#1F5FB0', weight:3})); });
+  o.buildings.forEach(function(bd){
+    grp.addLayer(L.polygon(bd.ring, {pane:pane, interactive:false, color:'#2B2B2B', weight:1,
+      fillColor:'#444', fillOpacity:0.55}));
+  });
+  QA.overlay = grp.addTo(map);
+}
+
+function qaCounts(){
+  var c = {};
+  Object.keys(QA.by).forEach(function(k){
+    var seen = {};
+    QA.by[k].forEach(function(it){ if (!seen[it.code]){ seen[it.code] = 1; c[it.code] = (c[it.code] || 0) + 1; } });
+  });
+  return c;
+}
+function renderQA(){
+  var box = $('edQABox');
+  if (!QA.on){ box.hidden = true; return; }
+  box.hidden = false;
+  var h = ['<h3>Plot checks</h3>'];
+  if (QA.progress) h.push('<p class="muted"><span class="edbusy"></span>' + esc(QA.progress) + '</p>');
+  if (QA.waitNote) h.push('<p class="why muted">' + esc(QA.waitNote[0].toUpperCase() + QA.waitNote.slice(1)) + '.</p>');
+  var counts = qaCounts(), any = false;
+  QA_ORDER.forEach(function(code){
+    if (!counts[code]) return;
+    any = true;
+    var sev = QA_SEV[QA_CODES[code].sev], open = QA.open[code];
+    h.push('<div class="qarow" data-code="' + code + '"><span style="color:' + sev.c + '">' + sev.g + '</span>'
+      + '<span class="qal">' + esc(QA_CODES[code].label) + '</span><span class="n">' + fmt(counts[code]) + '</span></div>');
+    if (open){
+      var list = Object.keys(QA.by).map(Number).filter(function(i){
+        return QA.by[i].some(function(it){ return it.code === code; });
+      });
+      h.push('<div class="qalist">' + list.slice(0, 60).map(function(i){
+        return '<div class="edrow" data-i="' + i + '"><span>' + esc(labelOf(i)) + '</span></div>';
+      }).join('') + (list.length > 60 ? '<p class="muted">+ ' + (list.length - 60) + ' more; export to see them all.</p>' : '') + '</div>');
+    }
+  });
+  if (!any && !QA.busy) h.push('<p class="muted">Nothing flagged.</p>');
+  if (QA.osmErr){
+    h.push('<div class="edwarn"><b>Map features could not be fetched.</b><br>' + esc(QA.osmErr)
+      + '. Buildings, water, wetlands and protected areas were not checked. <a href="#" id="edQARetry">Try again</a></div>');
+  } else if (QA.osmNote){
+    h.push('<p class="why">From OpenStreetMap near these plots: ' + esc(QA.osmNote) + '.</p>'
+      + '<label class="edcheck" style="margin:6px 0 0"><input type="checkbox" id="edQAMap"' + (QA.showMap ? ' checked' : '')
+      + '><span>Show them on the map</span></label>');
+  }
+  h.push('<p class="why muted">OpenStreetMap is mapped by volunteers and is incomplete here: a flag is a '
+    + 'reason to look at the plot, and no flag is not proof it is clear.'
+    + (QA.stale ? ' Plots have been edited since the run; their own checks are current.' : '') + '</p>');
+  if (QA.report && QA.report.csv){
+    h.push('<p class="why">Report saved to <code>reports/</code>: <a href="' + esc(QA.report.csv)
+      + '" target="_blank" rel="noopener">' + esc(QA.report.csv.replace(/^reports\//, '')) + '</a></p>');
+  }
+  h.push('<p class="why"><a href="#" id="edQACsv">Download these checks (CSV)</a></p>');
+  box.innerHTML = h.join('');
+  box.querySelectorAll('.qarow').forEach(function(el){
+    el.addEventListener('click', function(){ var c = this.dataset.code; QA.open[c] = !QA.open[c]; renderQA(); });
+  });
+  box.querySelectorAll('.qalist .edrow').forEach(function(el){
+    el.addEventListener('click', function(){
+      var i = +this.dataset.i; select(i); map.fitBounds(shapes[i].getBounds().pad(3), {maxZoom:SAT_MAX});
+    });
+  });
+  var m = $('edQAMap');
+  if (m) m.addEventListener('change', function(){ QA.showMap = this.checked; drawOSMOverlay(); });
+  var r = $('edQARetry');
+  if (r) r.addEventListener('click', function(e){ e.preventDefault(); qaOff(); qaNow(); });
+  var c = $('edQACsv');
+  if (c) c.addEventListener('click', function(e){
+    e.preventDefault();
+    download(qaStem() + '.csv', new Blob([qaCSV()], {type:'text/csv'}));
+  });
+}
+
+function qaRows(){
+  var rows = [];
+  Object.keys(QA.by).map(Number).sort(function(a, b){
+    return (SEV_RANK[qaWorst(a)] - SEV_RANK[qaWorst(b)]) || (a - b);
+  }).forEach(function(i){
+    var c = gCenter(DS.feats[i].geom);
+    QA.by[i].forEach(function(it){
+      rows.push({plot:labelOf(i), severity:QA_SEV[QA_CODES[it.code].sev].label, check:QA_CODES[it.code].label,
+                 detail:it.msg, area_ha:Number(geomHa(DS.feats[i].geom).toFixed(4)),
+                 lat:Number(c[0].toFixed(6)), lng:Number(c[1].toFixed(6))});
+    });
+  });
+  return rows;
+}
+function qaCSV(){
+  var cols = ['plot', 'severity', 'check', 'detail', 'area_ha', 'lat', 'lng'];
+  return '﻿' + [cols.join(',')].concat(qaRows().map(function(r){
+    return cols.map(function(k){
+      var s = String(r[k]);
+      return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    }).join(',');
+  })).join('\r\n');
+}
+function qaStem(){
+  var slug = String(DS.name).toLowerCase().replace(/\.[a-z0-9]+$/, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  return 'plot-checks-' + (slug || 'layer') + '-' + new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+}
+/* Written to reports/ when the page is served by the local server; online
+   there is nowhere to write, and the CSV link is the way out. */
+function saveQAReport(){
+  apiCall('/api/qa/report', {
+    stem: qaStem(), source: DS.name, plots: DS.feats.length,
+    flagged: Object.keys(QA.by).length, thresholds: QA_T,
+    osm: QA.osmErr ? ('not checked: ' + QA.osmErr) : QA.osmNote,
+    rows: qaRows()
+  }).then(function(j){ QA.report = j; renderQA(); }).catch(function(){ /* not local: nothing to do */ });
+}
+
 function startEditor(){
   fetch('./polygon-data.json?v=' + Date.now(), {cache:'no-store'})
     .then(function(r){ if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
@@ -3406,6 +4414,10 @@ function startEditor(){
     this.textContent = (SCR.on || SCR.busy) ? 'Clear screening' : 'Screen for deforestation';
   });
   $('edExport').addEventListener('click', openExport);
+  $('edQA').addEventListener('click', function(){
+    if (QA.on || QA.busy) qaOff(); else qaNow();
+    this.textContent = (QA.on || QA.busy) ? 'Clear checks' : 'Check plots';
+  });
   try { $('edAutoSave').checked = localStorage.getItem(AUTOSAVE_KEY) !== 'off'; } catch (e) {}
   $('edAutoSave').addEventListener('change', function(){
     try { localStorage.setItem(AUTOSAVE_KEY, this.checked ? 'on' : 'off'); } catch (e) {}
