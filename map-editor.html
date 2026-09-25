@@ -752,6 +752,7 @@
     flex:0 0 auto;}
   .edscreen .why{margin:8px 0 0;font-size:12px;color:var(--ink-soft);}
   .edscreen .why li{margin:2px 0;}
+  .edpix{image-rendering:pixelated;}
   .qarow{display:grid;grid-template-columns:14px 1fr auto;gap:6px;align-items:center;
     padding:5px 6px;border-radius:var(--radius-sm);cursor:pointer;font-size:12.5px;}
   .qarow:hover{background:var(--roast-wash);}
@@ -2911,16 +2912,29 @@ function screenAvailable(){
     SCR.available = !!j.ok;
     SCR.detail = j.detail || '';
     VMETA = j.verdicts || null;
+    VMETA_ORDER = j.order || null;
     if (j.thresholds) SCR.thresholds = j.thresholds;
     SCR.cutoff = j.cutoff || '31 December 2020';
-    return SCR.available;
+    SCR.mode = 'local';
+    return SCR.available || useBrowserScreening();
   }).catch(function(err){
     /* not cached: the server may be started after the page was opened, and
        the next click should find it rather than repeat this answer */
     SCR.checked = false; SCR.available = false; SCR.reachable = false;
     SCR.detail = err.message;
-    return false;
+    return useBrowserScreening();
   });
+}
+/* No local screening server (always the case on the published site), or one
+   that cannot read rasters: screen in this browser against the forest maps
+   published with the site, if they are there. */
+function useBrowserScreening(){
+  return loadForest().then(function(m){
+    SCR.available = true; SCR.mode = 'browser';
+    VMETA = m.verdicts; VMETA_ORDER = m.order;
+    SCR.thresholds = m.thresholds; SCR.cutoff = m.cutoff;
+    return true;
+  }).catch(function(){ return false; });
 }
 
 function zonePane(){
@@ -2977,6 +2991,7 @@ function drawZones(j){
 function loadZones(){
   if (!SCR.on || !map || !SCR.available) return;
   if (!SCR.showForest && !SCR.showLoss){ clearZones(); SCR.zoneNote = ''; renderScreen(); return; }
+  if (SCR.mode === 'browser'){ browserZones(); return; }
   var b = map.getBounds();
   var seq = ++SCR.zoneSeq;
   SCR.zoneBusy = true; renderScreen();
@@ -3011,7 +3026,7 @@ function screenNow(){
       return;
     }
     status('Screening ' + plural(DS.feats.length, 'plot') + '…');
-    return apiCall('/api/screen', {
+    return screenCall({
       /* a full screening is also written to reports/ as HTML, CSV, XLSX
          and JSON, the same report deforestation_check.py writes */
       save_report: true,
@@ -3144,9 +3159,10 @@ function renderScreen(){
         + '</div>');
     } else {
       h.push('<div class="edwarn"><b>The screening tool is not reachable.</b><br>'
-        + 'This needs the local server: run <code>serve-dashboards.bat</code> and '
-        + 'open this page from <code>http://127.0.0.1:8000/map-editor.html</code> '
-        + 'rather than from a file or the published site. Everything else on this '
+        + 'There is no local screening server behind this page and the forest maps '
+        + 'for the sourcing area could not be loaded (<code>forest/manifest.json</code>). '
+        + 'Run <code>edit-boundaries.bat</code> and screen from there, or rebuild the '
+        + 'maps with <code>scripts/build_forest_tiles.py</code>. Everything else on this '
         + 'page works without it.'
         + (SCR.detail ? '<br><span class="muted">' + esc(SCR.detail) + '</span>' : '')
         + '</div>');
@@ -3213,6 +3229,14 @@ function renderScreen(){
   if (r.change) src.push('Change: ' + esc(r.change));
   if (src.length) h.push('<p class="why muted">' + src.join('<br>') + '</p>');
 
+  if (r.online && FOREST){
+    h.push('<p class="why">Screened in this browser against the forest maps published with this site '
+      + 'for the sourcing area. Nothing was sent anywhere and no report is kept on the site: '
+      + '<a href="#" id="edScrCsv">download the result (CSV)</a>. Opened through '
+      + '<code>edit-boundaries.bat</code>, the same screening also saves a full report to '
+      + '<code>reports/</code>.</p>'
+      + '<p class="why muted">' + esc(FOREST.layers.jrc.credit) + '. ' + esc(FOREST.layers.loss.credit) + '.</p>');
+  }
   if (SCR.report && SCR.report.html){
     h.push('<p class="why">Report saved to <code>reports/</code>: '
       + '<a href="' + esc(SCR.report.html) + '" target="_blank" rel="noopener">'
@@ -3227,6 +3251,13 @@ function renderScreen(){
   }
 
   box.innerHTML = h.join('');
+  var sc = $('edScrCsv');
+  if (sc) sc.addEventListener('click', function(e){
+    e.preventDefault();
+    var slug = String(DS.name).toLowerCase().replace(/\.[a-z0-9]+$/, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    download('deforestation-' + (slug || 'layer') + '-' + new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-') + '.csv',
+             new Blob([screeningCSV()], {type:'text/csv'}));
+  });
   var zf = $('edZF'), zl = $('edZL');
   if (zf) zf.addEventListener('change', function(){ SCR.showForest = this.checked; loadZones(); });
   if (zl) zl.addEventListener('change', function(){ SCR.showLoss = this.checked; loadZones(); });
@@ -3370,7 +3401,7 @@ function rescreen(){
   rescreenWant = {};
   if (!idx.length || !SCR.on) return;
   var ds = DS;
-  apiCall('/api/screen', {plots: idx.map(function(i){
+  screenCall({plots: idx.map(function(i){
     return {pid:String(i), label:labelOf(i), geom:ds.feats[i].geom};
   })}).then(function(j){
     if (ds !== DS || !SCR.on) return;
@@ -4186,6 +4217,8 @@ function qaNow(){
   }, 30);
 }
 function qaOff(){
+  /* cleared mid-run: its progress message should not outlive it */
+  if (QA.busy && DS) status(DS.name);
   QA.on = false; QA.busy = false; QA.by = {}; QA.osm = null; QA.report = null; QA.waitNote = '';
   [QA.markers, QA.detail, QA.overlay].forEach(function(l){ if (l && map) map.removeLayer(l); });
   QA.markers = QA.detail = QA.overlay = null;
@@ -4372,6 +4405,330 @@ function saveQAReport(){
     rows: qaRows()
   }).then(function(j){ QA.report = j; renderQA(); }).catch(function(){ /* not local: nothing to do */ });
 }
+
+/* ============== deforestation screening in the browser ==============
+   Used when the page is not served by the local screening server, which is
+   always the case on the published site. The forest maps for the sourcing
+   area are published with the site as tiles (scripts/build_forest_tiles.py),
+   and this reproduces the local tool on them:
+
+     - a pixel counts for a plot when its centre is inside the boundary
+       (holes excluded); a plot too small to hold any pixel centre falls back
+       to every pixel its boundary touches, as rasterio's all_touched does
+     - area is the same local-radius spherical excess as geo_import.py
+     - the verdict ladder, thresholds and wording come from the manifest,
+       which the build script copies from deforestation_check.py
+
+   Plots outside the published tiles are "Not verified", with a pointer to
+   the local tool. Nothing leaves the browser, and no report is saved on the
+   site: the result can be downloaded as CSV. */
+var FOREST = null, forestWait = null, tileCache = {};
+
+function loadForest(){
+  if (!forestWait){
+    forestWait = fetch('./forest/manifest.json', {cache:'no-store'})
+      .then(function(r){ if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function(m){ FOREST = m; return m; })
+      .catch(function(err){ forestWait = null; throw err; });
+  }
+  return forestWait;
+}
+
+/* One tile's raw values. PNG is decoded by the browser; with colour
+   management and premultiplication switched off, the red channel of a
+   greyscale PNG is the stored value exactly. Resolves to a Uint8Array, to
+   0 for a tile the build found empty, or to undefined outside the coverage. */
+function forestTile(layer, key){
+  var id = layer + '/' + key;
+  if (tileCache[id] !== undefined) return tileCache[id];
+  var flag = FOREST.layers[layer].tiles[key];
+  if (flag === undefined) return (tileCache[id] = Promise.resolve(undefined));
+  if (!flag) return (tileCache[id] = Promise.resolve(0));
+  var n = Math.round(FOREST.layers[layer].ppd * FOREST.tile_deg);
+  tileCache[id] = fetch('./forest/' + layer + '/' + key + '.png')
+    .then(function(r){ if (!r.ok) throw new Error('forest tile ' + id + ': HTTP ' + r.status); return r.blob(); })
+    .then(function(b){ return createImageBitmap(b, {colorSpaceConversion:'none', premultiplyAlpha:'none'}); })
+    .then(function(img){
+      var c = document.createElement('canvas'); c.width = n; c.height = n;
+      var ctx = c.getContext('2d', {willReadFrequently:true});
+      ctx.drawImage(img, 0, 0);
+      var d = ctx.getImageData(0, 0, n, n).data, out = new Uint8Array(n * n);
+      for (var i = 0; i < out.length; i++) out[i] = d[i * 4];
+      return out;
+    });
+  tileCache[id].catch(function(){ delete tileCache[id]; });
+  return tileCache[id];
+}
+
+/* global pixel indices: row k covers latitudes [k/N, (k+1)/N), column c
+   longitudes [c/N, (c+1)/N); both maps sit on whole degrees, so a tile is a
+   whole number of pixels and these indices are exact */
+function tileKeysFor(layer, b){
+  var N = FOREST.layers[layer].ppd, n = Math.round(N * FOREST.tile_deg), keys = [];
+  var y0 = Math.floor(Math.floor(b[0] * N) / n), y1 = Math.floor(Math.floor(b[2] * N) / n);
+  var x0 = Math.floor(Math.floor(b[1] * N) / n), x1 = Math.floor(Math.floor(b[3] * N) / n);
+  for (var y = y0; y <= y1; y++) for (var x = x0; x <= x1; x++) keys.push(y + '_' + x);
+  return keys;
+}
+function pixelValue(layer, tiles, k, c){
+  var N = FOREST.layers[layer].ppd, n = Math.round(N * FOREST.tile_deg);
+  var ty = Math.floor(k / n), tx = Math.floor(c / n), t = tiles[ty + '_' + tx];
+  if (!t) return 0;
+  return t[(n - 1 - (k - ty * n)) * n + (c - tx * n)];
+}
+
+/* point-in-plot for [lat, lng], rings prepared once: the pixel loop calls it
+   hundreds of times per plot, and the ray test is the same in either axis
+   order as long as point and ring agree */
+function geomPip(g){
+  return function(p){
+    for (var a = 0; a < g.length; a++){
+      if (!pipRing(p, g[a][0])) continue;
+      var hole = false;
+      for (var h = 1; h < g[a].length && !hole; h++) hole = pipRing(p, g[a][h]);
+      if (!hole) return true;
+    }
+    return false;
+  };
+}
+
+/* the pixel's square touches the plot: a corner inside, a plot corner
+   inside the square, or an edge crossing it */
+function pixelTouches(g, k, c, N){
+  var s = k / N, n = (k + 1) / N, w = c / N, e = (c + 1) / N;
+  var corners = [[s, w], [s, e], [n, e], [n, w]];
+  if (corners.some(function(p){ return pipGeom(p, g); })) return true;
+  var inRect = false;
+  g.forEach(function(part){ part.forEach(function(r){ r.forEach(function(p){
+    if (p[0] >= s && p[0] <= n && p[1] >= w && p[1] <= e) inRect = true;
+  }); }); });
+  if (inRect) return true;
+  var sq = corners.map(function(p){ return [p[1], p[0]]; });
+  return gEdges(g).some(function(ed){
+    var a = [ed[0][1], ed[0][0]], b = [ed[1][1], ed[1][0]];
+    for (var q = 0; q < 4; q++) if (segX(a, b, sq[q], sq[(q + 1) % 4])) return true;
+    return false;
+  });
+}
+
+function sampleLayer(layer, g){
+  var b = gBBox(g), keys = tileKeysFor(layer, b);
+  return Promise.all(keys.map(function(key){ return forestTile(layer, key); })).then(function(arrs){
+    var tiles = {};
+    for (var i = 0; i < keys.length; i++){
+      if (arrs[i] === undefined) return {covered:false, outside:true};
+      tiles[keys[i]] = arrs[i];
+    }
+    var N = FOREST.layers[layer].ppd, inside = geomPip(g);
+    var k0 = Math.floor(b[0] * N), k1 = Math.floor(b[2] * N), c0 = Math.floor(b[1] * N), c1 = Math.floor(b[3] * N);
+    var counts = {}, total = 0;
+    var take = function(k, c){ var v = pixelValue(layer, tiles, k, c); counts[v] = (counts[v] || 0) + 1; total++; };
+    for (var k = k0; k <= k1; k++) for (var c = c0; c <= c1; c++){
+      if (inside([(k + 0.5) / N, (c + 0.5) / N])) take(k, c);
+    }
+    if (!total){
+      for (var k2 = k0; k2 <= k1; k2++) for (var c2 = c0; c2 <= c1; c2++){
+        if (pixelTouches(g, k2, c2, N)) take(k2, c2);
+      }
+    }
+    return {covered: total > 0, counts: counts, px_total: total};
+  });
+}
+
+/* geo_import.ring_area_ha: spherical excess on the local ellipsoidal radius */
+function screenRingHa(ring){
+  var n = ring.length;
+  if (n < 3) return 0;
+  var A = 6378137.0, E2 = 0.00669437999014, rad = Math.PI / 180;
+  var lat0 = ring.reduce(function(s, p){ return s + p[0]; }, 0) / n * rad;
+  var R = A * Math.sqrt(1 - E2) / (1 - E2 * Math.pow(Math.sin(lat0), 2));
+  var t = 0;
+  for (var i = 0; i < n; i++){
+    var a = ring[i], c = ring[(i + 1) % n];
+    t += (c[1] - a[1]) * rad * (2 + Math.sin(a[0] * rad) + Math.sin(c[0] * rad));
+  }
+  return Math.abs(t * R * R / 2) / 10000;
+}
+function screenHa(g){
+  var t = 0;
+  g.forEach(function(part){ part.forEach(function(r, ri){ t += (ri ? -1 : 1) * screenRingHa(r); }); });
+  return Math.max(t, 0);
+}
+function r5(x){ return Math.round(x * 1e5) / 1e5; }
+function r4(x){ return Math.round(x * 1e4) / 1e4; }
+
+/* deforestation_check.classify, step for step */
+function classifyBrowser(pid, ha, base, change){
+  var T = FOREST.thresholds, cutIdx = FOREST.cutoff_year - FOREST.hansen_first_year, CUT = FOREST.cutoff;
+  var res = {pid:pid, ha:r4(ha), verdict:'unverified', status:'unverified',
+             baseline_tested:false, forest_share:0, forest_ha:0, change_tested:false,
+             loss_share:0, loss_ha:0, loss_px:0, loss_years:{}, loss_before_cutoff_px:0, reasons:[]};
+  if (change && change.covered){
+    res.change_tested = true;
+    Object.keys(change.counts).forEach(function(v){
+      var n = change.counts[v]; v = +v;
+      if (v > cutIdx){ res.loss_px += n; res.loss_years[String(FOREST.hansen_first_year + v)] = n; }
+      else if (v >= 1) res.loss_before_cutoff_px += n;
+    });
+    res.loss_share = change.px_total ? r5(res.loss_px / change.px_total) : 0;
+    res.loss_ha = r4(res.loss_share * res.ha);
+  }
+  if (base && base.covered){
+    res.baseline_tested = true;
+    res.forest_share = r5((base.counts[1] || 0) / base.px_total);
+    res.forest_ha = r4(res.forest_share * res.ha);
+  }
+  var pct = function(x, dp){ return (x * 100).toFixed(dp); };
+  var lossEnough = res.loss_px >= T.min_loss_px && (res.loss_share >= T.loss_share || res.loss_ha >= T.loss_ha);
+  if (res.change_tested && lossEnough){
+    res.verdict = 'loss_detected';
+    res.reasons.push(res.loss_ha.toFixed(2) + ' ha (' + pct(res.loss_share, 1) + '% of the plot) shows tree-cover loss dated '
+      + Object.keys(res.loss_years).join(', ') + ', after the ' + CUT + ' cutoff');
+  } else if (res.baseline_tested && res.forest_share >= T.high_share){
+    res.verdict = 'forest_at_cutoff';
+    res.reasons.push(pct(res.forest_share, 0) + '% of the plot (' + res.forest_ha.toFixed(2) + ' ha) was mapped as forest on ' + CUT);
+  } else if (res.baseline_tested && res.forest_share >= T.edge_share){
+    res.verdict = 'partial_overlap';
+    res.reasons.push(pct(res.forest_share, 0) + '% of the plot (' + res.forest_ha.toFixed(2) + ' ha) was mapped as forest on ' + CUT
+      + ', which is above the ' + pct(T.edge_share, 0) + '% edge allowance');
+  } else if (res.baseline_tested){
+    res.verdict = 'clear';
+    res.reasons.push(res.forest_share > 0
+      ? pct(res.forest_share, 1) + '% overlap with mapped forest, within the ' + pct(T.edge_share, 0) + '% allowed for boundary registration'
+      : 'no overlap with forest mapped at the cutoff');
+  } else if (res.change_tested){
+    res.verdict = 'no_loss_only';
+    res.reasons.push('no loss detected since ' + CUT + ', but the cutoff forest state was not tested because no baseline raster was available');
+  } else {
+    res.reasons.push(base && base.outside
+      ? 'outside the area whose forest maps are published with this site; screen it with the local tool (edit-boundaries.bat)'
+      : 'no raster covered this plot');
+  }
+  if (res.change_tested && res.loss_px && !lossEnough){
+    res.reasons.push(res.loss_px + ' loss pixel(s) below the reporting floor of ' + T.min_loss_px + ' pixels and '
+      + pct(T.loss_share, 0) + '% / ' + T.loss_ha + ' ha');
+  }
+  if (res.loss_before_cutoff_px){
+    res.reasons.push(res.loss_before_cutoff_px + ' pixel(s) of loss dated before the cutoff, which the Regulation does not reach');
+  }
+  res.status = FOREST.verdicts[res.verdict].status;
+  return res;
+}
+
+/* the same reply the local /api/screen gives, so everything downstream is shared */
+function browserScreen(body){
+  return loadForest().then(function(){
+    var out = [], plots = body.plots || [], i = 0, outside = 0;
+    var step = function(){
+      /* in slices, so a district of thousands of plots does not freeze the page */
+      var until = Date.now() + 60, jobs = [];
+      for (; i < plots.length && Date.now() < until; i++){
+        (function(p){
+          var g = p.geom;
+          jobs.push(Promise.all([sampleLayer('jrc', g), sampleLayer('loss', g)]).then(function(s){
+            if (s[0].outside) outside++;
+            out.push(classifyBrowser(p.pid, screenHa(g), s[0], s[1]));
+          }));
+        })(plots[i]);
+      }
+      return Promise.all(jobs).then(function(){
+        if (SCR.busy && plots.length > 200) status('Screening in this browser: ' + fmt(i) + ' of ' + fmt(plots.length) + ' plots…');
+        return i < plots.length ? new Promise(function(ok){ setTimeout(ok, 0); }).then(step) : null;
+      });
+    };
+    return step().then(function(){
+      var counts = {}, ha = {};
+      out.forEach(function(r){ counts[r.verdict] = (counts[r.verdict] || 0) + 1; ha[r.verdict] = r4((ha[r.verdict] || 0) + r.ha); });
+      var notes = ['screened in this browser against the forest maps published with this site for the sourcing area'];
+      if (outside) notes.push(plural(outside, 'plot') + ' lie outside that area and were not verified; the local tool can screen them');
+      return {ok:true, online:true, report:null, cutoff:FOREST.cutoff,
+              baseline:FOREST.layers.jrc.label, baseline_kind:'jrc', baseline_is_proxy:false,
+              change:FOREST.layers.loss.label, notes:notes,
+              summary:{plots:out.length, total_ha:r4(out.reduce(function(s, r){ return s + r.ha; }, 0)), counts:counts, ha:ha},
+              results:out};
+    });
+  });
+}
+/* local server when there is one, this browser otherwise */
+function screenCall(body){
+  return SCR.mode === 'browser' ? browserScreen(body) : apiCall('/api/screen', body);
+}
+
+/* Zones online: the tiles themselves, coloured, under the plots. At 10 m a
+   tile is exact, not a traced outline, and needs no server. */
+var ZONE_MIN_ZOOM = 12, zoneImg = {};
+function zoneImage(layer, key){
+  var id = layer + '/' + key;
+  if (zoneImg[id]) return zoneImg[id];
+  zoneImg[id] = forestTile(layer, key).then(function(arr){
+    if (!arr) return null;
+    var n = Math.round(FOREST.layers[layer].ppd * FOREST.tile_deg);
+    var c = document.createElement('canvas'); c.width = n; c.height = n;
+    var ctx = c.getContext('2d'), img = ctx.createImageData(n, n), d = img.data;
+    var cut = FOREST.cutoff_year - FOREST.hansen_first_year;
+    var col = layer === 'jrc' ? [13, 77, 69, 150] : [208, 59, 59, 200];
+    for (var i = 0; i < arr.length; i++){
+      var on = layer === 'jrc' ? arr[i] === 1 : arr[i] > cut;
+      if (!on) continue;
+      d[i*4] = col[0]; d[i*4+1] = col[1]; d[i*4+2] = col[2]; d[i*4+3] = col[3];
+    }
+    ctx.putImageData(img, 0, 0);
+    return c.toDataURL('image/png');
+  });
+  return zoneImg[id];
+}
+function browserZones(){
+  var m = ensureMap(), pane = zonePane();
+  clearZones();
+  if (m.getZoom() < ZONE_MIN_ZOOM){
+    SCR.zoneNote = 'Zoom in to see the forest and loss zones.';
+    restyle(); renderScreen(); return;
+  }
+  var b = m.getBounds(), bb = [b.getSouth(), b.getWest(), b.getNorth(), b.getEast()];
+  var seq = ++SCR.zoneSeq, jobs = [];
+  var groups = {jrc: L.layerGroup(), loss: L.layerGroup()};
+  [['jrc', SCR.showForest], ['loss', SCR.showLoss]].forEach(function(x){
+    if (!x[1]) return;
+    tileKeysFor(x[0], bb).slice(0, 60).forEach(function(key){
+      if (FOREST.layers[x[0]].tiles[key] === undefined) return;
+      jobs.push(zoneImage(x[0], key).then(function(url){
+        if (!url || seq !== SCR.zoneSeq) return;
+        var yx = key.split('_').map(Number), t = FOREST.tile_deg;
+        groups[x[0]].addLayer(L.imageOverlay(url, [[yx[0] * t, yx[1] * t], [(yx[0] + 1) * t, (yx[1] + 1) * t]],
+          {pane:pane, interactive:false, className:'edpix'}));
+      }));
+    });
+  });
+  SCR.zoneBusy = true; renderScreen();
+  Promise.all(jobs).then(function(){
+    if (seq !== SCR.zoneSeq) return;
+    SCR.zoneBusy = false;
+    if (SCR.showForest) SCR.forest = groups.jrc.addTo(m);
+    if (SCR.showLoss) SCR.loss = groups.loss.addTo(m);
+    SCR.zoneNote = 'Forest on the cutoff date (10 m) and loss since (30 m), from the maps published with this site.';
+    restyle(); renderScreen();
+  }).catch(function(err){
+    if (seq !== SCR.zoneSeq) return;
+    SCR.zoneBusy = false; SCR.zoneNote = 'Could not draw the zones: ' + err.message; renderScreen();
+  });
+}
+
+/* the CSV the local tool writes, from what is on screen */
+function screeningCSV(){
+  var cols = ['Plot', 'Area ha', 'Verdict', 'Status', 'Forest share at cutoff', 'Forest ha at cutoff',
+              'Loss ha since cutoff', 'Loss pixels since cutoff', 'Loss years', 'Why'];
+  var q = function(v){ var s = String(v === null || v === undefined ? '' : v); return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+  var rank = {}; (VMETA_ORDER || []).forEach(function(k, n){ rank[k] = n; });
+  var rows = Object.keys(SCR.by).map(function(k){ return SCR.by[k]; })
+    .sort(function(a, b){ return ((rank[a.verdict] || 9) - (rank[b.verdict] || 9)) || (b.loss_ha - a.loss_ha); });
+  return '﻿' + [cols.join(',')].concat(rows.map(function(r){
+    return [labelOf(+r.pid), r.ha, vlabel(r.verdict), r.status, r.baseline_tested ? r.forest_share : '',
+            r.baseline_tested ? r.forest_ha : '', r.change_tested ? r.loss_ha : '', r.loss_px,
+            Object.keys(r.loss_years || {}).map(function(y){ return y + ':' + r.loss_years[y]; }).join(' '),
+            (r.reasons || []).join('; ')].map(q).join(',');
+  })).join('\r\n');
+}
+var VMETA_ORDER = null;
 
 function startEditor(){
   fetch('./polygon-data.json?v=' + Date.now(), {cache:'no-store'})
