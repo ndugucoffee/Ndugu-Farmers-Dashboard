@@ -8,6 +8,272 @@
 <link rel="apple-touch-icon" href="favicon.svg">
 <title>Ndugu Farmers Ltd | Export Programme</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<!-- chart-data drill-down (scripts/chart_tables.py) -->
+<script>
+(function(){
+  'use strict';
+  if (!window.Chart) return;
+
+  var WORDS = {
+    en:{view:'View data', title:'Data behind this chart', csv:'Download CSV', copy:'Copy table',
+        copied:'Copied', close:'Close', total:'Total', share:'Share of this chart', hidden:'hidden in the chart',
+        series:'Series', label:'Category', value:'Value', none:'This chart has no data to show.',
+        units:'Values', rows:'rows'},
+    nl:{view:'Gegevens bekijken', title:'Gegevens achter deze grafiek', csv:'CSV downloaden', copy:'Tabel kopiëren',
+        copied:'Gekopieerd', close:'Sluiten', total:'Totaal', share:'Aandeel in deze grafiek', hidden:'verborgen in de grafiek',
+        series:'Reeks', label:'Categorie', value:'Waarde', none:'Deze grafiek heeft geen gegevens.',
+        units:'Waarden', rows:'rijen'}
+  };
+  function lang(){ return /^nl/i.test(document.documentElement.lang || '') ? 'nl' : 'en'; }
+  function W(){ return WORDS[lang()]; }
+  function txt(v){ return Array.isArray(v) ? v.join(' ') : (v === null || v === undefined ? '' : String(v)); }
+  function isNum(v){ return typeof v === 'number' && isFinite(v); }
+  function num(v){
+    if (!isNum(v)) return v === null || v === undefined ? '' : txt(v);
+    var a = Math.abs(v);
+    return v.toLocaleString(lang() === 'nl' ? 'nl-NL' : 'en-US',
+      {maximumFractionDigits: a >= 1000 ? 0 : a >= 10 ? 1 : 3});
+  }
+  function pctText(v){
+    return v.toLocaleString(lang() === 'nl' ? 'nl-NL' : 'en-US', {maximumFractionDigits:1}) + '%';
+  }
+  function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function axisTitle(chart, which){
+    var s = chart.options && chart.options.scales && chart.options.scales[which];
+    return s && s.title && s.title.display !== false && s.title.text ? txt(s.title.text) : '';
+  }
+
+  /* How the value axis labels a number, asked of the chart itself: a share
+     chart stores 0.329 and shows "33%", and the table should read the same
+     way the chart does. 'fraction' means 0.5 is shown as 50%, 'percent' that
+     50 is shown as 50%, '' anything else. */
+  function pctMode(chart, axis){
+    var sc = chart.scales && chart.scales[axis], cb = sc && sc.options && sc.options.ticks && sc.options.ticks.callback;
+    if (typeof cb !== 'function') return '';
+    try {
+      var s = String(cb.call(sc, 0.5, 0, [{value:0.5}]));
+      if (!/%/.test(s)) return '';
+      return /50/.test(s) ? 'fraction' : 'percent';
+    } catch (e){ return ''; }
+  }
+
+  /* The chart's data as a table: {head:[], rows:[[...]], numeric:[bool per column], note}
+     Category charts (bar, line, doughnut, ...) give one row per label and one
+     column per dataset; point charts (scatter, bubble, {x,y} data) give one
+     row per point. A floating bar [from, to] shows as "from – to". */
+  function tableOf(chart){
+    var w = W(), data = chart.data || {}, sets = data.datasets || [], labels = data.labels || [];
+    var horiz = chart.options && chart.options.indexAxis === 'y';
+    var catAxis = horiz ? 'y' : 'x', valAxis = horiz ? 'x' : 'y';
+    var name = function(d, k){
+      var n = txt(d.label) || (sets.length > 1 ? w.series + ' ' + (k + 1) : w.value);
+      return chart.isDatasetVisible(k) ? n : n + ' (' + w.hidden + ')';
+    };
+    var points = sets.some(function(d){
+      return (d.data || []).some(function(v){ return v && typeof v === 'object' && !Array.isArray(v); });
+    });
+    var out = {head:[], rows:[], numeric:[], note:''};
+    if (points){
+      var hasR = sets.some(function(d){ return (d.data || []).some(function(v){ return v && v.r !== undefined; }); });
+      out.head = [w.series, axisTitle(chart, 'x') || 'x', axisTitle(chart, 'y') || 'y'].concat(hasR ? ['r'] : []);
+      sets.forEach(function(d, k){
+        (d.data || []).forEach(function(v, i){
+          if (!v) return;
+          var row = [name(d, k), v.x !== undefined ? v.x : (labels[i] !== undefined ? txt(labels[i]) : i + 1), v.y];
+          if (hasR) row.push(v.r);
+          out.rows.push(row);
+        });
+      });
+    } else {
+      out.head = [axisTitle(chart, catAxis) || w.label].concat(sets.map(name));
+      var n = Math.max(labels.length, sets.reduce(function(m, d){ return Math.max(m, (d.data || []).length); }, 0));
+      for (var i = 0; i < n; i++){
+        out.rows.push([labels[i] !== undefined ? txt(labels[i]) : String(i + 1)].concat(sets.map(function(d){
+          var v = (d.data || [])[i];
+          if (Array.isArray(v) && v.length === 2 && isNum(v[0]) && isNum(v[1])) return num(v[0]) + ' – ' + num(v[1]);
+          return v === undefined ? null : v;
+        })));
+      }
+      /* one series of parts of a whole: its share is the useful second column */
+      var type = chart.config.type;
+      var whole = type === 'doughnut' || type === 'pie' || type === 'polarArea' ||
+                  (sets.length === 1 && type === 'bar' && !(chart.options.scales && chart.options.scales[valAxis] && chart.options.scales[valAxis].stacked));
+      if (sets.length === 1 && out.rows.length > 1 && whole){
+        var tot = out.rows.reduce(function(s, r){ return s + (isNum(r[1]) ? r[1] : 0); }, 0);
+        if (tot > 0 && out.rows.every(function(r){ return r[1] === null || isNum(r[1]); })){
+          out.head.push(w.share);
+          out.rows.forEach(function(r){ r.push(isNum(r[1]) ? (r[1] / tot * 100).toFixed(1) + '%' : ''); });
+        }
+      }
+      /* a total row where adding up makes sense: counts, volumes and values
+         in bars and doughnuts, not the points of a line */
+      if (out.rows.length > 1 && type !== 'line' && type !== 'radar'){
+        var totals = out.head.map(function(_, c){
+          if (c === 0) return w.total;
+          var vals = out.rows.map(function(r){ return r[c]; });
+          if (!vals.every(function(v){ return v === null || isNum(v); })) return '';
+          return vals.reduce(function(s, v){ return s + (v || 0); }, 0);
+        });
+        if (totals.slice(1).some(isNum)){
+          if (out.head[out.head.length - 1] === w.share) totals[totals.length - 1] = '100%';
+          out.total = totals;
+        }
+      }
+      var units = axisTitle(chart, valAxis);
+      if (units) out.note = w.units + ': ' + units;
+      var pm = pctMode(chart, valAxis);
+      if (pm){
+        /* values become percentages, in the table and in the file, and the
+           total row goes: shares and rates do not add up to anything */
+        out.pct = true; out.total = null;
+        out.rows.forEach(function(r){
+          for (var c = 1; c <= sets.length; c++) if (isNum(r[c])) r[c] = Math.round((pm === 'fraction' ? r[c] * 100 : r[c]) * 100) / 100;
+        });
+        for (var h = 1; h <= sets.length; h++) out.head[h] += ' (%)';
+      }
+    }
+    return out;
+  }
+
+  /* ---------- the window ---------- */
+  var box = null, current = null;
+  function ensureBox(){
+    if (box) return box;
+    var st = document.createElement('style');
+    st.textContent =
+      '.cd-row{display:flex;justify-content:flex-end;margin-top:6px;}' +
+      '.cd-btn{font:inherit;font-size:12px;color:var(--ink-soft,#63483A);background:none;border:none;' +
+        'padding:2px 0;cursor:pointer;text-decoration:underline;text-underline-offset:3px;}' +
+      '.cd-btn:hover{color:var(--roast,#7B4A24);}' +
+      '.cd-over{position:fixed;inset:0;z-index:2000;background:rgba(42,26,16,.45);display:flex;' +
+        'align-items:center;justify-content:center;padding:16px;}' +
+      '.cd-over[hidden]{display:none;}' +
+      '.cd-win{background:var(--surface,#FFFCF6);color:var(--ink,#2A1A10);border:1px solid var(--line-strong,#D8C4A6);' +
+        'border-radius:8px;box-shadow:0 18px 50px -20px rgba(42,26,16,.6);width:min(760px,100%);' +
+        'max-height:min(86vh,900px);display:flex;flex-direction:column;}' +
+      '.cd-top{padding:16px 18px 10px;border-bottom:1px solid var(--line,#EADCC7);}' +
+      '.cd-top h3{margin:0;font-size:15px;}' +
+      '.cd-top p{margin:4px 0 0;font-size:12.5px;color:var(--ink-soft,#63483A);}' +
+      '.cd-body{overflow:auto;padding:0 18px;}' +
+      '.cd-body table{border-collapse:collapse;width:100%;font-size:12.5px;font-variant-numeric:tabular-nums;}' +
+      '.cd-body th,.cd-body td{padding:6px 10px;border-bottom:1px solid var(--line,#EADCC7);text-align:right;white-space:nowrap;}' +
+      '.cd-body th:first-child,.cd-body td:first-child{text-align:left;white-space:normal;}' +
+      '.cd-body thead th{position:sticky;top:0;background:var(--surface,#FFFCF6);font-weight:600;' +
+        'border-bottom:1px solid var(--line-strong,#D8C4A6);}' +
+      '.cd-body tfoot td{font-weight:600;border-top:1px solid var(--line-strong,#D8C4A6);border-bottom:none;}' +
+      '.cd-foot{display:flex;gap:8px;align-items:center;padding:12px 18px;border-top:1px solid var(--line,#EADCC7);}' +
+      '.cd-foot .grow{flex:1;font-size:12px;color:var(--ink-faint,#8A7059);}' +
+      '.cd-foot button{font:inherit;font-size:12.5px;padding:6px 12px;border-radius:5px;cursor:pointer;' +
+        'border:1px solid var(--line-strong,#D8C4A6);background:var(--surface,#FFFCF6);color:var(--ink,#2A1A10);}' +
+      '.cd-foot button.cd-main{background:var(--roast,#7B4A24);border-color:var(--roast,#7B4A24);color:#fff;}';
+    document.head.appendChild(st);
+    box = document.createElement('div');
+    box.className = 'cd-over'; box.hidden = true;
+    box.innerHTML = '<div class="cd-win" role="dialog" aria-modal="true" aria-labelledby="cdTitle">' +
+      '<div class="cd-top"><h3 id="cdTitle"></h3><p id="cdSub"></p></div>' +
+      '<div class="cd-body" id="cdBody"></div>' +
+      '<div class="cd-foot"><span class="grow" id="cdInfo"></span>' +
+      '<button type="button" id="cdCopy"></button><button type="button" id="cdCsv" class="cd-main"></button>' +
+      '<button type="button" id="cdClose"></button></div></div>';
+    document.body.appendChild(box);
+    box.addEventListener('click', function(e){ if (e.target === box) close(); });
+    document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && !box.hidden) close(); });
+    box.querySelector('#cdClose').addEventListener('click', close);
+    box.querySelector('#cdCsv').addEventListener('click', function(){
+      if (!current) return;
+      var csv = '﻿' + lines(current.t, ',').join('\r\n');
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+      a.download = current.file + '.csv';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
+    });
+    box.querySelector('#cdCopy').addEventListener('click', function(){
+      if (!current) return;
+      var b = this, t = lines(current.t, '\t').join('\n');
+      var done = function(){ b.textContent = W().copied; setTimeout(function(){ b.textContent = W().copy; }, 1500); };
+      if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(t).then(done, function(){});
+      else { var ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select();
+             try { document.execCommand('copy'); done(); } catch (e) {} ta.remove(); }
+    });
+    return box;
+  }
+  /* the file carries raw numbers, not the display formatting */
+  function lines(t, sep){
+    var q = function(v){
+      var s = v === null || v === undefined ? '' : String(v);
+      return sep === ',' && /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s.replace(/[\t\r\n]+/g, ' ');
+    };
+    var rows = [t.head].concat(t.rows);
+    if (t.total) rows.push(t.total);
+    return rows.map(function(r){ return r.map(q).join(sep); });
+  }
+  function close(){ if (box){ box.hidden = true; current = null; } if (lastBtn) lastBtn.focus(); }
+
+  var lastBtn = null;
+  function open(canvas, btn){
+    var chart = Chart.getChart(canvas);
+    if (!chart) return;
+    var w = W(), t = tableOf(chart), panel = canvas.closest('.panel') || canvas.parentElement;
+    var title = panel.querySelector('.panel-title'), note = panel.querySelector('.panel-note');
+    if (!title){
+      /* the only chart in its section carries no title of its own: the
+         section heading above it is its title */
+      var hs = Array.prototype.filter.call(document.querySelectorAll('h2, h3'), function(h){
+        return h.compareDocumentPosition(canvas) & Node.DOCUMENT_POSITION_FOLLOWING;
+      });
+      title = hs[hs.length - 1] || null;
+    }
+    /* a chart with a toggle (volume / value / price) shows one of several
+       measures; say which */
+    var active = panel.querySelector('.seg button.active');
+    ensureBox();
+    lastBtn = btn;
+    var name = title ? title.textContent.trim() : (canvas.id || w.title);
+    if (active) t.note = [active.textContent.trim(), t.note].filter(Boolean).join(' · ');
+    current = {t:t, file:(name || 'chart').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'chart'};
+    box.querySelector('#cdTitle').textContent = name;
+    box.querySelector('#cdSub').textContent = [note ? note.textContent.trim() : '', t.note].filter(Boolean).join(' · ');
+    box.querySelector('#cdCopy').textContent = w.copy;
+    box.querySelector('#cdCsv').textContent = w.csv;
+    box.querySelector('#cdClose').textContent = w.close;
+    box.querySelector('#cdInfo').textContent = t.rows.length ? t.rows.length + ' ' + w.rows : '';
+    box.querySelector('#cdBody').innerHTML = !t.rows.length ? '<p>' + esc(w.none) + '</p>' :
+      '<table><thead><tr>' + t.head.map(function(h){ return '<th>' + esc(h) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      t.rows.map(function(r){ return '<tr>' + r.map(function(v, c){
+        return '<td>' + esc(c ? (t.pct && isNum(v) ? pctText(v) : num(v)) : txt(v)) + '</td>'; }).join('') + '</tr>'; }).join('') +
+      '</tbody>' + (t.total ? '<tfoot><tr>' + t.total.map(function(v, c){ return '<td>' + esc(c ? num(v) : v) + '</td>'; }).join('') + '</tr></tfoot>' : '') +
+      '</table>';
+    box.hidden = false;
+    box.querySelector('#cdClose').focus();
+  }
+
+  /* one link per canvas, made once: charts are destroyed and rebuilt on every
+     filter change, and the link looks the chart up when it is clicked */
+  function attach(chart){
+    var canvas = chart.canvas;
+    if (!canvas || canvas.dataset.cdLink) return;
+    var holder = canvas.closest('.chart-box') || canvas.parentElement;
+    if (!holder || !holder.parentElement) return;
+    canvas.dataset.cdLink = '1';
+    var row = document.createElement('div');
+    row.className = 'cd-row';
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'cd-btn';
+    b.textContent = W().view;
+    b.addEventListener('click', function(){ open(canvas, b); });
+    row.appendChild(b);
+    holder.parentElement.insertBefore(row, holder.nextSibling);
+    ensureBox();
+  }
+  Chart.register({id:'chartDataTable', afterInit:attach});
+  /* the link's own language follows the page's switch */
+  new MutationObserver(function(){
+    Array.prototype.forEach.call(document.querySelectorAll('.cd-btn'), function(b){ b.textContent = W().view; });
+  }).observe(document.documentElement, {attributes:true, attributeFilter:['lang']});
+})();
+</script>
+<!-- /chart-data drill-down -->
 <style>
   :root{
     /* --- surfaces: raw parchment, cream, unbleached paper --- */
