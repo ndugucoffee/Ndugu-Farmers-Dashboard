@@ -1,9 +1,9 @@
 {
  "meta": {
-  "generated": "2026-09-26",
+  "generated": "2026-09-27",
   "deadline": "2026-12-30",
   "deadline_small": "2027-06-30",
-  "days_remaining": 95,
+  "days_remaining": 94,
   "cutoff": "2020-12-31",
   "min_decimals": 6,
   "polygon_above_ha": 4.0,
