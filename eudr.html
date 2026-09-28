@@ -141,10 +141,14 @@
     if (box) return box;
     var st = document.createElement('style');
     st.textContent =
-      '.cd-row{display:flex;justify-content:flex-end;margin-top:6px;}' +
-      '.cd-btn{font:inherit;font-size:12px;color:var(--ink-soft,#63483A);background:none;border:none;' +
-        'padding:2px 0;cursor:pointer;text-decoration:underline;text-underline-offset:3px;}' +
-      '.cd-btn:hover{color:var(--roast,#7B4A24);}' +
+      '.cd-menu{position:fixed;z-index:2001;background:var(--surface,#FFFCF6);' +
+        'border:1px solid var(--line-strong,#D8C4A6);border-radius:6px;' +
+        'box-shadow:0 10px 30px -12px rgba(42,26,16,.55);padding:4px;min-width:150px;}' +
+      '.cd-menu[hidden]{display:none;}' +
+      '.cd-menu button{display:block;width:100%;text-align:left;font:inherit;font-size:12.5px;' +
+        'color:var(--ink,#2A1A10);background:none;border:none;border-radius:4px;' +
+        'padding:7px 10px;cursor:pointer;}' +
+      '.cd-menu button:hover{background:var(--roast-wash,#F4E6D5);}' +
       '.cd-over{position:fixed;inset:0;z-index:2000;background:rgba(42,26,16,.45);display:flex;' +
         'align-items:center;justify-content:center;padding:16px;}' +
       '.cd-over[hidden]{display:none;}' +
@@ -248,29 +252,58 @@
     box.querySelector('#cdClose').focus();
   }
 
-  /* one link per canvas, made once: charts are destroyed and rebuilt on every
-     filter change, and the link looks the chart up when it is clicked */
+  /* ---------- the right-click menu ---------- */
+  var menu = null, menuCanvas = null;
+  function ensureMenu(){
+    if (menu) return menu;
+    menu = document.createElement('div');
+    menu.className = 'cd-menu'; menu.hidden = true;
+    menu.innerHTML = '<button type="button" id="cdMenuView"></button>';
+    document.body.appendChild(menu);
+    menu.querySelector('#cdMenuView').addEventListener('click', function(){
+      var c = menuCanvas;
+      hideMenu();
+      if (c) open(c);
+    });
+    /* Any click or a second right-click outside the menu dismisses it, the
+       same way a native context menu behaves; Escape and scrolling/resizing
+       the window do too, since a menu anchored to a now-wrong position is
+       worse than no menu. */
+    document.addEventListener('mousedown', function(e){ if (!menu.hidden && !menu.contains(e.target)) hideMenu(); });
+    document.addEventListener('contextmenu', function(e){ if (!menu.hidden && !menu.contains(e.target)) hideMenu(); });
+    document.addEventListener('keydown', function(e){ if (e.key === 'Escape') hideMenu(); });
+    window.addEventListener('scroll', hideMenu, true);
+    window.addEventListener('resize', hideMenu);
+    return menu;
+  }
+  function hideMenu(){ if (menu) menu.hidden = true; menuCanvas = null; }
+  function showMenu(x, y, canvas){
+    ensureMenu();
+    menu.querySelector('#cdMenuView').textContent = W().view;
+    menuCanvas = canvas;
+    menu.hidden = false;
+    /* Measured after becoming visible, then clamped so a chart near the
+       right or bottom edge doesn't open a menu partly off-screen. */
+    var mw = menu.offsetWidth, mh = menu.offsetHeight;
+    menu.style.left = Math.max(4, Math.min(x, window.innerWidth - mw - 4)) + 'px';
+    menu.style.top = Math.max(4, Math.min(y, window.innerHeight - mh - 4)) + 'px';
+  }
+
+  /* One listener per canvas, made once: charts are destroyed and rebuilt on
+     every filter change, and the menu looks the chart up when it is used,
+     the same way the old link did. Right-clicking the chart replaces the
+     browser's own context menu with this one rather than adding to it. */
   function attach(chart){
     var canvas = chart.canvas;
     if (!canvas || canvas.dataset.cdLink) return;
-    var holder = canvas.closest('.chart-box') || canvas.parentElement;
-    if (!holder || !holder.parentElement) return;
     canvas.dataset.cdLink = '1';
-    var row = document.createElement('div');
-    row.className = 'cd-row';
-    var b = document.createElement('button');
-    b.type = 'button'; b.className = 'cd-btn';
-    b.textContent = W().view;
-    b.addEventListener('click', function(){ open(canvas, b); });
-    row.appendChild(b);
-    holder.parentElement.insertBefore(row, holder.nextSibling);
+    canvas.addEventListener('contextmenu', function(e){
+      e.preventDefault();
+      showMenu(e.clientX, e.clientY, canvas);
+    });
     ensureBox();
   }
   Chart.register({id:'chartDataTable', afterInit:attach});
-  /* the link's own language follows the page's switch */
-  new MutationObserver(function(){
-    Array.prototype.forEach.call(document.querySelectorAll('.cd-btn'), function(b){ b.textContent = W().view; });
-  }).observe(document.documentElement, {attributes:true, attributeFilter:['lang']});
 })();
 </script>
 <!-- /chart-data drill-down -->
