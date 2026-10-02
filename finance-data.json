@@ -1,8 +1,8 @@
 {
  "meta": {
   "source": "Ndugu_financial_services.xlsx",
-  "generated": "2026-10-01",
-  "as_of": "2026-10-01",
+  "generated": "2026-10-02",
+  "as_of": "2026-10-02",
   "currency": "UGX",
   "fx_ugx_per_usd": 3777,
   "n_products": 4,
@@ -129,7 +129,7 @@
     "overdue_n": 9,
     "overdue_balance": 1329000000,
     "undated_n": 1,
-    "max_days": 104
+    "max_days": 105
    },
    {
     "product": "Fertiliser",
@@ -138,7 +138,7 @@
     "overdue_n": 6,
     "overdue_balance": 307110228,
     "undated_n": 0,
-    "max_days": 78
+    "max_days": 79
    },
    {
     "product": "School fees",
@@ -147,7 +147,7 @@
     "overdue_n": 23,
     "overdue_balance": 15339400,
     "undated_n": 0,
-    "max_days": 271
+    "max_days": 272
    },
    {
     "product": "Staff",
@@ -156,19 +156,19 @@
     "overdue_n": 1,
     "overdue_balance": 3160000,
     "undated_n": 1,
-    "max_days": 4
+    "max_days": 5
    }
   ],
   "by_bucket": [
    {
     "label": "1 to 30 days",
-    "n": 9,
-    "balance": 1133020000
+    "n": 5,
+    "balance": 5470000
    },
    {
     "label": "31 to 60 days",
-    "n": 4,
-    "balance": 200850000
+    "n": 8,
+    "balance": 1328400000
    },
    {
     "label": "61 to 90 days",
