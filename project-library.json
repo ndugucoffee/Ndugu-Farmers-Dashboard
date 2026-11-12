@@ -22,5 +22,16 @@
       "demo": true
     }
   ],
-  "sites": []
+  "sites": [
+    {
+      "id": "site-ddf-project",
+      "title": "DDF Project",
+      "url": "https://www.canva.com/design/DAHDi7EU6UU/tUUh3YKtxM0ZQ8CECt-Rjg/view?utm_content=DAHDi7EU6UU&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=haa93227655"
+    },
+    {
+      "id": "site-ddf-project-2",
+      "title": "DDF Project",
+      "url": "https://www.canva.com/design/DAHDi7EU6UU/tUUh3YKtxM0ZQ8CECt-Rjg/view?utm_content=DAHDi7EU6UU&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=haa93227655"
+    }
+  ]
 }
