@@ -1,0 +1,87 @@
+/* Scoped Ndugu resource manager, consistent with #0E564C identity. */
+.resources-route .resources-controls{position:relative}
+.resources-route .resources-manage-actions{display:flex;flex:0 0 auto;justify-content:flex-end;margin:0}
+.resources-route .resources-manage-trigger{display:inline-flex;align-items:center;gap:8px;background:#0E564C;color:#fff;border:1px solid #0E564C;border-radius:9px;padding:10px 15px;font:inherit;font-size:12.5px;font-weight:700;cursor:pointer}
+.resources-route .resources-manage-trigger:hover{background:#083B34}
+.resources-route .resources-manage-trigger:focus-visible,.resources-route .resource-manager button:focus-visible{outline:2px solid #0E564C;outline-offset:3px}
+.resources-route .resources-manage-trigger svg{height:17px;width:17px;stroke:currentColor;stroke-width:2;fill:none}
+.resources-route .resource-manager[hidden],.resources-route #resourceEditor[hidden]{display:none!important}
+.resources-route .resource-manager{background:#fff;border:1px solid #C7DBD5;border-radius:17px;padding:22px 24px;margin:0 0 24px;box-shadow:0 11px 28px #0E564C13}
+.resources-route .resource-manager-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:15px;flex-wrap:wrap}
+.resources-route .resource-manager-eyebrow{color:#0E564C;font-size:10.5px;text-transform:uppercase;font-weight:800;letter-spacing:.13em}
+.resources-route .resource-manager h2{font-size:22px;color:#173E37;line-height:1.2;margin:5px 0 8px;outline:none}
+.resources-route .resource-manager-intro{font-size:12.5px;color:#61746D;max-width:770px;margin:0 0 14px;line-height:1.6}
+.resources-route .resource-manager-count{border-radius:100px;background:#EEF7F3;color:#0E564C;border:1px solid #D7E9E3;padding:7px 12px;font-size:11px;font-weight:700}
+.resources-route .resource-manager-toolbar{display:flex;gap:8px;flex-wrap:wrap;border-top:1px solid #E6F0EB;border-bottom:1px solid #E6F0EB;padding:15px 0;margin:7px 0 13px;align-items:center}
+.resources-route .resource-manager-toolbar button,.resources-route .resource-manager-import{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid #C9DDD4;border-radius:8px;padding:9px 11px;color:#1B5447;background:#F7FBF9;font:inherit;font-size:11.5px;font-weight:700;cursor:pointer;min-height:36px}
+.resources-route .resource-manager-toolbar button:hover,.resources-route .resource-manager-import:hover{background:#E6F3EF}
+.resources-route .resource-manager-toolbar .manager-action-primary{background:#0E564C;color:#fff;border-color:#0E564C}
+.resources-route .resource-manager-toolbar .manager-action-primary:hover{background:#083B34}
+.resources-route .resource-manager-import input{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.resources-route .resource-manager-note{display:block;color:#5F756E;background:#F1F8F5;border-radius:9px;padding:11px 13px;font-size:11.5px;line-height:1.55;margin:4px 0 14px}
+.resources-route .resource-manager-status{min-height:18px;color:#16614C;font-size:12px;font-weight:650;margin:9px 0}
+.resources-route .resource-manager-status.is-error{color:#A34E39}
+.resources-route .resource-manager-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.95fr);gap:22px;align-items:start}
+.resources-route .resource-manager-list-panel{min-width:0}
+.resources-route .resource-manager-list-head{display:flex;justify-content:space-between;align-items:center;gap:9px;margin-bottom:10px}
+.resources-route .resource-manager-list-head h3{font-size:14px;margin:0;color:#174B41}
+.resources-route .resource-manager-search{width:100%;border:1px solid #C9DDD4;background:#fff;border-radius:9px;padding:10px 12px;font:inherit;font-size:12px;color:#204A40;margin-bottom:9px}
+.resources-route .resource-manager-list{display:grid;gap:7px;max-height:470px;overflow-y:auto;padding:2px 3px 3px 0}
+.resources-route .resource-manage-row{display:flex;gap:9px;align-items:center;justify-content:space-between;padding:11px 10px;border:1px solid #E0EBE6;border-radius:10px;background:#FBFDFC;min-width:0}
+.resources-route .resource-manage-row-main{min-width:0;flex:1}
+.resources-route .resource-manage-row-main strong{display:block;font-size:12px;font-weight:750;color:#23483D;overflow-wrap:anywhere}
+.resources-route .resource-manage-row-main small{display:block;font-size:10px;color:#7A8D82;margin-top:2px;overflow-wrap:anywhere}
+.resources-route .resource-manage-link{font-size:10px;border-radius:100px;padding:4px 7px;background:#F5F2E7;color:#92733B;white-space:nowrap}
+.resources-route .resource-manage-link.is-linked{background:#E5F4E9;color:#1A6B49}
+.resources-route .resource-manage-row-actions{display:flex;gap:3px;flex-wrap:wrap}
+.resources-route .resource-manage-row-actions button{background:#EAF5F1;border:0;border-radius:6px;color:#0E564C;padding:7px 8px;font-size:10.5px;font-weight:700;cursor:pointer}
+.resources-route .resource-manage-row-actions button:hover{background:#D7EBE3}
+.resources-route .resource-manage-row-actions button.resource-manage-delete{color:#995038;background:#FBF1ED}
+.resources-route .resource-manager-empty{color:#688077;text-align:center;padding:15px;font-size:12.5px}
+.resources-route .resource-editor{background:#F7FBF9;border:1px solid #D9E9E2;border-radius:12px;padding:16px}
+.resources-route .resource-editor h3{margin:0 0 14px;font-size:17px;color:#1B4D42}
+.resources-route .resource-editor-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.resources-route .resource-editor label{display:grid;gap:5px;font-size:11.5px;font-weight:680;color:#48665B;min-width:0}
+.resources-route .resource-editor label.wide{grid-column:1/-1}
+.resources-route .resource-editor :is(input,select,textarea){font:inherit;font-size:12px;color:#263E35;background:#fff;border:1px solid #C8DDD4;border-radius:8px;min-height:37px;width:100%;padding:9px 10px;min-width:0}
+.resources-route .resource-editor textarea{resize:vertical;min-height:65px}
+.resources-route .resource-editor small{font-size:10.5px;color:#71877C;font-weight:450}
+.resources-route .resource-editor-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:9px;margin-top:16px}
+.resources-route .resource-editor-actions button{background:#fff;border:1px solid #BFD7CD;color:#0E564C;border-radius:8px;padding:9px 13px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.resources-route .resource-editor-actions button[type=submit]{background:#0E564C;color:#fff;border-color:#0E564C}
+.resources-route .resource-editor-actions button[type=submit]:hover{background:#083B34}
+@media(max-width:1030px){.resources-route .resource-manager-grid{grid-template-columns:1fr}.resources-route .resource-manager-list{max-height:335px}}
+@media(max-width:600px){.resources-route .resource-manager{padding:16px 13px}.resources-route .resource-editor-grid{grid-template-columns:1fr}.resources-route .resource-editor label.wide{grid-column:auto}.resources-route .resource-manage-row{flex-wrap:wrap}.resources-route .resource-manage-row-actions{width:100%;justify-content:flex-end}.resources-route .resource-manager-toolbar>*{flex-grow:1}}
+
+/* Align management action with the main resource search on desktop and mobile. */
+.resources-route .resources-primary-row{width:100%;display:flex;gap:12px;align-items:center;min-width:0}
+.resources-route .resources-primary-row .resource-search{flex:1 1 auto;max-width:none;min-width:0}
+.resources-route .resources-primary-row .resources-manage-trigger{min-height:42px;white-space:nowrap}
+@media(max-width:540px){
+  .resources-route .resources-primary-row{gap:8px}
+  .resources-route .resources-primary-row .resource-search{flex:1 1 auto;min-width:0}
+  .resources-route .resources-primary-row .resources-manage-trigger{padding:9px 10px;font-size:11px;gap:6px}
+  .resources-route .resources-primary-row .resources-manage-trigger svg{width:15px;height:15px}
+}
+
+/* Shared single-line toolbar: search | alphabetical categories | resource management. */
+.resources-route .resources-primary-row{width:100%;display:flex;align-items:center;gap:10px;flex-wrap:nowrap;min-width:0}
+.resources-route .resources-primary-row .resource-search{flex:0 1 250px;min-width:120px;max-width:250px}
+.resources-route .resources-primary-row .resources-filters{display:flex;flex:1 1 auto;min-width:0;width:auto;gap:4px;align-items:center;flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-inline:contain;scrollbar-width:thin;padding:3px 0 5px}
+.resources-route .resources-primary-row .resources-filters button{flex:0 0 auto;white-space:nowrap}
+.resources-route .resources-primary-row .resources-manage-actions{flex:0 0 auto}
+.resources-route .resources-primary-row .resources-manage-trigger{height:42px;white-space:nowrap}
+@media(max-width:930px){
+ .resources-route .resources-primary-row{gap:8px}
+ .resources-route .resources-primary-row .resource-search{flex:0 1 195px;min-width:110px}
+ .resources-route .resources-primary-row .resources-filters button{padding:9px 10px}
+}
+@media(max-width:560px){
+ .resources-route .resources-primary-row{gap:6px}
+ .resources-route .resources-primary-row .resource-search{flex:0 1 115px;min-width:92px;padding:0 8px;gap:5px}
+ .resources-route .resources-primary-row .resource-search svg{width:15px;height:15px}
+ .resources-route .resources-primary-row .resource-search input{font-size:11px}
+ .resources-route .resources-primary-row .resources-filters{padding-bottom:3px}
+ .resources-route .resources-primary-row .resources-manage-trigger{min-width:36px;width:36px;height:40px;min-height:40px;padding:8px;justify-content:center}
+ .resources-route .resources-primary-row .resources-manage-trigger .manage-label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+}

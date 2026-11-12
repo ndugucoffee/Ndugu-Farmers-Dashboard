@@ -1,0 +1,287 @@
+{
+ "version": 1,
+ "items": [
+  {
+   "id": "m008",
+   "type": "video",
+   "sources": [
+    {
+     "src": "media/videos/composting-training-day.mp4",
+     "type": "video/mp4"
+    },
+    {
+     "src": "media/videos/composting-training-day.webm",
+     "type": "video/webm"
+    }
+   ],
+   "poster": "media/posters/composting-training-day.jpg",
+   "captions": "media/captions/composting-training-day.vtt",
+   "captions_nl": "media/captions/composting-training-day.nl.vtt",
+   "project": "Regenerative agriculture",
+   "project_nl": "Regeneratieve landbouw",
+   "pillar": "planet",
+   "district": "Kyotera",
+   "date": "2026-10-15",
+   "credit": "Sample video",
+   "sample": true,
+   "tags": [
+    "training",
+    "compost",
+    "mulch",
+    "video"
+   ],
+   "title": "Training day: mulching and composting",
+   "title_nl": "Trainingsdag: mulchen en composteren",
+   "caption": "A trainer demonstrates mulching and composting, then the practice is applied in a plot.",
+   "caption_nl": "Een trainer laat mulchen en composteren zien, waarna de werkwijze in een perceel wordt toegepast.",
+   "description": "Film from a training day: a trainer explains mulching and composting to a farmer group, followed by the same practices applied in a shaded coffee and banana plot. It is used in follow-up visits so farmers can revisit the steps at home.",
+   "description_nl": "Film van een trainingsdag: een trainer legt een boerengroep uit hoe mulchen en composteren werken, gevolgd door dezelfde werkwijze in een beschaduwd koffie- en bananenperceel. De film wordt bij vervolgbezoeken gebruikt, zodat boeren de stappen thuis kunnen herhalen.",
+   "transcript": "A trainer walks a farmer group through mulching and composting. The same practices are then applied in a shaded coffee and banana plot.",
+   "transcript_nl": "Een trainer loopt met een boerengroep door het mulchen en composteren. Daarna wordt dezelfde werkwijze toegepast in een beschaduwd koffie- en bananenperceel.",
+   "duration": 11,
+   "credit_nl": "Voorbeeldvideo",
+   "tags_nl": [
+    "training",
+    "compost",
+    "mulch",
+    "video"
+   ]
+  },
+  {
+   "id": "m007",
+   "type": "video",
+   "sources": [
+    {
+     "src": "media/videos/washing-station-walkthrough.mp4",
+     "type": "video/mp4"
+    },
+    {
+     "src": "media/videos/washing-station-walkthrough.webm",
+     "type": "video/webm"
+    }
+   ],
+   "poster": "media/posters/washing-station-walkthrough.jpg",
+   "captions": "media/captions/washing-station-walkthrough.vtt",
+   "captions_nl": "media/captions/washing-station-walkthrough.nl.vtt",
+   "project": "Living income and coffee sourcing",
+   "project_nl": "Leefbaar inkomen en koffie-inkoop",
+   "pillar": "profit",
+   "district": "Masaka",
+   "date": "2026-09-30",
+   "credit": "Sample video",
+   "sample": true,
+   "tags": [
+    "coffee",
+    "quality",
+    "sorting",
+    "video"
+   ],
+   "title": "From cherry to cup: a short walkthrough",
+   "title_nl": "Van kers tot kop: een korte rondleiding",
+   "caption": "A short film following coffee from the plot to the sorting shed.",
+   "caption_nl": "Een korte film die koffie volgt van het perceel tot de sorteerschuur.",
+   "description": "This short film follows the coffee journey: ripe cherries at first light on the plot, then the sorting shed where they are graded by hand. It shows the care taken at each step and why quality starts on the farm. Captions are available in English and Dutch.",
+   "description_nl": "Deze korte film volgt de weg van de koffie: rijpe kersen bij zonsopgang op het perceel, daarna de sorteerschuur waar ze met de hand worden gesorteerd. De film laat de zorg bij elke stap zien en waarom kwaliteit op het erf begint. Ondertitels zijn beschikbaar in het Engels en Nederlands.",
+   "transcript": "Coffee rows at first light on a smallholder plot. Ripe cherries are then sorted by hand under a shade roof.",
+   "transcript_nl": "Koffierijen bij zonsopgang op een kleinschalig perceel. Rijpe kersen worden daarna met de hand gesorteerd onder een schaduwdak.",
+   "duration": 11,
+   "credit_nl": "Voorbeeldvideo",
+   "tags_nl": [
+    "koffie",
+    "kwaliteit",
+    "sorteren",
+    "video"
+   ]
+  },
+  {
+   "id": "m006",
+   "type": "photo",
+   "src": "media/photos/digital-records.svg",
+   "project": "Digital cooperatives",
+   "project_nl": "Digitale coöperaties",
+   "pillar": "profit",
+   "district": "Kyotera",
+   "date": "2026-09-12",
+   "credit": "Sample illustration",
+   "sample": true,
+   "tags": [
+    "cooperative",
+    "traceability",
+    "records"
+   ],
+   "title": "Digital records at the cooperative store",
+   "title_nl": "Digitale registratie bij het coöperatiemagazijn",
+   "caption": "A member checks delivery records on a phone outside the cooperative store.",
+   "caption_nl": "Een lid controleert leveringsgegevens op een telefoon buiten het coöperatiemagazijn.",
+   "description": "Deliveries and payments are logged on a phone instead of paper, so members can see what they delivered and what they are owed. The cooperative store behind them keeps sacks ready for collection. Digital records make traceability and reporting faster.",
+   "description_nl": "Leveringen en betalingen worden op een telefoon vastgelegd in plaats van op papier, zodat leden kunnen zien wat ze hebben geleverd en wat ze nog krijgen. Het magazijn erachter houdt zakken klaar voor ophaling. Digitale registratie maakt traceerbaarheid en rapportage sneller.",
+   "alt": "A person holding a phone that shows a checklist, in front of a cooperative building with a teal roof and stacked sacks.",
+   "alt_nl": "Een persoon met een telefoon met een checklist voor een coöperatiegebouw met een blauwgroen dak en gestapelde zakken.",
+   "credit_nl": "Voorbeeldillustratie",
+   "tags_nl": [
+    "coöperatie",
+    "traceerbaarheid",
+    "registratie"
+   ]
+  },
+  {
+   "id": "m005",
+   "type": "photo",
+   "src": "media/photos/cherry-sorting.svg",
+   "project": "Women and youth livelihoods",
+   "project_nl": "Inkomen voor vrouwen en jongeren",
+   "pillar": "people",
+   "district": "Masaka",
+   "date": "2026-08-03",
+   "credit": "Sample illustration",
+   "sample": true,
+   "tags": [
+    "women",
+    "quality",
+    "sorting",
+    "cherries"
+   ],
+   "title": "Sorting ripe cherries by hand",
+   "title_nl": "Rijpe kersen met de hand sorteren",
+   "caption": "Three women sort coffee cherries by ripeness under a shade roof.",
+   "caption_nl": "Drie vrouwen sorteren koffiekersen op rijpheid onder een schaduwdak.",
+   "description": "Under a covered drying area, three women separate ripe red cherries from unripe green ones before they go to the drying beds. Sorting is often done by women's groups, and quality at this step directly affects the price the coffee earns.",
+   "description_nl": "Onder een overdekte droogplaats scheiden drie vrouwen rijpe rode kersen van onrijpe groene voordat ze naar de droogbedden gaan. Sorteren wordt vaak door vrouwengroepen gedaan, en de kwaliteit in deze stap bepaalt direct de prijs die de koffie opbrengt.",
+   "alt": "Three women in headscarves seated at a long table with trays of red and green coffee cherries under a shade roof.",
+   "alt_nl": "Drie vrouwen met hoofddoeken aan een lange tafel met schalen rode en groene koffiekersen onder een schaduwdak.",
+   "credit_nl": "Voorbeeldillustratie",
+   "tags_nl": [
+    "vrouwen",
+    "kwaliteit",
+    "sorteren",
+    "kersen"
+   ]
+  },
+  {
+   "id": "m004",
+   "type": "photo",
+   "src": "media/photos/biochar-kiln.svg",
+   "project": "Biochar and soil health",
+   "project_nl": "Biochar en bodemgezondheid",
+   "pillar": "planet",
+   "district": "Rakai",
+   "date": "2026-07-18",
+   "credit": "Sample illustration",
+   "sample": true,
+   "tags": [
+    "biochar",
+    "soil",
+    "carbon"
+   ],
+   "title": "Biochar kiln at the cooperative",
+   "title_nl": "Biochar-oven bij de coöperatie",
+   "caption": "A cone kiln turning crop waste into biochar beside the cooperative store.",
+   "caption_nl": "Een kegeloven maakt van oogstresten biochar naast het coöperatiemagazijn.",
+   "description": "Crop residues burn slowly with little oxygen in a metal cone kiln, leaving biochar that is mixed into soil to hold water and store carbon. Two cooperative members bag the finished product while the smoke clears. Kilns are shared between members.",
+   "description_nl": "Oogstresten branden langzaam met weinig zuurstof in een metalen kegeloven. Wat overblijft is biochar, dat door de grond wordt gemengd om water vast te houden en koolstof op te slaan. Twee leden van de coöperatie zakken het eindproduct terwijl de rook optrekt. De ovens worden door de leden gedeeld.",
+   "alt": "A dark metal cone kiln with smoke rising, a small building beside it and two people handling black sacks.",
+   "alt_nl": "Een donkere metalen kegeloven met rook, een klein gebouw ernaast en twee mensen die zwarte zakken hanteren.",
+   "credit_nl": "Voorbeeldillustratie",
+   "tags_nl": [
+    "biochar",
+    "bodem",
+    "koolstof"
+   ]
+  },
+  {
+   "id": "m003",
+   "type": "photo",
+   "src": "media/photos/agroforestry-plot.svg",
+   "project": "Regenerative agriculture",
+   "project_nl": "Regeneratieve landbouw",
+   "pillar": "planet",
+   "district": "Bukomansimbi",
+   "date": "2026-06-09",
+   "credit": "Sample illustration",
+   "sample": true,
+   "tags": [
+    "agroforestry",
+    "shade",
+    "banana",
+    "coffee"
+   ],
+   "title": "Coffee and banana agroforestry plot",
+   "title_nl": "Agroforestryperceel met koffie en banaan",
+   "caption": "Coffee shrubs growing beneath banana plants and tall shade trees.",
+   "caption_nl": "Koffiestruiken onder bananenplanten en hoge schaduwbomen.",
+   "description": "Coffee is intercropped with banana plants and tall trees in layers. The canopy filters the midday sun, banana leaves add mulch and roots hold the soil on slopes. A farmer walks the rows to check the plants. Layered plots like this are what the regenerative agriculture work aims to spread.",
+   "description_nl": "Koffie wordt in lagen geteeld tussen bananenplanten en hoge bomen. Het bladerdak filtert de middagzon, bananenbladeren zorgen voor mulch en wortels houden de grond op hellingen vast. Een boer loopt langs de rijen om de planten te controleren. Zulke gelaagde percelen wil het werk aan regeneratieve landbouw verspreiden.",
+   "alt": "Rows of coffee shrubs under banana plants and tall trees, with light shafts through the canopy and a farmer between the rows.",
+   "alt_nl": "Rijen koffiestruiken onder bananenplanten en hoge bomen, met lichtstralen door het bladerdak en een boer tussen de rijen.",
+   "credit_nl": "Voorbeeldillustratie",
+   "tags_nl": [
+    "agroforestry",
+    "schaduw",
+    "banaan",
+    "koffie"
+   ]
+  },
+  {
+   "id": "m002",
+   "type": "photo",
+   "src": "media/photos/farmer-training.svg",
+   "project": "Regenerative agriculture",
+   "project_nl": "Regeneratieve landbouw",
+   "pillar": "planet",
+   "district": "Kyotera",
+   "date": "2026-05-22",
+   "credit": "Sample illustration",
+   "sample": true,
+   "tags": [
+    "training",
+    "mulch",
+    "farmers"
+   ],
+   "title": "Farmer training under the shade tree",
+   "title_nl": "Boerentraining onder de schaduwboom",
+   "caption": "A trainer presents a results chart to a seated farmer group.",
+   "caption_nl": "Een trainer toont een resultatengrafiek aan een groep zittende boeren.",
+   "description": "A trainer uses a flip chart to show a group of farmers how yields change when mulching and shade management are combined. Sessions are held outdoors so each practice can be demonstrated on a real plot straight afterwards, and farmers leave with a simple plan for their own field.",
+   "description_nl": "Een trainer laat met een flip-over aan een groep boeren zien hoe opbrengsten veranderen wanneer mulchen en schaduwbeheer worden gecombineerd. De sessies vinden buiten plaats, zodat elke werkwijze direct daarna op een echt perceel kan worden getoond. Boeren vertrekken met een eenvoudig plan voor hun eigen veld.",
+   "alt": "A trainer pointing at a chart on a board while about ten farmers sit on the ground under a large tree.",
+   "alt_nl": "Een trainer wijst naar een grafiek op een bord terwijl ongeveer tien boeren onder een grote boom op de grond zitten.",
+   "credit_nl": "Voorbeeldillustratie",
+   "tags_nl": [
+    "training",
+    "mulch",
+    "boeren"
+   ]
+  },
+  {
+   "id": "m001",
+   "type": "photo",
+   "src": "media/photos/sunrise-coffee-rows.svg",
+   "project": "Living income and coffee sourcing",
+   "project_nl": "Leefbaar inkomen en koffie-inkoop",
+   "pillar": "profit",
+   "district": "Masaka",
+   "date": "2026-03-14",
+   "credit": "Sample illustration",
+   "sample": true,
+   "tags": [
+    "coffee",
+    "sunrise",
+    "smallholder"
+   ],
+   "title": "Coffee rows at first light",
+   "title_nl": "Koffierijen bij zonsopgang",
+   "caption": "Mature coffee rows on a smallholder plot, photographed at sunrise.",
+   "caption_nl": "Volgroeide koffierijen op een kleinschalig perceel, vastgelegd bij zonsopgang.",
+   "description": "Evenly spaced coffee shrubs run across a gently sloping smallholder plot, heavy with ripening red cherries. Shade trees at the edges cool the plot and protect the soil. Plots like this supply the cooperative's coffee and sit at the centre of the living income work.",
+   "description_nl": "Gelijkmatig geplante koffiestruiken lopen over een licht hellend perceel, vol rijpende rode kersen. Schaduwbomen aan de randen houden het perceel koel en beschermen de bodem. Percelen als dit leveren de koffie van de coöperatie en staan centraal in het werk aan een leefbaar inkomen.",
+   "alt": "Rows of coffee shrubs with red cherries on a hillside at sunrise, with two shade trees and rolling hills behind.",
+   "alt_nl": "Rijen koffiestruiken met rode kersen op een heuvel bij zonsopgang, met twee schaduwbomen en glooiende heuvels erachter.",
+   "credit_nl": "Voorbeeldillustratie",
+   "tags_nl": [
+    "koffie",
+    "zonsopgang",
+    "kleinschalig"
+   ]
+  }
+ ]
+}

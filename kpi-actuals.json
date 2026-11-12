@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "notes": "Populate measured values ONLY with a confirmed source and as-of date. KPI ids are in kpi-tree-data.json. Workbook targets are not actuals.",
+  "sections": {
+    "domestic": {},
+    "export": {},
+    "production": {}
+  }
+}

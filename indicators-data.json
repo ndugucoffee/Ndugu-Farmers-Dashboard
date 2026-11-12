@@ -1,0 +1,420 @@
+{
+ "meta": {
+  "source": "Ndugu Final Logical Framework with Dashboard indicators, October 2026",
+  "vision": "Ndugu Farmers is Uganda's leading channel partner of traceable, sustainable coffee by organizing, digitizing and transforming medium sized cooperatives and aggregators into social (people) and sustainable (planet) agribusinesses (profit)",
+  "generated": "2026-11-12"
+ },
+ "reach": {
+  "women": {
+   "value": 0.3292,
+   "target": 0.4,
+   "n": 3743,
+   "of": 11369
+  },
+  "youth": {
+   "value": 0.1433,
+   "target": 0.2,
+   "n": 1608,
+   "of": 11218
+  }
+ },
+ "indicators": [
+  {
+   "id": "i1a",
+   "level": "impact",
+   "code": "Impact 1",
+   "text": "% of Ndugu farmers achieving the living income benchmark",
+   "target_text": "20,000 farmers (40% female, 20% youth)",
+   "mov": "M&E reports (written, video, audio)",
+   "status": "awaiting",
+   "kind": null,
+   "value": null,
+   "target": null,
+   "parts": [],
+   "as_of": "",
+   "source": "",
+   "caveat": "No data source yet. This indicator needs the M&E survey of farmers."
+  },
+  {
+   "id": "i1b",
+   "level": "impact",
+   "code": "Impact 1",
+   "text": "% of Ndugu farmers who have experienced a 30% increase in their living income between 2023 and 2028",
+   "target_text": "20,000 farmers (40% female, 20% youth)",
+   "mov": "M&E reports (written, video, audio)",
+   "status": "awaiting",
+   "kind": null,
+   "value": null,
+   "target": null,
+   "parts": [],
+   "as_of": "",
+   "source": "",
+   "caveat": "No data source yet. This indicator needs the M&E survey of farmers."
+  },
+  {
+   "id": "i1c",
+   "level": "impact",
+   "code": "Impact 1",
+   "text": "% of Ndugu farmers earning at or above the average living income price of 20,089 UGX / USD 5.83 per kg of coffee (LIP study 2026 by FairFood, Ndugu and Wakuli)",
+   "target_text": "20,000 farmers (40% female, 20% youth)",
+   "mov": "M&E reports (written, video, audio)",
+   "status": "awaiting",
+   "kind": null,
+   "value": null,
+   "target": null,
+   "parts": [],
+   "as_of": "",
+   "source": "",
+   "caveat": "No data source yet. This indicator needs the M&E survey of farmers."
+  },
+  {
+   "id": "i2a",
+   "level": "impact",
+   "code": "Impact 2",
+   "text": "% of Ndugu farmers with a decrease in on-farm emissions",
+   "target_text": "20,000 farmers (40% female, 20% youth)",
+   "mov": "M&E reports (written, video, audio)",
+   "status": "awaiting",
+   "kind": null,
+   "value": null,
+   "target": null,
+   "parts": [],
+   "as_of": "",
+   "source": "",
+   "caveat": "No data source yet. This indicator needs the M&E survey of farmers."
+  },
+  {
+   "id": "i2b",
+   "level": "impact",
+   "code": "Impact 2",
+   "text": "% of Ndugu farmers with an increase in soil health in their coffee farms as a result of regenerative agricultural practices",
+   "target_text": "20% average increase in soil health",
+   "mov": "M&E reports (written, video, audio)",
+   "status": "awaiting",
+   "kind": null,
+   "value": null,
+   "target": null,
+   "parts": [],
+   "as_of": "",
+   "source": "",
+   "caveat": "No data source yet. This indicator needs the M&E survey of farmers."
+  },
+  {
+   "id": "i3a",
+   "level": "impact",
+   "code": "Impact 3",
+   "text": "% of Ndugu farmers reporting an increase in access to health care services",
+   "target_text": "20,000 farmers (40% female, 20% youth)",
+   "mov": "M&E reports (written, video, audio)",
+   "status": "awaiting",
+   "kind": null,
+   "value": null,
+   "target": null,
+   "parts": [],
+   "as_of": "",
+   "source": "",
+   "caveat": "No data source yet. This indicator needs the M&E survey of farmers."
+  },
+  {
+   "id": "i3b",
+   "level": "impact",
+   "code": "Impact 3",
+   "text": "% of Ndugu farmers whose children all access education",
+   "target_text": "20,000 farmers (40% female, 20% youth)",
+   "mov": "M&E reports (written, video, audio)",
+   "status": "awaiting",
+   "kind": null,
+   "value": null,
+   "target": null,
+   "parts": [],
+   "as_of": "",
+   "source": "",
+   "caveat": "No data source yet. This indicator needs the M&E survey of farmers."
+  },
+  {
+   "id": "i3c",
+   "level": "impact",
+   "code": "Impact 3",
+   "text": "% of Ndugu farmers practicing zero child labor",
+   "target_text": "20,000 farmers (40% female, 20% youth)",
+   "mov": "M&E reports (written, video, audio)",
+   "status": "awaiting",
+   "kind": null,
+   "value": null,
+   "target": null,
+   "parts": [],
+   "as_of": "",
+   "source": "",
+   "caveat": "No data source yet. This indicator needs the M&E survey of farmers."
+  },
+  {
+   "id": "i3d",
+   "level": "impact",
+   "code": "Impact 3",
+   "text": "% of women practicing coffee farming and have authority over their earnings",
+   "target_text": "40% women among 20,000 farmers",
+   "mov": "M&E reports (written, video, audio)",
+   "status": "awaiting",
+   "kind": null,
+   "value": null,
+   "target": null,
+   "parts": [],
+   "as_of": "",
+   "source": "",
+   "caveat": "No data source yet. This indicator needs the M&E survey of farmers."
+  },
+  {
+   "id": "i3e",
+   "level": "impact",
+   "code": "Impact 3",
+   "text": "% of youth practicing coffee farming and have authority over their earnings",
+   "target_text": "20% youth among 20,000 farmers",
+   "mov": "M&E reports (written, video, audio)",
+   "status": "awaiting",
+   "kind": null,
+   "value": null,
+   "target": null,
+   "parts": [],
+   "as_of": "",
+   "source": "",
+   "caveat": "No data source yet. This indicator needs the M&E survey of farmers."
+  },
+  {
+   "id": "o11",
+   "level": "outcome",
+   "code": "Outcome 1.1",
+   "text": "# of Ndugu partner cooperatives that have adopted digital systems for their production and financial records",
+   "target_text": "20 cooperatives",
+   "mov": "Cooperative membership and trading records; M&E reports (written, video, audio)",
+   "status": "proxy",
+   "kind": "count",
+   "value": 30,
+   "target": 20,
+   "parts": [
+    {
+     "label": "Cooperatives with digital trading records",
+     "value": 30,
+     "kind": "count"
+    }
+   ],
+   "as_of": "to 2026-08-25",
+   "source": "Domestic dashboard exports (data.json)",
+   "caveat": "Counts cooperatives that appear in the digital transaction exports. It shows who is trading through the system, not whether each has also digitised its financial records, which the logframe indicator requires. Confirm with a cooperative checklist."
+  },
+  {
+   "id": "o12",
+   "level": "outcome",
+   "code": "Outcome 1.2",
+   "text": "% of Ndugu farmers accessing financing / input loans through cooperative channels (SACCOs and VSLAs)",
+   "target_text": "20% of farmers",
+   "mov": "Cooperative credit access traffic records",
+   "status": "awaiting",
+   "kind": "pct",
+   "value": null,
+   "target": 0.2,
+   "parts": [
+    {
+     "label": "Fertiliser loans disbursed (UGX)",
+     "value": 320908000,
+     "kind": "ugx"
+    },
+    {
+     "label": "School-fee loans",
+     "value": 44,
+     "kind": "count"
+    }
+   ],
+   "as_of": "2026-11-12",
+   "source": "Microfinance book (finance-data.json)",
+   "caveat": "The microfinance book records loans per cooperative, not how many individual farmers borrowed through SACCOs and VSLAs, so the share of farmers cannot be calculated yet. Context shown is the value already lent."
+  },
+  {
+   "id": "o13a",
+   "level": "outcome",
+   "code": "Outcome 1.3",
+   "text": "% increase in amount of coffee sourced from Ndugu farmers since 2023",
+   "target_text": "30% increase",
+   "mov": "Ndugu financial records incl. weekly performance reports; Ndugu Impact coffee production and trading reports",
+   "status": "proxy",
+   "kind": "pct",
+   "value": -0.3457,
+   "target": 0.3,
+   "parts": [
+    {
+     "label": "Season 2024 (kg)",
+     "value": 4804564,
+     "kind": "count"
+    },
+    {
+     "label": "Season 2025 (kg)",
+     "value": 3143488,
+     "kind": "count"
+    }
+   ],
+   "as_of": "Season 2025 against 2024",
+   "source": "Domestic dashboard exports (data.json)",
+   "caveat": "The indicator is measured since 2023, but the exports start in May 2024, so there is no 2023 baseline. The figure shown is season 2025 against season 2024 volume sourced. Add the 2023 volume to measure it as defined."
+  },
+  {
+   "id": "o13b",
+   "level": "outcome",
+   "code": "Outcome 1.3",
+   "text": "% of Ndugu farmers earning income through diversification, e.g. macadamia or bee products",
+   "target_text": "USD 500,000 revenue from other products by 2028",
+   "mov": "Ndugu financial records; M&E reports (written, video, audio)",
+   "status": "proxy",
+   "kind": "pct",
+   "value": null,
+   "target": null,
+   "parts": [
+    {
+     "label": "Have grown macadamia",
+     "value": 0.1236,
+     "kind": "pct",
+     "note": "189 of 1,529 surveyed"
+    },
+    {
+     "label": "Have kept bees",
+     "value": 0.1767,
+     "kind": "pct",
+     "note": "275 of 1,556 surveyed"
+    }
+   ],
+   "as_of": "Baseline survey, Mar to Jun 2025",
+   "source": "Macadamia and beekeeping baseline (impact-data.json)",
+   "caveat": "The baseline asked who already grows macadamia or keeps bees, not who earns income from them. Only 29 respondents had sold any macadamia. Treat this as the starting point for the income indicator, not the indicator itself."
+  },
+  {
+   "id": "o2a",
+   "level": "outcome",
+   "code": "Outcome 2",
+   "text": "% of Ndugu farmers who adopted regenerative agricultural practices",
+   "target_text": "20,000 farmers (40% female, 20% youth)",
+   "mov": "M&E reports (written, video, audio)",
+   "status": "awaiting",
+   "kind": null,
+   "value": null,
+   "target": null,
+   "parts": [],
+   "as_of": "",
+   "source": "",
+   "caveat": "No data source yet. This indicator needs the M&E survey of farmers."
+  },
+  {
+   "id": "o2b",
+   "level": "outcome",
+   "code": "Outcome 2",
+   "text": "% of Ndugu farmers who adopted regenerative agroforestry",
+   "target_text": "20,000 farmers (40% female, 20% youth)",
+   "mov": "M&E reports (written, video, audio)",
+   "status": "proxy",
+   "kind": "pct",
+   "value": 0.2946,
+   "target": null,
+   "parts": [
+    {
+     "label": "Practise agroforestry today",
+     "value": 0.2946,
+     "kind": "pct",
+     "note": "438 of 1,487 surveyed"
+    }
+   ],
+   "as_of": "Baseline survey, Mar to Jun 2025",
+   "source": "Macadamia and beekeeping baseline (impact-data.json)",
+   "caveat": "A baseline from 1,560 surveyed farmers, before the programme's agroforestry work. The survey asks about any agroforestry, not specifically the regenerative practices the logframe defines, and the logframe target for this indicator needs confirming."
+  },
+  {
+   "id": "o2c",
+   "level": "outcome",
+   "code": "Outcome 2",
+   "text": "# of Ndugu partner cooperatives that have an active biochar production unit",
+   "target_text": "To be confirmed (logframe gives >50% of cooperatives and aggregators)",
+   "mov": "M&E reports (written, video, audio)",
+   "status": "awaiting",
+   "kind": null,
+   "value": null,
+   "target": null,
+   "parts": [],
+   "as_of": "",
+   "source": "",
+   "caveat": "No data source yet. This indicator needs the M&E survey of farmers."
+  },
+  {
+   "id": "o3",
+   "level": "outcome",
+   "code": "Outcome 3",
+   "text": "# of Ndugu partner cooperatives that establish committees to promote access to health, education, gender equality and prevent child labor",
+   "target_text": "More than 80% of super coops",
+   "mov": "Cooperative membership and trading records; M&E reports (written, video, audio)",
+   "status": "awaiting",
+   "kind": null,
+   "value": null,
+   "target": null,
+   "parts": [],
+   "as_of": "",
+   "source": "",
+   "caveat": "No data source yet. This indicator needs the M&E survey of farmers."
+  },
+  {
+   "id": "p13",
+   "level": "output",
+   "code": "Output 1.3",
+   "text": "% of Ndugu farmers that are certified by a relevant standard and can be traced",
+   "target_text": "80% of farmers",
+   "mov": "Certification reports and certified farmer database; cooperative membership records",
+   "status": "measured",
+   "kind": "pct",
+   "value": 0.8948,
+   "target": 0.8,
+   "parts": [
+    {
+     "label": "Rainforest Alliance recorded",
+     "value": 0.8948,
+     "kind": "pct",
+     "note": "5,003 of 5,591 enrolled farmers"
+    },
+    {
+     "label": "Plots mapped (traceable)",
+     "value": 0.6423,
+     "kind": "pct",
+     "note": "7,306 of 11,375 registered farmers"
+    }
+   ],
+   "as_of": "Farmer inspections 2025",
+   "source": "Farmer inspections 2025 (impact-data.json); EUDR plot mapping (eudr-data.json)",
+   "caveat": "Certification is counted over the 5,591 farmers in the inspection file, not the whole register. 431 of the recorded certificates were filled as 'yes' during cleaning and should be confirmed against the certified farmer database. The target is met on certification; traceability (mapped plots) is still below it."
+  },
+  {
+   "id": "p2",
+   "level": "output",
+   "code": "Output 2",
+   "text": "% of Ndugu farmers that are knowledgeable about regenerative agriculture, agroforestry and soil health through trainings",
+   "target_text": "100% (40% female, 20% youth)",
+   "mov": "Training activity reports; M&E reports",
+   "status": "awaiting",
+   "kind": null,
+   "value": null,
+   "target": null,
+   "parts": [],
+   "as_of": "",
+   "source": "",
+   "caveat": "No data source yet. This indicator needs the M&E survey of farmers."
+  },
+  {
+   "id": "p34",
+   "level": "output",
+   "code": "Output 3.4",
+   "text": "# of youth that are employed through Ndugu and its partners/associates",
+   "target_text": "200 agents (50% female, 70% youth)",
+   "mov": "Training activity reports; M&E reports",
+   "status": "awaiting",
+   "kind": null,
+   "value": null,
+   "target": null,
+   "parts": [],
+   "as_of": "",
+   "source": "",
+   "caveat": "No data source yet. This indicator needs the M&E survey of farmers."
+  }
+ ]
+}

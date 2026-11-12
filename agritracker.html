@@ -6,16 +6,16 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="icon" href="favicon.ico" sizes="16x16 32x32" type="image/x-icon">
 <link rel="apple-touch-icon" href="favicon.svg">
-<title>Agritracker | Ndugu Farmers Ltd</title>
+<title>Internal resources | Ndugu Farmers Ltd</title>
 <style>
   :root{
-    --paper:#FAF4EA; --surface:#FFFCF6;
-    --ink:#2A1A10; --ink-soft:#63483A; --ink-faint:#8A7059;
-    --line:#EADCC7; --line-strong:#D8C4A6;
-    --roast:#7B4A24; --roast-deep:#43260F; --honey:#D2911F;
-    --nav-bg:#43260F; --nav-edge:#5A3618; --nav-title:#F0DFC7;
-    --nav-btn:#835231; --nav-btn-hover:#8A5A34;
-    --nav-btn-current:#D2911F; --nav-btn-current-ink:#2A1A10;
+    --paper:#F7FBF5; --surface:#FFFFFF;
+    --ink:#1F2D1A; --ink-soft:#4D5F47; --ink-faint:#72836B;
+    --line:#DCE8D8; --line-strong:#C8D8C1;
+    --roast:#0E564C; --roast-deep:#0B4C43; --honey:#6FA649;
+    --nav-bg:#0B4C43; --nav-edge:#0E564C; --nav-title:#F7FBF5;
+    --nav-btn:#0E564C; --nav-btn-hover:#126A5E;
+    --nav-btn-current:#FFFFFF; --nav-btn-current-ink:#0E564C;
   }
   *{box-sizing:border-box;}
   body{
@@ -112,47 +112,457 @@
   .back:focus-visible{outline:2px solid var(--roast); outline-offset:2px;}
   @media (prefers-reduced-motion:reduce){ .back{transition:none;} }
   @media (max-width:900px){ .stage{min-height:auto; padding:56px 18px 72px;} }
+  .pillgroup{display:flex; margin-left:auto; background:#F4EADA; border-radius:999px; padding:3px; gap:2px;}
+  .pill{
+    border:none; background:transparent; padding:7px 14px; border-radius:999px;
+    font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-size:13px; font-weight:500; color:var(--ink-soft);
+    cursor:pointer; transition:background .15s ease, color .15s ease;
+  }
+  .pill.active{background:var(--roast); color:#fff;}
+  .pill:not(.active):hover{color:var(--ink);}
+  .pill:focus-visible{outline:2px solid var(--roast); outline-offset:2px;}
+  @media (prefers-reduced-motion:reduce){ .pill{transition:none;} }
+
+  .page{max-width:1100px; margin:0 auto; padding:40px 32px 72px;}
+  .page-head{margin:0 0 30px;}
+  .page-head .rule{margin:0 0 16px;}
+  .page-head .eyebrow{margin:0 0 8px;}
+  .page-head h1{font-size:30px; margin:0 0 10px;}
+  .page-head p{margin:0; max-width:640px; color:var(--ink-soft); font-size:15.5px;}
+  .rgroup{
+    font-size:12px; font-weight:600; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--ink-faint); margin:34px 0 12px; padding-bottom:8px; border-bottom:1px solid var(--line);
+  }
+  .rgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:16px;}
+  .rcard{
+    display:flex; flex-direction:column; gap:6px;
+    background:var(--surface); border:1px solid var(--line-strong); border-radius:8px; padding:20px 20px 18px;
+    box-shadow:0 1px 2px rgba(42,26,16,0.04), 0 10px 26px -22px rgba(42,26,16,0.55);
+  }
+  .rcard h3{font-size:16.5px; line-height:1.25; font-weight:700; margin:0; letter-spacing:-0.005em;}
+  .rcard p{margin:0 0 14px; color:var(--ink-soft); font-size:13.5px; line-height:1.5; flex:1 1 auto;}
+  .rbtn{
+    align-self:flex-start; display:inline-block; text-decoration:none;
+    background:var(--roast); color:#FFFCF6; font-size:13px; font-weight:500;
+    padding:9px 18px; border-radius:5px; transition:background .15s ease;
+  }
+  a.rbtn:hover{background:#8A5A34;}
+  a.rbtn:focus-visible{outline:2px solid var(--roast); outline-offset:2px;}
+  .rbtn.off{background:#EFE4D2; color:var(--ink-faint); cursor:default;}
+  .rcard.is-off{background:#FBF7EE; box-shadow:none;}
+  @media (prefers-reduced-motion:reduce){ .rbtn{transition:none;} }
+  @media (max-width:900px){ .page{padding:28px 18px 56px;} .page-head h1{font-size:26px;} }
 </style>
+
+<style id="ndugu-green-theme-overrides">
+  :root{color-scheme:light;}
+  .sidenav{background:var(--nav-bg)!important;border-color:var(--nav-edge)!important}
+  .sidenav-title{color:var(--nav-title)!important}
+  .navbtn{background:var(--nav-btn)!important;color:#fff!important;border-color:rgba(255,255,255,.12)!important}
+  .navbtn:hover{background:var(--nav-btn-hover)!important}
+  .navbtn[aria-current="page"]{background:var(--nav-btn-current)!important;color:var(--nav-btn-current-ink)!important;border-color:transparent!important}
+  ::selection{background:#0E564C;color:#fff}
+</style>
+<script src="ndugu-preferences.js"></script>
+<link rel="stylesheet" href="ndugu-brand.css">
+<link rel="stylesheet" href="internal-resources.css">
+<link rel="stylesheet" href="resource-manager.css">
 </head>
-<body>
+<body class="resources-route">
 
 <div class="layout">
 
 <nav class="sidenav" aria-label="Dashboards">
-  <p class="sidenav-title">Navigation</p>
-  <a class="navbtn" href="index.html">Domestic Trade</a>
-  <a class="navbtn" href="export.html">Ndugu Export</a>
-  <a class="navbtn" href="eudr.html">EUDR Compliance</a>
-  <a class="navbtn" href="impact.html">Impact Projects</a>
-  <a class="navbtn" href="finance.html">Financial Services</a>
-  <a class="navbtn" href="production.html">Ndugu Production</a>
-  <a class="navbtn" href="agritracker.html" aria-current="page">Agritracker</a>
-  <a class="navbtn" href="coffee.html">Coffee Minds</a>
-  <a class="navbtn" href="about.html">About us</a>
-  <a class="navbtn" href="map-editor.html">Boundary editor</a>
+  <p class="sidenav-title" data-i18n="navTitle">Navigation</p>
+  <a class="navbtn" href="impact.html" data-i18n="navImpact">Ndugu Impact</a>
+  <a class="navbtn" href="index.html" data-i18n="navDomestic">Domestic Trade</a>
+  <a class="navbtn" href="export.html" data-i18n="navExport">Ndugu Export</a>
+  <a class="navbtn" href="eudr.html" data-i18n="navEudr">EUDR Compliance</a>
+  <a class="navbtn" href="finance.html" data-i18n="navFinance">Ndugu Microfinance</a>
+  <a class="navbtn" href="production.html" data-i18n="navProduction">Ndugu Production</a>
+  <a class="navbtn" href="coffee.html" data-i18n="navCoffee">Coffee Minds</a>
+
+  <a class="navbtn" href="agritracker.html" aria-current="page" data-i18n="navAgritracker">Internal resources</a>
+
 </nav>
 
 <div class="layout-main">
 
 <header class="topbar">
   <div class="topbar-inner">
-    <svg class="brand-mark" viewBox="0 0 1080 283.07" xmlns="http://www.w3.org/2000/svg" aria-label="Ndugu"><path fill="#347e19" d="M240.49,8.16c23.92,0,77.27,38.63,98.88,117.28,18.77,68.29-39.55,149.46-67.6,149.46-58.41,0-45.53-94.28-43.23-104.85C251.07,79.45,214.74,8.16,240.49,8.16Z"/><path fill="#347e19" d="M211,274.9c-23.92,0-77.27-35.1-98.88-106.55-18.77-62.06,39.55-135.81,67.6-135.81,58.41,0,45.53,85.66,43.23,95.27C200.41,210.13,236.74,274.9,211,274.9Z"/></svg>
-    <div class="brand-text">Agritracker</div>
+    <svg class="brand-mark" viewBox="0 0 1080 283.07" xmlns="http://www.w3.org/2000/svg" aria-label="Ndugu"><path fill="#0E564C" d="M240.49,8.16c23.92,0,77.27,38.63,98.88,117.28,18.77,68.29-39.55,149.46-67.6,149.46-58.41,0-45.53-94.28-43.23-104.85C251.07,79.45,214.74,8.16,240.49,8.16Z"/><path fill="#0E564C" d="M211,274.9c-23.92,0-77.27-35.1-98.88-106.55-18.77-62.06,39.55-135.81,67.6-135.81,58.41,0,45.53,85.66,43.23,95.27C200.41,210.13,236.74,274.9,211,274.9Z"/></svg>
+    <div class="brand-text" data-i18n="pageName">Internal resources</div>
+    <div class="pillgroup" id="langPills" role="group" aria-label="Language">
+      <button class="pill active" data-lang="en" aria-pressed="true">EN</button>
+      <button class="pill" data-lang="nl" aria-pressed="false">NL</button>
+    </div>
   </div>
 </header>
 
-<main class="stage">
-  <div class="card">
-    <div class="rule"></div>
-    <p class="eyebrow">In development</p>
-    <h1>The Agritracker dashboard is still being built.</h1>
-    <p>This view is not ready yet. The sourcing and operations dashboard is live now, and the rest are being added in turn.</p>
-    <a class="back" href="index.html">Go to the Domestic dashboard</a>
+<main class="page resources-page">
+  <section class="resources-hero" aria-labelledby="resourcesHeading">
+    <div class="resources-hero-copy">
+      <div class="resources-eyebrow" data-i18n="eyebrow">Quick links</div>
+      <h1 id="resourcesHeading" data-i18n="heading">Internal resources</h1>
+      <p data-i18n="intro">The tools, forms and documents used across Ndugu, in one place.</p>
+      <div class="resources-hero-chips">
+        <span data-i18n="heroTools">Daily tools</span>
+        <span data-i18n="heroFarm">Field services</span>
+        <span data-i18n="heroDocs">Documents</span>
+      </div>
+    </div>
+    <div class="resources-hero-art" aria-hidden="true">
+      <div class="resource-art-board">
+        <div class="resource-art-top"><i></i><i></i><i></i></div>
+        <div class="resource-art-icons">
+          <span><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 9v12"/></svg></span>
+          <span><svg viewBox="0 0 24 24"><path d="M11 20c-7 0-8-6-8-11C10 9 15 5 21 3c0 10-3 17-10 17Z"/><path d="M7 21c1-5 4-9 10-13"/></svg></span>
+          <span><svg viewBox="0 0 24 24"><path d="M4 19h16M6 16v-5m5 5V7m5 9V4"/></svg></span>
+        </div>
+        <i class="resource-art-line"></i><i class="resource-art-line short"></i>
+      </div>
+      <div class="resource-art-badge"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18"/><path d="M5 6h4v4H5zM15 14h4v4h-4z"/></svg></div>
+    </div>
+  </section>
+  <div class="resources-controls">
+    <div class="resources-primary-row">
+      <label class="resource-search" for="resourceSearch">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="7"/><path d="m16 16 5 5"/></svg>
+        <input type="search" id="resourceSearch" placeholder="Search resources" autocomplete="off" data-i18n-placeholder="searchPlaceholder" aria-label="Search resources">
+      </label>
+      <div class="resources-filters" role="group" aria-label="Resource categories">
+        <button type="button" data-resource-filter="all" data-i18n="allFilters" aria-pressed="true">All</button>
+        <button type="button" data-resource-filter="about" data-i18n="g_about" aria-pressed="false">About Ndugu</button>
+        <button type="button" data-resource-filter="farmers" data-i18n="g_farmers" aria-pressed="false">Farmer apps</button>
+        <button type="button" data-resource-filter="finance" data-i18n="g_finance" aria-pressed="false">Finance</button>
+        <button type="button" data-resource-filter="staff" data-i18n="g_staff" aria-pressed="false">Staff tools</button>
+      </div>
+      <div class="resources-manage-actions"><button type="button" id="manageResourcesToggle" class="resources-manage-trigger" aria-label="Manage resources" title="Manage resources" aria-controls="resourceManagerPanel" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16M8 4v6M16 9v6M10 14v6"/></svg><span class="manage-label">Manage resources</span></button></div>
+    </div>
   </div>
+  <section class="resource-manager" id="resourceManagerPanel" hidden aria-labelledby="resourceManagerHeading">
+    <div class="resource-manager-heading">
+      <div><span class="resource-manager-eyebrow" data-manage-i18n="manage">Manage resources</span><h2 id="resourceManagerHeading" data-manage-i18n="heading" tabindex="-1">Resource management</h2><p class="resource-manager-intro" data-manage-i18n="intro">Changes are saved in this browser. Download and deploy the catalogue to update the website for everyone.</p></div>
+      <span class="resource-manager-count" id="managerCount">10 resources</span>
+    </div>
+    <div class="resource-manager-toolbar">
+      <button type="button" id="resourceManagerAdd" class="manager-action-primary" data-manage-i18n="add">Add resource</button>
+      <button type="button" id="resourceManagerPublish" data-manage-i18n="published">Download site catalog</button>
+      <button type="button" id="resourceManagerBackup" data-manage-i18n="backup">Backup JSON</button>
+      <label class="resource-manager-import" id="resourceManagerImportLabel"><span data-manage-i18n="import">Import JSON</span><input type="file" id="resourceManagerImport" accept="application/json,.json" aria-label="Import resource backup"></label>
+      <button type="button" id="resourceManagerRestore" data-manage-i18n="reset">Restore published</button>
+    </div>
+    <p class="resource-manager-note" data-manage-i18n="sample">You are editing a local draft; no live-site changes have been published.</p>
+    <p class="resource-manager-status" id="resourceManagerStatus" aria-live="polite"></p>
+    <div class="resource-manager-grid">
+      <div class="resource-manager-list-panel">
+        <div class="resource-manager-list-head"><h3 data-manage-i18n="library">Library entries</h3></div>
+        <label class="resource-manager-sr" for="resourceManagerSearch" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Search managed resources</label>
+        <input class="resource-manager-search" id="resourceManagerSearch" type="search" placeholder="Find a resource…" autocomplete="off">
+        <div id="resourceManagerList" class="resource-manager-list" aria-live="polite"></div>
+      </div>
+      <form id="resourceEditor" class="resource-editor" hidden>
+        <h3 id="resourceEditorHeading">New resource</h3>
+        <input id="resourceId" type="hidden">
+        <div class="resource-editor-grid">
+          <label><span data-manage-i18n="enTitle">Name (English)</span><input id="resourceTitleEN" required maxlength="120" placeholder="e.g. Training manual"></label>
+          <label><span data-manage-i18n="nlTitle">Name (Dutch)</span><input id="resourceTitleNL" maxlength="120"></label>
+          <label><span data-manage-i18n="group">Category</span><select id="resourceGroup" required><option value="about">About Ndugu</option><option value="farmers">Farmer apps</option><option value="finance">Finance</option><option value="staff">Staff tools</option></select></label>
+          <label><span data-manage-i18n="url">Resource URL / document path</span><input id="resourceUrl" type="text" maxlength="1500" placeholder="https://... or docs/manual.pdf"><small data-manage-i18n="urlNote">Upload files to your site separately.</small></label>
+          <label class="wide"><span data-manage-i18n="enDesc">Description (English)</span><textarea id="resourceDescEN" maxlength="500" rows="3"></textarea></label>
+          <label class="wide"><span data-manage-i18n="nlDesc">Description (Dutch)</span><textarea id="resourceDescNL" maxlength="500" rows="3"></textarea></label>
+        </div>
+        <div class="resource-editor-actions"><button type="button" id="resourceEditorCancel" data-manage-i18n="cancel">Cancel</button><button type="submit" data-manage-i18n="save">Save resource</button></div>
+      </form>
+    </div>
+  </section>
+  <div id="resources" aria-live="polite"></div>
 </main>
+
+<footer class="ndugu-definitions-footer">
+  <div class="shell fgrid">
+    <div>
+      <h4 data-i18n="footerDefH">Definitions</h4>
+      <p data-i18n="footerDefP">Staff tools: applications and forms used by Ndugu employees. Farmer apps: tools for registration and services. Internal resource: a company document, tool or information page. Unavailable: the link has not yet been configured; the resource card is not a live service.</p>
+    </div>
+  </div>
+</footer>
 
 </div><!-- /.layout-main -->
 </div><!-- /.layout -->
+
+<script src="resource-catalog.js"></script>
+<script>
+(function(){
+  /* Fallback catalogue only, used when the published resource-catalog.js is absent.
+     Use the Manage Resources interface to edit entries without changing HTML. */
+  var LINKS = [
+    {id:'fertilizer-pos',       group:'staff',   url:''},
+    {id:'leave',                group:'staff',   url:''},
+    {id:'agritracker',          group:'staff',   url:''},
+    {id:'boundary-editor',      group:'staff',   url:'map-editor.html'},
+    {id:'services-portal',      group:'staff',   url:''},
+    {id:'farmer-registration',  group:'farmers', url:''},
+    {id:'farmer-services',      group:'farmers', url:''},
+    {id:'loan',                 group:'finance', url:''},
+    {id:'about-us',            group:'about',   url:'about.html'},
+    {id:'prospectus',           group:'about',   url:''},
+    {id:'website',              group:'about',   url:''}
+  ];
+  /* Published resources live in resource-catalog.js; local browser drafts override it only in this browser. */
+  var STORAGE_KEY = 'ndugu-resources-local-draft-v1';
+  var PUBLISHED = window.NDUGU_RESOURCE_CATALOG && Array.isArray(window.NDUGU_RESOURCE_CATALOG.items)
+    ? window.NDUGU_RESOURCE_CATALOG.items : LINKS;
+  function cleanList(rows){
+    if(!Array.isArray(rows)||rows.length>300)return null;
+    var known={staff:1,farmers:1,finance:1,about:1},seen={};
+    var arr=[];
+    for(var j=0;j<rows.length;j++){
+      var x=rows[j];if(!x||typeof x!=='object')return null;
+      if(typeof x.id!=='string'||!(/^[a-z0-9-]{1,75}$/).test(x.id)||seen[x.id]||!known[x.group])return null;
+      seen[x.id]=true;
+      var item={id:x.id,group:x.group,url:String(x.url||'').slice(0,1500),title_en:String(x.title_en||'').slice(0,120),title_nl:String(x.title_nl||'').slice(0,120),desc_en:String(x.desc_en||'').slice(0,500),desc_nl:String(x.desc_nl||'').slice(0,500)};
+      arr.push(item);
+    }
+    return arr;
+  }
+  var DEFAULTS=cleanList(PUBLISHED)||LINKS;
+  var savedDraft=null;
+  try {savedDraft=JSON.parse(localStorage.getItem(STORAGE_KEY));} catch(err){}
+  var draftResources=cleanList(savedDraft&&savedDraft.items);
+  // One-time catalogue migration: add the newly relocated editor to existing browser drafts.
+  // Keep a migration marker so staff may subsequently remove it through Manage resources.
+  if(draftResources && !savedDraft.boundaryEditorMigrationV1){
+    var editorDefault=DEFAULTS.filter(function(x){return x.id==='boundary-editor';})[0];
+    if(editorDefault && !draftResources.some(function(x){return x.id==='boundary-editor';}))
+      draftResources.push(Object.assign({},editorDefault));
+    savedDraft.boundaryEditorMigrationV1=true;
+    savedDraft.items=draftResources;
+    try{localStorage.setItem(STORAGE_KEY,JSON.stringify(savedDraft));}catch(e){}
+  }
+  LINKS=draftResources||DEFAULTS.map(function(x){return Object.assign({},x);});
+  var GROUPS = ['about', 'farmers', 'finance', 'staff'];
+  var STR = {
+ "en": {
+  "searchPlaceholder": "Search tools and documents",
+  "allFilters": "All",
+  "heroTools": "Daily tools",
+  "heroFarm": "Field services",
+  "heroDocs": "Documents",
+  "staffIntro": "Tools for everyday operations",
+  "farmersIntro": "Farmer and field applications",
+  "financeIntro": "Financial services and forms",
+  "aboutIntro": "Corporate information and links",
+  "emptySearch": "No matching resources. Try another search.",
+  "navTitle": "Navigation",
+  "navImpact": "Ndugu Impact",
+  "navDomestic": "Domestic Trade",
+  "navExport": "Ndugu Export",
+  "navEudr": "EUDR Compliance",
+  "navFinance": "Ndugu Microfinance",
+  "navProduction": "Ndugu Production",
+  "navAgritracker": "Internal resources",
+  "navCoffee": "Coffee Minds",
+  "navAbout": "About us",
+  "navEditor": "Boundary editor",
+  "pageName": "Internal resources",
+  "pageTitle": "Internal resources | Ndugu Farmers Ltd",
+  "eyebrow": "Quick links",
+  "heading": "Internal resources",
+  "intro": "The tools, forms and documents used across Ndugu, in one place.",
+  "open": "Open",
+  "off": "Not available yet",
+  "newtab": "(opens in a new tab)",
+  "g_staff": "Staff tools",
+  "g_farmers": "Farmer apps",
+  "g_finance": "Finance",
+  "g_about": "About Ndugu",
+  "t_fertilizer-pos": "Fertilizer POS",
+  "d_fertilizer-pos": "Point-of-sale system for fertilizer sales.",
+  "t_leave": "Leave request forms",
+  "d_leave": "Request staff leave.",
+  "t_agritracker": "Agritracker (AT)",
+  "d_agritracker": "Field data collection and record-keeping down to the plot.",
+  "t_boundary-editor": "Polygon editor",
+  "d_boundary-editor": "Review and edit mapped plot boundaries and export corrections.",
+  "t_services-portal": "Services portal",
+  "d_services-portal": "Open the Ndugu services portal.",
+  "t_farmer-registration": "Farmer registration app",
+  "d_farmer-registration": "Register new farmers in the network.",
+  "t_farmer-services": "Farmer services app",
+  "d_farmer-services": "Services for farmers in the network.",
+  "t_loan": "Loan application form",
+  "d_loan": "Apply for a loan from Ndugu Microfinance.",
+  "t_about-us": "About us",
+  "d_about-us": "Learn about Ndugu Farmers, our work and how we report.",
+  "t_prospectus": "Ndugu prospectus",
+  "d_prospectus": "The Ndugu company prospectus.",
+  "t_website": "Ndugu website",
+  "d_website": "Visit the Ndugu Farmers website.",
+  "footerDefH": "Definitions",
+  "footerDefP": "Staff tools: applications and forms used by Ndugu employees. Farmer apps: tools for registration and services. Internal resource: a company document, tool or information page. Unavailable: the link has not yet been configured; the resource card is not a live service."
+ },
+ "nl": {
+  "searchPlaceholder": "Zoek hulpmiddelen en documenten",
+  "allFilters": "Alles",
+  "heroTools": "Dagelijkse tools",
+  "heroFarm": "Veldservices",
+  "heroDocs": "Documenten",
+  "staffIntro": "Hulpmiddelen voor de dagelijkse praktijk",
+  "farmersIntro": "Apps voor boeren en veldwerk",
+  "financeIntro": "Financiële diensten en formulieren",
+  "aboutIntro": "Bedrijfsinformatie en links",
+  "emptySearch": "Geen passende bronnen. Probeer een andere zoekopdracht.",
+  "navTitle": "Navigatie",
+  "navImpact": "Ndugu Impact",
+  "navDomestic": "Binnenlandse handel",
+  "navExport": "Ndugu Export",
+  "navEudr": "EUDR-naleving",
+  "navFinance": "Ndugu Microfinanciering",
+  "navProduction": "Ndugu Productie",
+  "navAgritracker": "Interne bronnen",
+  "navCoffee": "Coffee Minds",
+  "navAbout": "Over ons",
+  "navEditor": "Grenzen bewerken",
+  "pageName": "Interne bronnen",
+  "pageTitle": "Interne bronnen | Ndugu Farmers Ltd",
+  "eyebrow": "Snelkoppelingen",
+  "heading": "Interne bronnen",
+  "intro": "De hulpmiddelen, formulieren en documenten die bij Ndugu worden gebruikt, op één plek.",
+  "open": "Openen",
+  "off": "Nog niet beschikbaar",
+  "newtab": "(opent in een nieuw tabblad)",
+  "g_staff": "Hulpmiddelen voor medewerkers",
+  "g_farmers": "Boerenapps",
+  "g_finance": "Financiën",
+  "g_about": "Over Ndugu",
+  "t_fertilizer-pos": "Kunstmest-POS",
+  "d_fertilizer-pos": "Kassasysteem voor de verkoop van kunstmest.",
+  "t_leave": "Verlofaanvraagformulieren",
+  "d_leave": "Verlof aanvragen.",
+  "t_agritracker": "Agritracker (AT)",
+  "d_agritracker": "Verzameling van velddata en registratie tot op perceelniveau.",
+  "t_boundary-editor": "Polygoonbewerker",
+  "d_boundary-editor": "Bewerk perceelgrenzen en exporteer correcties.",
+  "t_services-portal": "Serviceportaal",
+  "d_services-portal": "Open het serviceportaal van Ndugu.",
+  "t_farmer-registration": "App voor boerenregistratie",
+  "d_farmer-registration": "Nieuwe boeren in het netwerk registreren.",
+  "t_farmer-services": "Boerenservice-app",
+  "d_farmer-services": "Diensten voor boeren in het netwerk.",
+  "t_loan": "Leningaanvraagformulier",
+  "d_loan": "Een lening aanvragen bij Ndugu Microfinanciering.",
+  "t_about-us": "Over ons",
+  "d_about-us": "Lees over Ndugu Farmers, onze activiteiten en onze rapportage.",
+  "t_prospectus": "Ndugu-prospectus",
+  "d_prospectus": "Het bedrijfsprospectus van Ndugu.",
+  "t_website": "Ndugu-website",
+  "d_website": "Bezoek de website van Ndugu Farmers.",
+  "footerDefH": "Definities",
+  "footerDefP": "Hulpmiddelen voor medewerkers: apps en formulieren voor Ndugu-personeel. Boerenapps: hulpmiddelen voor registratie en dienstverlening. Interne bron: een bedrijfsdocument, hulpmiddel of informatiepagina. Niet beschikbaar: de link is nog niet ingesteld; de kaart verwijst niet naar een actieve dienst."
+ }
+};
+  var lang = 'en',resourceCategory='all',resourceQuery='';
+  function esc(s){ return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  function safeUrl(u){ if (!u) return ''; try { var x = new URL(u, document.baseURI); return (x.protocol === 'https:' || x.protocol === 'http:' || x.protocol === 'mailto:' || (x.protocol === 'file:' && /^file:/i.test(document.baseURI))) ? x.href : ''; } catch (e) { return ''; } }
+  var ICONS={
+    'fertilizer-pos':'<rect x="4" y="2" width="16" height="20" rx="3"/><path d="M8 6h8M8 11h2m4 0h2m-8 5h2m4 0h2"/>',
+    'leave':'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18m-12 5 2 2 4-4"/>',
+    'agritracker':'<path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6Z"/><path d="M9 3v15m6-12v15"/>',
+    'services-portal':'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M7 6.5h.01M11 6.5h.01M8 14h8"/>',
+    'farmer-registration':'<path d="M9 4h6m-3-2v4M7 5H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><path d="M8 12h8m-8 4h5"/>',
+    'farmer-services':'<path d="M12 21v-9m0 2C5 14 4 9 4 5c7 0 8 4 8 9Zm0-2c0-7 4-9 8-9 0 7-2 9-8 9Z"/>',
+    'loan':'<rect x="3" y="6" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4M7 3h10"/>',
+    'about-us':'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/>',
+    'boundary-editor':'<path d="M3 17.5 16 4.5a2.1 2.1 0 0 1 3 3L6 20.5l-4 1 1-4Z"/><path d="m14 6 4 4M4 5h6M4 5v6M18 14h3v7h-7"/>',
+    'prospectus':'<path d="M6 2h9l5 5v15H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z"/><path d="M14 2v6h6M8 12h8m-8 4h8"/>',
+    'website':'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c4 4 4 14 0 18M12 3c-4 4-4 14 0 18"/>',
+    'staff':'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 5V3h8v2M3 12h18M10 11v3h4v-3"/>',
+    'farmers':'<path d="M12 21v-9m0 2C5 14 4 9 4 5c7 0 8 4 8 9Zm0-2c0-7 4-9 8-9 0 7-2 9-8 9Z"/>',
+    'finance':'<rect x="3" y="6" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4"/>',
+    'about':'<path d="M6 2h9l5 5v15H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z"/><path d="M14 2v6h6M8 12h8m-8 4h8"/>'
+  };
+  function icon(id){return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">'+(ICONS[id]||ICONS.about)+'</svg>';}
+  function resourceGroupOrder(){
+    return GROUPS.slice().sort(function(a,b){
+      return (STR[lang]['g_'+a]||a).localeCompare(STR[lang]['g_'+b]||b,lang,{sensitivity:'base'});
+    });
+  }
+  function arrangeCategoryFilters(){
+    var container=document.querySelector('.resources-filters');
+    resourceGroupOrder().forEach(function(g){
+      var button=container.querySelector('[data-resource-filter="'+g+'"]');
+      if(button)container.appendChild(button);
+    });
+  }
+  function render(){
+    var T=STR[lang],html='',found=0;
+    resourceGroupOrder().forEach(function(g){
+      if(resourceCategory!=='all'&&resourceCategory!==g)return;
+      var rows=LINKS.filter(function(x){
+        if(x.group!==g)return false;
+        if(!resourceQuery)return true;
+        var t=x['title_'+lang]||x.title_en||T['t_'+x.id]||x.id;
+        var d=x['desc_'+lang]||x.desc_en||T['d_'+x.id]||'';
+        return (t+' '+d+' '+(T['g_'+g]||'')+' '+x.id).toLocaleLowerCase().indexOf(resourceQuery)>=0;
+      }).sort(function(a,b){
+        var aName=a['title_'+lang]||a.title_en||T['t_'+a.id]||a.id;
+        var bName=b['title_'+lang]||b.title_en||T['t_'+b.id]||b.id;
+        return aName.localeCompare(bName,lang,{sensitivity:'base'});
+      });
+      if(!rows.length)return;
+      found+=rows.length;
+      var subtitle={staff:'staffIntro',farmers:'farmersIntro',finance:'financeIntro',about:'aboutIntro'}[g];
+      html+='<section class="resource-group resource-group-'+g+'" aria-labelledby="resourceTitle-'+g+'"><div class="resource-group-heading"><span class="rgroup-symbol">'+icon(g)+'</span><div><h2 class="rgroup" id="resourceTitle-'+g+'">'+esc(T['g_'+g])+'</h2><p class="rgroup-desc">'+esc(T[subtitle])+'</p></div></div><div class="rgrid">';
+      rows.forEach(function(x){
+        var u=safeUrl(x.url),title=x['title_'+lang]||x.title_en||T['t_'+x.id]||x.id,desc=x['desc_'+lang]||x.desc_en||T['d_'+x.id]||'',internal=!/^(?:https?:|mailto:|\/\/)/i.test(x.url||'');
+        html+='<article class="rcard rcard-'+g+(u?'':' is-off')+'"><div class="rcard-top"><span class="rcard-icon">'+icon(x.id)+'</span><span class="rcard-tag">'+esc(T['g_'+g])+'</span></div><h3>'+esc(title)+'</h3><p>'+esc(desc)+'</p><div class="rcard-foot">'+
+          (u?'<a class="rbtn" href="'+esc(u)+'"'+(internal?'':' target="_blank" rel="noopener noreferrer"')+' aria-label="'+esc(title+(internal?'':' '+T.newtab))+'">'+esc(T.open)+'<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>':
+              '<span class="rbtn off" aria-disabled="true">'+esc(T.off)+'</span>')+'</div></article>';
+      });
+      html+='</div></section>';
+    });
+    document.getElementById('resources').innerHTML=found?html:'<div class="resource-empty">'+esc(T.emptySearch)+'</div>';
+    document.querySelectorAll('[data-resource-filter]').forEach(function(b){b.setAttribute('aria-pressed',b.getAttribute('data-resource-filter')===resourceCategory?'true':'false');});
+  }
+  function apply(l){
+    lang = l; document.documentElement.lang = l;
+    document.querySelectorAll('[data-i18n]').forEach(function(el){
+      var v = STR[l][el.getAttribute('data-i18n')]; if (v !== undefined) el.textContent = v;
+    });
+    document.title = STR[l].pageTitle;
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(function(el){el.placeholder=STR[l][el.getAttribute('data-i18n-placeholder')]||'';el.setAttribute('aria-label',el.placeholder);});
+    arrangeCategoryFilters();
+    render();
+    document.querySelectorAll('#langPills .pill').forEach(function(b){
+      var on = b.getAttribute('data-lang') === l; b.classList.toggle('active', on); b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    window.dispatchEvent(new CustomEvent('ndugu-resources-language',{detail:{lang:l}}));
+  }
+  document.getElementById('langPills').addEventListener('click', function(e){
+    var b = e.target.closest('.pill'); if (b) apply(b.getAttribute('data-lang'));
+  });
+  document.getElementById('resourceSearch').addEventListener('input',function(e){resourceQuery=e.target.value.trim().toLocaleLowerCase();render();});
+  document.querySelector('.resources-filters').addEventListener('click',function(e){var b=e.target.closest('[data-resource-filter]');if(!b)return;resourceCategory=b.getAttribute('data-resource-filter');render();});
+  window.NDUGU_RESOURCES_APP={
+    list:function(){return LINKS.map(function(x){return Object.assign({},x);});},
+    save:function(items){
+      var arr=cleanList(items);if(!arr)return false;
+      LINKS=arr; render();
+      try{localStorage.setItem(STORAGE_KEY,JSON.stringify({version:1,items:arr,boundaryEditorMigrationV1:true}));return true;}catch(e){return false;}
+    },
+    reset:function(){
+      LINKS=DEFAULTS.map(function(x){return Object.assign({},x);});
+      try{localStorage.removeItem(STORAGE_KEY);}catch(e){}
+      render();
+    },
+    language:function(){return lang;},
+    translations:function(){return STR[lang];}
+  };
+  apply(new URLSearchParams(location.search).get('lang') === 'nl' ? 'nl' : 'en');
+})();
+</script>
+<script src="resource-manager.js"></script>
 
 <!-- ndugu:analytics -->
 <!-- Visit counting. No cookie, no localStorage, no fingerprinting;

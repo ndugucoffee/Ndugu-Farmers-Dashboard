@@ -9,13 +9,13 @@
 <title>Ndugu Production | Ndugu Farmers Ltd</title>
 <style>
   :root{
-    --paper:#FAF4EA; --surface:#FFFCF6;
-    --ink:#2A1A10; --ink-soft:#63483A; --ink-faint:#8A7059;
-    --line:#EADCC7; --line-strong:#D8C4A6;
-    --roast:#7B4A24; --roast-deep:#43260F; --honey:#D2911F;
-    --nav-bg:#43260F; --nav-edge:#5A3618; --nav-title:#F0DFC7;
-    --nav-btn:#835231; --nav-btn-hover:#8A5A34;
-    --nav-btn-current:#D2911F; --nav-btn-current-ink:#2A1A10;
+    --paper:#F7FBF5; --surface:#FFFFFF;
+    --ink:#1F2D1A; --ink-soft:#4D5F47; --ink-faint:#72836B;
+    --line:#DCE8D8; --line-strong:#C8D8C1;
+    --roast:#0E564C; --roast-deep:#0B4C43; --honey:#6FA649;
+    --nav-bg:#0B4C43; --nav-edge:#0E564C; --nav-title:#F7FBF5;
+    --nav-btn:#0E564C; --nav-btn-hover:#126A5E;
+    --nav-btn-current:#FFFFFF; --nav-btn-current-ink:#0E564C;
   }
   *{box-sizing:border-box;}
   body{
@@ -112,48 +112,159 @@
   .back:focus-visible{outline:2px solid var(--roast); outline-offset:2px;}
   @media (prefers-reduced-motion:reduce){ .back{transition:none;} }
   @media (max-width:900px){ .stage{min-height:auto; padding:56px 18px 72px;} }
+  .pillgroup{display:flex; margin-left:auto; background:#F4EADA; border-radius:999px; padding:3px; gap:2px;}
+  .pill{
+    border:none; background:transparent; padding:7px 14px; border-radius:999px;
+    font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-size:13px; font-weight:500; color:var(--ink-soft);
+    cursor:pointer; transition:background .15s ease, color .15s ease;
+  }
+  .pill.active{background:var(--roast); color:#fff;}
+  .pill:not(.active):hover{color:var(--ink);}
+  .pill:focus-visible{outline:2px solid var(--roast); outline-offset:2px;}
+  @media (prefers-reduced-motion:reduce){ .pill{transition:none;} }
 </style>
+<link rel="stylesheet" href="kpi-tree.css">
+
+<style id="ndugu-green-theme-overrides">
+  :root{color-scheme:light;}
+  .sidenav{background:var(--nav-bg)!important;border-color:var(--nav-edge)!important}
+  .sidenav-title{color:var(--nav-title)!important}
+  .navbtn{background:var(--nav-btn)!important;color:#fff!important;border-color:rgba(255,255,255,.12)!important}
+  .navbtn:hover{background:var(--nav-btn-hover)!important}
+  .navbtn[aria-current="page"]{background:var(--nav-btn-current)!important;color:var(--nav-btn-current-ink)!important;border-color:transparent!important}
+  ::selection{background:#0E564C;color:#fff}
+</style>
+<script src="ndugu-preferences.js"></script>
+<link rel="stylesheet" href="ndugu-brand.css">
 </head>
 <body>
 
 <div class="layout">
 
 <nav class="sidenav" aria-label="Dashboards">
-  <p class="sidenav-title">Navigation</p>
-  <a class="navbtn" href="index.html">Domestic Trade</a>
-  <a class="navbtn" href="export.html">Ndugu Export</a>
-  <a class="navbtn" href="eudr.html">EUDR Compliance</a>
-  <a class="navbtn" href="impact.html">Impact Projects</a>
-  <a class="navbtn" href="finance.html">Financial Services</a>
-  <a class="navbtn" href="production.html" aria-current="page">Ndugu Production</a>
-  <a class="navbtn" href="agritracker.html">Agritracker</a>
-  <a class="navbtn" href="coffee.html">Coffee Minds</a>
-  <a class="navbtn" href="about.html">About us</a>
-  <a class="navbtn" href="map-editor.html">Boundary editor</a>
+  <p class="sidenav-title" data-i18n="navTitle">Navigation</p>
+  <a class="navbtn" href="impact.html" data-i18n="navImpact">Ndugu Impact</a>
+  <a class="navbtn" href="index.html" data-i18n="navDomestic">Domestic Trade</a>
+  <a class="navbtn" href="export.html" data-i18n="navExport">Ndugu Export</a>
+  <a class="navbtn" href="eudr.html" data-i18n="navEudr">EUDR Compliance</a>
+  <a class="navbtn" href="finance.html" data-i18n="navFinance">Ndugu Microfinance</a>
+  <a class="navbtn" href="production.html" aria-current="page" data-i18n="navProduction">Ndugu Production</a>
+  <a class="navbtn" href="coffee.html" data-i18n="navCoffee">Coffee Minds</a>
+
+  <a class="navbtn" href="agritracker.html" data-i18n="navAgritracker">Internal resources</a>
+
 </nav>
 
 <div class="layout-main">
 
 <header class="topbar">
   <div class="topbar-inner">
-    <svg class="brand-mark" viewBox="0 0 1080 283.07" xmlns="http://www.w3.org/2000/svg" aria-label="Ndugu"><path fill="#347e19" d="M240.49,8.16c23.92,0,77.27,38.63,98.88,117.28,18.77,68.29-39.55,149.46-67.6,149.46-58.41,0-45.53-94.28-43.23-104.85C251.07,79.45,214.74,8.16,240.49,8.16Z"/><path fill="#347e19" d="M211,274.9c-23.92,0-77.27-35.1-98.88-106.55-18.77-62.06,39.55-135.81,67.6-135.81,58.41,0,45.53,85.66,43.23,95.27C200.41,210.13,236.74,274.9,211,274.9Z"/></svg>
-    <div class="brand-text">Ndugu Production</div>
+    <svg class="brand-mark" viewBox="0 0 1080 283.07" xmlns="http://www.w3.org/2000/svg" aria-label="Ndugu"><path fill="#0E564C" d="M240.49,8.16c23.92,0,77.27,38.63,98.88,117.28,18.77,68.29-39.55,149.46-67.6,149.46-58.41,0-45.53-94.28-43.23-104.85C251.07,79.45,214.74,8.16,240.49,8.16Z"/><path fill="#0E564C" d="M211,274.9c-23.92,0-77.27-35.1-98.88-106.55-18.77-62.06,39.55-135.81,67.6-135.81,58.41,0,45.53,85.66,43.23,95.27C200.41,210.13,236.74,274.9,211,274.9Z"/></svg>
+    <div class="brand-text" data-i18n="pageName">Ndugu Production</div>
+    <div class="pillgroup" id="langPills" role="group" aria-label="Language">
+      <button class="pill active" data-lang="en" aria-pressed="true">EN</button>
+      <button class="pill" data-lang="nl" aria-pressed="false">NL</button>
+    </div>
   </div>
 </header>
 
-<main class="stage">
+<main data-kpi-section="production" class="stage ndugu-kpi-shell">
+<div class="ndg-tabs" role="tablist" aria-label="Dashboard views">
+  <button type="button" class="ndg-tab" role="tab" id="ndg-tab-kpi" data-ndg-tab="kpi" aria-selected="true" aria-controls="ndg-kpi" tabindex="0">Performance dashboard</button>
+  <button type="button" class="ndg-tab" role="tab" id="ndg-tab-legacy" data-ndg-tab="analytics" aria-selected="false" aria-controls="ndg-legacy" tabindex="-1">Programme details</button>
+</div>
+<section class="ndg-panel" id="ndg-kpi" role="tabpanel" aria-labelledby="ndg-tab-kpi"></section>
+<div class="ndg-panel" id="ndg-legacy" role="tabpanel" aria-labelledby="ndg-tab-legacy" hidden><div id="ndg-legacy-error" class="ndg-msg" hidden></div>
+
   <div class="card">
     <div class="rule"></div>
-    <p class="eyebrow">In development</p>
-    <h1>The Ndugu Production dashboard is still being built.</h1>
-    <p>This view is not ready yet. The sourcing and operations dashboard is live now, and the rest are being added in turn.</p>
-    <a class="back" href="index.html">Go to the Domestic dashboard</a>
+    <p class="eyebrow" data-i18n="eyebrow">In development</p>
+    <h1 data-i18n="heading">The Ndugu Production dashboard is still being built.</h1>
+    <p data-i18n="body">This view is not ready yet. The sourcing and operations dashboard is live now, and the rest are being added in turn.</p>
+    <a class="back" href="index.html" data-i18n="back">Go to the Domestic dashboard</a>
   </div>
+</div><!-- /#ndg-legacy -->
 </main>
+
+<footer class="ndugu-definitions-footer">
+  <div class="shell fgrid">
+    <div>
+      <h4 data-i18n="footerDefH">Definitions</h4>
+      <p data-i18n="footerDefP">Inputs distributed: recorded bags, seedlings, trees or equipment supplied. Beneficiaries: farmers reached by a programme activity. Survival (6 or 12 months): planting material recorded alive at follow-up. Target: planned result; illustrative results are examples, not verified actuals.</p>
+    </div>
+  </div>
+</footer>
 
 </div><!-- /.layout-main -->
 </div><!-- /.layout -->
 
+<script>
+(function(){
+  var STR = {
+ "en": {
+  "navTitle": "Navigation",
+  "navImpact": "Ndugu Impact",
+  "navDomestic": "Domestic Trade",
+  "navExport": "Ndugu Export",
+  "navEudr": "EUDR Compliance",
+  "navFinance": "Ndugu Microfinance",
+  "navProduction": "Ndugu Production",
+  "navAgritracker": "Internal resources",
+  "navCoffee": "Coffee Minds",
+  "navAbout": "About us",
+  "navEditor": "Boundary editor",
+  "pageName": "Ndugu Production",
+  "pageTitle": "Ndugu Production | Ndugu Farmers Ltd",
+  "eyebrow": "In development",
+  "heading": "The Ndugu Production dashboard is still being built.",
+  "body": "This view is not ready yet. The sourcing and operations dashboard is live now, and the rest are being added in turn.",
+  "back": "Go to the Domestic dashboard",
+  "footerDefH": "Definitions",
+  "footerDefP": "Inputs distributed: recorded bags, seedlings, trees or equipment supplied. Beneficiaries: farmers reached by a programme activity. Survival (6 or 12 months): planting material recorded alive at follow-up. Target: planned result; illustrative results are examples, not verified actuals."
+ },
+ "nl": {
+  "navTitle": "Navigatie",
+  "navImpact": "Ndugu Impact",
+  "navDomestic": "Binnenlandse handel",
+  "navExport": "Ndugu Export",
+  "navEudr": "EUDR-naleving",
+  "navFinance": "Ndugu Microfinanciering",
+  "navProduction": "Ndugu Productie",
+  "navAgritracker": "Interne bronnen",
+  "navCoffee": "Coffee Minds",
+  "navAbout": "Over ons",
+  "navEditor": "Grenzen bewerken",
+  "pageName": "Ndugu Productie",
+  "pageTitle": "Ndugu Productie | Ndugu Farmers Ltd",
+  "eyebrow": "In ontwikkeling",
+  "heading": "Het Ndugu Productie-dashboard wordt nog gebouwd.",
+  "body": "Dit overzicht is nog niet klaar. Het dashboard voor inkoop en operaties is nu live; de overige volgen een voor een.",
+  "back": "Ga naar het dashboard Binnenlandse handel",
+  "footerDefH": "Definities",
+  "footerDefP": "Uitgedeelde middelen: geregistreerde zakken, zaailingen, bomen of uitrusting. Begunstigden: boeren bereikt via een programma-activiteit. Overleving (na 6 of 12 maanden): plantmateriaal dat bij controle nog leeft. Doel: gepland resultaat; illustratieve resultaten zijn voorbeelden, geen geverifieerde realisaties."
+ }
+};
+  function apply(l){
+    document.documentElement.lang = l;
+    document.querySelectorAll('[data-i18n]').forEach(function(el){
+      var v = STR[l][el.getAttribute('data-i18n')]; if (v !== undefined) el.textContent = v;
+    });
+    document.title = STR[l].pageTitle;
+    document.querySelectorAll('#langPills .pill').forEach(function(b){
+      var on = b.getAttribute('data-lang') === l; b.classList.toggle('active', on); b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+  }
+  document.getElementById('langPills').addEventListener('click', function(e){
+    var b = e.target.closest('.pill'); if (b) apply(b.getAttribute('data-lang'));
+  });
+  if (new URLSearchParams(location.search).get('lang') === 'nl') apply('nl');
+})();
+</script>
+
+<script src="kpi-tree-data.js"></script>
+<script src="kpi-illustrative-data.js"></script>
+<script src="ndugu-kpi-translations.js"></script>
+<script src="kpi-tree.js"></script>
 <!-- ndugu:analytics -->
 <!-- Visit counting. No cookie, no localStorage, no fingerprinting;
      figures are private to the Ndugu Cloudflare account. Managed by

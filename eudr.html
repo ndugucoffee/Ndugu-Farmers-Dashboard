@@ -17,7 +17,7 @@
   var WORDS = {
     en:{view:'View data', title:'Data behind this chart', csv:'Download CSV', copy:'Copy table',
         copied:'Copied', close:'Close', total:'Total', share:'Share of this chart', hidden:'hidden in the chart',
-        series:'Series', label:'Category', value:'Value', none:'This chart has no data to show.',
+        series:'Series', label:'Category', value:'Value', none:'This chart is awaiting a compatible source. Explore the illustrative performance view.',
         units:'Values', rows:'rows'},
     nl:{view:'Gegevens bekijken', title:'Gegevens achter deze grafiek', csv:'CSV downloaden', copy:'Tabel kopiëren',
         copied:'Gekopieerd', close:'Sluiten', total:'Totaal', share:'Aandeel in deze grafiek', hidden:'verborgen in de grafiek',
@@ -148,7 +148,7 @@
       '.cd-menu button{display:block;width:100%;text-align:left;font:inherit;font-size:12.5px;' +
         'color:var(--ink,#2A1A10);background:none;border:none;border-radius:4px;' +
         'padding:7px 10px;cursor:pointer;}' +
-      '.cd-menu button:hover{background:var(--roast-wash,#F4E6D5);}' +
+      '.cd-menu button:hover{background:var(--roast-wash,#E6F3EF);}' +
       '.cd-over{position:fixed;inset:0;z-index:2000;background:rgba(42,26,16,.45);display:flex;' +
         'align-items:center;justify-content:center;padding:16px;}' +
       '.cd-over[hidden]{display:none;}' +
@@ -169,7 +169,7 @@
       '.cd-foot .grow{flex:1;font-size:12px;color:var(--ink-faint,#8A7059);}' +
       '.cd-foot button{font:inherit;font-size:12.5px;padding:6px 12px;border-radius:5px;cursor:pointer;' +
         'border:1px solid var(--line-strong,#D8C4A6);background:var(--surface,#FFFCF6);color:var(--ink,#2A1A10);}' +
-      '.cd-foot button.cd-main{background:var(--roast,#7B4A24);border-color:var(--roast,#7B4A24);color:#fff;}';
+      '.cd-foot button.cd-main{background:var(--roast,#0E564C);border-color:var(--roast,#0E564C);color:#fff;}';
     document.head.appendChild(st);
     box = document.createElement('div');
     box.className = 'cd-over'; box.hidden = true;
@@ -312,44 +312,44 @@
 <style>
   :root{
     /* --- surfaces: raw parchment, cream, unbleached paper --- */
-    --paper:#FAF4EA;
-    --surface:#FFFCF6;
-    --surface-sunk:#F4EADA;
+    --paper:#F7FBF5;
+    --surface:#FFFFFF;
+    --surface-sunk:#F1F7EF;
     /* --- ink: espresso --- */
-    --ink:#2A1A10;
-    --ink-soft:#63483A;
-    --ink-faint:#8A7059;
-    --line:#EADCC7;
-    --line-strong:#D8C4A6;
+    --ink:#1F2D1A;
+    --ink-soft:#4D5F47;
+    --ink-faint:#72836B;
+    --line:#DCE8D8;
+    --line-strong:#C8D8C1;
     /* --- roasted bean: the primary --- */
-    --roast:#7B4A24;
-    --roast-deep:#43260F;
-    --roast-light:#A97244;
-    --roast-wash:#F4E6D5;
+    --roast:#0E564C;
+    --roast-deep:#0B4C43;
+    --roast-light:#368779;
+    --roast-wash:#EAF5E5;
     /* --- leaf: the growing side --- */
-    --leaf:#4E7C2E;
-    --leaf-light:#7FA84A;
-    --leaf-wash:#E9F1DD;
+    --leaf:#0E564C;
+    --leaf-light:#6DAD4D;
+    --leaf-wash:#ECF6E8;
     /* --- coffee cherry --- */
-    --cherry:#B23A1E;
-    --cherry-wash:#F9E3D9;
+    --cherry:#4E8E33;
+    --cherry-wash:#EEF7EA;
     /* --- golden harvest --- */
-    --honey:#D2911F;
-    --honey-wash:#FBEED4;
+    --honey:#6FA649;
+    --honey-wash:#F1F8ED;
     /* --- supporting --- */
-    --teal:#2C7A83;
-    --olive:#8C9A3B;
-    --clay:#9C5230;
+    --teal:#4D8F35;
+    --olive:#7EAD56;
+    --clay:#4C7A35;
     /* Side navigation: drawn from the page's own palette: the rail is the
        same espresso as the footer, so the dashboard sits framed between them.
        Contrast (white on button 6.5:1, espresso on honey 6.2:1) is above AA. */
-    --nav-bg:#43260F;
-    --nav-edge:#5A3618;
-    --nav-title:#F0DFC7;
-    --nav-btn:#835231;
-    --nav-btn-hover:#8A5A34;
-    --nav-btn-current:#D2911F;
-    --nav-btn-current-ink:#2A1A10;
+    --nav-bg:#0B4C43;
+    --nav-edge:#0E564C;
+    --nav-title:#F7FBF5;
+    --nav-btn:#0E564C;
+    --nav-btn-hover:#126A5E;
+    --nav-btn-current:#FFFFFF;
+    --nav-btn-current-ink:#0E564C;
     /* KPI tile gradients. Every stop was checked for white-text contrast
        rather than picked by eye. Saturation is pushed well above the base
        palette (leaf 0.46 -> 0.68, teal 0.50 -> 0.75) to make the row carry, but
@@ -357,12 +357,12 @@
        clear 4.5:1. Full saturation passes too, and looks like neon rather than
        coffee, so it was not used. The tiles are the loudest thing on the page;
        unreadable labels on them would be the most visible possible mistake. */
-    --tile-leaf:linear-gradient(135deg,#458419 0%,#30610F 100%);   /* 4.60:1 */
-    --tile-honey:linear-gradient(135deg,#9F6B12 0%,#795109 100%);  /* 4.58:1 */
-    --tile-roast:linear-gradient(135deg,#AC642B 0%,#8D4E1D 100%);  /* 4.55:1 */
-    --tile-cherry:linear-gradient(135deg,#D24422 0%,#B13316 100%); /* 4.57:1 */
-    --tile-teal:linear-gradient(135deg,#14828E 0%,#0B606A 100%);   /* 4.55:1 */
-    --tile-olive:linear-gradient(135deg,#6E7D18 0%,#4F5A0D 100%);  /* 4.56:1 */
+    --tile-leaf:linear-gradient(135deg,#5AA733 0%,#0E564C 100%);   /* 4.60:1 */
+    --tile-honey:linear-gradient(135deg,#87BC5E 0%,#5A9837 100%);  /* 4.58:1 */
+    --tile-roast:linear-gradient(135deg,#6CB345 0%,#0E564C 100%);  /* 4.55:1 */
+    --tile-cherry:linear-gradient(135deg,#75B852 0%,#438A23 100%); /* 4.57:1 */
+    --tile-teal:linear-gradient(135deg,#4FA45A 0%,#2E7F3D 100%);   /* 4.55:1 */
+    --tile-olive:linear-gradient(135deg,#95C96A 0%,#5B9438 100%);  /* 4.56:1 */
 
     --radius-sm:4px;
     --radius-md:8px;
@@ -1058,6 +1058,18 @@
      click on the map underneath it. */
   .mapload[hidden]{display:none;}
 </style>
+
+<style id="ndugu-green-theme-overrides">
+  :root{color-scheme:light;}
+  .sidenav{background:var(--nav-bg)!important;border-color:var(--nav-edge)!important}
+  .sidenav-title{color:var(--nav-title)!important}
+  .navbtn{background:var(--nav-btn)!important;color:#fff!important;border-color:rgba(255,255,255,.12)!important}
+  .navbtn:hover{background:var(--nav-btn-hover)!important}
+  .navbtn[aria-current="page"]{background:var(--nav-btn-current)!important;color:var(--nav-btn-current-ink)!important;border-color:transparent!important}
+  ::selection{background:#0E564C;color:#fff}
+</style>
+<script src="ndugu-preferences.js"></script>
+<link rel="stylesheet" href="ndugu-brand.css">
 </head>
 <body>
 
@@ -1076,16 +1088,16 @@
 
 <nav class="sidenav" aria-label="Dashboards">
   <p class="sidenav-title" data-i18n="navTitle">Navigation</p>
+  <a class="navbtn" href="impact.html"      data-i18n="navImpact">Ndugu Impact</a>
   <a class="navbtn" href="index.html"       data-i18n="navDomestic">Domestic Trade</a>
   <a class="navbtn" href="export.html"      data-i18n="navExport">Ndugu Export</a>
   <a class="navbtn" href="eudr.html"        aria-current="page" data-i18n="navEudr">EUDR Compliance</a>
-  <a class="navbtn" href="impact.html"      data-i18n="navImpact">Impact Projects</a>
-  <a class="navbtn" href="finance.html"     data-i18n="navFinance">Financial Services</a>
+  <a class="navbtn" href="finance.html"     data-i18n="navFinance">Ndugu Microfinance</a>
   <a class="navbtn" href="production.html"  data-i18n="navProduction">Ndugu Production</a>
-  <a class="navbtn" href="agritracker.html" data-i18n="navAgritracker">Agritracker</a>
   <a class="navbtn" href="coffee.html"      data-i18n="navCoffee">Coffee Minds</a>
-  <a class="navbtn" href="about.html"       data-i18n="navAbout">About us</a>
-  <a class="navbtn" href="map-editor.html"  data-i18n="navEditor">Boundary editor</a>
+
+  <a class="navbtn" href="agritracker.html" data-i18n="navAgritracker">Internal resources</a>
+
 </nav>
 
 <div class="layout-main">
@@ -1093,7 +1105,7 @@
 <header class="topbar">
   <div class="shell topbar-inner">
     <div class="brand">
-      <svg class="brand-mark" viewBox="0 0 1080 283.07" xmlns="http://www.w3.org/2000/svg"><style>.cls-1{fill:#347e19;}</style><path class="cls-1" d="M469.14,81.5c41.67,0,59.71,16.51,59.71,54.37v74.95H495.56V136.89c0-18.81-7.62-27.19-26.42-27.19-19.06,0-26.94,8.38-26.94,27.19v73.93h-33V135.87C409.17,98,426.7,81.5,469.14,81.5Z"></path><path class="cls-1" d="M593.37,81.5c20.32,0,30,6.6,37.6,13.46h1.78V28.46h33V148.83c0,44.21-20.58,64.28-63.52,64.28S538,193,538,148.83v-3.05C538,100.3,556.78,81.5,593.37,81.5Zm8.89,103.41c21.85,0,30.49-9.91,30.49-37.1v-1c0-27.18-8.64-37.09-30.49-37.09s-31,9.91-31,37.09v1C571.26,175,580.41,184.91,602.26,184.91Z"></path><path class="cls-1" d="M872.33,81.5c42.94,0,63.52,20.83,63.52,65.29V203c0,41.92-16.51,60-65.3,60a216.77,216.77,0,0,1-39.89-3.81V232.42a251.24,251.24,0,0,0,36.84,3.3c26.93,0,35.32-8.38,35.32-26.17v-9.91H901c-7.62,6.86-17.28,13.47-37.6,13.47-36.59,0-55.39-18.8-55.39-64.28v-3.05C808.05,101.57,829.39,81.5,872.33,81.5Zm0,103.41c21.85,0,30.49-9.91,30.49-37.1v-1c0-27.18-8.64-37.09-30.49-37.09s-31,9.91-31,37.09v1C841.33,175,850.48,184.91,872.33,184.91Z"></path><path class="cls-1" d="M948,80.84h33v76.88c0,18.8,7.88,27.19,26.94,27.19,18.8,0,26.42-8.39,26.42-27.19V80.84h33.29v77.9c0,37.85-18,54.37-59.71,54.37-42.44,0-60-16.52-60-54.37Z"></path><path class="cls-1" d="M799.15,80.85v77.9c0,37.85-18,54.36-59.7,54.36-42.42,0-60-16.51-60-54.36V80.85h42.64c-2.25,3.84-4.59,11-7,15.49-.92,1.93-1.78,3.86-2.55,5.77C701,130,702.28,156.31,716,174.48c0,.05,0,.07,0,.1A17.61,17.61,0,0,0,721,180.2a58.17,58.17,0,0,0,15.73,11,72,72,0,0,0,9.46,3.76,38.85,38.85,0,0,1-1.71-3.76,34.06,34.06,0,0,1-1.9-6.37c-4.07-19.62,8.9-37.66,15.57-56.5,2.36-6.62,5.87-14.37,7.78-25.68a142.1,142.1,0,0,0,1.36-19.93c0-.65,0-1.28,0-1.88Z"></path><path class="cls-1" d="M727.74,164.64c-.71-.78-8.53-11.11,9-59.73,1.05-2.93,1.9-5.66,2.63-8.32a48.22,48.22,0,0,0,7.18-1.21,121.65,121.65,0,0,1-4.47,11.82C724.22,147.81,727.46,163.44,727.74,164.64Z"></path><path class="cls-1" d="M240.49,8.16c23.92,0,77.27,38.63,98.88,117.28,18.77,68.29-39.55,149.46-67.6,149.46-58.41,0-45.53-94.28-43.23-104.85C251.07,79.45,214.74,8.16,240.49,8.16Z"></path><path class="cls-1" d="M211,274.9c-23.92,0-77.27-35.1-98.88-106.55-18.77-62.06,39.55-135.81,67.6-135.81,58.41,0,45.53,85.66,43.23,95.27C200.41,210.13,236.74,274.9,211,274.9Z"></path><path class="cls-1" d="M26.3,232.09a1.23,1.23,0,0,1,.21,1.67c-2.34,3.26-4.74,6.56-7.06,9.66-2.53,3.4-4.81,11.58-3.74,15.5s13.52,6.38,14.86,5.51,6.18-12.52,9.21-18.78c5.6-11.56,10.67-23.4,16.91-34.59,3.93-7.06,9.14-13.4,14.22-20.32a1.26,1.26,0,0,0-1.2-2c-12,1.85-20.42,10.16-28.44,18.17-.42.51-1.11.14-1-.28,7.62-14.37,20.45-20.79,35.69-22.2,12.23-1.13,20.52,5.89,26.66,16a1.19,1.19,0,0,1,.15.35A87.14,87.14,0,0,1,105,211.9c1.6,8.2,1,16.38-3.08,23.78C88.2,260.16,66.79,273,39.23,274.86c-6,.42-12.9-2.41-18.38-5.52a17.38,17.38,0,0,1-6.48-23.26c2.67-5,6.53-9.34,10-13.91a1.24,1.24,0,0,1,1.81-.2Zm34.57,24.78C75,245,81.15,230.78,90.41,217.9c5.1-7.09,3.94-20.8,1.35-24.06-2.36-3-5.24-3.55-8.43-4.55a1.24,1.24,0,0,0-1.49.58c-3.94,7.42-8.61,18.78-12.33,21.86-3.88,3.21-10.55,14.84-15.05,22.86-4.67,8.31-21.06,26.12-19.63,32.62S59.72,257.83,60.87,256.87Z"></path></svg>
+      <svg class="brand-mark" viewBox="0 0 1080 283.07" xmlns="http://www.w3.org/2000/svg"><style>.cls-1{fill:#0E564C;}</style><path class="cls-1" d="M469.14,81.5c41.67,0,59.71,16.51,59.71,54.37v74.95H495.56V136.89c0-18.81-7.62-27.19-26.42-27.19-19.06,0-26.94,8.38-26.94,27.19v73.93h-33V135.87C409.17,98,426.7,81.5,469.14,81.5Z"></path><path class="cls-1" d="M593.37,81.5c20.32,0,30,6.6,37.6,13.46h1.78V28.46h33V148.83c0,44.21-20.58,64.28-63.52,64.28S538,193,538,148.83v-3.05C538,100.3,556.78,81.5,593.37,81.5Zm8.89,103.41c21.85,0,30.49-9.91,30.49-37.1v-1c0-27.18-8.64-37.09-30.49-37.09s-31,9.91-31,37.09v1C571.26,175,580.41,184.91,602.26,184.91Z"></path><path class="cls-1" d="M872.33,81.5c42.94,0,63.52,20.83,63.52,65.29V203c0,41.92-16.51,60-65.3,60a216.77,216.77,0,0,1-39.89-3.81V232.42a251.24,251.24,0,0,0,36.84,3.3c26.93,0,35.32-8.38,35.32-26.17v-9.91H901c-7.62,6.86-17.28,13.47-37.6,13.47-36.59,0-55.39-18.8-55.39-64.28v-3.05C808.05,101.57,829.39,81.5,872.33,81.5Zm0,103.41c21.85,0,30.49-9.91,30.49-37.1v-1c0-27.18-8.64-37.09-30.49-37.09s-31,9.91-31,37.09v1C841.33,175,850.48,184.91,872.33,184.91Z"></path><path class="cls-1" d="M948,80.84h33v76.88c0,18.8,7.88,27.19,26.94,27.19,18.8,0,26.42-8.39,26.42-27.19V80.84h33.29v77.9c0,37.85-18,54.37-59.71,54.37-42.44,0-60-16.52-60-54.37Z"></path><path class="cls-1" d="M799.15,80.85v77.9c0,37.85-18,54.36-59.7,54.36-42.42,0-60-16.51-60-54.36V80.85h42.64c-2.25,3.84-4.59,11-7,15.49-.92,1.93-1.78,3.86-2.55,5.77C701,130,702.28,156.31,716,174.48c0,.05,0,.07,0,.1A17.61,17.61,0,0,0,721,180.2a58.17,58.17,0,0,0,15.73,11,72,72,0,0,0,9.46,3.76,38.85,38.85,0,0,1-1.71-3.76,34.06,34.06,0,0,1-1.9-6.37c-4.07-19.62,8.9-37.66,15.57-56.5,2.36-6.62,5.87-14.37,7.78-25.68a142.1,142.1,0,0,0,1.36-19.93c0-.65,0-1.28,0-1.88Z"></path><path class="cls-1" d="M727.74,164.64c-.71-.78-8.53-11.11,9-59.73,1.05-2.93,1.9-5.66,2.63-8.32a48.22,48.22,0,0,0,7.18-1.21,121.65,121.65,0,0,1-4.47,11.82C724.22,147.81,727.46,163.44,727.74,164.64Z"></path><path class="cls-1" d="M240.49,8.16c23.92,0,77.27,38.63,98.88,117.28,18.77,68.29-39.55,149.46-67.6,149.46-58.41,0-45.53-94.28-43.23-104.85C251.07,79.45,214.74,8.16,240.49,8.16Z"></path><path class="cls-1" d="M211,274.9c-23.92,0-77.27-35.1-98.88-106.55-18.77-62.06,39.55-135.81,67.6-135.81,58.41,0,45.53,85.66,43.23,95.27C200.41,210.13,236.74,274.9,211,274.9Z"></path><path class="cls-1" d="M26.3,232.09a1.23,1.23,0,0,1,.21,1.67c-2.34,3.26-4.74,6.56-7.06,9.66-2.53,3.4-4.81,11.58-3.74,15.5s13.52,6.38,14.86,5.51,6.18-12.52,9.21-18.78c5.6-11.56,10.67-23.4,16.91-34.59,3.93-7.06,9.14-13.4,14.22-20.32a1.26,1.26,0,0,0-1.2-2c-12,1.85-20.42,10.16-28.44,18.17-.42.51-1.11.14-1-.28,7.62-14.37,20.45-20.79,35.69-22.2,12.23-1.13,20.52,5.89,26.66,16a1.19,1.19,0,0,1,.15.35A87.14,87.14,0,0,1,105,211.9c1.6,8.2,1,16.38-3.08,23.78C88.2,260.16,66.79,273,39.23,274.86c-6,.42-12.9-2.41-18.38-5.52a17.38,17.38,0,0,1-6.48-23.26c2.67-5,6.53-9.34,10-13.91a1.24,1.24,0,0,1,1.81-.2Zm34.57,24.78C75,245,81.15,230.78,90.41,217.9c5.1-7.09,3.94-20.8,1.35-24.06-2.36-3-5.24-3.55-8.43-4.55a1.24,1.24,0,0,0-1.49.58c-3.94,7.42-8.61,18.78-12.33,21.86-3.88,3.21-10.55,14.84-15.05,22.86-4.67,8.31-21.06,26.12-19.63,32.62S59.72,257.83,60.87,256.87Z"></path></svg>
       <div class="brand-text">
         <div class="role" data-i18n="brandRole">EUDR readiness</div>
       </div>
@@ -1175,6 +1187,47 @@
       <div class="lab" id="cdLab">-</div>
       <div class="rule"></div>
       <div class="lab" id="cdSmall">-</div>
+    </div>
+  </section>
+
+  <section id="mapSection">
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="secMapH">Mapped plot boundaries</h2>
+        <p data-i18n="secMapP">-</p>
+      </div>
+      <div class="section-tag" data-i18n="secMapTag">Click a district to open its plots</div>
+    </div>
+    <div class="grid">
+      <div class="col-8 panel">
+        <div class="mapbar">
+          <button class="mapbtn" id="mapBack" disabled data-i18n="mapBack">All districts</button>
+          <button class="mapbtn" id="mapReset" data-i18n="mapReset">Reset zoom</button>
+          <input class="mapfind" id="mapFind" type="search" autocomplete="off"
+                 placeholder="Find a plot" aria-label="Find a plot">
+          <span class="crumb" id="mapCrumb">-</span>
+          <span class="mapstat" id="mapStat">-</span>
+        </div>
+        <div class="mapwrap sat" id="mapWrap">
+          <div class="mapmode" id="mapMode" role="group" aria-label="Basemap">
+            <button type="button" data-mode="sat" aria-pressed="true" data-i18n="mapModeSat">Satellite</button>
+            <button type="button" data-mode="plain" aria-pressed="false" data-i18n="mapModePlain">Plain</button>
+          </div>
+          <div class="mapload" id="mapLoad" hidden>-</div>
+          <div class="maptip" id="mapTip"></div>
+        </div>
+        <div class="maplegend" id="mapLegend"></div>
+      </div>
+      <div class="district-ledger col-4">
+        <div class="district-ledger-head">
+          <p class="panel-title" style="margin:0;" data-i18n="panMapListH">Districts mapped</p>
+          <p class="panel-note" style="margin:2px 0 0;" data-i18n="panMapListN">Click a row to open its plots.</p>
+        </div>
+        <div id="mapDistrictList"></div>
+      </div>
+      <div class="col-12">
+        <div class="callout" id="mapNote">-</div>
+      </div>
     </div>
   </section>
 
@@ -1310,46 +1363,7 @@
   </section>
 
 
-  <section id="mapSection">
-    <div class="section-head">
-      <div>
-        <h2 data-i18n="secMapH">Mapped plot boundaries</h2>
-        <p data-i18n="secMapP">-</p>
-      </div>
-      <div class="section-tag" data-i18n="secMapTag">Click a district to open its plots</div>
-    </div>
-    <div class="grid">
-      <div class="col-8 panel">
-        <div class="mapbar">
-          <button class="mapbtn" id="mapBack" disabled data-i18n="mapBack">All districts</button>
-          <button class="mapbtn" id="mapReset" data-i18n="mapReset">Reset zoom</button>
-          <input class="mapfind" id="mapFind" type="search" autocomplete="off"
-                 placeholder="Find a plot" aria-label="Find a plot">
-          <span class="crumb" id="mapCrumb">-</span>
-          <span class="mapstat" id="mapStat">-</span>
-        </div>
-        <div class="mapwrap sat" id="mapWrap">
-          <div class="mapmode" id="mapMode" role="group" aria-label="Basemap">
-            <button type="button" data-mode="sat" aria-pressed="true" data-i18n="mapModeSat">Satellite</button>
-            <button type="button" data-mode="plain" aria-pressed="false" data-i18n="mapModePlain">Plain</button>
-          </div>
-          <div class="mapload" id="mapLoad" hidden>-</div>
-          <div class="maptip" id="mapTip"></div>
-        </div>
-        <div class="maplegend" id="mapLegend"></div>
-      </div>
-      <div class="district-ledger col-4">
-        <div class="district-ledger-head">
-          <p class="panel-title" style="margin:0;" data-i18n="panMapListH">Districts mapped</p>
-          <p class="panel-note" style="margin:2px 0 0;" data-i18n="panMapListN">Click a row to open its plots.</p>
-        </div>
-        <div id="mapDistrictList"></div>
-      </div>
-      <div class="col-12">
-        <div class="callout" id="mapNote">-</div>
-      </div>
-    </div>
-  </section>
+
 
   <section>
     <div class="section-head">
@@ -1526,11 +1540,11 @@ function icon(name){
 var GRID_DASH = [2, 3];
 var CHART_FONT = '"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif';
 var COLORS = {
-  roast:'#7B4A24', roastDeep:'#43260F', roastLight:'#A97244', roastWash:'#F4E6D5',
-  leaf:'#4E7C2E', leafLight:'#7FA84A', leafWash:'#E9F1DD',
-  cherry:'#B23A1E', honey:'#D2911F', honeyWash:'#FBEED4',
-  teal:'#2C7A83', olive:'#8C9A3B', clay:'#9C5230',
-  ink:'#2A1A10', inkSoft:'#63483A', inkFaint:'#8A7059', line:'#EADCC7'
+  roast:'#0E564C', roastDeep:'#083B34', roastLight:'#358879', roastWash:'#EAF4E6',
+  leaf:'#367729', leafLight:'#70A95A', leafWash:'#EAF5E5',
+  cherry:'#5D9842', honey:'#73A35A', honeyWash:'#F3FAEF',
+  teal:'#2D7950', olive:'#82AF65', clay:'#568940',
+  ink:'#21351B', inkSoft:'#486541', inkFaint:'#6D8467', line:'#DDE9D8'
 };
 /* One green across every dashboard: the dark teal of the KPI tiles. It is not
    a decorative choice. On this background it measures 9.5:1, where the leaf
@@ -1539,7 +1553,7 @@ var COLORS = {
    green, which is no separation at all. With this green that pair measures
    28.8, and green against gold measures 49.0. Gold is still below 3:1 on this
    background, so every gold mark stays labelled or sits beside a table. */
-var GREEN = '#0D4D45';
+var GREEN = '#0E564C';
 
 /* Compliant vs at-risk. Green against red is what a red-green colour-blind
    reader cannot separate, so at-risk is gold rather than red. */
@@ -1659,20 +1673,20 @@ var GAP_META = {
 var I18N = {
   en: {
     navTitle:'Navigation', navDomestic:'Domestic Trade', navExport:'Ndugu Export',
-    navEudr:'EUDR Compliance', navImpact:'Impact Projects', navFinance:'Financial Services',
-    navProduction:'Ndugu Production', navAgritracker:'Agritracker', navCoffee:'Coffee Minds',
+    navEudr:'EUDR Compliance', navImpact:'Ndugu Impact', navFinance:'Ndugu Microfinance',
+    navProduction:'Ndugu Production', navAgritracker:'Internal resources', navCoffee:'Coffee Minds',
     navAbout:'About us', navEditor:'Boundary editor',
     brandRole:'EUDR readiness', asofLabel:'Assessed',
     heroEyebrow:'EU Deforestation Regulation',
     heroH1:'Every kilogram sold into Europe needs the location of the plot it grew on',
     heroLede:function(f){
-      return f.plots + ' plot boundaries have been walked, covering ' + f.mapped +
-        ' farmers. Of the ' + f.total + ' Ndugu has bought from its members, ' + f.ready +
-        ' can now be documented to the standard the regulation sets. The remaining ' +
-        f.atRisk + ' sits behind ' + f.toFix + ' farmers whose plots still need field ' +
-        'work before ' + f.deadline + '.';
+      return f.plots + ' mapped plot boundaries are available. ' + f.mapped +
+        ' farmers have at least one usable mapped polygon. Of the ' + f.total +
+        ' transacted, ' + f.ready + ' has a preliminary geolocation coverage signal. ' +
+        f.atRisk + ' is linked to ' + f.toFix + ' actively delivering farmers with recorded location gaps. ' +
+        'All producing plots, deforestation status and legal compliance still need verification.';
     },
-    heroCap:'of volume meets the geolocation standard',
+    heroCap:'of volume with preliminary geolocation coverage',
     cdLab:function(f){
       return '<b>' + f.days + ' days</b> until ' + f.deadline +
         ', when large and medium operators must comply';
@@ -1681,7 +1695,7 @@ var I18N = {
     badgeReg:function(f){ return f.regulation; },
     badgeCutoff:function(f){ return 'Deforestation-free since ' + f.cutoff; },
     badgePrecision:function(f){ return 'At least ' + f.decimals + ' decimal digits'; },
-    kpiCompliant:'Volume that qualifies', kpiAtRisk:'Volume at risk',
+    kpiCompliant:'Volume with location evidence', kpiAtRisk:'Volume at risk',
     kpiVisits:'Farmers needing a visit',
     kpiPolygonSub:'over 4 ha, point not accepted',
     kpiMappedPlots:'Plot boundaries walked',
@@ -1750,21 +1764,13 @@ var I18N = {
     band_under_half:'Under 0.5 ha', band_half1:'0.5 to 1 ha', band_1to2:'1 to 2 ha',
     band_2to4:'2 to 4 ha', band_over4:'Over 4 ha',
     bandProvisional:'Provisional, matched on name',
-    tipRegistered:'Linked to the register', tipProvisional:'Provisional, matched on name',
+    tipRegistered:'Mapped plot', tipProvisional:'Provisional, matched on name',
     mapNote:function(f){
-      return '<b>Each boundary carries its farmer code, plot name and farm unit ID</b>, so a ' +
-        'plot can be identified and looked up. Hover any plot, or search by code. ' +
-        'National ID numbers, phone numbers, dates of birth and addresses are never ' +
-        'published and the build fails rather than include one. ' +
-        'Areas are measured from the geometry rather than taken from the workbook, whose ' +
-        'own size column is in acres. ' +
-        f.provisional + ' plots come from a second register with no shared identifier and ' +
-        'are matched on farmer name alone, so they are marked provisional. ' +
-        '<b>No deforestation status is shown.</b> The source workbook contradicts itself, ' +
-        'marking ' + f.defAll + ' plots as deforestation-detected on one sheet and ' +
-        f.defFailed + ' on another, with the two disagreeing on the plots they share. ' +
-        'That has to be reconciled at source before any plot here can be called ' +
-        'deforestation-free.';
+      return '<b>Mapped boundaries are from the consolidated Polygons worksheet.</b> ' +
+        'Plots are shown with anonymous references, not farmer names, farmer codes or farm unit IDs. ' +
+        'The mapped area is calculated from geometry in hectares. ' +
+        'The source does not include ITC submissions or verified deforestation-test results, ' +
+        'so these statuses are not reported. Geolocation alone does not establish full EUDR compliance.';
     },
     secReqH:'What the regulation asks for',
     secReqP:function(f){
@@ -1850,20 +1856,20 @@ var I18N = {
   },
   nl: {
     navTitle:'Navigatie', navDomestic:'Binnenlandse handel', navExport:'Ndugu Export',
-    navEudr:'EUDR-naleving', navImpact:'Impactprojecten', navFinance:'Financiële diensten',
-    navProduction:'Ndugu Production', navAgritracker:'Agritracker', navCoffee:'Coffee Minds',
+    navEudr:'EUDR-naleving', navImpact:'Ndugu Impact', navFinance:'Ndugu Microfinanciering',
+    navProduction:'Ndugu Productie', navAgritracker:'Interne bronnen', navCoffee:'Coffee Minds',
     navAbout:'Over ons', navEditor:'Grenzen bewerken',
     brandRole:'EUDR-gereedheid', asofLabel:'Beoordeeld',
     heroEyebrow:'EU-ontbossingsverordening',
     heroH1:'Elke kilo die naar Europa gaat heeft de locatie nodig van het perceel waarop hij groeide',
     heroLede:function(f){
-      return f.plots + ' perceelgrenzen zijn afgelopen, samen ' + f.mapped +
-        ' boeren. Van de ' + f.total + ' die Ndugu bij haar leden heeft gekocht, kan ' +
-        f.ready + ' nu worden onderbouwd volgens de norm van de verordening. De resterende ' +
-        f.atRisk + ' zit achter ' + f.toFix + ' boeren van wie het perceel nog veldwerk ' +
-        'nodig heeft vóór ' + f.deadline + '.';
+      return f.plots + ' ingemeten perceelgrenzen zijn beschikbaar. ' + f.mapped +
+        ' boeren hebben ten minste één bruikbare perceelgrens. Van de ' + f.total +
+        ' verhandelde hoeveelheid heeft ' + f.ready + ' een voorlopig geolocatiesignaal. ' +
+        f.atRisk + ' hangt samen met ' + f.toFix + ' actieve leverende boeren met locatieproblemen. ' +
+        'Alle productiepercelen, ontbossingsstatus en wettelijke naleving vereisen nog controle.';
     },
-    heroCap:'van het volume voldoet aan de geolocatienorm',
+    heroCap:'van het volume met voorlopige geolocatiedekking',
     cdLab:function(f){
       return '<b>' + f.days + ' dagen</b> tot ' + f.deadline +
         ', wanneer grote en middelgrote marktdeelnemers moeten voldoen';
@@ -1872,7 +1878,7 @@ var I18N = {
     badgeReg:function(f){ return f.regulation; },
     badgeCutoff:function(f){ return 'Ontbossingsvrij sinds ' + f.cutoff; },
     badgePrecision:function(f){ return 'Minimaal ' + f.decimals + ' decimalen'; },
-    kpiCompliant:'Volume dat voldoet', kpiAtRisk:'Volume met risico',
+    kpiCompliant:'Volume met locatiegegevens', kpiAtRisk:'Volume met risico',
     kpiVisits:'Boeren die bezoek nodig hebben',
     kpiPolygonSub:'boven 4 ha, punt niet toegestaan',
     kpiMappedPlots:'Ingemeten perceelgrenzen',
@@ -1942,21 +1948,13 @@ var I18N = {
     band_under_half:'Onder 0,5 ha', band_half1:'0,5 tot 1 ha', band_1to2:'1 tot 2 ha',
     band_2to4:'2 tot 4 ha', band_over4:'Boven 4 ha',
     bandProvisional:'Voorlopig, gematcht op naam',
-    tipRegistered:'Gekoppeld aan het register', tipProvisional:'Voorlopig, gematcht op naam',
+    tipRegistered:'Ingemeten perceel', tipProvisional:'Voorlopig, gematcht op naam',
     mapNote:function(f){
-      return '<b>Bij elke grens staan de boerencode, de perceelnaam en het farm unit ID</b>, ' +
-        'zodat een perceel te identificeren en op te zoeken is. Beweeg over een perceel of ' +
-        'zoek op code. Nationale identiteitsnummers, telefoonnummers, geboortedata en ' +
-        'adressen worden nooit gepubliceerd; de build faalt liever dan er een op te nemen. ' +
-        'Oppervlakten zijn berekend uit de geometrie en niet overgenomen uit het ' +
-        'bronbestand, waarvan de eigen oppervlaktekolom in acres staat. ' + f.provisional +
-        ' percelen komen uit een tweede register zonder gedeelde identificatie en zijn ' +
-        'alleen op naam gematcht; die zijn als voorlopig gemarkeerd. ' +
-        '<b>Er wordt geen ontbossingsstatus getoond.</b> Het bronbestand spreekt zichzelf ' +
-        'tegen: op het ene blad staan ' + f.defAll + ' percelen als ontbossing ' +
-        'gedetecteerd en op het andere ' + f.defFailed + ', en voor de percelen die zij ' +
-        'delen zijn de oordelen tegenstrijdig. Dat moet bij de bron worden opgelost ' +
-        'voordat een perceel hier ontbossingsvrij kan worden genoemd.';
+      return '<b>De perceelgrenzen komen uit het samengevoegde werkblad Polygons.</b> ' +
+        'Percelen worden weergegeven met anonieme referenties, zonder boerennaam, boerencode of farm unit ID. ' +
+        'De oppervlakte wordt uit de geometrie in hectare berekend. ' +
+        'De bron bevat geen ITC-indieningen of geverifieerde ontbossingstests; ' +
+        'deze statussen worden daarom niet weergegeven. Geolocatie alleen bewijst geen volledige EUDR-naleving.';
     },
     secReqH:'Wat de verordening vraagt',
     secReqP:function(f){
@@ -2230,7 +2228,7 @@ function renderDistricts(){
     var rad = Math.sqrt(d.plots/maxP) * 26 + 5;
     var circ = L.circleMarker(c, {
       radius:rad, color:'#FFFCF6', weight:1.5,
-      fillColor:'#7B4A24', fillOpacity:0.62, interactive:true
+      fillColor:'#0E564C', fillOpacity:0.62, interactive:true
     });
     circ.on('mouseover mousemove', function(e){
       tipAt(e, '<strong>'+esc(d.district)+'</strong><br>'+
@@ -2329,8 +2327,8 @@ function openDistrict(idx){
     }
     document.getElementById('mapCrumb').innerHTML = t('crumbDistrict').replace('%s', esc(d.district));
     document.getElementById('mapStat').textContent =
-      fmtInt(d.plots) + ' ' + t('lblPlots') + ' · ' + fmtInt(d.ha) + ' ha · ' +
-      fmtInt(d.itc) + ' ' + t('lblItc');
+      fmtInt(d.plots) + ' ' + t('lblPlots') + ' · ' + fmtInt(d.ha) + ' ha' +
+      (d.itc == null ? '' : ' · ' + fmtInt(d.itc) + ' ' + t('lblItc'));
     renderLegend(true);
     renderMapList();
   };
@@ -2560,7 +2558,7 @@ function renderCurve(){
            steepness and moves the apparent knee. The shape of this curve is
            the whole argument, so the axis has to be true to it. */
         data: pts.map(function(p){ return {x:p.farmers, y:p.pct*100}; }),
-        borderColor: C_OK, backgroundColor:'rgba(13,77,69,0.10)',
+        borderColor: C_OK, backgroundColor:'rgba(40,95,22,0.10)',
         borderWidth:2, pointRadius:4, pointHoverRadius:6,
         pointBackgroundColor: C_OK, pointBorderColor:'#FFFCF6', pointBorderWidth:2,
         fill:true, tension:0.25

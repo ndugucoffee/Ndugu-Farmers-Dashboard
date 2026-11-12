@@ -6,7 +6,7 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="icon" href="favicon.ico" sizes="16x16 32x32" type="image/x-icon">
 <link rel="apple-touch-icon" href="favicon.svg">
-<title>Ndugu Farmers Ltd | Impact Projects</title>
+<title>Ndugu Farmers Ltd | Ndugu Impact</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <!-- chart-data drill-down (scripts/chart_tables.py) -->
 <script>
@@ -17,7 +17,7 @@
   var WORDS = {
     en:{view:'View data', title:'Data behind this chart', csv:'Download CSV', copy:'Copy table',
         copied:'Copied', close:'Close', total:'Total', share:'Share of this chart', hidden:'hidden in the chart',
-        series:'Series', label:'Category', value:'Value', none:'This chart has no data to show.',
+        series:'Series', label:'Category', value:'Value', none:'This chart is awaiting a compatible source. Explore the illustrative performance view.',
         units:'Values', rows:'rows'},
     nl:{view:'Gegevens bekijken', title:'Gegevens achter deze grafiek', csv:'CSV downloaden', copy:'Tabel kopiëren',
         copied:'Gekopieerd', close:'Sluiten', total:'Totaal', share:'Aandeel in deze grafiek', hidden:'verborgen in de grafiek',
@@ -148,7 +148,7 @@
       '.cd-menu button{display:block;width:100%;text-align:left;font:inherit;font-size:12.5px;' +
         'color:var(--ink,#2A1A10);background:none;border:none;border-radius:4px;' +
         'padding:7px 10px;cursor:pointer;}' +
-      '.cd-menu button:hover{background:var(--roast-wash,#F4E6D5);}' +
+      '.cd-menu button:hover{background:var(--roast-wash,#E6F3EF);}' +
       '.cd-over{position:fixed;inset:0;z-index:2000;background:rgba(42,26,16,.45);display:flex;' +
         'align-items:center;justify-content:center;padding:16px;}' +
       '.cd-over[hidden]{display:none;}' +
@@ -169,7 +169,7 @@
       '.cd-foot .grow{flex:1;font-size:12px;color:var(--ink-faint,#8A7059);}' +
       '.cd-foot button{font:inherit;font-size:12.5px;padding:6px 12px;border-radius:5px;cursor:pointer;' +
         'border:1px solid var(--line-strong,#D8C4A6);background:var(--surface,#FFFCF6);color:var(--ink,#2A1A10);}' +
-      '.cd-foot button.cd-main{background:var(--roast,#7B4A24);border-color:var(--roast,#7B4A24);color:#fff;}';
+      '.cd-foot button.cd-main{background:var(--roast,#0E564C);border-color:var(--roast,#0E564C);color:#fff;}';
     document.head.appendChild(st);
     box = document.createElement('div');
     box.className = 'cd-over'; box.hidden = true;
@@ -310,44 +310,44 @@
 <style>
   :root{
     /* --- surfaces: raw parchment, cream, unbleached paper --- */
-    --paper:#FAF4EA;
-    --surface:#FFFCF6;
-    --surface-sunk:#F4EADA;
+    --paper:#F7FBF5;
+    --surface:#FFFFFF;
+    --surface-sunk:#F1F7EF;
     /* --- ink: espresso --- */
-    --ink:#2A1A10;
-    --ink-soft:#63483A;
-    --ink-faint:#8A7059;
-    --line:#EADCC7;
-    --line-strong:#D8C4A6;
+    --ink:#1F2D1A;
+    --ink-soft:#4D5F47;
+    --ink-faint:#72836B;
+    --line:#DCE8D8;
+    --line-strong:#C8D8C1;
     /* --- roasted bean: the primary --- */
-    --roast:#7B4A24;
-    --roast-deep:#43260F;
-    --roast-light:#A97244;
-    --roast-wash:#F4E6D5;
+    --roast:#0E564C;
+    --roast-deep:#0B4C43;
+    --roast-light:#368779;
+    --roast-wash:#EAF5E5;
     /* --- leaf: the growing side --- */
-    --leaf:#4E7C2E;
-    --leaf-light:#7FA84A;
-    --leaf-wash:#E9F1DD;
+    --leaf:#0E564C;
+    --leaf-light:#6DAD4D;
+    --leaf-wash:#ECF6E8;
     /* --- coffee cherry --- */
-    --cherry:#B23A1E;
-    --cherry-wash:#F9E3D9;
+    --cherry:#4E8E33;
+    --cherry-wash:#EEF7EA;
     /* --- golden harvest --- */
-    --honey:#D2911F;
-    --honey-wash:#FBEED4;
+    --honey:#6FA649;
+    --honey-wash:#F1F8ED;
     /* --- supporting --- */
-    --teal:#2C7A83;
-    --olive:#8C9A3B;
-    --clay:#9C5230;
+    --teal:#4D8F35;
+    --olive:#7EAD56;
+    --clay:#4C7A35;
     /* Side navigation: drawn from the page's own palette: the rail is the
        same espresso as the footer, so the dashboard sits framed between them.
        Contrast (white on button 6.5:1, espresso on honey 6.2:1) is above AA. */
-    --nav-bg:#43260F;
-    --nav-edge:#5A3618;
-    --nav-title:#F0DFC7;
-    --nav-btn:#835231;
-    --nav-btn-hover:#8A5A34;
-    --nav-btn-current:#D2911F;
-    --nav-btn-current-ink:#2A1A10;
+    --nav-bg:#0B4C43;
+    --nav-edge:#0E564C;
+    --nav-title:#F7FBF5;
+    --nav-btn:#0E564C;
+    --nav-btn-hover:#126A5E;
+    --nav-btn-current:#FFFFFF;
+    --nav-btn-current-ink:#0E564C;
     /* KPI tile gradients. Every stop was checked for white-text contrast
        rather than picked by eye. Saturation is pushed well above the base
        palette (leaf 0.46 -> 0.68, teal 0.50 -> 0.75) to make the row carry, but
@@ -355,12 +355,12 @@
        clear 4.5:1. Full saturation passes too, and looks like neon rather than
        coffee, so it was not used. The tiles are the loudest thing on the page;
        unreadable labels on them would be the most visible possible mistake. */
-    --tile-leaf:linear-gradient(135deg,#458419 0%,#30610F 100%);   /* 4.60:1 */
-    --tile-honey:linear-gradient(135deg,#9F6B12 0%,#795109 100%);  /* 4.58:1 */
-    --tile-roast:linear-gradient(135deg,#AC642B 0%,#8D4E1D 100%);  /* 4.55:1 */
-    --tile-cherry:linear-gradient(135deg,#D24422 0%,#B13316 100%); /* 4.57:1 */
-    --tile-teal:linear-gradient(135deg,#14828E 0%,#0B606A 100%);   /* 4.55:1 */
-    --tile-olive:linear-gradient(135deg,#6E7D18 0%,#4F5A0D 100%);  /* 4.56:1 */
+    --tile-leaf:linear-gradient(135deg,#5AA733 0%,#0E564C 100%);   /* 4.60:1 */
+    --tile-honey:linear-gradient(135deg,#87BC5E 0%,#5A9837 100%);  /* 4.58:1 */
+    --tile-roast:linear-gradient(135deg,#6CB345 0%,#0E564C 100%);  /* 4.55:1 */
+    --tile-cherry:linear-gradient(135deg,#75B852 0%,#438A23 100%); /* 4.57:1 */
+    --tile-teal:linear-gradient(135deg,#4FA45A 0%,#2E7F3D 100%);   /* 4.55:1 */
+    --tile-olive:linear-gradient(135deg,#95C96A 0%,#5B9438 100%);  /* 4.56:1 */
 
     --radius-sm:4px;
     --radius-md:8px;
@@ -914,6 +914,235 @@
     #districtPills{flex-wrap:wrap; max-width:100%; border-radius:16px;}
   }
 
+
+  /* ---------- Dashboard indicators tab ---------- */
+  .ind-filter{display:flex; gap:8px; flex-wrap:wrap; margin:14px 0 4px;}
+  .ind-list{display:flex; flex-direction:column; gap:8px; margin-top:12px;}
+  .ind{background:var(--surface); border:1px solid var(--line); border-radius:12px; overflow:hidden;}
+  .ind-head{
+    all:unset; box-sizing:border-box; width:100%; cursor:pointer; display:grid;
+    grid-template-columns:5.6rem minmax(0,1fr) 11rem 1.2rem; gap:14px; align-items:center;
+    padding:12px 16px;
+  }
+  .ind-head:hover{background:var(--surface-sunk);}
+  .ind-head:focus-visible{outline:2px solid var(--roast); outline-offset:-2px;}
+  .ind-code{font-size:12px; font-weight:700; color:var(--roast-deep); background:var(--roast-wash);
+    border-radius:6px; padding:3px 6px; text-align:center; white-space:nowrap;}
+  .ind-text{font-size:14px; color:var(--ink); line-height:1.4;}
+  .ind-text .chip{margin-top:5px;}
+  .chip{display:inline-block; font-size:11px; font-weight:700; letter-spacing:.02em; padding:2px 8px;
+    border-radius:99px; margin-right:6px;}
+  .chip-measured{background:var(--leaf-wash); color:#2F5A16;}
+  .chip-proxy{background:var(--honey-wash); color:#7A4F00;}
+  .chip-awaiting{background:var(--surface-sunk); color:var(--ink-soft); border:1px dashed var(--line-strong);}
+  .ind-val{text-align:right; font-weight:700; font-size:20px; color:var(--ink); font-variant-numeric:tabular-nums;}
+  .ind-val.none{font-size:13px; font-weight:500; color:var(--ink-faint);}
+  .ind-val small{display:block; font-size:11px; font-weight:500; color:var(--ink-faint);}
+  .ind-bar{height:6px; background:var(--line); border-radius:3px; margin-top:4px; overflow:hidden;}
+  .ind-bar > i{display:block; height:100%; background:var(--leaf);}
+  .ind-bar.proxy > i{background:var(--honey);}
+  .ind-chev{color:var(--ink-faint); transition:transform .15s ease; font-size:12px;}
+  .ind[data-open="true"] .ind-chev{transform:rotate(90deg);}
+  .ind-body{padding:4px 16px 16px calc(16px + 5.6rem + 14px); border-top:1px solid var(--line); display:none;}
+  .ind[data-open="true"] .ind-body{display:block;}
+  .ind-body dl{display:grid; grid-template-columns:9rem 1fr; gap:6px 14px; margin:12px 0 0; font-size:13px;}
+  .ind-body dt{color:var(--ink-faint); font-weight:600;}
+  .ind-body dd{margin:0; color:var(--ink-soft);}
+  .ind-parts{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;}
+  .ind-part{background:var(--surface-sunk); border-radius:8px; padding:8px 12px; min-width:9rem;}
+  .ind-part b{display:block; font-size:18px; color:var(--ink); font-variant-numeric:tabular-nums;}
+  .ind-part span{font-size:12px; color:var(--ink-soft);}
+  .ind-caveat{margin:12px 0 0; padding:8px 12px; border-left:3px solid var(--honey); background:var(--honey-wash);
+    font-size:13px; color:var(--ink-soft); border-radius:0 6px 6px 0;}
+  @media (max-width:760px){
+    .ind-head{grid-template-columns:minmax(0,1fr) 1.2rem; gap:8px;}
+    .ind-code,.ind-val{grid-column:1;} .ind-val{text-align:left;} .ind-chev{grid-row:1; grid-column:2;}
+    .ind-body{padding-left:16px;} .ind-body dl{grid-template-columns:1fr;}
+  }
+
+  /* ---------- Dashboard indicators: pillars, linked charts, table ---------- */
+  .tilegrid .tile[data-id]{cursor:pointer; transition:transform .12s ease, box-shadow .12s ease;}
+  .tilegrid .tile[data-id]:hover{transform:translateY(-2px); box-shadow:0 6px 16px rgba(60,35,15,.22);}
+  .tilegrid .tile.sel{outline:3px solid var(--honey); outline-offset:2px;}
+  .panel-row{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:6px;}
+  .panel-row .panel-title{margin:0;}
+  .ind-pick{margin:0; flex:1 1 12rem; max-width:21rem; min-width:0;}
+  .ind-filter{position:sticky; top:56px; z-index:40; display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+    padding:10px 0; margin:0 0 4px; background:var(--paper); border-bottom:1px solid var(--line);}
+  .ind-filter .pillgroup + .pillgroup{margin-left:auto;}
+  .section-head + .ind-filter{margin-top:-12px;}
+  @media (max-width:900px){ .ind-filter{position:static;} }
+  .stack{display:flex; flex-direction:column; gap:16px; min-width:0;}
+  .ind-pick{font:inherit; font-size:13px; padding:6px 10px; border:1px solid var(--line-strong);
+    border-radius:8px; background:var(--surface); color:var(--ink);}
+
+.impact-btn,.impact-btn-secondary{border:1px solid var(--roast);border-radius:7px;min-height:39px;padding:10px 13px;font-size:12px;line-height:1.3;font-weight:700;cursor:pointer;white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+.impact-btn{background:var(--roast-deep);color:#fff}.impact-btn:hover{background:#6c4527;color:#fff}.impact-btn-secondary{background:var(--surface);color:var(--roast-deep);border-color:var(--line-strong)}.impact-btn-secondary:hover{background:var(--surface-sunk)}
+#tabLibrary .library-hero{padding-bottom:6px}
+.lib-toolbar{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line-strong);padding:18px;border-radius:12px;margin-top:22px}
+.lib-search{display:flex;flex-direction:column;gap:6px;color:var(--ink-soft);font-weight:700;font-size:11px;flex:0 1 205px}
+.lib-search:first-child{flex:1 1 280px}
+.lib-search input,.lib-search select,.lib-form-body input,.lib-form-body textarea{width:100%;min-height:40px;border:1px solid var(--line-strong);color:var(--ink);background:var(--surface);border-radius:7px;padding:8px 11px;font:inherit;font-size:13px}
+.lib-actions{display:flex;gap:9px;flex-wrap:wrap;margin-left:auto}
+.lib-note{font-size:11px;color:var(--ink-soft);margin:11px 2px 18px;line-height:1.6}
+.lib-summary{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:14px;font-size:12px;color:var(--ink-soft)}
+.lib-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:30px}
+.lib-card{background:var(--surface);border:1px solid var(--line-strong);border-radius:12px;padding:18px;display:flex;flex-direction:column;min-width:0;min-height:205px;box-shadow:0 3px 16px rgba(35,29,17,.04)}
+.lib-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:10px}
+.lib-kind{background:#e6f0eb;color:#0b5f51;font-weight:800;font-size:10px;letter-spacing:.08em;border-radius:6px;padding:5px 8px}
+.lib-kind.site{background:#f6ead7;color:#6c4a20}
+.lib-local{font-size:10px;color:var(--ink-faint)}
+.lib-card h3{margin:0 0 7px;font-size:16px;line-height:1.35;overflow-wrap:anywhere;color:var(--ink)}
+.lib-card p{font-size:12px;color:var(--ink-soft);line-height:1.6;margin:0 0 12px;flex:1}
+.lib-card .lib-card-footer{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:auto}
+.lib-card .lib-card-footer .impact-btn,.lib-card .lib-card-footer .impact-btn-secondary{min-height:33px;padding:7px 11px;font-size:11px}
+.lib-card .lib-remove{font-size:11px;border:none;background:none;color:#9a3f36;cursor:pointer;margin-left:auto}
+.lib-empty{grid-column:1/-1;border:1px dashed var(--line-strong);background:var(--surface);border-radius:12px;padding:36px 20px;text-align:center;color:var(--ink-soft)}
+.lib-modal{border:1px solid var(--line-strong);border-radius:14px;padding:0;width:min(900px,calc(100vw - 32px));height:min(86vh,760px);max-width:none;max-height:none;background:var(--surface);color:var(--ink);box-shadow:0 30px 60px rgba(30,20,10,.35)}
+.lib-modal::backdrop{background:rgba(24,22,16,.62)}
+.lib-modal[open]{display:flex;flex-direction:column}
+.lib-modal-header{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:14px}
+.lib-modal-header h2{font-size:18px;margin:3px 0 0;overflow-wrap:anywhere}.lib-eyebrow{font-size:10px;font-weight:800;letter-spacing:.09em;color:var(--ink-soft)}
+.lib-icon-btn{border:none;background:var(--surface-sunk);border-radius:8px;color:var(--ink);font-size:23px;width:38px;height:38px;cursor:pointer}
+.lib-preview{flex:1;min-height:150px;overflow:auto;display:flex;justify-content:center;align-items:stretch;background:#f0eee7}
+.lib-preview iframe{border:0;width:100%;min-height:480px;background:#fff}.lib-preview img{max-width:100%;max-height:100%;object-fit:contain;margin:auto}
+.lib-preview pre{font-size:12px;padding:22px;margin:0;white-space:pre-wrap;overflow-wrap:anywhere;width:100%;color:#392b1b;background:#fff}
+.lib-preview .lib-not-previewable{margin:auto;padding:20px;max-width:440px;text-align:center;line-height:1.6}
+.lib-modal-footer{padding:13px 20px;display:flex;justify-content:flex-end;gap:10px;border-top:1px solid var(--line)}
+.lib-edit-modal{height:fit-content;max-width:520px;max-height:min(640px,calc(100vh - 24px))}.lib-edit-modal form{display:flex;flex-direction:column;min-height:0;max-height:min(640px,calc(100vh - 24px))}.lib-edit-modal .lib-form-body{overflow:auto;min-height:0}
+.lib-form-body{padding:21px;display:grid;gap:15px}.lib-form-body label{display:grid;gap:6px;color:var(--ink-soft);font-size:12px;font-weight:700}
+@media(max-width:950px){.lib-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:620px){.lib-grid{grid-template-columns:1fr}.lib-actions{margin-left:0}.lib-toolbar{align-items:stretch}.lib-search{flex:1 1 100%}}
+  /* ---------- Indicator scorecard ---------- */
+  .sc-bar{display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; margin-top:14px;}
+  .sc-row, .sc-ctl{display:flex; gap:8px; flex-wrap:wrap;}
+  .sc-ctl input, .sc-ctl select{height:36px; border:1px solid var(--line-strong); border-radius:8px; background:var(--surface);
+    color:var(--ink); padding:0 11px; font:inherit; font-size:13px;}
+  .sc-ctl input{width:12rem;}
+  .sc-t{display:flex; align-items:center; gap:9px; font:inherit; font-size:12.5px; color:var(--ink-soft); cursor:pointer;
+    background:var(--surface); border:1px solid var(--line-strong); border-radius:10px; padding:7px 13px; transition:background .12s ease;}
+  .pdot{display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:6px;}
+  .sc-glyph{flex:0 0 auto;}
+  .sc-t .sc-glyph{color:var(--sc, var(--roast));}
+  .sc-t strong{font-size:16px; color:var(--ink); font-variant-numeric:tabular-nums;}
+  .sc-t:hover{background:var(--surface-sunk);}
+  .sc-t[aria-pressed="true"]{border-color:var(--roast); box-shadow:inset 0 0 0 1px var(--roast); color:var(--ink); font-weight:600;}
+  .sc-grid{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin-top:14px; align-items:start;}
+  @media (max-width:1100px){ .sc-grid{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  @media (max-width:680px){ .sc-grid{grid-template-columns:1fr;} .sc-ctl input{width:100%;} }
+  .sc-section{border-top:1px solid var(--line); margin-top:10px;}
+  .sc-card{background:var(--tint); border:1px solid var(--line-strong); border-top:3px solid var(--tone);
+    border-radius:12px; min-width:0; transition:box-shadow .12s ease;}
+  .sc-card:hover{box-shadow:0 8px 20px rgba(44,29,13,.10);}
+  .sc-card.sel{box-shadow:0 0 0 2px var(--roast-deep), 0 8px 20px rgba(44,29,13,.10);}
+  .sc-head{display:block; width:100%; text-align:left; background:none; border:0; font:inherit; color:inherit; cursor:pointer; padding:14px 16px;}
+  .sc-head:focus-visible{outline:2px solid var(--roast); outline-offset:-2px; border-radius:10px;}
+  .sc-top{display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:11px; color:var(--ink-soft);}
+  .sc-n{font-weight:700; color:var(--roast-deep); background:rgba(255,252,246,.75); border-radius:6px; padding:2px 7px;}
+  .sc-st{margin-left:auto; display:inline-flex; align-items:center; gap:6px; font-weight:700; color:var(--ink-soft);}
+  .sc-st .sc-glyph{color:var(--tone);}
+  .sc-name{display:block; font-size:14.5px; line-height:1.4; font-weight:700; color:var(--ink); margin:10px 0 12px; min-height:2.8em;}
+  .sc-mid{display:flex; align-items:center; gap:14px;}
+  .sc-ring{width:84px; height:84px; flex:0 0 auto;}
+  .sc-ring text{font-family:inherit;}
+  .sc-vals{display:block; min-width:0;}
+  .sc-lab{display:block; font-size:11px; color:var(--ink-faint);}
+  .sc-vals strong{display:block; font-size:26px; line-height:1.1; letter-spacing:-.02em; color:var(--ink); font-variant-numeric:tabular-nums;}
+  .sc-tg{display:block; font-size:12px; color:var(--ink-soft); margin-top:3px;}
+  .sc-chev{margin:0 4px 0 auto; width:9px; height:9px; flex:0 0 auto; border-right:2px solid var(--ink-faint); border-bottom:2px solid var(--ink-faint);
+    transform:rotate(45deg); transition:transform .15s ease;}
+  .sc-card.open .sc-chev{transform:rotate(-135deg);}
+  .sc-detail{margin:0 16px; padding:12px 0 14px; border-top:1px solid var(--line); font-size:12.5px; color:var(--ink-soft); line-height:1.55;}
+  .sc-detail p{margin:0 0 6px;} .sc-detail b{color:var(--ink);}
+  .sc-chips{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;}
+  .sc-chip{font-size:11.5px; font-weight:600; border-radius:99px; padding:3px 9px; background:rgba(255,252,246,.75); color:var(--ink-soft);}
+  .sc-chip.gain{color:#2F5A16;}
+  .sc-btn{font:inherit; font-size:12px; font-weight:700; min-height:34px; padding:6px 12px; border-radius:8px; cursor:pointer; margin-top:4px;
+    background:var(--surface); color:var(--roast-deep); border:1px solid var(--line-strong);}
+  .sc-btn:hover{background:var(--surface-sunk);}
+  .sc-empty{grid-column:1 / -1; padding:32px 20px; text-align:center; border:1px dashed var(--line-strong); border-radius:12px; color:var(--ink-soft);}
+
+  /* ---------- Media library ---------- */
+  .mm-bar{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+  .mm-bar input[type=search], .mm-bar select{height:38px; border:1px solid var(--line-strong); border-radius:8px; background:var(--surface);
+    color:var(--ink); padding:0 11px; font:inherit; font-size:13px; min-width:0;}
+  .mm-bar input[type=search]{flex:1 1 220px; max-width:320px;}
+  .mm-bar select{max-width:200px;}
+  .mm-bar .pill .mm-n{opacity:.65; margin-left:5px; font-weight:600;}
+  .mm-add{margin-left:auto;}
+  .mm-count{font-size:12px; color:var(--ink-soft); margin:12px 2px 0;}
+  .mm-grid{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; margin-top:12px;}
+  @media (max-width:1250px){ .mm-grid{grid-template-columns:repeat(3,minmax(0,1fr));} }
+  @media (max-width:900px){ .mm-grid{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  @media (max-width:560px){ .mm-grid{grid-template-columns:1fr;} .mm-add{margin-left:0;} .mm-bar input[type=search]{max-width:none;} }
+  .mm-card{display:flex; flex-direction:column; text-align:left; font:inherit; color:inherit; padding:0; cursor:pointer; overflow:hidden;
+    background:var(--surface); border:1px solid var(--line-strong); border-radius:12px; min-width:0; transition:box-shadow .15s ease, transform .15s ease;}
+  .mm-card:hover{box-shadow:0 10px 24px rgba(44,29,13,.14); transform:translateY(-2px);}
+  .mm-card:focus-visible{outline:2px solid var(--roast); outline-offset:2px;}
+  .mm-thumb{position:relative; display:block; aspect-ratio:3 / 2; background:var(--surface-sunk); overflow:hidden;}
+  .mm-thumb img, .mm-thumb video{width:100%; height:100%; object-fit:cover; display:block; transition:transform .35s ease;}
+  .mm-card:hover .mm-thumb img, .mm-card:hover .mm-thumb video{transform:scale(1.04);}
+  .mm-play{position:absolute; left:10px; bottom:10px; display:inline-flex; align-items:center; gap:6px; background:rgba(27,19,11,.78); color:#fff;
+    border-radius:99px; padding:4px 10px 4px 8px; font-size:11.5px; font-weight:700; font-variant-numeric:tabular-nums;}
+  .mm-play svg{width:11px; height:11px; fill:#fff;}
+  .mm-tag{position:absolute; top:10px; left:10px; background:rgba(255,252,246,.92); color:var(--roast-deep); border-radius:99px; padding:3px 9px; font-size:10.5px; font-weight:800; letter-spacing:.03em;}
+  .mm-body{display:flex; flex-direction:column; gap:5px; padding:13px 15px 15px;}
+  .mm-meta{display:flex; align-items:center; font-size:11px; color:var(--ink-soft); font-weight:600;}
+  .mm-title{font-size:14.5px; font-weight:700; line-height:1.35; color:var(--ink);}
+  .mm-cap{font-size:12.5px; line-height:1.5; color:var(--ink-soft); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+  .mm-foot{font-size:11.5px; color:var(--ink-faint); margin-top:2px;}
+  .mm-empty{grid-column:1 / -1; padding:40px 20px; text-align:center; border:1px dashed var(--line-strong); border-radius:12px; color:var(--ink-soft);}
+  .mm-viewer{border:0; padding:0; border-radius:14px; width:min(1240px,calc(100vw - 24px)); height:fit-content; max-width:none; max-height:calc(100vh - 24px);
+    background:var(--surface); color:var(--ink); overflow:hidden; box-shadow:0 30px 70px rgba(20,12,6,.5);}
+  .mm-viewer::backdrop{background:rgba(20,14,8,.74);}
+  .mm-viewer[open]{display:grid; grid-template-columns:minmax(0,1fr) 380px;}
+  .mm-stage{position:relative; background:#1B130B; aspect-ratio:var(--mm-ar,3 / 2); min-height:360px; max-height:calc(100vh - 24px); min-width:0; overflow:hidden;}
+  .mm-stage > #mmMedia{position:absolute; inset:0;}
+  .mm-stage img, .mm-stage video, .mm-stage iframe{width:100%; height:100%; object-fit:contain; border:0; background:#1B130B; display:block;}
+  .mm-nav{position:absolute; top:50%; transform:translateY(-50%); width:44px; height:44px; border-radius:50%; border:0; cursor:pointer; z-index:2;
+    background:rgba(255,252,246,.88); color:var(--roast-deep); font-size:26px; line-height:1; display:flex; align-items:center; justify-content:center;}
+  .mm-nav:hover{background:#fff;} .mm-nav.prev{left:14px;} .mm-nav.next{right:14px;}
+  .mm-pos{position:absolute; left:14px; top:14px; z-index:2; background:rgba(27,19,11,.72); color:#fff; border-radius:99px; padding:4px 11px; font-size:11.5px; font-weight:700; font-variant-numeric:tabular-nums;}
+  .mm-info{overflow:auto; contain:size; padding:24px 26px 22px; display:flex; flex-direction:column; gap:14px; border-left:1px solid var(--line); min-width:0;}
+  .mm-close{position:absolute; top:12px; right:12px; z-index:3;}
+  .mm-chips{display:flex; flex-wrap:wrap; gap:6px; margin-right:46px;}
+  .mm-chip{display:inline-flex; align-items:center; font-size:11px; font-weight:700; background:var(--surface-sunk); color:var(--ink-soft); border-radius:99px; padding:3px 10px;}
+  .mm-chip.sample{background:var(--honey-wash); color:#7A4F00;}
+  .mm-info h2{font-size:21px; line-height:1.3; margin:0; letter-spacing:-.01em;}
+  .mm-desc{font-size:14px; line-height:1.7; color:var(--ink-soft); margin:0;}
+  .mm-facts{display:grid; grid-template-columns:auto 1fr; gap:8px 16px; margin:0; font-size:13px; padding:14px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line);}
+  .mm-facts dt{color:var(--ink-faint); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; padding-top:2px;}
+  .mm-facts dd{margin:0; color:var(--ink); font-weight:600;}
+  .mm-info details{font-size:13px; color:var(--ink-soft); line-height:1.6;}
+  .mm-info summary{cursor:pointer; font-weight:700; color:var(--ink); margin-bottom:6px;}
+  .mm-actions{display:flex; flex-wrap:wrap; gap:8px; margin-top:auto;}
+  .mm-danger{color:var(--cherry);}
+  @media (max-width:900px){
+    .mm-viewer{width:calc(100vw - 16px); height:calc(100vh - 16px); max-height:none;}
+    .mm-viewer[open]{grid-template-columns:1fr; grid-template-rows:minmax(0,44%) minmax(0,1fr);}
+    .mm-stage{aspect-ratio:auto; min-height:0; max-height:none;}
+    .mm-info{contain:none; border-left:0; padding:18px 18px 16px;}
+  }
+  .mm-addbox{width:min(640px,calc(100vw - 24px)); height:fit-content; max-height:min(640px,calc(100vh - 24px));}
+  .mm-addbox .lib-form-body{overflow:auto;}
+  .mm-form2{display:grid; grid-template-columns:1fr 1fr; gap:15px;}
+  .mm-form select, .mm-form input[type=file]{width:100%; min-height:40px; border:1px solid var(--line-strong); border-radius:7px; background:var(--surface); color:var(--ink); padding:8px 11px; font:inherit; font-size:13px;}
+  .mm-msg{font-size:12px; color:var(--cherry); min-height:1.2em; margin:0;}
+  .mm-form{display:flex; flex-direction:column; min-height:0; max-height:min(640px,calc(100vh - 24px));}
+  .mm-form .lib-form-body{overflow:auto; min-height:0; padding:16px 21px; gap:12px;}
+  .mm-form .lib-modal-header{padding:12px 20px;}
+  .mm-form .lib-modal-footer{padding:11px 20px;}
+  .mm-form [hidden]{display:none !important;}
+  .mm-form .lib-form-body input, .mm-form .lib-form-body textarea, .mm-form select{font-weight:500;}
+  .mm-nlbox{border:1px solid var(--line); border-radius:9px; padding:10px 14px;}
+  .mm-nlbox summary{cursor:pointer; font-size:12px; font-weight:700; color:var(--ink-soft);}
+  .mm-nlbox[open] summary{margin-bottom:14px;}
+  .mm-nlgrid{display:grid; gap:15px;}
+  .mm-note{font-size:12px; line-height:1.5; color:var(--ink-soft); margin:0;}
+  .mm-revert{margin-right:auto; color:var(--cherry);}
+  .mm-exportmsg{font-size:12.5px; line-height:1.5; color:var(--ink-soft); margin:0 0 12px;}
+  .mm-exportmsg:empty{display:none;}
+  @media (max-width:560px){ .mm-form2{grid-template-columns:1fr;} }
+
   /* Project tabs. The page carries two separate studies of the same farmers,
      so they sit behind a tab rather than running one after the other down a
      page already three screens long. */
@@ -1016,6 +1245,18 @@
     font-variant-numeric:tabular-nums;}
   .ynrow .val small{display:block; font-size:11px; font-weight:400; color:var(--ink-faint);}
 </style>
+
+<style id="ndugu-green-theme-overrides">
+  :root{color-scheme:light;}
+  .sidenav{background:var(--nav-bg)!important;border-color:var(--nav-edge)!important}
+  .sidenav-title{color:var(--nav-title)!important}
+  .navbtn{background:var(--nav-btn)!important;color:#fff!important;border-color:rgba(255,255,255,.12)!important}
+  .navbtn:hover{background:var(--nav-btn-hover)!important}
+  .navbtn[aria-current="page"]{background:var(--nav-btn-current)!important;color:var(--nav-btn-current-ink)!important;border-color:transparent!important}
+  ::selection{background:#0E564C;color:#fff}
+</style>
+<script src="ndugu-preferences.js"></script>
+<link rel="stylesheet" href="ndugu-brand.css">
 </head>
 <body>
 
@@ -1035,16 +1276,16 @@
 
 <nav class="sidenav" aria-label="Dashboards">
   <p class="sidenav-title" data-i18n="navTitle">Navigation</p>
+  <a class="navbtn" href="impact.html"      aria-current="page" data-i18n="navImpact">Ndugu Impact</a>
   <a class="navbtn" href="index.html"       data-i18n="navDomestic">Domestic Trade</a>
   <a class="navbtn" href="export.html"      data-i18n="navExport">Ndugu Export</a>
   <a class="navbtn" href="eudr.html"        data-i18n="navEudr">EUDR Compliance</a>
-  <a class="navbtn" href="impact.html"      aria-current="page" data-i18n="navImpact">Impact Projects</a>
-  <a class="navbtn" href="finance.html"     data-i18n="navFinance">Financial Services</a>
+  <a class="navbtn" href="finance.html"     data-i18n="navFinance">Ndugu Microfinance</a>
   <a class="navbtn" href="production.html"  data-i18n="navProduction">Ndugu Production</a>
-  <a class="navbtn" href="agritracker.html" data-i18n="navAgritracker">Agritracker</a>
   <a class="navbtn" href="coffee.html"      data-i18n="navCoffee">Coffee Minds</a>
-  <a class="navbtn" href="about.html"       data-i18n="navAbout">About us</a>
-  <a class="navbtn" href="map-editor.html"  data-i18n="navEditor">Boundary editor</a>
+
+  <a class="navbtn" href="agritracker.html" data-i18n="navAgritracker">Internal resources</a>
+
 </nav>
 
 <div class="layout-main">
@@ -1052,13 +1293,12 @@
 <header class="topbar">
   <div class="shell topbar-inner">
     <div class="brand">
-      <svg class="brand-mark" viewBox="0 0 1080 283.07" xmlns="http://www.w3.org/2000/svg"><style>.cls-1{fill:#347e19;}</style><path class="cls-1" d="M469.14,81.5c41.67,0,59.71,16.51,59.71,54.37v74.95H495.56V136.89c0-18.81-7.62-27.19-26.42-27.19-19.06,0-26.94,8.38-26.94,27.19v73.93h-33V135.87C409.17,98,426.7,81.5,469.14,81.5Z"></path><path class="cls-1" d="M593.37,81.5c20.32,0,30,6.6,37.6,13.46h1.78V28.46h33V148.83c0,44.21-20.58,64.28-63.52,64.28S538,193,538,148.83v-3.05C538,100.3,556.78,81.5,593.37,81.5Zm8.89,103.41c21.85,0,30.49-9.91,30.49-37.1v-1c0-27.18-8.64-37.09-30.49-37.09s-31,9.91-31,37.09v1C571.26,175,580.41,184.91,602.26,184.91Z"></path><path class="cls-1" d="M872.33,81.5c42.94,0,63.52,20.83,63.52,65.29V203c0,41.92-16.51,60-65.3,60a216.77,216.77,0,0,1-39.89-3.81V232.42a251.24,251.24,0,0,0,36.84,3.3c26.93,0,35.32-8.38,35.32-26.17v-9.91H901c-7.62,6.86-17.28,13.47-37.6,13.47-36.59,0-55.39-18.8-55.39-64.28v-3.05C808.05,101.57,829.39,81.5,872.33,81.5Zm0,103.41c21.85,0,30.49-9.91,30.49-37.1v-1c0-27.18-8.64-37.09-30.49-37.09s-31,9.91-31,37.09v1C841.33,175,850.48,184.91,872.33,184.91Z"></path><path class="cls-1" d="M948,80.84h33v76.88c0,18.8,7.88,27.19,26.94,27.19,18.8,0,26.42-8.39,26.42-27.19V80.84h33.29v77.9c0,37.85-18,54.37-59.71,54.37-42.44,0-60-16.52-60-54.37Z"></path><path class="cls-1" d="M799.15,80.85v77.9c0,37.85-18,54.36-59.7,54.36-42.42,0-60-16.51-60-54.36V80.85h42.64c-2.25,3.84-4.59,11-7,15.49-.92,1.93-1.78,3.86-2.55,5.77C701,130,702.28,156.31,716,174.48c0,.05,0,.07,0,.1A17.61,17.61,0,0,0,721,180.2a58.17,58.17,0,0,0,15.73,11,72,72,0,0,0,9.46,3.76,38.85,38.85,0,0,1-1.71-3.76,34.06,34.06,0,0,1-1.9-6.37c-4.07-19.62,8.9-37.66,15.57-56.5,2.36-6.62,5.87-14.37,7.78-25.68a142.1,142.1,0,0,0,1.36-19.93c0-.65,0-1.28,0-1.88Z"></path><path class="cls-1" d="M727.74,164.64c-.71-.78-8.53-11.11,9-59.73,1.05-2.93,1.9-5.66,2.63-8.32a48.22,48.22,0,0,0,7.18-1.21,121.65,121.65,0,0,1-4.47,11.82C724.22,147.81,727.46,163.44,727.74,164.64Z"></path><path class="cls-1" d="M240.49,8.16c23.92,0,77.27,38.63,98.88,117.28,18.77,68.29-39.55,149.46-67.6,149.46-58.41,0-45.53-94.28-43.23-104.85C251.07,79.45,214.74,8.16,240.49,8.16Z"></path><path class="cls-1" d="M211,274.9c-23.92,0-77.27-35.1-98.88-106.55-18.77-62.06,39.55-135.81,67.6-135.81,58.41,0,45.53,85.66,43.23,95.27C200.41,210.13,236.74,274.9,211,274.9Z"></path><path class="cls-1" d="M26.3,232.09a1.23,1.23,0,0,1,.21,1.67c-2.34,3.26-4.74,6.56-7.06,9.66-2.53,3.4-4.81,11.58-3.74,15.5s13.52,6.38,14.86,5.51,6.18-12.52,9.21-18.78c5.6-11.56,10.67-23.4,16.91-34.59,3.93-7.06,9.14-13.4,14.22-20.32a1.26,1.26,0,0,0-1.2-2c-12,1.85-20.42,10.16-28.44,18.17-.42.51-1.11.14-1-.28,7.62-14.37,20.45-20.79,35.69-22.2,12.23-1.13,20.52,5.89,26.66,16a1.19,1.19,0,0,1,.15.35A87.14,87.14,0,0,1,105,211.9c1.6,8.2,1,16.38-3.08,23.78C88.2,260.16,66.79,273,39.23,274.86c-6,.42-12.9-2.41-18.38-5.52a17.38,17.38,0,0,1-6.48-23.26c2.67-5,6.53-9.34,10-13.91a1.24,1.24,0,0,1,1.81-.2Zm34.57,24.78C75,245,81.15,230.78,90.41,217.9c5.1-7.09,3.94-20.8,1.35-24.06-2.36-3-5.24-3.55-8.43-4.55a1.24,1.24,0,0,0-1.49.58c-3.94,7.42-8.61,18.78-12.33,21.86-3.88,3.21-10.55,14.84-15.05,22.86-4.67,8.31-21.06,26.12-19.63,32.62S59.72,257.83,60.87,256.87Z"></path></svg>
+      <svg class="brand-mark" viewBox="0 0 1080 283.07" xmlns="http://www.w3.org/2000/svg"><style>.cls-1{fill:#0E564C;}</style><path class="cls-1" d="M469.14,81.5c41.67,0,59.71,16.51,59.71,54.37v74.95H495.56V136.89c0-18.81-7.62-27.19-26.42-27.19-19.06,0-26.94,8.38-26.94,27.19v73.93h-33V135.87C409.17,98,426.7,81.5,469.14,81.5Z"></path><path class="cls-1" d="M593.37,81.5c20.32,0,30,6.6,37.6,13.46h1.78V28.46h33V148.83c0,44.21-20.58,64.28-63.52,64.28S538,193,538,148.83v-3.05C538,100.3,556.78,81.5,593.37,81.5Zm8.89,103.41c21.85,0,30.49-9.91,30.49-37.1v-1c0-27.18-8.64-37.09-30.49-37.09s-31,9.91-31,37.09v1C571.26,175,580.41,184.91,602.26,184.91Z"></path><path class="cls-1" d="M872.33,81.5c42.94,0,63.52,20.83,63.52,65.29V203c0,41.92-16.51,60-65.3,60a216.77,216.77,0,0,1-39.89-3.81V232.42a251.24,251.24,0,0,0,36.84,3.3c26.93,0,35.32-8.38,35.32-26.17v-9.91H901c-7.62,6.86-17.28,13.47-37.6,13.47-36.59,0-55.39-18.8-55.39-64.28v-3.05C808.05,101.57,829.39,81.5,872.33,81.5Zm0,103.41c21.85,0,30.49-9.91,30.49-37.1v-1c0-27.18-8.64-37.09-30.49-37.09s-31,9.91-31,37.09v1C841.33,175,850.48,184.91,872.33,184.91Z"></path><path class="cls-1" d="M948,80.84h33v76.88c0,18.8,7.88,27.19,26.94,27.19,18.8,0,26.42-8.39,26.42-27.19V80.84h33.29v77.9c0,37.85-18,54.37-59.71,54.37-42.44,0-60-16.52-60-54.37Z"></path><path class="cls-1" d="M799.15,80.85v77.9c0,37.85-18,54.36-59.7,54.36-42.42,0-60-16.51-60-54.36V80.85h42.64c-2.25,3.84-4.59,11-7,15.49-.92,1.93-1.78,3.86-2.55,5.77C701,130,702.28,156.31,716,174.48c0,.05,0,.07,0,.1A17.61,17.61,0,0,0,721,180.2a58.17,58.17,0,0,0,15.73,11,72,72,0,0,0,9.46,3.76,38.85,38.85,0,0,1-1.71-3.76,34.06,34.06,0,0,1-1.9-6.37c-4.07-19.62,8.9-37.66,15.57-56.5,2.36-6.62,5.87-14.37,7.78-25.68a142.1,142.1,0,0,0,1.36-19.93c0-.65,0-1.28,0-1.88Z"></path><path class="cls-1" d="M727.74,164.64c-.71-.78-8.53-11.11,9-59.73,1.05-2.93,1.9-5.66,2.63-8.32a48.22,48.22,0,0,0,7.18-1.21,121.65,121.65,0,0,1-4.47,11.82C724.22,147.81,727.46,163.44,727.74,164.64Z"></path><path class="cls-1" d="M240.49,8.16c23.92,0,77.27,38.63,98.88,117.28,18.77,68.29-39.55,149.46-67.6,149.46-58.41,0-45.53-94.28-43.23-104.85C251.07,79.45,214.74,8.16,240.49,8.16Z"></path><path class="cls-1" d="M211,274.9c-23.92,0-77.27-35.1-98.88-106.55-18.77-62.06,39.55-135.81,67.6-135.81,58.41,0,45.53,85.66,43.23,95.27C200.41,210.13,236.74,274.9,211,274.9Z"></path><path class="cls-1" d="M26.3,232.09a1.23,1.23,0,0,1,.21,1.67c-2.34,3.26-4.74,6.56-7.06,9.66-2.53,3.4-4.81,11.58-3.74,15.5s13.52,6.38,14.86,5.51,6.18-12.52,9.21-18.78c5.6-11.56,10.67-23.4,16.91-34.59,3.93-7.06,9.14-13.4,14.22-20.32a1.26,1.26,0,0,0-1.2-2c-12,1.85-20.42,10.16-28.44,18.17-.42.51-1.11.14-1-.28,7.62-14.37,20.45-20.79,35.69-22.2,12.23-1.13,20.52,5.89,26.66,16a1.19,1.19,0,0,1,.15.35A87.14,87.14,0,0,1,105,211.9c1.6,8.2,1,16.38-3.08,23.78C88.2,260.16,66.79,273,39.23,274.86c-6,.42-12.9-2.41-18.38-5.52a17.38,17.38,0,0,1-6.48-23.26c2.67-5,6.53-9.34,10-13.91a1.24,1.24,0,0,1,1.81-.2Zm34.57,24.78C75,245,81.15,230.78,90.41,217.9c5.1-7.09,3.94-20.8,1.35-24.06-2.36-3-5.24-3.55-8.43-4.55a1.24,1.24,0,0,0-1.49.58c-3.94,7.42-8.61,18.78-12.33,21.86-3.88,3.21-10.55,14.84-15.05,22.86-4.67,8.31-21.06,26.12-19.63,32.62S59.72,257.83,60.87,256.87Z"></path></svg>
       <div class="brand-text">
-        <div class="role" data-i18n="brandRole">Impact projects</div>
+        <div class="role" data-i18n="brandRole">Ndugu Impact</div>
       </div>
     </div>
     <div class="filterbar">
-      <div class="pillgroup" id="districtPills"></div>
       <div class="pillgroup" id="langPills">
         <button class="pill active" data-lang="en">EN</button>
         <button class="pill" data-lang="nl">NL</button>
@@ -1072,303 +1312,144 @@
 
   <div class="projtabs" id="projTabs" role="tablist"></div>
 
-  <div id="tabSurvey">
+  <div id="tabIndicators">
 
   <section class="hero">
     <div class="hero-head">
-      <p class="hero-eyebrow" data-i18n="heroEyebrow">Impact projects</p>
-      <h1 data-i18n="heroH1">Macadamia agroforestry and beekeeping: what farmers already have, and what they need</h1>
-      <p class="lede" data-i18n="heroLede">-</p>
+      <p class="hero-eyebrow" data-i18n="indEyebrow">Impact projects</p>
+      <h1 data-i18n="indH1">Ndugu Projects Impact Dashboard</h1>
     </div>
-    <div class="tilegrid" id="tileGrid"></div>
-    <p class="tilegrid-legend">
-      <span><b data-i18n="rowWhoH">Who was surveyed</b> <span data-i18n="rowWhoN">the cohort and the land it farms</span></span>
-      <span><b data-i18n="rowReadyH">Readiness</b> <span data-i18n="rowReadyN">experience, appetite and the gap between them</span></span>
-    </p>
+    <div class="tilegrid" id="indTileGrid"></div>
+    <p class="tilegrid-legend" id="indReach"></p>
   </section>
 
   <section>
     <div class="section-head">
-      <div>
-        <h2 data-i18n="secWhoH">Who was surveyed</h2>
-        <p data-i18n="secWhoP">-</p>
-      </div>
-      <div class="section-tag" data-i18n="secWhoTag">Age, gender and fieldwork coverage</div>
+      <div><h2 data-i18n="indSecH">Progress against targets</h2></div>
     </div>
-    <div class="grid">
-      <div class="col-4 panel">
-        <p class="panel-title" data-i18n="panAgeH">Age</p>
-        <p class="panel-note" data-i18n="panAgeN">Respondents by age band.</p>
-        <div class="chart-box"><canvas id="ageChart"></canvas></div>
-      </div>
-      <div class="col-4 panel">
-        <p class="panel-title" data-i18n="panDistH">District</p>
-        <p class="panel-note" data-i18n="panDistN">Respondents by recorded district.</p>
-        <div class="chart-box"><canvas id="distChart"></canvas></div>
-      </div>
-      <div class="col-4 panel">
-        <p class="panel-title" data-i18n="panMonthH">Fieldwork</p>
-        <p class="panel-note" data-i18n="panMonthN">Surveys completed by month.</p>
-        <div class="chart-box"><canvas id="monthChart"></canvas></div>
-      </div>
-    </div>
-  </section>
-
-  <section>
-    <div class="section-head">
-      <div>
-        <h2 data-i18n="secFarmH">The farms they are starting from</h2>
-        <p data-i18n="secFarmP">-</p>
-      </div>
-      <div class="section-tag" data-i18n="secFarmTag">Land, coffee and existing tree practice</div>
-    </div>
-    <div class="grid">
-      <div class="col-4 panel">
-        <p class="panel-title" data-i18n="panAgroH">Agroforestry already practised</p>
-        <p class="panel-note" data-i18n="panAgroN">Of those who practise it, which form.</p>
-        <div class="chart-box"><canvas id="agroChart"></canvas></div>
-        <div class="insight-line" id="agroInsight">-</div>
-      </div>
-      <div class="col-4 panel">
-        <p class="panel-title" data-i18n="panMgmtH">Tree management on farm today</p>
-        <p class="panel-note" data-i18n="panMgmtN">Practices farmers already carry out on their own trees.</p>
-        <div class="chart-box"><canvas id="mgmtChart"></canvas></div>
-        <div class="insight-line" id="mgmtInsight">-</div>
-      </div>
-      <div class="col-4 panel">
-        <p class="panel-title" data-i18n="panEnvH">Environmental concerns</p>
-        <p class="panel-note" data-i18n="panEnvN">Named by those expecting an environmental constraint.</p>
-        <div class="chart-box"><canvas id="envChart"></canvas></div>
-        <div class="insight-line" id="envInsight">-</div>
-      </div>
-    </div>
-  </section>
-
-  <section>
-    <div class="section-head">
-      <div>
-        <h2 data-i18n="secMacH">Macadamia readiness</h2>
-        <p data-i18n="secMacP">-</p>
-      </div>
-      <div class="section-tag" data-i18n="secMacTag">Motivation, training, obstacles and support</div>
-    </div>
+    <div class="ind-filter" id="indFilter"></div>
     <div class="grid">
       <div class="col-6 panel">
-        <p class="panel-title" data-i18n="panMacWhyH">Why farmers are interested</p>
-        <p class="panel-note" data-i18n="panMacWhyN">Stated reason for taking on macadamia.</p>
-        <div class="chart-box"><canvas id="macWhyChart"></canvas></div>
+        <p class="panel-title" data-i18n="indProgH">Progress to target</p>
+        <div class="chart-box"><canvas id="indProg"></canvas></div>
       </div>
-      <div class="col-6 panel">
-        <p class="panel-title" data-i18n="panMacTrainH">Training they want</p>
-        <p class="panel-note" data-i18n="panMacTrainN">Area named as most useful.</p>
-        <div class="chart-box"><canvas id="macTrainChart"></canvas></div>
-      </div>
-      <div class="col-6 panel">
-        <p class="panel-title" data-i18n="panMacBlockH">What they expect to block them</p>
-        <p class="panel-note" data-i18n="panMacBlockN">Biggest anticipated obstacle.</p>
-        <div class="chart-box"><canvas id="macBlockChart"></canvas></div>
-      </div>
-      <div class="col-6 panel">
-        <p class="panel-title" data-i18n="panMacHelpH">Support they ask for</p>
-        <p class="panel-note" data-i18n="panMacHelpN">Kind of help named as most useful.</p>
-        <div class="chart-box"><canvas id="macHelpChart"></canvas></div>
-      </div>
-    </div>
-  </section>
-
-  <section>
-    <div class="section-head">
-      <div>
-        <h2 data-i18n="secBeeH">Beekeeping readiness</h2>
-        <p data-i18n="secBeeP">-</p>
-      </div>
-      <div class="section-tag" data-i18n="secBeeTag">Motivation, training, support and conditions</div>
-    </div>
-    <div class="grid">
-      <div class="col-6 panel">
-        <p class="panel-title" data-i18n="panBeeWhyH">Why farmers are interested</p>
-        <p class="panel-note" data-i18n="panBeeWhyN">Stated reason for taking on beekeeping.</p>
-        <div class="chart-box"><canvas id="beeWhyChart"></canvas></div>
-      </div>
-      <div class="col-6 panel">
-        <p class="panel-title" data-i18n="panBeeTrainH">Training they want</p>
-        <p class="panel-note" data-i18n="panBeeTrainN">Area named as most useful.</p>
-        <div class="chart-box"><canvas id="beeTrainChart"></canvas></div>
-      </div>
-      <div class="col-6 panel">
-        <p class="panel-title" data-i18n="panBeeHelpH">Support they ask for</p>
-        <p class="panel-note" data-i18n="panBeeHelpN">Kind of help named as most useful.</p>
-        <div class="chart-box"><canvas id="beeHelpChart"></canvas></div>
-      </div>
-      <div class="col-6 panel">
-        <p class="panel-title" data-i18n="panCondH">Conditions on the ground</p>
-        <p class="panel-note" data-i18n="panCondN">Share answering yes to each question.</p>
-        <div id="condList"></div>
-      </div>
-    </div>
-  </section>
-
-  <section>
-    <div class="section-head">
-      <div>
-        <h2 data-i18n="secTenureH">Who plants, who owns, who sells</h2>
-        <p data-i18n="secTenureP">-</p>
-      </div>
-      <div class="section-tag" data-i18n="secTenureTag">Three questions, same households</div>
-    </div>
-    <div class="grid">
-      <div class="col-12 panel">
-        <div class="stage" id="stageBox"></div>
-        <div class="stage-key" id="stageKey"></div>
-        <div class="insight-line" id="tenureInsight">-</div>
-      </div>
-    </div>
-  </section>
-
-  <section>
-    <div class="section-head">
-      <div>
-        <h2 data-i18n="secCoopH">Cooperatives surveyed</h2>
-        <p data-i18n="secCoopP">-</p>
-      </div>
-      <div class="section-tag" data-i18n="secCoopTag">Ranked by respondents</div>
-    </div>
-    <div class="grid">
-      <div class="col-12 panel">
-        <div class="leaderboard-scroll">
-          <table class="leaderboard">
-            <colgroup>
-              <col style="width:4rem"><col style="width:46%"><col style="width:27%"><col style="width:27%">
-            </colgroup>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th data-i18n="thCoop">Cooperative</th>
-                <th class="num" data-i18n="thRespondents">Respondents</th>
-                <th class="num" data-i18n="thShare">Share</th>
-              </tr>
-            </thead>
-            <tbody id="coopBody"></tbody>
-          </table>
+      <div class="col-6 stack">
+        <div class="panel">
+          <div class="panel-row"><p class="panel-title" data-i18n="indTrendH">Trend</p><select class="ind-pick" id="indPick" aria-label="Indicator"></select></div>
+          <div class="chart-box" id="indTrendBox"><canvas id="indTrend"></canvas></div>
+          <p class="panel-note" id="indTrendMsg" data-i18n="indNoTrend" hidden>-</p>
+        </div>
+        <div class="panel">
+          <p class="panel-title" data-i18n="indDistH">By district</p>
+          <div class="chart-box" id="indDistBox"><canvas id="indDist"></canvas></div>
         </div>
       </div>
     </div>
-  </section>
 
-  <section>
+    <section class="sc-section">
     <div class="section-head">
-      <div>
-        <h2 data-i18n="secNotesH">What this survey can and cannot show</h2>
-        <p data-i18n="secNotesP">-</p>
-      </div>
-      <div class="section-tag" data-i18n="secNotesTag">Data notes</div>
+      <div><h2 data-i18n="scH">Indicator scorecard</h2></div>
+      <div class="section-tag" id="scCount">-</div>
     </div>
-    <div class="grid">
-      <div class="col-12">
-        <div id="notesBox"></div>
-      </div>
+    <div class="sc-bar">
+      <div class="sc-row" id="scTally" role="group"></div>
+      <div class="sc-ctl"><input id="scSearch" type="search" autocomplete="off" aria-label="Search"><select id="scSortSel" aria-label="Sort"></select></div>
     </div>
+    <div class="sc-grid" id="scGrid" role="list" aria-live="polite"></div>
+    </section>
   </section>
 
-  </div><!-- /#tabSurvey -->
+  </div><!-- /#tabIndicators -->
 
-  <div id="tabInspections" hidden>
-
-  <section class="hero">
-    <div class="hero-head">
-      <p class="hero-eyebrow" data-i18n="insEyebrow">Impact projects</p>
-      <h1 data-i18n="insH1">Farmer inspections 2025</h1>
-      <p class="lede" data-i18n="insLede">-</p>
-    </div>
-    <div class="tilegrid" id="insTileGrid"></div>
-    <p class="tilegrid-legend">
-      <span><b data-i18n="insRowCovH">Programme</b> <span data-i18n="insRowCovN">who is enrolled and what they are certified to</span></span>
-      <span><b data-i18n="insRowFarmH">Farm data</b> <span data-i18n="insRowFarmN">plot size, land and harvest recorded on those farms</span></span>
-    </p>
+<div id="tabLibrary" hidden>
+  <section class="hero library-hero"><div class="hero-head"><p class="hero-eyebrow" data-lib="eyebrow">PROJECT RESOURCES</p>
+    <h1 data-lib="title">Projects library</h1><p class="lede" data-lib="intro">Browse project documents and sites.</p></div>
   </section>
-
-  <section>
-    <div class="section-head">
-      <div>
-        <h2 data-i18n="insSecCovH">Certification across the programme</h2>
-        <p data-i18n="insSecCovP">-</p>
-      </div>
-      <div class="section-tag" data-i18n="insSecCovTag">Schemes held, against farmers enrolled</div>
-    </div>
-    <div class="grid">
-      <div class="col-6 panel">
-        <p class="panel-title" data-i18n="insPanCertH">Certification held</p>
-        <p class="panel-note" data-i18n="insPanCertN">Share of enrolled farmers recorded under each scheme.</p>
-        <div id="certList"></div>
-        <div class="insight-line" id="certInsight">-</div>
-      </div>
-      <div class="col-6 panel">
-        <p class="panel-title" data-i18n="insPanDistH">Where the programme sits</p>
-        <p class="panel-note" data-i18n="insPanDistN">Enrolled farmers by district.</p>
-        <div class="chart-box"><canvas id="insDistChart"></canvas></div>
-        <div class="insight-line" id="insDistInsight">-</div>
-      </div>
-    </div>
+  <section class="lib-toolbar" aria-label="Project library tools" data-lib-aria="toolsLabel">
+    <label class="lib-search"><span data-lib="search">Search library</span><input id="libSearch" type="search" data-lib-placeholder="searchPlaceholder" placeholder="Document, project or topic"></label>
+    <label class="lib-search"><span data-lib="filter">Show</span><select id="libFilter"><option value="all" data-lib="all">All resources</option><option value="document" data-lib="documents">Documents</option><option value="site" data-lib="sites">Project sites</option></select></label>
+    <div class="lib-actions"><label class="impact-btn-secondary lib-upload"><span data-lib="addDoc">Add document</span><input type="file" id="libFile" accept=".pdf,.png,.jpg,.jpeg,.webp,.txt,.md,.csv,.docx,.xlsx,.pptx" hidden multiple></label><button class="impact-btn" id="libAddSite" type="button" data-lib="addSite">Add project site</button><button class="impact-btn-secondary" id="libExport" type="button" data-lib="exportBtn">Export for publishing</button></div>
   </section>
+  <p class="lib-note" data-lib="note">Files added here stay in this browser. Use Export for publishing to add them to the shared library.</p>
+  <div class="lib-summary"><span id="libCount"></span><span id="libStatus" role="status" aria-live="polite"></span></div>
+  <div id="libGrid" class="lib-grid" aria-live="polite"></div>
+</div>
+<dialog id="libViewer" class="lib-modal"><div class="lib-modal-header"><div><div class="lib-eyebrow" data-lib="preview">Preview</div><h2 id="libViewerTitle">Document</h2></div><button class="lib-icon-btn" id="libViewerClose" type="button" aria-label="Close preview" data-lib-aria="closePreview">×</button></div><div id="libViewerBody" class="lib-preview"></div><div class="lib-modal-footer"><a id="libViewerDownload" class="impact-btn-secondary" target="_blank" rel="noopener noreferrer" data-lib="openFile">Open / download</a><button class="impact-btn-secondary" type="button" id="libViewerDone" data-lib="close">Close</button></div></dialog>
+<dialog id="libSiteDialog" class="lib-modal lib-edit-modal"><form method="dialog" id="libSiteForm"><div class="lib-modal-header"><h2 data-lib="addSite">Add project site</h2><button type="button" class="lib-icon-btn" id="libSiteClose" aria-label="Close" data-lib-aria="close">×</button></div><div class="lib-form-body"><label><span data-lib="siteName">Site name</span><input name="title" required maxlength="100" placeholder="Project portal" data-lib-placeholder="siteNamePlaceholder" /></label><label><span data-lib="siteUrl">Website URL</span><input name="url" type="url" required placeholder="https://" /></label><label><span data-lib="siteDesc">Description</span><textarea name="description" rows="3" maxlength="300"></textarea></label></div><div class="lib-modal-footer"><button type="button" class="impact-btn-secondary" id="libSiteCancel" data-lib="cancel">Cancel</button><button type="submit" class="impact-btn" data-lib="saveSite">Save site</button></div></form></dialog>
 
-  <section>
-    <div class="section-head">
-      <div>
-        <h2 data-i18n="insSecPlotH">What the farm records hold</h2>
-        <p data-i18n="insSecPlotP">-</p>
-      </div>
-      <div class="section-tag" data-i18n="insSecPlotTag">Plot size, stocking and productive trees</div>
-    </div>
-    <div class="grid">
-      <div class="col-6 panel">
-        <p class="panel-title" data-i18n="insPanSizeH">Plot size</p>
-        <p class="panel-note" data-i18n="insPanSizeN">Recorded plots, by measured size in acres.</p>
-        <div class="chart-box"><canvas id="insSizeChart"></canvas></div>
-        <div class="insight-line" id="insSizeInsight">-</div>
-      </div>
-      <div class="col-6 panel">
-        <p class="panel-title" data-i18n="insPanStockH">Stocking and condition</p>
-        <p class="panel-note" data-i18n="insPanStockN">Measured per plot, then summarised.</p>
-        <div class="statgrid" id="insStats"></div>
-        <div class="insight-line" id="insStockInsight">-</div>
-      </div>
-    </div>
-  </section>
 
-  <section>
-    <div class="section-head">
-      <div>
-        <h2 data-i18n="insSecCoopH">Cooperatives in the programme</h2>
-        <p data-i18n="insSecCoopP">-</p>
+  <div id="tabMedia" hidden>
+    <section class="hero">
+      <div class="hero-head">
+        <p class="hero-eyebrow" data-i18n="mmEyebrow">Project media</p>
+        <h1 data-i18n="mmH1">Media library</h1>
       </div>
-      <div class="section-tag" data-i18n="insSecCoopTag">Ranked by farmers recorded</div>
+    </section>
+    <section>
+      <div class="mm-bar" role="search">
+        <input id="mmSearch" type="search" autocomplete="off">
+        <div class="pillgroup" id="mmTypes"></div>
+        <select id="mmPillar"></select>
+        <select id="mmProject"></select>
+        <select id="mmDistrict"></select>
+        <button type="button" class="impact-btn mm-add" id="mmAdd" data-i18n="mmAdd">Add media</button>
+        <button type="button" class="impact-btn-secondary" id="mmExport" data-i18n="mmExport">Export for publishing</button>
+      </div>
+      <div class="mm-count" id="mmCount"></div>
+      <div class="mm-exportmsg" id="mmExportMsg" role="status" aria-live="polite"></div>
+      <div class="mm-grid" id="mmGrid" aria-live="polite"></div>
+    </section>
+  </div>
+  <dialog id="mmViewer" class="mm-viewer">
+    <div class="mm-stage">
+      <button type="button" class="mm-nav prev" id="mmPrev">&#8249;</button>
+      <span class="mm-pos" id="mmPos"></span>
+      <div id="mmMedia"></div>
+      <button type="button" class="mm-nav next" id="mmNext">&#8250;</button>
     </div>
-    <div class="grid">
-      <div class="col-12 panel">
-        <div class="leaderboard-scroll">
-          <table class="leaderboard">
-            <colgroup>
-              <col style="width:4rem"><col style="width:34%"><col style="width:16%">
-              <col style="width:16%"><col style="width:17%"><col style="width:17%">
-            </colgroup>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th data-i18n="thCoop">Cooperative</th>
-                <th class="num" data-i18n="thFarmers">Farmers</th>
-                <th class="num" data-i18n="thPlots">Plots</th>
-                <th class="num" data-i18n="thTrees">Coffee trees</th>
-                <th class="num" data-i18n="thBags">Bags</th>
-              </tr>
-            </thead>
-            <tbody id="insCoopBody"></tbody>
-          </table>
+    <div class="mm-info" id="mmInfo"></div>
+    <button type="button" class="lib-icon-btn mm-close" id="mmClose">&times;</button>
+  </dialog>
+  <dialog id="mmAddDlg" class="lib-modal mm-addbox">
+    <form id="mmForm" class="mm-form" method="dialog">
+      <div class="lib-modal-header"><h2 id="mmAddTitleH" data-i18n="mmAddTitle">Add media</h2><button type="button" class="lib-icon-btn" id="mmAddClose">&times;</button></div>
+      <div class="lib-form-body">
+        <label id="mmFileRow"><span data-i18n="mmFile">Photo or video</span><input type="file" id="mmFile" accept="image/*,video/*" required></label>
+        <label><span data-i18n="mmTitleF">Title</span><input name="title" required maxlength="120"></label>
+        <label><span data-i18n="mmCaptionF">Short caption (shown on the card)</span><input name="caption" maxlength="200"></label>
+        <label><span data-i18n="mmDescF">Description</span><textarea name="description" rows="3" required maxlength="900"></textarea></label>
+        <label><span data-i18n="mmAltF">Alt text</span><input name="alt" maxlength="250"></label>
+        <div class="mm-form2">
+          <label><span data-i18n="mmFProject">Project</span><input name="project" list="mmProjList" maxlength="80"></label>
+          <label><span data-i18n="mmFPillar">Pillar</span><select name="pillar" id="mmFormPillar"></select></label>
+          <label><span data-i18n="mmFDistrict">District</span><input name="district" list="mmDistList" maxlength="60"></label>
+          <label><span data-i18n="mmFDate">Date</span><input name="date" type="date"></label>
         </div>
+        <div class="mm-form2">
+          <label><span data-i18n="mmFCredit">Credit</span><input name="credit" maxlength="80"></label>
+          <label><span data-i18n="mmTagsF">Tags (comma separated)</span><input name="tags" maxlength="160"></label>
+        </div>
+        <label class="mm-vid-only" hidden><span data-i18n="mmTranscript">Transcript</span><textarea name="transcript" rows="4" maxlength="6000"></textarea></label>
+        <details class="mm-nlbox" id="mmNlBox"><summary data-i18n="mmNlBox">Dutch version (optional)</summary>
+          <div class="mm-nlgrid">
+            <label><span data-i18n="mmTitleF">Title</span><input name="title_nl" maxlength="120"></label>
+            <label><span data-i18n="mmCaptionF">Short caption (shown on the card)</span><input name="caption_nl" maxlength="200"></label>
+            <label><span data-i18n="mmDescF">Description</span><textarea name="description_nl" rows="3" maxlength="900"></textarea></label>
+            <label><span data-i18n="mmAltF">Alt text</span><input name="alt_nl" maxlength="250"></label>
+            <label><span data-i18n="mmFProject">Project</span><input name="project_nl" maxlength="80"></label>
+            <label><span data-i18n="mmFCredit">Credit</span><input name="credit_nl" maxlength="80"></label>
+            <label><span data-i18n="mmTagsF">Tags (comma separated)</span><input name="tags_nl" maxlength="160"></label>
+            <label class="mm-vid-only" hidden><span data-i18n="mmTranscript">Transcript</span><textarea name="transcript_nl" rows="4" maxlength="6000"></textarea></label>
+          </div>
+        </details>
+        <p class="mm-note" id="mmEditNote" data-i18n="mmEditNote" hidden>Changes are saved in this browser only. To change what everyone sees, edit media-library.json.</p>
+        <datalist id="mmProjList"></datalist><datalist id="mmDistList"></datalist>
+        <p class="mm-msg" id="mmMsg" role="alert"></p>
       </div>
-    </div>
-  </section>
+      <div class="lib-modal-footer"><button type="button" class="impact-btn-secondary mm-revert" id="mmRevert" data-i18n="mmRevert" hidden>Revert to published</button><button type="button" class="impact-btn-secondary" id="mmAddCancel" data-i18n="mmCancel">Cancel</button><button type="submit" class="impact-btn" data-i18n="mmSave">Save</button></div>
+    </form>
+  </dialog>
 
-  </div><!-- /#tabInspections -->
 
 </main>
 
@@ -1396,7 +1477,7 @@
    names, phone numbers, register codes and every free-text answer are read by
    that script and are not written to the payload, so they cannot appear here. */
 var DATA = null;
-var REQUIRED_KEYS = ['meta','districts','notes'];
+var REQUIRED_KEYS = ['districts'];
 
 function showFatal(title, detail){
   var el = document.getElementById('bootError');
@@ -1414,12 +1495,15 @@ function boot(){
       'dashboard itself. Check that cdnjs.cloudflare.com is reachable from this machine.');
     return;
   }
-  fetch('./impact-data.json?v=' + Date.now(), {cache:'no-store'})
-    .then(function(r){
-      if (!r.ok) throw new Error('HTTP ' + r.status + ' ' + r.statusText);
+  function get(u){
+    return fetch(u + '?v=' + Date.now(), {cache:'no-store'}).then(function(r){
+      if (!r.ok) throw new Error(u + ': HTTP ' + r.status + ' ' + r.statusText);
       return r.json();
-    })
-    .then(function(json){
+    });
+  }
+  Promise.all([get('./impact-data.json'), get('./indicators-data.json')])
+    .then(function(both){
+      var json = both[0]; IND = both[1];
       var missing = REQUIRED_KEYS.filter(function(k){ return !(k in json); });
       if (missing.length) throw new Error('impact-data.json is missing: ' + missing.join(', '));
       DATA = json;
@@ -1430,32 +1514,14 @@ function boot(){
     .catch(function(err){
       var hint = (location.protocol === 'file:')
         ? 'The page was opened straight from disk. Browsers block fetch() on file:// URLs. Serve the folder over HTTP instead (python -m http.server 8000) or use the deployed GitHub Pages URL.'
-        : 'Could not load ./impact-data.json next to this page. If this is a fresh deploy, check that the build workflow finished and published it.';
+        : 'Could not load ./impact-data.json and ./indicators-data.json next to this page. If this is a fresh deploy, check that the build workflow finished and published it.';
       showFatal('Dashboard data could not be loaded', hint + '  [' + err.message + ']');
     });
 }
 
 /* ============================= state ============================= */
-var state = { lang:'en', district:'all', tab:'survey' };
-function D(){ return DATA.districts[state.district] || DATA.districts.all; }
-/* The two studies cover the same farmers but not the same rows, so each keeps
-   its own district list. A district selected on one tab carries to the other
-   when both hold it, and falls back to the combined view when it does not. */
-function I(){
-  var b = DATA.inspections.districts;
-  return b[state.district] || b.all;
-}
-/* Certification is published once for the whole programme. The cleaning log
-   counts the values it filled across the workbook and cannot say which
-   district they fell in, so a district figure would carry either all of that
-   correction or none of it, and both would be wrong. */
-function insCert(){ return DATA.inspections.districts.all.certification || {}; }
-function isAllDistricts(){ return !DATA.inspections.districts[state.district] || state.district === 'all'; }
-function insDistricts(){ return DATA.inspections.meta.districts.slice(); }
-function tabDistricts(){
-  return state.tab === 'inspections' ? insDistricts() : districtList();
-}
-function districtList(){ return DATA.meta.districts.slice(); }
+var state = { lang:'en', district:'all', tab:'indicators', indPillar:'all', indMode:'demo' /* 'demo' | 'live' */, indSel:'p13', scQ:'', scSort:'order', scStatus:'all', scOpen:{} };
+var IND = null;
 
 /* ============================= formatters ============================= */
 var MONTHS_EN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -1496,16 +1562,16 @@ function share(n, answered){ return answered ? n/answered : 0; }
 var GRID_DASH = [2, 3];
 var CHART_FONT = '"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif';
 var COLORS = {
-  roast:'#7B4A24', roastDeep:'#43260F', roastLight:'#A97244', roastWash:'#F4E6D5',
-  leaf:'#4E7C2E', leafLight:'#7FA84A',
-  cherry:'#B23A1E', honey:'#D2911F',
-  teal:'#2C7A83', olive:'#8C9A3B', clay:'#9C5230',
-  ink:'#2A1A10', inkSoft:'#63483A', inkFaint:'#8A7059', line:'#EADCC7'
+  roast:'#0E564C', roastDeep:'#083B34', roastLight:'#358879', roastWash:'#EAF4E6',
+  leaf:'#367729', leafLight:'#70A95A',
+  cherry:'#5D9842', honey:'#73A35A',
+  teal:'#2D7950', olive:'#82AF65', clay:'#568940',
+  ink:'#21351B', inkSoft:'#486541', inkFaint:'#6D8467', line:'#DDE9D8'
 };
 /* One ramp for ranked categorical bars, so the longest bar is always darkest
    and the eye reads the order from tone as well as length. */
-var RANK_ROAST = ['#663A18','#77431C','#884D20','#995724','#AA6128','#BC7434','#C98A52'];
-var RANK_TEAL  = ['#0D4D45','#0F5A50','#11675C','#137467','#158173','#1C9384','#3AA697'];
+var RANK_ROAST = ['#0E564C','#3D752B','#568C48','#76A368','#9ABF8D','#BED9B6','#DFEBDB'];
+var RANK_TEAL = ['#1D6461','#287C78','#41928D','#62A8A1','#89BDB7','#B3D4D0','#DDECE9'];
 /* Fixed colours for the four household roles, used by every tenure stage. */
 var ROLE_COLOR = {
   'All family members':'#11675C', 'Man':'#663A18', 'Woman':'#C98A52', 'Children':'#8A7059'
@@ -1594,130 +1660,31 @@ function sumN(rows){ return rows.reduce(function(a,r){ return a + r.n; }, 0); }
 
 /* ============================= derived facts ============================= */
 var FACTS = {};
-function computeFacts(){
-  var d = D(), c = d.cohort;
-  var women = (c.gender.filter(function(g){ return /female|vrouw/i.test(g.label); })[0] || {n:0}).n;
-  var mac = d.macadamia, bee = d.beekeeping;
-  var topTrain = mac.training_areas[0] || {label:'-', n:0};
-  var topBlock = mac.challenges[0] || {label:'-', n:0};
-  var topHelp  = mac.support[0] || {label:'-', n:0};
-  var beeTrain = bee.training_areas[0] || {label:'-', n:0};
-  var agro = d.agroforestry.practising;
-  var t = d.tenure;
-  var pick = function(rows, label){
-    var r = rows.filter(function(x){ return x.label === label; })[0];
-    return r ? r.n : 0;
-  };
-  var plantsTot = sumN(t.plants), ownsTot = sumN(t.owns), sellsTot = sumN(t.sells);
-
-  FACTS = {
-    district: state.district === 'all' ? t18('districtAllLong') : state.district,
-    n: fmtInt(d.n),
-    nRaw: d.n,
-    districts: fmtInt(c.n_districts),
-    coops: fmtInt(c.n_cooperatives),
-    from: fmtDate(c.date_min), to: fmtDate(c.date_max),
-    ageMedian: fmtNum(c.age.median, 0),
-    ageMean: fmtNum(c.age.mean, 1),
-    women: fmtInt(women),
-    womenPct: fmtPct(share(women, d.n)),
-    household: fmtNum(c.household.median, 0),
-    land: fmtNum(c.land_acres.median, 1),
-    coffeeLand: fmtNum(c.coffee_acres.median, 1),
-    coffeeKg: fmtTonnes(c.coffee_kg),
-    sellThrough: c.sell_through === null ? '-' : fmtPct(c.sell_through),
-    macPrior: fmtInt(mac.prior.yes),
-    macPriorPct: fmtPct(share(mac.prior.yes, mac.prior.answered)),
-    macNoPriorPct: fmtPct(share(mac.prior.no, mac.prior.answered)),
-    trainWantPct: fmtPct(share(mac.training_wanted.yes, mac.training_wanted.answered)),
-    topTrain: topTrain.label, topTrainPct: fmtPct(share(topTrain.n, sumN(mac.training_areas))),
-    topBlock: topBlock.label, topBlockPct: fmtPct(share(topBlock.n, sumN(mac.challenges))),
-    topHelp: topHelp.label, topHelpPct: fmtPct(share(topHelp.n, sumN(mac.support))),
-    beePrior: fmtInt(bee.prior.yes),
-    beePriorPct: fmtPct(share(bee.prior.yes, bee.prior.answered)),
-    beeTrainedPct: fmtPct(share(bee.trained.yes, bee.trained.answered)),
-    beeLandPct: fmtPct(share(bee.land_available.yes, bee.land_available.answered)),
-    beeTopTrain: beeTrain.label,
-    agroPct: fmtPct(share(agro.yes, agro.answered)),
-    agroNoPct: fmtPct(share(agro.no, agro.answered)),
-    topPractice: (d.agroforestry.practices[0] || {label:'-'}).label,
-    topPracticePct: fmtPct(share((d.agroforestry.practices[0]||{n:0}).n, sumN(d.agroforestry.practices))),
-    envYesPct: fmtPct(share(mac.env.yes, mac.env.answered)),
-    topEnv: (mac.env_concerns[0] || {label:'-'}).label,
-    topEnvPct: fmtPct(share((mac.env_concerns[0]||{n:0}).n, sumN(mac.env_concerns))),
-    topMgmt: (d.agroforestry.management[0] || {label:'-'}).label,
-    topMgmtPct: fmtPct(share((d.agroforestry.management[0]||{n:0}).n, sumN(d.agroforestry.management))),
-    manPlants: fmtPct(share(pick(t.plants,'Man'), plantsTot)),
-    manOwns:   fmtPct(share(pick(t.owns,'Man'), ownsTot)),
-    manSells:  fmtPct(share(pick(t.sells,'Man'), sellsTot)),
-    famPlants: fmtPct(share(pick(t.plants,'All family members'), plantsTot)),
-    famSells:  fmtPct(share(pick(t.sells,'All family members'), sellsTot)),
-    womanOwns: fmtPct(share(pick(t.owns,'Woman'), ownsTot)),
-    womanSells:fmtPct(share(pick(t.sells,'Woman'), sellsTot)),
-    generated: fmtDate(DATA.meta.generated),
-    ageExcluded: DATA.notes.age_excluded,
-    hhExcluded: DATA.notes.household_excluded,
-    distMissing: DATA.notes.district_missing,
-    pooled: DATA.notes.districts_pooled,
-    soldYes: DATA.notes.mac_sold_yes,
-    soldQty: DATA.notes.mac_sold_with_quantity
-  };
-
-  /* Programme facts, computed alongside so both tabs redraw from one pass. */
-  var im = DATA.inspections.meta, ib = I(), inn = DATA.inspections.notes;
-  var R = ib.records, C = insCert();
-  var dists = (ib.by_district || []).slice().sort(function(a, b2){ return b2.n - a.n; });
-  /* The pooled row stands for several districts too small to name, so it is
-     not itself a district and must not be counted as one. */
-  var namedDists = dists.filter(function(r){ return r.district !== im.pooled_label; });
-
-  FACTS.insEnrolled = fmtInt(ib.n_enrolled);
-  FACTS.insRegister = im.wider_register ? fmtInt(im.wider_register) : '-';
-  FACTS.insShareReg = im.wider_register ? fmtPct(ib.n_enrolled / im.wider_register) : '-';
-  FACTS.insIsAll = isAllDistricts();
-  FACTS.insDistrict = isAllDistricts() ? '' : state.district;
-  FACTS.insRecFarmers = fmtInt(R.n_farmers);
-  FACTS.insPlots = fmtInt(R.n_plots);
-  FACTS.insCoops = fmtInt(im.n_cooperatives);
-  FACTS.insRaN = C.RA ? fmtInt(C.RA.recorded) : '-';
-  FACTS.insRaPct = (C.RA && C.RA.pct_recorded !== null) ? fmtPct(C.RA.pct_recorded) : '-';
-  FACTS.insRaFilled = C.RA ? fmtInt(C.RA.filled_as_yes) : '0';
-  FACTS.ins4cN = C['4C'] ? fmtInt(C['4C'].recorded) : '-';
-  FACTS.ins4cPct = (C['4C'] && C['4C'].pct_recorded !== null) ? fmtPct(C['4C'].pct_recorded) : '-';
-  FACTS.insCN = C.C ? fmtInt(C.C.recorded) : '-';
-  FACTS.insCPct = (C.C && C.C.pct_recorded !== null) ? fmtPct(C.C.pct_recorded) : '-';
-  FACTS.insTrees = fmtInt(R.trees.total);
-  FACTS.insMedTrees = fmtInt(R.trees.median || 0);
-  FACTS.insProd = R.productive_share === null ? '-' : fmtPct(R.productive_share);
-  FACTS.insMedPlot = R.plot_acres.median === null ? '-' : fmtNum(R.plot_acres.median, 2);
-  FACTS.insAcres = fmtNum(R.plot_acres.total, 0);
-  FACTS.insBagsAcre = R.bags_per_acre.median === null ? '-' : fmtNum(R.bags_per_acre.median, 1);
-  FACTS.insBags = fmtInt(R.bags.total);
-  FACTS.insMedBags = fmtNum(R.bags.median, 1);
-  FACTS.insTopDist = namedDists.length ? namedDists[0].district : '-';
-  FACTS.insTopDistPct = (namedDists.length && ib.n_enrolled)
-    ? fmtPct(namedDists[0].n / ib.n_enrolled) : '-';
-  FACTS.insNDists = fmtInt(namedDists.length);
-  FACTS.insImputed = fmtInt(inn.cleaning_rows || 0);
-  FACTS.insCleanSheet = inn.cleaning_sheet || 'the cleaning log';
-  FACTS.insRecSheet = im.records_sheet;
-  FACTS.insPerAcre = inn.trees_derived ? fmtInt(inn.trees_derived.per_acre) : '-';
-  FACTS.insDerivedRows = inn.trees_derived ? fmtInt(inn.trees_derived.rows) : '-';
-  FACTS.insPlotsEx = inn.plots_excluded;
-  FACTS.insTreesEx = inn.trees_excluded;
-  FACTS.insSmallPct = (function(){
-    var bands = R.size_bands || [], tot = sumN(bands);
-    var small = bands.filter(function(x){ return /0\.5|Under|Onder/.test(x.label); })
-                     .reduce(function(a, x){ return a + x.n; }, 0);
-    return tot ? fmtPct(small / tot) : '-';
-  })();
-}
 function t18(k){ return (I18N[state.lang][k] !== undefined) ? I18N[state.lang][k] : I18N.en[k]; }
 
 /* ============================= i18n ============================= */
 var I18N = {
   en: {
     asofLabelIns:'Season',
+    asofLabelInd:'Data as of',
+    tabIndicators:'Ndugu Impact Assessment',
+    indEyebrow:'Impact measurement',
+    indH1:'Ndugu Projects Impact: Profit, People, Planet',
+    
+    indSecH:'Progress against targets',
+    
+    
+    indKpiAll:'Indicators', indKpiAllSub:'Logframe dashboard set',
+    indKpiData:'With data', indKpiWait:'Awaiting data', indKpiWaitSub:'Need the M&E survey',
+    indKpiWomen:'Women farmers', indKpiYouth:'Youth farmers',
+    indMeasured:'Measured', indProxy:'Proxy', indAwaiting:'Awaiting data',
+    indAll:'All', indWithData:'With data',
+    indLvlImpact:'Impact', indLvlOutcome:'Outcomes', indLvlOutput:'Outputs',
+    indTarget:'Target', indNoData:'Measurement pending', indSeeParts:'Context only', indNone:'No indicators match this filter.',
+    indTargetFull:'Logframe target', indMov:'Means of verification', indSource:'Data source', indAsOf:'Period',
+    tabMedia:'Media library', asofLabelMedia:'Media', asofWinMedia:'Photos and videos', mmEyebrow:'Project media', mmH1:'Media library', mmSearch:'Search media', mmAll:'All', mmPhotos:'Photos', mmVideos:'Videos', mmPhoto:'Photo', mmVideo:'Video', mmAllProjects:'All projects', mmAllDistricts:'All districts', mmPillar:'Pillar', mmProject:'Project', mmDistrict:'District', mmAdd:'Add media', mmItems:'items', mmEmpty:'No media matches these filters.', mmNone:'No media yet.', mmSample:'Sample', mmLocal:'This browser', mmFProject:'Project', mmFPillar:'Pillar', mmFDistrict:'District', mmFDate:'Date', mmFCredit:'Credit', mmFDuration:'Duration', mmTranscript:'Transcript', mmDownload:'Download', mmOpenOrig:'Open original', mmRemove:'Remove', mmClose:'Close', mmPrev:'Previous', mmNext:'Next', mmAddTitle:'Add media', mmFile:'Photo or video', mmTitleF:'Title', mmDescF:'Description', mmAltF:'Alt text', mmSave:'Save', mmCancel:'Cancel', mmBadFile:'Choose a photo or a video file.', mmSaveFail:'This browser could not store the file.', mmExport:'Export for publishing', mmExportNone:'Nothing to export yet: no media has been added or edited in this browser.', mmExportDone:'Export downloaded: {n} new and {e} edited. Unzip it into the project folder and commit it, then the workflow publishes it.', mmExportFail:'The export could not be created.', mmExportNoCat:'The published media list could not be loaded, so exporting now would drop it. Open the site from its web address and try again.', mmEdit:'Edit info', mmEditTitle:'Edit media info', mmCaptionF:'Short caption (shown on the card)', mmTagsF:'Tags (comma separated)', mmNlBox:'Dutch version (optional)', mmRevert:'Revert to published', mmEditedChip:'Edited', mmEditNote:'Changes are saved in this browser only. To change what everyone sees, edit media-library.json.',
+    scH:'Indicator scorecard', scSearch:'Search', scSort:'Sort', scSortOrder:'Logframe order', scSortHi:'Highest attainment', scSortLo:'Lowest attainment', scSortName:'Name', scSortPillar:'Pillar', scAll:'All', scStMet:'100%+ of target', scStMid:'70–99% of target', scStLow:'Below 70% of target', scStNone:'Measurement pending', scGapTo:'to target', scGapAbove:'above target', scGapOn:'On target', scSince:'since baseline', scActual:'Actual', scShowCharts:'Show in charts', scEmpty:'No indicators match these filters.', scCount:'indicators', tabLibrary:'Projects library', asofLabelLib:'Library', asofWinLib:'Documents and links',
+    indPillAll:'All pillars', indPillProfit:'Profit', indPillPlanet:'Planet', indPillPeople:'People', indModeDemo:'Illustrative', indModeLive:'Live data', indProgH:'Progress to target', indTrendH:'Trend', indNoTrend:'No trend data yet', indDistH:'By district', indOfTarget:'of target', indCurrent:'Current',
     insSeason:'2025',
     tabSurvey:'Macadamia and beekeeping baseline',
     tabInspections:'Farmer inspections 2025',
@@ -1807,10 +1774,10 @@ var I18N = {
         'beside them carries no information the plot size does not already give.';
     },
     navTitle:'Navigation', navDomestic:'Domestic Trade', navExport:'Ndugu Export',
-    navEudr:'EUDR Compliance', navImpact:'Impact Projects', navFinance:'Financial Services',
-    navProduction:'Ndugu Production', navAgritracker:'Agritracker', navCoffee:'Coffee Minds',
+    navEudr:'EUDR Compliance', navImpact:'Ndugu Impact', navFinance:'Ndugu Microfinance',
+    navProduction:'Ndugu Production', navAgritracker:'Internal resources', navCoffee:'Coffee Minds',
     navAbout:'About us', navEditor:'Boundary editor',
-    brandRole:'Impact projects',
+    brandRole:'Ndugu Impact',
     asofLabel:'Surveyed',
     districtAll:'All', districtAllLong:'all districts',
     heroEyebrow:'Impact projects',
@@ -1892,7 +1859,7 @@ var I18N = {
     secNotesTag:'Data notes',
     lblSurveys:'surveys',
     footerDefH:'Definitions',
-    footerDefP:'Baseline survey: a measurement taken before a programme starts, describing the starting position rather than any result. Agroforestry: growing trees alongside crops on the same land. Respondents: the farmers who answered, which for most questions is fewer than the full sample. Share: a count against the number who answered that question, not against everyone surveyed. Land is recorded and shown in acres.',
+    footerDefP:'Logframe: the results framework of the project, which sets each indicator and its target. Baseline: the starting value before the programme began. Progress to target: the current value as a share of the target, shown as a status of 100%+, 70-99% or below 70%. Illustrative: sample figures for presentations. Live data: figures read from the data files of the project, with a dash where no source exists. Living income benchmark: the income a household needs for a decent standard of living.',
     insAgro:function(f){
       return f.agroPct + ' already practise some form of agroforestry, most often ' +
         f.topPractice.toLowerCase() + ' at ' + f.topPracticePct + '.';
@@ -1934,6 +1901,25 @@ var I18N = {
   },
   nl: {
     asofLabelIns:'Seizoen',
+    asofLabelInd:'Gegevens per',
+    tabIndicators:'Ndugu Impactbeoordeling',
+    indEyebrow:'Impactmeting',
+    indH1:'Ndugu-projecten Impact: Winst, Mensen, Planeet',
+    
+    indSecH:'Voortgang naar doelen',
+    
+    
+    indKpiAll:'Indicatoren', indKpiAllSub:'Dashboardset uit het raamwerk',
+    indKpiData:'Met gegevens', indKpiWait:'In afwachting', indKpiWaitSub:'Vereist M&E-enquete',
+    indKpiWomen:'Vrouwelijke boeren', indKpiYouth:'Jonge boeren',
+    indMeasured:'Gemeten', indProxy:'Proxy', indAwaiting:'In afwachting',
+    indAll:'Alles', indWithData:'Met gegevens',
+    indLvlImpact:'Impact', indLvlOutcome:'Uitkomsten', indLvlOutput:'Outputs',
+    indTarget:'Doel', indNoData:'Nog geen gegevens', indSeeParts:'Alleen context', indNone:'Geen indicatoren voor dit filter.',
+    indTargetFull:'Doel in raamwerk', indMov:'Verificatiemiddelen', indSource:'Gegevensbron', indAsOf:'Periode',
+    tabMedia:'Mediabibliotheek', asofLabelMedia:'Media', asofWinMedia:'Afbeeldingen en video', mmEyebrow:'Projectmedia', mmH1:'Mediabibliotheek', mmSearch:'Zoek in media', mmAll:'Alles', mmPhotos:'Afbeeldingen', mmVideos:'Video', mmPhoto:'Afbeelding', mmVideo:'Video', mmAllProjects:'Alle projecten', mmAllDistricts:'Alle districten', mmPillar:'Pijler', mmProject:'Project', mmDistrict:'District', mmAdd:'Media toevoegen', mmItems:'items', mmEmpty:'Geen media voor deze filters.', mmNone:'Nog geen media.', mmSample:'Voorbeeld', mmLocal:'Deze browser', mmFProject:'Project', mmFPillar:'Pijler', mmFDistrict:'District', mmFDate:'Datum', mmFCredit:'Bronvermelding', mmFDuration:'Duur', mmTranscript:'Transcriptie', mmDownload:'Downloaden', mmOpenOrig:'Origineel openen', mmRemove:'Verwijderen', mmClose:'Sluiten', mmPrev:'Vorige', mmNext:'Volgende', mmAddTitle:'Media toevoegen', mmFile:'Afbeelding of video', mmTitleF:'Titel', mmDescF:'Beschrijving', mmAltF:'Alternatieve tekst', mmSave:'Opslaan', mmCancel:'Annuleren', mmBadFile:'Kies een afbeelding of videobestand.', mmSaveFail:'Deze browser kon het bestand niet opslaan.', mmExport:'Exporteren voor publicatie', mmExportNone:'Niets om te exporteren: in deze browser is nog geen media toegevoegd of bewerkt.', mmExportDone:'Export gedownload: {n} nieuw en {e} bewerkt. Pak het uit in de projectmap en commit het, dan publiceert de workflow het.', mmExportFail:'De export kon niet worden gemaakt.', mmExportNoCat:'De gepubliceerde medialijst kon niet worden geladen; exporteren zou die kwijtraken. Open de site via het webadres en probeer opnieuw.', mmEdit:'Info bewerken', mmEditTitle:'Media-info bewerken', mmCaptionF:'Kort onderschrift (getoond op de kaart)', mmTagsF:'Tags (gescheiden door komma)', mmNlBox:'Nederlandse versie (optioneel)', mmRevert:'Terug naar gepubliceerde versie', mmEditedChip:'Bewerkt', mmEditNote:'Wijzigingen worden alleen in deze browser opgeslagen. Pas media-library.json aan om te wijzigen wat iedereen ziet.',
+    scH:'Indicatorscorekaart', scSearch:'Zoeken', scSort:'Sorteren', scSortOrder:'Volgorde raamwerk', scSortHi:'Hoogste doelbereik', scSortLo:'Laagste doelbereik', scSortName:'Naam', scSortPillar:'Pijler', scAll:'Alle', scStMet:'100%+ van doel', scStMid:'70–99% van doel', scStLow:'Onder 70% van doel', scStNone:'Nog geen gegevens', scGapTo:'tot doel', scGapAbove:'boven doel', scGapOn:'Op doel', scSince:'sinds nulmeting', scActual:'Realisatie', scShowCharts:'Toon in grafieken', scEmpty:'Geen indicatoren voor deze filters.', scCount:'indicatoren', tabLibrary:'Projectbibliotheek', asofLabelLib:'Bibliotheek', asofWinLib:'Documenten en links',
+    indPillAll:'Alle pijlers', indPillProfit:'Winst', indPillPlanet:'Planeet', indPillPeople:'Mensen', indModeDemo:'Illustratief', indModeLive:'Live gegevens', indProgH:'Voortgang naar doel', indTrendH:'Trend', indNoTrend:'Nog geen trenddata', indDistH:'Per district', indOfTarget:'van doel', indCurrent:'Huidig',
     insSeason:'2025',
     tabSurvey:'Nulmeting macadamia en bijenteelt',
     tabInspections:'Boerderij-inspecties 2025',
@@ -2026,10 +2012,10 @@ var I18N = {
         'perceelgrootte en voegen daarom niets toe aan wat de perceelgrootte al zegt.';
     },
     navTitle:'Navigatie', navDomestic:'Binnenlandse handel', navExport:'Ndugu Export',
-    navEudr:'EUDR-naleving', navImpact:'Impactprojecten', navFinance:'Financiële diensten',
-    navProduction:'Ndugu Production', navAgritracker:'Agritracker', navCoffee:'Coffee Minds',
+    navEudr:'EUDR-naleving', navImpact:'Ndugu Impact', navFinance:'Ndugu Microfinanciering',
+    navProduction:'Ndugu Productie', navAgritracker:'Interne bronnen', navCoffee:'Coffee Minds',
     navAbout:'Over ons', navEditor:'Grenzen bewerken',
-    brandRole:'Impactprojecten',
+    brandRole:'Ndugu Impact',
     asofLabel:'Onderzocht',
     districtAll:'Alle', districtAllLong:'alle districten',
     heroEyebrow:'Impactprojecten',
@@ -2110,7 +2096,7 @@ var I18N = {
     secNotesTag:'Aantekeningen bij de data',
     lblSurveys:'enquêtes',
     footerDefH:'Definities',
-    footerDefP:'Nulmeting: een meting vóór de start van een programma, die de uitgangssituatie beschrijft en geen resultaat. Agroforestry: bomen telen naast gewassen op hetzelfde land. Respondenten: de boeren die antwoordden, bij de meeste vragen minder dan de volledige steekproef. Aandeel: een telling ten opzichte van het aantal dat die vraag beantwoordde, niet ten opzichte van iedereen. Land is vastgelegd en weergegeven in acres.',
+    footerDefP:'Logframe: het resultatenkader van het project, met per indicator een doelwaarde. Nulmeting: de beginwaarde vóór de start van het programma. Voortgang naar doel: de huidige waarde als aandeel van het doel, getoond als status van 100%+, 70-99% of onder 70%. Illustratief: voorbeeldcijfers voor presentaties. Live gegevens: cijfers uit de gegevensbestanden van het project, met een streepje waar geen bron is. Leefinkomensbenchmark: het inkomen dat een huishouden nodig heeft voor een fatsoenlijk bestaan.',
     insAgro:function(f){
       return f.agroPct + ' past al een vorm van agroforestry toe, meestal ' +
         f.topPractice.toLowerCase() + ' met ' + f.topPracticePct + '.';
@@ -2167,364 +2153,327 @@ function applyStaticI18n(){
 }
 
 /* ============================= renderers ============================= */
-function renderPills(){
-  var host = document.getElementById('districtPills');
-  var opts = ['all'].concat(tabDistricts());
-  host.innerHTML = opts.map(function(k){
-    var label = (k === 'all') ? t18('districtAll') : k;
-    return '<button class="pill' + (k===state.district ? ' active' : '') +
-           '" data-district="' + esc(k) + '">' + esc(label) + '</button>';
-  }).join('');
-}
-
 function flat(text){ return text ? '<div class="tile-foot kpi-delta flat">' + text + '</div>' : ''; }
 
-function renderTiles(){
-  var d = D(), c = d.cohort, mac = d.macadamia, bee = d.beekeeping;
-  if (state.tab === 'survey'){
-    document.getElementById('asOfWindow').textContent =
-      fmtDate(c.date_min) + ' – ' + fmtDate(c.date_max);
-  }
-
-  var cells = [
-    {tone:'tone-s1', icon:'person', label:t('kpiSurveyed'), value:fmtInt(d.n),
-     sub:flat(FACTS.womenPct + ' ' + t('lblWomen'))},
-    {tone:'tone-s2', icon:'pin', label:t('kpiDistricts'), value:fmtInt(c.n_districts),
-     sub:flat(fmtInt(c.n_cooperatives) + ' ' + t('lblCoops'))},
-    {tone:'tone-s3', icon:'window', label:t('kpiAge'), value:FACTS.ageMedian,
-     sub:flat(t('lblMedianYears'))},
-    {tone:'tone-s4', icon:'plot', label:t('kpiLand'), value:FACTS.land + ' ' + t('lblAcres'),
-     sub:flat(FACTS.coffeeLand + ' ' + t('lblUnderCoffee'))},
-    {tone:'tone-s5', icon:'bean', label:t('kpiCoffee'), value:FACTS.coffeeKg,
-     sub:flat(FACTS.sellThrough + ' ' + t('lblSold'))},
-
-    {tone:'tone-m1', icon:'leaf', label:t('kpiAgro'),
-     value:FACTS.agroPct, sub:flat(t('lblAgroSub'))},
-    {tone:'tone-m2', icon:'seal', label:t('kpiMacPrior'),
-     value:FACTS.macPriorPct, sub:flat(fmtInt(mac.prior.yes) + ' ' + t('lblOf') + ' ' + fmtInt(mac.prior.answered))},
-    {tone:'tone-m3', icon:'hive', label:t('kpiBeePrior'),
-     value:FACTS.beePriorPct, sub:flat(fmtInt(bee.prior.yes) + ' ' + t('lblOf') + ' ' + fmtInt(bee.prior.answered))},
-    {tone:'tone-m4', icon:'book', label:t('kpiBeeTrained'),
-     value:FACTS.beeTrainedPct, sub:flat(t('lblBeeTrainedSub'))},
-    {tone:'tone-m5', icon:'group', label:t('kpiTrainWanted'),
-     value:FACTS.trainWantPct, sub:flat(t('lblTrainWantedSub'))}
-  ];
-
-  document.getElementById('tileGrid').innerHTML = cells.map(function(x){
-    return '<div class="tile ' + x.tone + '">' + icon(x.icon) +
-           '<p class="tile-label">' + x.label + '</p>' +
-           '<div class="tile-value num">' + x.value + '</div>' + x.sub + '</div>';
-  }).join('');
+function indVal(kind, v){
+  if (v === null || v === undefined) return '-';
+  if (kind === 'pct') return fmtPct(v);
+  if (kind === 'ugx') return 'UGX ' + (v >= 1e6 ? (v/1e6).toLocaleString(numLocale(),{maximumFractionDigits:1}) + 'M' : fmtInt(v));
+  return fmtInt(v);
 }
-
-function renderCohort(){
-  var d = D(), c = d.cohort;
-
-  mountChart('ageChart', {
-    type:'bar',
-    data:{
-      labels: c.age_bands.map(function(r){ return r.label; }),
-      datasets:[{
-        data: c.age_bands.map(function(r){ return r.n; }),
-        backgroundColor: c.age_bands.map(function(_, i){ return RANK_ROAST[Math.min(i, RANK_ROAST.length-1)]; }),
-        borderRadius:3, borderSkipped:false, barPercentage:0.76
-      }]
-    },
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{display:false},
-        tooltip:{callbacks:{label:function(x){
-          return ' ' + fmtInt(x.parsed.y) + '  (' + fmtPct(share(x.parsed.y, c.age.n)) + ')';
-        }}}},
-      scales:{
-        x:{grid:{display:false}, border:{display:false}},
-        y:{grid:{color:COLORS.line, borderDash:GRID_DASH}, border:{display:false}, ticks:{precision:0}}
-      }
-    }
+function indTargetNum(i){
+  return (i.target === null || i.target === undefined) ? null : i.target;
+}
+/* ---------- Dashboard indicators tab ----------
+   Illustrative mode: every figure below in IND_DEMO is made up for
+   presentations and is flagged on the page. Live mode shows only what
+   indicators-data.json holds, so no invented number reaches the real pipeline. */
+var IND_PILLAR = {i1a:'profit',i1b:'profit',i1c:'profit',o11:'profit',o12:'profit',o13a:'profit',o13b:'profit',p13:'profit',
+  i2a:'planet',i2b:'planet',o2a:'planet',o2b:'planet',o2c:'planet',p2:'planet',
+  i3a:'people',i3b:'people',i3c:'people',i3d:'people',i3e:'people',o3:'people',p34:'people'};
+var IND_PCOL = {profit:'#0E564C', planet:'#287C78', people:'#BE8A35'};
+/* id: [short name, kind, baseline 2023, current, target] */
+var IND_DEMO = {
+  i1a:['Living income benchmark reached','pct',.18,.31,.50],
+  i1b:['30% living income increase since 2023','pct',.12,.37,.50],
+  i1c:['Earning at or above living income price','pct',.22,.45,.60],
+  o11:['Cooperatives on digital systems','count',6,21,20],
+  o12:['Farmers accessing input finance','pct',.08,.26,.25],
+  o13a:['Growth in coffee sourced since 2023','pct',.02,.18,.30],
+  o13b:['Income from diversification','pct',.05,.21,.35],
+  p13:['Certified and traceable farmers','pct',.52,.96,.95],
+  i2a:['Lower on-farm emissions','pct',.04,.27,.50],
+  i2b:['Improved soil health on coffee farms','pct',.06,.33,.45],
+  o2a:['Regenerative practices adopted','pct',.10,.43,.60],
+  o2b:['Regenerative agroforestry adopted','pct',.12,.29,.40],
+  o2c:['Cooperatives with biochar units','count',0,4,10],
+  p2:['Knowledgeable in regenerative farming','pct',.20,.56,.80],
+  i3a:['Better access to health care','pct',.15,.36,.50],
+  i3b:['Households with all children in school','pct',.55,.71,.85],
+  i3c:['Zero child labour','pct',.70,.96,.95],
+  i3d:['Women with authority over earnings','pct',.28,.46,.60],
+  i3e:['Youth with authority over earnings','pct',.20,.36,.50],
+  o3:['Cooperatives with social committees','count',3,14,20],
+  p34:['Youth employed through Ndugu','count',40,212,400]
+};
+var IND_LABELS = {"i1a":["Farmers meeting living income benchmark","Boeren met een leefbaar inkomen","% of Ndugu farmers achieving the living income benchmark","% van de boeren die de referentiewaarde voor een leefbaar inkomen behalen"],"i1b":["Farmers with 30% income growth","Boeren met 30% inkomensgroei","% of Ndugu farmers who have experienced a 30% increase in their living income between 2023 and 2028","% van de boeren van wie het leefbaar inkomen tussen 2023 en 2028 met 30% is gestegen"],"i1c":["Farmers meeting living income price","Boeren met een leefbare koffieprijs","% of Ndugu farmers earning at or above the average living income price of 20,089 UGX / USD 5.83 per kg of coffee (LIP study 2026 by FairFood, Ndugu and Wakuli)","% van de boeren die ten minste de gemiddelde leefbare-inkomensprijs van 20.089 UGX / 5,83 USD per kg koffie ontvangen (LIP-studie 2026 door FairFood, Ndugu en Wakuli)"],"i2a":["Farms with lower emissions","Bedrijven met minder uitstoot","% of Ndugu farmers with a decrease in on-farm emissions","% van de boeren met een daling van de uitstoot op hun bedrijf"],"i2b":["Farms with improved soil health","Bedrijven met betere bodemgezondheid","% of Ndugu farmers with an increase in soil health in their coffee farms as a result of regenerative agricultural practices","% van de boeren bij wie de bodemgezondheid op koffiepercelen is verbeterd door regeneratieve landbouwpraktijken"],"i3a":["Improved healthcare access","Betere toegang tot zorg","% of Ndugu farmers reporting an increase in access to health care services","% van de boeren die een betere toegang tot gezondheidszorg melden"],"i3b":["Children accessing education","Kinderen met toegang tot onderwijs","% of Ndugu farmers whose children all access education","% van de boeren van wie alle kinderen toegang hebben tot onderwijs"],"i3c":["Farms without child labour","Bedrijven zonder kinderarbeid","% of Ndugu farmers practicing zero child labor","% van de boeren die geen kinderarbeid toepassen"],"i3d":["Women controlling coffee income","Vrouwen met zeggenschap over koffie-inkomen","% of women practicing coffee farming and have authority over their earnings","% van de vrouwen die koffie verbouwen en zeggenschap hebben over hun inkomsten"],"i3e":["Youth controlling coffee income","Jongeren met zeggenschap over koffie-inkomen","% of youth practicing coffee farming and have authority over their earnings","% van de jongeren die koffie verbouwen en zeggenschap hebben over hun inkomsten"],"o11":["Cooperatives using digital records","Coöperaties met digitale administratie","# of Ndugu partner cooperatives that have adopted digital systems for their production and financial records","Aantal partnercoöperaties dat digitale systemen voor productie- en financiële administratie heeft ingevoerd"],"o12":["Access to finance and input loans","Toegang tot financiering en leningen","% of Ndugu farmers accessing financing / input loans through cooperative channels (SACCOs and VSLAs)","% van de boeren dat via coöperaties financiering of leningen voor productiemiddelen ontvangt (SACCO’s en VSLA’s)"],"o13a":["Growth in coffee sourced since 2023","Groei koffie-inkoop sinds 2023","% increase in amount of coffee sourced from Ndugu farmers since 2023","% stijging van de hoeveelheid koffie die sinds 2023 van boeren wordt ingekocht"],"o13b":["Income from diversified products","Inkomen uit gediversifieerde producten","% of Ndugu farmers earning income through diversification, e.g. macadamia or bee products","% van de boeren dat inkomen verdient uit diversificatie, bijvoorbeeld macadamia of bijenproducten"],"o2a":["Regenerative farming adoption","Invoering regeneratieve landbouw","% of Ndugu farmers who adopted regenerative agricultural practices","% van de boeren dat regeneratieve landbouwpraktijken heeft ingevoerd"],"o2b":["Agroforestry adoption","Invoering agroforestry","% of Ndugu farmers who adopted regenerative agroforestry","% van de boeren dat regeneratieve agroforestry heeft ingevoerd"],"o2c":["Cooperatives with active biochar units","Coöperaties met actieve biochar-eenheden","# of Ndugu partner cooperatives that have an active biochar production unit","Aantal partnercoöperaties met een actieve eenheid voor de productie van biochar"],"o3":["Cooperatives with social committees","Coöperaties met sociale commissies","# of Ndugu partner cooperatives that establish committees to promote access to health, education, gender equality and prevent child labor","Aantal partnercoöperaties dat commissies opricht voor toegang tot gezondheidszorg en onderwijs, gendergelijkheid en preventie van kinderarbeid"],"p13":["Certified and traceable farmers","Gecertificeerde en traceerbare boeren","% of Ndugu farmers that are certified by a relevant standard and can be traced","% van de boeren dat volgens een relevante norm gecertificeerd en traceerbaar is"],"p2":["Knowledge of regenerative practices","Kennis van regeneratieve praktijken","% of Ndugu farmers that are knowledgeable about regenerative agriculture, agroforestry and soil health through trainings","% van de boeren dat via trainingen kennis heeft van regeneratieve landbouw, agroforestry en bodemgezondheid"],"p34":["Youth employed through partnerships","Jongeren met werk via partnerschappen","# of youth that are employed through Ndugu and its partners/associates","Aantal jongeren dat via Ndugu en zijn partners/gelieerde organisaties werk heeft gevonden"]};
+var IND_QLAB = ['Q4 23','Q1 24','Q2 24','Q3 24','Q4 24','Q1 25','Q2 25','Q3 25','Q4 25','Q1 26','Q2 26','Q3 26'];
+var IND_TILES = [['i1a','tone-s1'],['i1b','tone-s2'],['p13','tone-s3'],['o13a','tone-s4'],['o11','tone-s5'],
+                 ['o2a','tone-m1'],['i2a','tone-m2'],['i3d','tone-m3'],['i3e','tone-m4'],['p34','tone-m5']];
+function indSeed(id){ var h = 0, k; for (k = 0; k < id.length; k++) h = (h * 31 + id.charCodeAt(k)) % 997; return h; }
+function indSeries(id, b, c){
+  var h = indSeed(id), out = [], N = IND_QLAB.length, q, x, e, w;
+  for (q = 0; q < N; q++){
+    x = q / (N - 1); e = x * x * (3 - 2 * x) * 0.7 + x * 0.3;
+    w = (q > 0 && q < N - 1) ? Math.sin(h + q * 1.7) * 0.05 * (c - b) : 0;
+    out.push(b + (c - b) * e + w);
+  }
+  return out;
+}
+var IND_TXT_NL = {
+  '100% (40% female, 20% youth)':'100% (40% vrouwen, 20% jongeren)',
+  '20 cooperatives':'20 coöperaties',
+  '20% average increase in soil health':'20% gemiddelde verbetering van de bodemgezondheid',
+  '20% of farmers':'20% van de boeren',
+  '20% youth among 20,000 farmers':'20% jongeren onder 20.000 boeren',
+  '20,000 farmers (40% female, 20% youth)':'20.000 boeren (40% vrouwen, 20% jongeren)',
+  '200 agents (50% female, 70% youth)':'200 agenten (50% vrouwen, 70% jongeren)',
+  '30% increase':'30% toename',
+  '40% women among 20,000 farmers':'40% vrouwen onder 20.000 boeren',
+  '80% of farmers':'80% van de boeren',
+  'More than 80% of super coops':'Meer dan 80% van de supercoöperaties',
+  'To be confirmed (logframe gives >50% of cooperatives and aggregators)':'Nog te bevestigen (het logframe noemt >50% van de coöperaties en aggregators)',
+  'USD 500,000 revenue from other products by 2028':'USD 500.000 omzet uit andere producten in 2028',
+  'M&E reports (written, video, audio)':'M&E-rapporten (schriftelijk, video, audio)',
+  'Certification reports and certified farmer database; cooperative membership records':'Certificeringsrapporten en database van gecertificeerde boeren; ledenregisters van coöperaties',
+  'Cooperative credit access traffic records':'Registraties van toegang tot krediet via coöperaties',
+  'Cooperative membership and trading records; M&E reports (written, video, audio)':'Ledenregisters en handelsgegevens van coöperaties; M&E-rapporten (schriftelijk, video, audio)',
+  'Ndugu financial records incl. weekly performance reports; Ndugu Impact coffee production and trading reports':'Financiële administratie van Ndugu, inclusief wekelijkse prestatierapporten; rapporten over koffieproductie en -handel van Ndugu Impact',
+  'Ndugu financial records; M&E reports (written, video, audio)':'Financiële administratie van Ndugu; M&E-rapporten (schriftelijk, video, audio)',
+  'Training activity reports; M&E reports':'Rapporten over trainingsactiviteiten; M&E-rapporten'
+};
+function indTxt(s){ return (state.lang === 'nl' && s && IND_TXT_NL[s]) ? IND_TXT_NL[s] : s; }
+function indItems(){
+  var live = state.indMode === 'live';
+  return Object.keys(IND_PILLAR).map(function(id, n){
+    var src = IND.indicators.filter(function(i){ return i.id === id; })[0] || {};
+    var d = IND_DEMO[id];
+    var L = IND_LABELS[id], nl = state.lang === 'nl';
+    var o = {id:id, n:n + 1, pillar:IND_PILLAR[id], text:L ? L[nl ? 3 : 2] : (src.text || ''), tgtText:indTxt(src.target_text), mov:indTxt(src.mov), short:L ? L[nl ? 1 : 0] : d[0], kind:d[1]};
+    if (live){ o.cur = (src.value === undefined ? null : src.value); o.tgt = (src.target === undefined ? null : src.target);
+               o.kind = src.kind || d[1]; o.base = null; o.series = null; }
+    else { o.base = d[2]; o.cur = d[3]; o.tgt = d[4]; o.series = indSeries(id, d[2], d[3]); }
+    o.prog = (o.cur !== null && o.tgt) ? o.cur / o.tgt : null;
+    return o;
   });
+}
+function indFv(o, v){ return (v === null || v === undefined) ? '-' : (o.kind === 'pct' ? fmtPct(v) : fmtInt(v)); }
+function indPc(p){ return p === null ? '-' : Math.round(p * 100) + '%'; }
+function indSelect(id){ state.indSel = id; renderIndicators(); }
 
-  var dist = d.by_district.filter(function(r){ return r.n > 0; });
-  rankBar('distChart', dist.map(function(r){ return {label:r.district, n:r.n}; }), RANK_ROAST, d.n);
-
-  var months = d.by_month;
-  mountChart('monthChart', {
+function renderIndicators(){
+  if (!IND) return;
+  var items = indItems();
+  if (!items.some(function(i){ return i.id === state.indSel; })) state.indSel = 'p13';
+  var vis = items.filter(function(i){ return state.indPillar === 'all' || i.pillar === state.indPillar; });
+  renderIndTiles(items); renderIndFilter(); renderIndProgress(vis); renderIndFocus(items); renderScorecard(vis);
+}
+function renderIndTiles(items){
+  var by = {}; items.forEach(function(i){ by[i.id] = i; });
+  document.getElementById('indTileGrid').innerHTML = IND_TILES.map(function(x){
+    var o = by[x[0]];
+    var foot = o.prog !== null ? t('indTarget') + ' ' + indFv(o, o.tgt) + ' · ' + indPc(o.prog) + ' ' + t('indOfTarget')
+             : (o.tgt !== null ? t('indTarget') + ' ' + indFv(o, o.tgt) : t('indNoData'));
+    return '<div class="tile ' + x[1] + (o.id === state.indSel ? ' sel' : '') + '" data-id="' + o.id + '" tabindex="0" role="button">' +
+      '<p class="tile-label">' + esc(o.short) + '</p><div class="tile-value num">' + indFv(o, o.cur) + '</div>' + flat(foot) + '</div>';
+  }).join('');
+  var R = IND.reach || {};
+  document.getElementById('indReach').innerHTML = [['women','indKpiWomen'],['youth','indKpiYouth']].map(function(k){
+    var r = R[k[0]]; if (!r) return '';
+    return '<span><b>' + esc(t(k[1])) + '</b> ' + fmtPct(r.value) + ' · ' + t('indTarget') + ' ' + fmtPct0(r.target) + '</span>';
+  }).join('');
+}
+function renderIndFilter(){
+  var P = [['all','indPillAll'],['profit','indPillProfit'],['people','indPillPeople'],['planet','indPillPlanet']];
+  var M = [['demo','indModeDemo'],['live','indModeLive']];
+  var grp = function(list, attr, cur){
+    return '<div class="pillgroup">' + list.map(function(p){
+      return '<button class="pill' + (cur === p[0] ? ' active' : '') + '" data-' + attr + '="' + p[0] + '">' + esc(t(p[1])) + '</button>';
+    }).join('') + '</div>';
+  };
+  document.getElementById('indFilter').innerHTML = grp(P, 'pillar', state.indPillar) + grp(M, 'mode', state.indMode);
+}
+function indProgress(vis){
+  var rows = vis.filter(function(o){ return o.prog !== null; });
+  document.getElementById('indProg').parentNode.style.minHeight = Math.max(225, rows.length * 26 + 50) + 'px';
+  mountChart('indProg', {
     type:'bar',
-    data:{
-      labels: months.map(function(r){ return fmtMonth(r.month); }),
-      datasets:[{
-        data: months.map(function(r){ return r.n; }),
-        backgroundColor: COLORS.roast, borderRadius:3, borderSkipped:false, barPercentage:0.7
-      }]
-    },
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{display:false},
-        tooltip:{callbacks:{label:function(x){ return ' ' + fmtInt(x.parsed.y) + ' ' + t('lblSurveys'); }}}},
-      scales:{
-        x:{grid:{display:false}, border:{display:false}},
-        y:{grid:{color:COLORS.line, borderDash:GRID_DASH}, border:{display:false}, ticks:{precision:0}}
-      }
-    }
+    data:{labels: rows.map(function(o){ return o.short; }),
+      datasets:[{data: rows.map(function(o){ return Math.round(o.prog * 1000) / 10; }),
+        backgroundColor: rows.map(function(o){ return IND_PCOL[o.pillar] + (o.id === state.indSel ? '' : 'CC'); }),
+        borderColor: rows.map(function(o){ return o.id === state.indSel ? '#234A1A' : 'transparent'; }), borderWidth:2,
+        borderRadius:3, borderSkipped:false, barPercentage:0.72}]},
+    options:{indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      onClick:function(e, els){ if (els.length) indSelect(rows[els[0].index].id); },
+      onHover:function(e, els){ e.native.target.style.cursor = els.length ? 'pointer' : 'default'; },
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label:function(c){
+        var o = rows[c.dataIndex]; return ' ' + indFv(o, o.cur) + ' / ' + indFv(o, o.tgt) + '  (' + c.parsed.x + '%)'; }}}},
+      scales:{x:{min:0, max:110, grid:{color:COLORS.line}, border:{display:false}, ticks:{callback:function(v){ return v + '%'; }}},
+              y:{grid:{display:false}, border:{display:false}, ticks:{color:COLORS.ink, font:{size:11.5}}}}},
+    plugins:[{id:'tgtline', afterDraw:function(ch){
+      var a = ch.chartArea, x = ch.scales.x.getPixelForValue(100), c = ch.ctx;
+      c.save(); c.setLineDash([4, 3]); c.strokeStyle = COLORS.cherry; c.lineWidth = 1.5;
+      c.beginPath(); c.moveTo(x, a.top); c.lineTo(x, a.bottom); c.stroke(); c.restore(); }}]
   });
 }
-
-function renderFarms(){
-  var a = D().agroforestry;
-  rankBar('agroChart', a.practices, RANK_TEAL, sumN(a.practices));
-  rankBar('mgmtChart', a.management, RANK_TEAL, sumN(a.management));
-  var env = D().macadamia.env_concerns;
-  rankBar('envChart', env, RANK_TEAL, sumN(env));
-  document.getElementById('agroInsight').innerHTML = t('insAgro');
-  document.getElementById('mgmtInsight').innerHTML = t('insMgmt');
-  document.getElementById('envInsight').innerHTML = t('insEnv');
-}
-
-function renderMac(){
-  var m = D().macadamia;
-  rankBar('macWhyChart',   m.reasons,        RANK_ROAST, sumN(m.reasons));
-  rankBar('macTrainChart', m.training_areas, RANK_ROAST, sumN(m.training_areas));
-  rankBar('macBlockChart', m.challenges,     RANK_ROAST, sumN(m.challenges));
-  rankBar('macHelpChart',  m.support,        RANK_ROAST, sumN(m.support));
-}
-
-function renderBee(){
-  var b = D().beekeeping;
-  rankBar('beeWhyChart',   b.reasons,        RANK_TEAL, sumN(b.reasons));
-  rankBar('beeTrainChart', b.training_areas, RANK_TEAL, sumN(b.training_areas));
-  rankBar('beeHelpChart',  b.support,        RANK_TEAL, sumN(b.support));
-
-  /* Four yes/no questions that set the operating conditions. Read as one list
-     rather than four charts: each is a single number and a chart apiece would
-     be four frames carrying one value each. */
-  var rows = [
-    {q:t('condLand'),  v:b.land_available},
-    {q:t('condGroup'), v:b.groups},
-    {q:t('condComm'),  v:{yes:(b.community.filter(function(r){return r.label==='Yes';})[0]||{n:0}).n,
-                          answered:sumN(b.community)}},
-    {q:t('condRules'), v:{yes:(b.rules.filter(function(r){return r.label==='Yes';})[0]||{n:0}).n,
-                          answered:sumN(b.rules)}}
-  ];
-  document.getElementById('condList').innerHTML = rows.map(function(r){
-    var pct = share(r.v.yes, r.v.answered);
-    return '<div class="ynrow">' +
-      '<div class="q">' + esc(r.q) + '</div>' +
-      '<div class="val">' + fmtPct0(pct) + '<small>' + fmtInt(r.v.yes) + ' / ' + fmtInt(r.v.answered) + '</small></div>' +
-      '<div class="track"><span style="width:' + (pct*100).toFixed(1) + '%"></span></div>' +
-    '</div>';
-  }).join('');
-}
-
-/* Who does the work, who owns the asset, who controls the sale. Three separate
-   questions of the same households, stacked to 100% and shown one above the
-   other, because the shift between the stages is the finding rather than any
-   single stage on its own. */
-function renderTenure(){
-  var t3 = D().tenure;
-  var stages = [
-    {key:'plants', lab:t('stagePlants'), sub:t('stagePlantsSub')},
-    {key:'owns',   lab:t('stageOwns'),   sub:t('stageOwnsSub')},
-    {key:'sells',  lab:t('stageSells'),  sub:t('stageSellsSub')}
-  ];
-  var roles = ['All family members','Man','Woman','Children'];
-  document.getElementById('stageBox').innerHTML = stages.map(function(s){
-    var rows = t3[s.key], total = sumN(rows);
-    var segs = roles.map(function(role){
-      var r = rows.filter(function(x){ return x.label === role; })[0];
-      if (!r || !r.n) return '';
-      var pct = share(r.n, total) * 100;
-      return '<span style="width:' + pct.toFixed(2) + '%;background:' + roleColor(role) + '" ' +
-             'title="' + esc(t18('role_' + role.replace(/ /g,'_')) || role) + ': ' + fmtInt(r.n) + '">' +
-             (pct >= 9 ? fmtPct0(pct/100) : '') + '</span>';
-    }).join('');
-    return '<div class="stage-row">' +
-      '<div class="lab">' + esc(s.lab) + '<small>' + esc(s.sub) + '</small></div>' +
-      '<div class="stage-bar">' + segs + '</div>' +
-    '</div>';
-  }).join('');
-
-  document.getElementById('stageKey').innerHTML = roles.map(function(role){
-    return '<span><i style="background:' + roleColor(role) + '"></i>' +
-           esc(t18('role_' + role.replace(/ /g,'_')) || role) + '</span>';
-  }).join('');
-  document.getElementById('tenureInsight').innerHTML = t('insTenure');
-}
-
-function renderCoops(){
-  var d = D(), rows = d.by_cooperative;
-  document.getElementById('coopBody').innerHTML = rows.map(function(r, i){
-    return '<tr>' +
-      '<td class="rank">' + (i+1) + '</td>' +
-      '<td class="name">' + esc(r.label) + '</td>' +
-      '<td class="num">' + fmtInt(r.n) + '</td>' +
-      '<td class="num">' + fmtPct(share(r.n, d.n)) + '</td>' +
-    '</tr>';
-  }).join('');
-}
-
-function renderNotes(){
-  var n = DATA.notes;
-  var out = [];
-  out.push('<div class="callout warn">' + t('noteBaseline') + '</div>');
-  if (n.no_variance && n.no_variance.length){
-    out.push('<div class="callout warn">' + t('noteNoVariance') + '</div>');
+function renderIndProgress(vis){ indProgress(vis); }
+function renderIndFocus(items){
+  var o = items.filter(function(i){ return i.id === state.indSel; })[0];
+  document.getElementById('indPick').innerHTML = items.map(function(i){
+    return '<option value="' + i.id + '"' + (i.id === o.id ? ' selected' : '') + '>' + esc(i.short) + '</option>'; }).join('');
+  var has = !!o.series;
+  document.getElementById('indTrendBox').hidden = !has;
+  document.getElementById('indDistBox').hidden = !has;
+  document.getElementById('indTrendMsg').hidden = has;
+  if (!has) return;
+  var col = IND_PCOL[o.pillar], pct = o.kind === 'pct', sc = pct ? 100 : 1, u = pct ? '%' : '';
+  var tick = function(v){ return v + u; };
+  var rnd = function(x){ return pct ? Math.round(x * sc * 10) / 10 : Math.round(x); };
+  mountChart('indTrend', {
+    type:'line',
+    data:{labels:IND_QLAB, datasets:[
+      {label:t('indCurrent'), data:o.series.map(rnd),
+       borderColor:col, backgroundColor:col + '22', fill:true, tension:0.35, pointRadius:3, borderWidth:2.5},
+      {label:t('indTarget'), data:IND_QLAB.map(function(){ return o.tgt * sc; }),
+       borderColor:COLORS.cherry, borderDash:[5, 4], pointRadius:0, borderWidth:1.5, fill:false}]},
+    options:{responsive:true, maintainAspectRatio:false, interaction:{mode:'index', intersect:false},
+      plugins:{legend:{position:'bottom', labels:{boxWidth:10, usePointStyle:true}},
+               tooltip:{callbacks:{label:function(c){ return ' ' + c.dataset.label + ': ' + c.parsed.y + u; }}}},
+      scales:{y:{beginAtZero:true, border:{display:false}, ticks:{callback:tick}}, x:{grid:{display:false}}}}
+  });
+  var ds = Object.keys(DATA.districts).filter(function(k){ return k !== 'all'; });
+  var fr = ds.map(function(k, j){ var f = Math.sin(indSeed(o.id) + j * 12.9898) * 43758.5453; return f - Math.floor(f); });
+  var vals;
+  if (pct) vals = fr.map(function(f){ return rnd(Math.min(o.cur * (0.78 + 0.44 * f), 0.99)); });
+  else {  /* whole numbers that add up to the total */
+    var W = fr.reduce(function(a, f){ return a + 0.6 + 0.8 * f; }, 0);
+    var raw = fr.map(function(f){ return o.cur * (0.6 + 0.8 * f) / W; });
+    vals = raw.map(Math.floor);
+    var left = o.cur - vals.reduce(function(a, b){ return a + b; }, 0);
+    raw.map(function(r, j){ return [r - Math.floor(r), j]; }).sort(function(a, b){ return b[0] - a[0]; })
+       .slice(0, left).forEach(function(x){ vals[x[1]]++; });
   }
-  if (n.contaminated && n.contaminated.length){
-    out.push('<div class="callout warn">' + t('noteContaminated') + '</div>');
+  var dset = [{type:'bar', label:t('indCurrent'), data:vals, backgroundColor:col, borderRadius:3, barPercentage:0.6}];
+  if (pct) dset.push({type:'line', label:t('indTarget'), data:ds.map(function(){ return o.tgt * 100; }),
+    borderColor:COLORS.cherry, borderDash:[5, 4], pointRadius:0, borderWidth:1.5, fill:false});
+  mountChart('indDist', {
+    type:'bar', data:{labels:ds, datasets:dset},
+    options:{responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:pct, position:'bottom', labels:{boxWidth:10, usePointStyle:true}},
+               tooltip:{callbacks:{label:function(c){ return ' ' + c.parsed.y + u; }}}},
+      scales:{y:{beginAtZero:true, border:{display:false}, ticks:{callback:tick}}, x:{grid:{display:false}}}}
+  });
+}
+/* ---------- Indicator scorecard: ring for progress, tap to expand ---------- */
+/* Status colours: green 100%+, amber 70-99%, red below 70%. Card tint, ring and icon share one hue. */
+var SC_STATUS = {met:{c:'#3F7D3A', bg:'#E7F1E2'}, mid:{c:'#D2911F', bg:'#FCF0D6'}, low:{c:'#B23A1E', bg:'#F9E6E0'}, none:{c:'#9A8B77', bg:'#F2EDE4'}};
+/* Status as a fill level (full, half, empty, dashed) so it never competes with the pillar colour */
+function scGlyph(st){
+  var ring = '<circle cx="5" cy="5" r="4" fill="none" stroke="currentColor" stroke-width="1.5"';
+  var body = st === 'met' ? '<circle cx="5" cy="5" r="4.6" fill="currentColor"/>'
+    : st === 'mid' ? ring + '/><path d="M5 1.4 A3.6 3.6 0 0 1 5 8.6 Z" fill="currentColor"/>'
+    : st === 'low' ? ring + '/>' : ring + ' stroke-dasharray="2 1.6"/>';
+  return '<svg class="sc-glyph" viewBox="0 0 10 10" width="10" height="10" aria-hidden="true">' + body + '</svg>';
+}
+function scN(x, d){ return x.toLocaleString(numLocale(), {minimumFractionDigits:d, maximumFractionDigits:d}); }
+function scStatus(o){
+  if (o.cur === null || o.tgt === null || !o.tgt) return 'none';
+  return o.prog >= 1 ? 'met' : (o.prog >= 0.7 ? 'mid' : 'low');
+}
+function scLabel(s){ return t({met:'scStMet', mid:'scStMid', low:'scStLow', none:'scStNone'}[s]); }
+function scGap(o){
+  if (o.cur === null || o.tgt === null) return '-';
+  var d = o.cur - o.tgt, pct = o.kind === 'pct', a = Math.abs(pct ? d * 100 : d);
+  if (a < 0.05) return t('scGapOn');
+  return (pct ? scN(a, 1) + ' pp' : fmtInt(a)) + ' ' + (d < 0 ? t('scGapTo') : t('scGapAbove'));
+}
+function scSince(o){
+  if (o.base === null || o.cur === null) return '';
+  var d = o.cur - o.base, a = Math.abs(o.kind === 'pct' ? d * 100 : d);
+  return (d >= 0 ? '▲ +' : '▼ -') + (o.kind === 'pct' ? scN(a, 1) + ' pp' : fmtInt(a)) + ' ' + t('scSince');
+}
+function scRing(o, tone){
+  var C = 2 * Math.PI * 18, p = o.prog === null ? 0 : Math.min(1, Math.max(0, o.prog));
+  var txt = o.prog === null ? '-' : Math.round(o.prog * 100) + '%';
+  return '<svg class="sc-ring" viewBox="0 0 44 44" role="img" aria-label="' + esc(txt + ' ' + t('indOfTarget')) + '">' +
+    '<circle cx="22" cy="22" r="18" fill="none" stroke="' + tone + '" stroke-opacity=".16" stroke-width="5"/>' +
+    (p > 0 ? '<circle cx="22" cy="22" r="18" fill="none" stroke="' + tone + '" stroke-width="5" stroke-linecap="round" stroke-dasharray="' +
+      (p * C).toFixed(1) + ' ' + C.toFixed(1) + '" transform="rotate(-90 22 22)"/>' : '') +
+    '<circle cx="22" cy="22" r="18" fill="none" stroke="var(--tint)" stroke-width="5.4" stroke-dasharray="0.9 ' +
+      (C / 4 - 0.9).toFixed(2) + '" stroke-dashoffset="0.45" transform="rotate(-90 22 22)"/>' +
+    '<text x="22" y="25.4" text-anchor="middle" font-size="' + (txt.length > 3 ? 9 : 10.5) + '" font-weight="800" fill="var(--ink)">' + txt + '</text></svg>';
+}
+function scCard(o){
+  var st = scStatus(o), col = IND_PCOL[o.pillar], tone = SC_STATUS[st].c, sel = o.id === state.indSel, open = !!state.scOpen[o.id];
+  var cap = o.pillar.charAt(0).toUpperCase() + o.pillar.slice(1), since = scSince(o);
+  return '<article class="sc-card' + (sel ? ' sel' : '') + (open ? ' open' : '') + '" style="--tone:' + tone + ';--tint:' + SC_STATUS[st].bg + '" data-id="' + o.id + '" role="listitem">' +
+    '<button type="button" class="sc-head" aria-expanded="' + open + '">' +
+      '<span class="sc-top"><span class="sc-n">' + o.n + '</span><span><span class="pdot" style="background:' + col + '"></span>' + esc(t('indPill' + cap)) +
+        '</span><span class="sc-st">' + scGlyph(st) + esc(scLabel(st)) + '</span></span>' +
+      '<span class="sc-name">' + esc(o.short) + '</span>' +
+      '<span class="sc-mid">' + scRing(o, tone) + '<span class="sc-vals"><span class="sc-lab">' + esc(t('scActual')) + '</span><strong>' + indFv(o, o.cur) +
+        '</strong><span class="sc-tg">' + esc(t('indTarget')) + ' ' + indFv(o, o.tgt) + '</span></span><span class="sc-chev" aria-hidden="true"></span></span>' +
+    '</button>' +
+    (open ? '<div class="sc-detail"><div class="sc-chips">' + (since ? '<span class="sc-chip gain">' + esc(since) + '</span>' : '') +
+      (o.cur !== null && o.tgt !== null ? '<span class="sc-chip">' + esc(scGap(o)) + '</span>' : '') + '</div>' +
+      '<p>' + esc(o.text) + '</p><p><b>' + esc(t('indTargetFull')) + '</b> ' + esc(o.tgtText || '-') + '</p><p><b>' + esc(t('indMov')) + '</b> ' +
+      esc(o.mov || '-') + '</p><button type="button" class="sc-btn" data-act="charts">' + esc(t('scShowCharts')) + '</button></div>' : '') +
+    '</article>';
+}
+function scToggle(id){
+  state.scOpen[id] = !state.scOpen[id]; state.indSel = id; renderIndicators();
+  var b = document.querySelector('.sc-card[data-id="' + id + '"] .sc-head'); if (b) b.focus({preventScroll:true});
+}
+function renderScorecard(vis){
+  var q = state.scQ.trim().toLowerCase();
+  var base = vis.filter(function(o){ return !q || (o.short + ' ' + o.text).toLowerCase().indexOf(q) !== -1; });
+  var cnt = {met:0, mid:0, low:0, none:0};
+  base.forEach(function(o){ cnt[scStatus(o)]++; });
+  var order = ['met', 'mid', 'low'].concat(cnt.none ? ['none'] : []);
+  if (state.scStatus !== 'all' && order.indexOf(state.scStatus) === -1) state.scStatus = 'all';
+  var shown = base.filter(function(o){ return state.scStatus === 'all' || scStatus(o) === state.scStatus; });
+  var pv = function(o, nul){ return o.prog === null ? nul : o.prog; };
+  var cmp = {order:function(a, b){ return a.n - b.n; },
+    hi:function(a, b){ return pv(b, -1) - pv(a, -1); }, lo:function(a, b){ return pv(a, 9) - pv(b, 9); },
+    name:function(a, b){ return a.short.localeCompare(b.short, state.lang); },
+    pillar:function(a, b){ return a.pillar < b.pillar ? -1 : a.pillar > b.pillar ? 1 : a.n - b.n; }}[state.scSort] || function(a, b){ return a.n - b.n; };
+  shown = shown.slice().sort(cmp);
+  var chips = [['all', t('scAll'), base.length, '']].concat(order.map(function(k){ return [k, scLabel(k), cnt[k], SC_STATUS[k].c]; }));
+  document.getElementById('scTally').innerHTML = chips.map(function(c){
+    return '<button type="button" class="sc-t"' + (c[3] ? ' style="--sc:' + c[3] + '"' : '') + ' data-sc-status="' + c[0] + '" aria-pressed="' + (state.scStatus === c[0]) + '">' + (c[0] === 'all' ? '' : scGlyph(c[0])) + '<span>' +
+      esc(c[1]) + '</span><strong>' + c[2] + '</strong></button>';
+  }).join('');
+  var sel = document.getElementById('scSortSel');
+  if (sel.dataset.lang !== state.lang){
+    sel.innerHTML = [['order','scSortOrder'], ['hi','scSortHi'], ['lo','scSortLo'], ['name','scSortName'], ['pillar','scSortPillar']].map(function(s){
+      return '<option value="' + s[0] + '">' + esc(t(s[1])) + '</option>'; }).join('');
+    sel.dataset.lang = state.lang;
   }
-  out.push('<div class="callout">' + t('noteSold') + '</div>');
-  out.push('<div class="callout">' + t('noteExcluded') + '</div>');
-  out.push('<div class="callout">' + t('notePrivacy') + '</div>');
-  document.getElementById('notesBox').innerHTML = out.join('');
+  sel.value = state.scSort;
+  var inp = document.getElementById('scSearch'); inp.placeholder = t('scSearch'); inp.setAttribute('aria-label', t('scSearch')); sel.setAttribute('aria-label', t('scSort'));
+  document.getElementById('scCount').textContent = shown.length + ' ' + t('scCount');
+  document.getElementById('scGrid').innerHTML = shown.length ? shown.map(scCard).join('') : '<div class="sc-empty">' + esc(t('scEmpty')) + '</div>';
 }
-
-/* ---------- Farmer inspections 2025 ---------- */
-function renderInsTiles(){
-  var m = DATA.inspections.meta, b = I(), n = DATA.inspections.notes;
-  var der = n.trees_derived, R = b.records, C = insCert();
-  if (state.tab === 'inspections'){
-    document.getElementById('asOfWindow').textContent = t('insSeason');
-  }
-
-  var cells = [
-    /* The programme first: who is in it, how it sits against the wider
-       register, and what those farmers are certified to. */
-    {tone:'tone-s1', icon:'person', label:t('insKpiEnrolled'), value:fmtInt(b.n_enrolled),
-     sub:flat(m.wider_register
-       ? t('lblOf') + ' ' + fmtInt(m.wider_register) + ' ' + t('insLblOnRegister') : '')},
-    {tone:'tone-s2', icon:'group', label:t('insKpiShareReg'),
-     value:m.wider_register ? fmtPct(b.n_enrolled / m.wider_register) : '-',
-     sub:flat(t('insLblShareRegSub'))},
-    /* Certification is programme-wide whatever district is selected, so the
-       footing says so rather than letting the figure read as this district. */
-    {tone:'tone-s3', icon:'seal', label:t('insKpiRa'),
-     value:C.RA ? fmtInt(C.RA.recorded) : '-',
-     sub:flat(C.RA && C.RA.pct_recorded !== null
-       ? fmtPct(C.RA.pct_recorded) + ' ' + t(isAllDistricts() ? 'insLblOfProgramme' : 'insLblProgrammeWide') : '')},
-    {tone:'tone-s4', icon:'book', label:t('insKpi4c'),
-     value:C['4C'] ? fmtInt(C['4C'].recorded) : '-',
-     sub:flat(C['4C'] && C['4C'].pct_recorded !== null
-       ? fmtPct(C['4C'].pct_recorded) + ' ' + t(isAllDistricts() ? 'insLblOfProgramme' : 'insLblProgrammeWide') : '')},
-    {tone:'tone-s5', icon:'group', label:t('insKpiCoops'), value:fmtInt(m.n_cooperatives),
-     sub:flat(t('insLblCoopsSub'))},
-
-    /* Then the farm data held on those farms, plot by plot. */
-    {tone:'tone-m1', icon:'person', label:t('insKpiRecFarmers'), value:fmtInt(R.n_farmers),
-     sub:flat(t('insLblRecFarmersSub'))},
-    {tone:'tone-m2', icon:'plot', label:t('insKpiPlots'), value:fmtInt(R.n_plots),
-     sub:flat(t('insLblPlotsSub'))},
-    {tone:'tone-m3', icon:'plot', label:t('insKpiMedPlot'),
-     value:(R.plot_acres.median === null ? '-' : fmtNum(R.plot_acres.median, 2) + ' ' + t('lblAcres')),
-     sub:flat(fmtNum(R.plot_acres.total, 0) + ' ' + t('lblAcres') + ' ' + t('insLblTotal'))},
-    {tone:'tone-m4', icon:'hive', label:t('insKpiBagsPerAcre'),
-     value:R.bags_per_acre.median === null ? '-' : fmtNum(R.bags_per_acre.median, 1),
-     sub:flat(t('insLblBagsPerAcreSub'))},
-    {tone:'tone-m5', icon:'window', label:t('insKpiBags'), value:fmtInt(R.bags.total),
-     sub:flat(t('insLblMedian') + ' ' + fmtNum(R.bags.median, 1))}
-  ];
-  void der;
-  document.getElementById('insTileGrid').innerHTML = cells.map(function(x){
-    return '<div class="tile ' + x.tone + '">' + icon(x.icon) +
-           '<p class="tile-label">' + x.label + '</p>' +
-           '<div class="tile-value num">' + x.value + '</div>' + x.sub + '</div>';
-  }).join('');
-}
-
-/* Certification is programme-wide whatever district is selected above, and the
-   panel says so: the correction for values filled during cleaning is counted
-   for the workbook as a whole and cannot be split by district. */
-function renderCertification(){
-  var C = insCert(), n = DATA.inspections.districts.all.n_enrolled;
-  var order = ['RA', '4C', 'C'];
-  var tone = {RA:'#0D4D45', '4C':'#137467', C:'#1C9384'};
-  document.getElementById('certList').innerHTML = order.filter(function(k){ return C[k]; })
-    .map(function(k){
-      var c = C[k], p = c.pct_recorded || 0;
-      return '<div class="certrow">' +
-        '<div class="nm">' + esc(t('certName' + k.replace('4C','4c'))) +
-          '<small>' + esc(t('certSub' + k.replace('4C','4c'))) + '</small></div>' +
-        '<div class="track"><span style="background:' + tone[k] + ';width:' +
-          (Math.min(p,1)*100).toFixed(1) + '%"></span></div>' +
-        '<div class="val">' + fmtPct(p) + '<small>' + fmtInt(c.recorded) + ' ' +
-          esc(t('lblOf')) + ' ' + fmtInt(n) + '</small></div>' +
-      '</div>';
-    }).join('');
-  document.getElementById('certInsight').innerHTML = t('insCertInsight');
-}
-
-function renderInsCharts(){
-  var b = I(), R = b.records;
-  var dists = (b.by_district || []).slice()
-    .sort(function(a, b2){ return b2.n - a.n; })
-    .map(function(r){ return {label:r.district, n:r.n}; });
-  rankBar('insDistChart', dists, RANK_ROAST, sumN(dists));
-  document.getElementById('insDistInsight').innerHTML = t('insDistInsight');
-
-  rankBar('insSizeChart', R.size_bands, RANK_TEAL, sumN(R.size_bands));
-  document.getElementById('insSizeInsight').innerHTML = t('insSizeInsight');
-
-  var der2 = DATA.inspections.notes.trees_derived;
-  var stats = [
-    {lab:t('insStatTrees'), val:fmtInt(R.trees.median || 0),
-     foot: der2 ? t('insStatTreesDerivedFoot') : t('insStatTreesFoot')},
-    {lab:t('insStatBagsAcre'), val:fmtNum(R.bags_per_acre.median, 1), foot:t('insStatBagsAcreFoot')},
-    {lab:t('insStatProd'), val:R.productive_share === null ? '-' : fmtPct(R.productive_share),
-     foot:t('insStatProdFoot')},
-    {lab:t('insStatBags'), val:fmtNum(R.bags.median, 1), foot:t('insStatBagsFoot')}
-  ];
-  document.getElementById('insStats').innerHTML = stats.map(function(s2){
-    return '<div><div class="lab">' + s2.lab + '</div><div class="val">' + s2.val +
-           '</div><div class="foot">' + s2.foot + '</div></div>';
-  }).join('');
-  document.getElementById('insStockInsight').innerHTML = t('insStockInsight');
-}
-
-function renderInsCoops(){
-  var rows = I().by_cooperative;
-  document.getElementById('insCoopBody').innerHTML = rows.map(function(r, i){
-    return '<tr>' +
-      '<td class="rank">' + (i+1) + '</td>' +
-      '<td class="name">' + esc(r.label) + '</td>' +
-      '<td class="num">' + fmtInt(r.farmers) + '</td>' +
-      '<td class="num">' + fmtInt(r.plots) + '</td>' +
-      '<td class="num">' + fmtInt(r.trees) + '</td>' +
-      '<td class="num">' + fmtInt(r.bags) + '</td>' +
-    '</tr>';
-  }).join('');
+function renderIndSc(){
+  var items = indItems();
+  renderScorecard(items.filter(function(i){ return state.indPillar === 'all' || i.pillar === state.indPillar; }));
 }
 
 function renderTabs(){
   var tabs = [
-    {key:'survey', label:t('tabSurvey'), n:DATA.meta.n_respondents},
-    {key:'inspections', label:t('tabInspections'), n:DATA.inspections.meta.n_enrolled}
+    {key:'indicators', label:t('tabIndicators'), n:null},
+    {key:'library', label:t('tabLibrary'), n:null},
+    {key:'media', label:t('tabMedia'), n:null}
   ];
   document.getElementById('projTabs').innerHTML = tabs.map(function(x){
     return '<button class="projtab" role="tab" data-tab="' + x.key + '" aria-selected="' +
       (state.tab === x.key) + '">' + esc(x.label) +
-      '<span class="cnt">' + fmtInt(x.n) + '</span></button>';
+      (x.n == null ? '' : '<span class="cnt">' + fmtInt(x.n) + '</span>') + '</button>';
   }).join('');
-  document.getElementById('tabSurvey').hidden = (state.tab !== 'survey');
-  document.getElementById('tabInspections').hidden = (state.tab !== 'inspections');
+  document.getElementById('tabIndicators').hidden = (state.tab !== 'indicators');
+  document.getElementById('tabLibrary').hidden = (state.tab !== 'library');
+  document.getElementById('tabMedia').hidden = (state.tab !== 'media');
 }
 
 function renderAll(){
-  computeFacts();
   applyStaticI18n();
   renderTabs();
-  renderPills();
   document.getElementById('asOfLabel').textContent =
-    (state.tab === 'inspections') ? t('asofLabelIns') : t('asofLabel');
-  renderTiles();
-  renderCohort();
-  renderFarms();
-  renderMac();
-  renderBee();
-  renderTenure();
-  renderCoops();
-  renderNotes();
-  renderInsTiles();
-  renderCertification();
-  renderInsCharts();
-  renderInsCoops();
+    (state.tab === 'indicators') ? t('asofLabelInd') : (state.tab === 'library') ? t('asofLabelLib') : t('asofLabelMedia');
+  if (state.tab === 'indicators') document.getElementById('asOfWindow').textContent = IND.meta.generated || '-';
+  if (state.tab === 'library'){ document.getElementById('asOfWindow').textContent = t('asofWinLib'); if (window.nduguLibraryRender) window.nduguLibraryRender(); }
+  if (state.tab === 'media'){ document.getElementById('asOfWindow').textContent = t('asofWinMedia'); mmRender(); }
+  renderIndicators();
 }
 
 /* ============================= controls ============================= */
@@ -2532,18 +2481,30 @@ function bindControls(){
   document.getElementById('projTabs').addEventListener('click', function(e){
     var b = e.target.closest('button'); if (!b) return;
     state.tab = b.dataset.tab;
-    /* A district the other tab does not carry would leave every panel on the
-       combined view with a pill claiming otherwise, so it resets. */
-    if (state.district !== 'all' && tabDistricts().indexOf(state.district) === -1){
-      state.district = 'all';
-    }
     renderAll();
     window.scrollTo({top:0, behavior:'smooth'});
   });
-  document.getElementById('districtPills').addEventListener('click', function(e){
-    var b = e.target.closest('button'); if (!b) return;
-    state.district = b.dataset.district;
-    renderAll();
+  document.getElementById('tabIndicators').addEventListener('click', function(e){
+    var el;
+    if ((el = e.target.closest('[data-pillar]'))){ state.indPillar = el.dataset.pillar; renderIndicators(); return; }
+    if ((el = e.target.closest('[data-mode]'))){ state.indMode = el.dataset.mode; renderIndicators(); return; }
+    if ((el = e.target.closest('[data-sc-status]'))){ state.scStatus = el.dataset.scStatus; renderIndSc(); return; }
+    if ((el = e.target.closest('[data-act]'))){
+      document.getElementById('indPick').closest('.panel').scrollIntoView({behavior:'smooth', block:'center'});
+      return;
+    }
+    if ((el = e.target.closest('.sc-card[data-id]'))){ scToggle(el.dataset.id); return; }
+    if ((el = e.target.closest('[data-id]'))) indSelect(el.dataset.id);
+  });
+  document.getElementById('tabIndicators').addEventListener('input', function(e){
+    if (e.target.id === 'scSearch'){ state.scQ = e.target.value; renderIndSc(); }
+  });
+  document.getElementById('tabIndicators').addEventListener('change', function(e){
+    if (e.target.id === 'indPick') indSelect(e.target.value);
+    if (e.target.id === 'scSortSel'){ state.scSort = e.target.value; renderIndSc(); }
+  });
+  document.getElementById('tabIndicators').addEventListener('keydown', function(e){
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.tile[data-id]')){ e.preventDefault(); indSelect(e.target.dataset.id); }
   });
   document.getElementById('langPills').addEventListener('click', function(e){
     var b = e.target.closest('button'); if (!b) return;
@@ -2559,6 +2520,449 @@ function start(){
   renderAll();
 }
 
+/* ---------- Media library: gallery, viewer with full descriptions, add-to-this-browser ---------- */
+var MM = {items:[], local:[], status:'loading', q:'', type:'all', pillar:'all', project:'all', district:'all', list:[], cur:-1, sig:'', orig:{}, editId:null};
+var mmDB = null;
+function mmEl(id){ return document.getElementById(id); }
+function mmL(it, k){ return (state.lang === 'nl' && it[k + '_nl']) || it[k] || ''; }
+function mmDate(d){ var x = new Date(d + 'T00:00:00'); return isNaN(x.getTime()) ? (d || '') : x.toLocaleDateString(numLocale(), {year:'numeric', month:'short', day:'numeric'}); }
+function mmDur(s){ s = Math.round(s || 0); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
+function mmPillarName(p){ return p ? t('indPill' + p.charAt(0).toUpperCase() + p.slice(1)) : ''; }
+function mmAll(){ return MM.local.concat(MM.items).sort(function(a, b){ return (b.date || '') < (a.date || '') ? -1 : (b.date || '') > (a.date || '') ? 1 : 0; }); }
+function mmFilter(){
+  var q = MM.q.trim().toLowerCase();
+  return mmAll().filter(function(it){
+    if (MM.type !== 'all' && it.type !== MM.type) return false;
+    if (MM.pillar !== 'all' && it.pillar !== MM.pillar) return false;
+    if (MM.project !== 'all' && it.project !== MM.project) return false;
+    if (MM.district !== 'all' && it.district !== MM.district) return false;
+    if (!q) return true;
+    return [mmL(it, 'title'), mmL(it, 'caption'), mmL(it, 'description'), mmL(it, 'project'), it.district, (it.tags || []).concat(it.tags_nl || []).join(' ')].join(' ').toLowerCase().indexOf(q) !== -1;
+  });
+}
+/* local storage of added files (IndexedDB keeps the blobs, localStorage could not) */
+function mmOpenDB(cb){
+  if (!window.indexedDB) return cb();
+  try {
+    var r = indexedDB.open('ndugu-media', 2);
+    r.onupgradeneeded = function(){
+      var db = r.result;
+      if (!db.objectStoreNames.contains('items')) db.createObjectStore('items', {keyPath:'id'});
+      if (!db.objectStoreNames.contains('overrides')) db.createObjectStore('overrides', {keyPath:'id'});
+    };
+    r.onsuccess = function(){ mmDB = r.result; cb(); };
+    r.onerror = function(){ cb(); };
+  } catch (e) { cb(); }
+}
+function mmLocalAll(cb){
+  if (!mmDB) return cb([]);
+  try { var q = mmDB.transaction('items').objectStore('items').getAll(); q.onsuccess = function(){ cb(q.result || []); }; q.onerror = function(){ cb([]); }; } catch (e) { cb([]); }
+}
+function mmLocalPut(rec, ok, fail){
+  if (!mmDB) return fail();
+  try { var tx = mmDB.transaction('items', 'readwrite'); tx.objectStore('items').put(rec); tx.oncomplete = ok; tx.onerror = fail; tx.onabort = fail; } catch (e) { fail(); }
+}
+function mmLocalDel(id){ if (mmDB) { try { mmDB.transaction('items', 'readwrite').objectStore('items').delete(id); } catch (e) {} } }
+/* edits: added items are updated in place; published items (media-library.json) keep per-browser overrides so the originals can be restored */
+function mmLocalGet(id, cb){
+  if (!mmDB) return cb(null);
+  try { var q = mmDB.transaction('items').objectStore('items').get(id); q.onsuccess = function(){ cb(q.result || null); }; q.onerror = function(){ cb(null); }; } catch (e) { cb(null); }
+}
+function mmOvAll(cb){
+  if (!mmDB) return cb([]);
+  try { var q = mmDB.transaction('overrides').objectStore('overrides').getAll(); q.onsuccess = function(){ cb(q.result || []); }; q.onerror = function(){ cb([]); }; } catch (e) { cb([]); }
+}
+function mmOvPut(rec, ok, fail){
+  if (!mmDB) return fail();
+  try { var tx = mmDB.transaction('overrides', 'readwrite'); tx.objectStore('overrides').put(rec); tx.oncomplete = ok; tx.onerror = fail; tx.onabort = fail; } catch (e) { fail(); }
+}
+function mmOvDel(id){ if (mmDB) { try { mmDB.transaction('overrides', 'readwrite').objectStore('overrides').delete(id); } catch (e) {} } }
+function mmApplyOv(rows){
+  var m = {}; rows.forEach(function(r){ m[r.id] = r.fields; });
+  MM.items.forEach(function(it){
+    var f = m[it.id]; if (!f) return;
+    var o = {}; Object.keys(f).forEach(function(k){ o[k] = it[k]; });
+    MM.orig[it.id] = o; Object.assign(it, f); it.edited = true;
+  });
+}
+function mmTags(it){ return (state.lang === 'nl' && it.tags_nl && it.tags_nl.length) ? it.tags_nl : (it.tags || []); }
+function mmParseTags(str){ return str.split(',').map(function(s){ return s.replace(/^#+/, '').trim(); }).filter(Boolean).slice(0, 12); }
+function mmFormVals(fd){
+  var v = function(n){ return fd[n] ? fd[n].value.trim() : ''; };
+  var o = {title:v('title'), caption:v('caption'), description:v('description'), alt:v('alt'), project:v('project'), pillar:fd.pillar.value,
+    district:v('district'), date:fd.date.value, credit:v('credit'),
+    tags:mmParseTags(v('tags')), tags_nl:mmParseTags(v('tags_nl')), credit_nl:v('credit_nl'),
+    title_nl:v('title_nl'), caption_nl:v('caption_nl'), description_nl:v('description_nl'), alt_nl:v('alt_nl'), project_nl:v('project_nl')};
+  if (!fd.transcript.closest('label').hidden){ o.transcript = v('transcript'); o.transcript_nl = v('transcript_nl'); }
+  return o;
+}
+function mmFormMode(edit, it){
+  var form = mmEl('mmForm'), fd = form.elements;
+  MM.editId = edit ? it.id : null;
+  form.reset(); mmEl('mmMsg').textContent = '';
+  mmEl('mmAddTitleH').textContent = t(edit ? 'mmEditTitle' : 'mmAddTitle');
+  mmEl('mmFileRow').hidden = edit; mmEl('mmFile').required = !edit;
+  mmEl('mmEditNote').hidden = !edit;
+  mmEl('mmRevert').hidden = !(edit && it.edited);
+  var vid = !!(edit && it.type === 'video');
+  Array.prototype.forEach.call(form.querySelectorAll('.mm-vid-only'), function(el){ el.hidden = !vid; });
+  mmEl('mmNlBox').open = false;
+  if (!edit){ fd.date.value = new Date().toISOString().slice(0, 10); return; }
+  ['title', 'caption', 'description', 'alt', 'project', 'district', 'date', 'credit', 'title_nl', 'caption_nl', 'description_nl', 'alt_nl', 'project_nl', 'credit_nl', 'transcript', 'transcript_nl'].forEach(function(k){ fd[k].value = it[k] || ''; });
+  fd.pillar.value = it.pillar || ''; fd.tags.value = (it.tags || []).join(', '); fd.tags_nl.value = (it.tags_nl || []).join(', ');
+  mmEl('mmNlBox').open = !!(it.title_nl || it.description_nl || it.caption_nl);
+}
+function mmRefocus(id){
+  var ids = function(){ return MM.list.map(function(x){ return x.id; }); }, i = ids().indexOf(id);
+  if (i < 0){ MM.list = mmAll(); i = ids().indexOf(id); }
+  if (i >= 0){ MM.cur = i; if (mmEl('mmViewer').open) mmShow(); }
+}
+function mmSaveEdit(id, vals, add, msg){
+  var it = mmAll().filter(function(x){ return x.id === id; })[0]; if (!it){ add.close(); return; }
+  var fail = function(){ msg.textContent = t('mmSaveFail'); };
+  var done = function(){ MM.sig = ''; add.close(); mmRender(); mmRefocus(id); };
+  if (it.local){
+    mmLocalGet(id, function(rec){
+      if (!rec) return fail();
+      Object.assign(rec, vals);
+      mmLocalPut(rec, function(){ Object.assign(it, vals); done(); }, fail);
+    });
+    return;
+  }
+  if (!MM.orig[id]){ var o = {}; Object.keys(vals).forEach(function(k){ o[k] = it[k]; }); MM.orig[id] = o; }
+  mmOvPut({id:id, fields:vals}, function(){ Object.assign(it, vals); it.edited = true; done(); }, fail);
+}
+var MM_KEEP = ['title', 'caption', 'description', 'alt', 'project', 'pillar', 'district', 'date', 'credit', 'tags', 'title_nl', 'caption_nl', 'description_nl', 'alt_nl', 'project_nl', 'credit_nl', 'tags_nl', 'transcript', 'transcript_nl'];
+function mmLocalRec(id){ return new Promise(function(res){ mmLocalGet(id, res); }); }
+async function mmExport(){
+  var X = window.nduguExport, msg = mmEl('mmExportMsg'); msg.textContent = '';
+  var edited = MM.items.filter(function(i){ return i.edited; }).length;
+  if (MM.status !== 'ok'){ msg.textContent = t('mmExportNoCat'); return; }
+  if (!MM.local.length && !edited){ msg.textContent = t('mmExportNone'); return; }
+  try {
+    var used = {}, nextN = 0, files = [];
+    MM.items.forEach(function(i){
+      var m = /^m(\d+)$/.exec(i.id); if (m) nextN = Math.max(nextN, parseInt(m[1], 10));
+      [i.src, i.poster, i.captions, i.captions_nl].forEach(function(p){ if (p) used[p] = 1; });
+      (i.sources || []).forEach(function(s){ if (s && s.src) used[s.src] = 1; });
+    });
+    var items = MM.items.map(function(i){
+      var o = {}; Object.keys(i).forEach(function(k){ var v = i[k]; if (k === 'edited' || v === '' || (Array.isArray(v) && !v.length)) return; o[k] = v; }); return o;
+    });
+    var fresh = MM.local.slice().sort(function(a, b){ return (a.date || '') < (b.date || '') ? -1 : 1; });
+    for (var j = 0; j < fresh.length; j++){
+      var rec = await mmLocalRec(fresh[j].id); if (!rec || !rec.blob) continue;
+      var n = ++nextN, id = 'm' + (n < 100 ? ('00' + n).slice(-3) : n);
+      var path = X.unique((rec.type === 'video' ? 'media/videos/' : 'media/photos/') + X.slug(rec.title) + '.' + X.ext(rec.blob), used);
+      var o = {id:id, type:rec.type === 'video' ? 'video' : 'photo'};
+      if (o.type === 'video') o.sources = [{src:path, type:rec.blob.type || 'video/mp4'}]; else o.src = path;
+      MM_KEEP.forEach(function(k){ var v = rec[k]; if (v !== undefined && v !== '' && !(Array.isArray(v) && !v.length)) o[k] = v; });
+      if (!o.date) o.date = X.today();
+      items.push(o); files.push({name:path, data:rec.blob});
+    }
+    var blob = await X.zip([{name:'media-library.json', data:JSON.stringify({version:1, items:items}, null, 1) + '\n'}].concat(files));
+    X.download(blob, 'media-export-' + X.today() + '.zip');
+    msg.textContent = t('mmExportDone').replace('{n}', fresh.length).replace('{e}', edited);
+  } catch (err) { msg.textContent = t('mmExportFail'); }
+}
+function mmFromLocal(r){
+  var o = {}; Object.keys(r).forEach(function(k){ if (k !== 'blob') o[k] = r[k]; });
+  o.src = URL.createObjectURL(r.blob); o.mime = r.blob.type; o.local = true; o.tags = o.tags || []; return o;
+}
+function mmInit(){
+  fetch('./media-library.json', {cache:'no-cache'}).then(function(r){ if (!r.ok) throw 0; return r.json(); }).then(function(j){
+    MM.items = (j.items || []).filter(function(i){ return i && i.id && (i.src || i.sources || i.embed); });
+    MM.status = 'ok';
+  }).catch(function(){ MM.status = 'none'; }).then(function(){
+    mmOpenDB(function(){ mmLocalAll(function(rows){ MM.local = rows.map(mmFromLocal); mmOvAll(function(ov){ mmApplyOv(ov); mmRender(); }); }); });
+  });
+}
+function mmFill(id, opts, cur, label){
+  var el = mmEl(id); el.setAttribute('aria-label', label);
+  el.innerHTML = opts.map(function(o){ return '<option value="' + esc(o[0]) + '">' + esc(o[1]) + '</option>'; }).join('');
+  el.value = cur;
+}
+function mmSelects(all){
+  var sig = state.lang + '|' + all.length;
+  if (MM.sig === sig) return; MM.sig = sig;
+  var uniq = function(f){ var m = {}; all.forEach(function(i){ var v = f(i); if (v) m[v[0]] = v[1]; }); return Object.keys(m).sort().map(function(k){ return [k, m[k]]; }); };
+  var projects = uniq(function(i){ return i.project ? [i.project, mmL(i, 'project')] : null; });
+  var districts = uniq(function(i){ return i.district ? [i.district, i.district] : null; });
+  var pillars = [['profit', t('indPillProfit')], ['people', t('indPillPeople')], ['planet', t('indPillPlanet')]];
+  mmFill('mmPillar', [['all', t('indPillAll')]].concat(pillars), MM.pillar, t('mmPillar'));
+  mmFill('mmProject', [['all', t('mmAllProjects')]].concat(projects), MM.project, t('mmProject'));
+  mmFill('mmDistrict', [['all', t('mmAllDistricts')]].concat(districts), MM.district, t('mmDistrict'));
+  mmEl('mmFormPillar').innerHTML = '<option value="">-</option>' + pillars.map(function(p){ return '<option value="' + p[0] + '">' + esc(p[1]) + '</option>'; }).join('');
+  mmEl('mmProjList').innerHTML = projects.map(function(p){ return '<option value="' + esc(p[0]) + '">'; }).join('');
+  mmEl('mmDistList').innerHTML = districts.map(function(p){ return '<option value="' + esc(p[0]) + '">'; }).join('');
+}
+function mmCard(it){
+  var ico = '<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2 1 L9 5 L2 9Z"/></svg>';
+  var thumb = it.type === 'video'
+    ? (it.poster ? '<img src="' + esc(it.poster) + '" alt="" loading="lazy" decoding="async">' : (it.src ? '<video src="' + esc(it.src) + '#t=0.1" muted preload="metadata" tabindex="-1"></video>' : ''))
+    : '<img src="' + esc(it.thumb || it.src) + '" alt="" loading="lazy" decoding="async">';
+  var pc = it.pillar ? '<span class="pdot" style="background:' + IND_PCOL[it.pillar] + '"></span>' : '';
+  return '<button type="button" class="mm-card" data-mm-open="' + esc(it.id) + '">' +
+    '<span class="mm-thumb">' + thumb + (it.type === 'video' ? '<span class="mm-play">' + ico + (it.duration ? mmDur(it.duration) : '') + '</span>' : '') +
+      (it.sample ? '<span class="mm-tag">' + esc(t('mmSample')) + '</span>' : (it.local ? '<span class="mm-tag">' + esc(t('mmLocal')) + '</span>' : '')) + '</span>' +
+    '<span class="mm-body"><span class="mm-meta">' + pc + esc(mmPillarName(it.pillar)) + (it.pillar && it.project ? ' · ' : '') + esc(mmL(it, 'project')) + '</span>' +
+    '<span class="mm-title">' + esc(mmL(it, 'title')) + '</span><span class="mm-cap">' + esc(mmL(it, 'caption')) + '</span>' +
+    '<span class="mm-foot">' + esc([it.district, mmDate(it.date)].filter(Boolean).join(' · ')) + '</span></span></button>';
+}
+function mmRender(){
+  var root = mmEl('tabMedia'); if (!root) return;
+  var all = mmAll(); MM.list = mmFilter(); mmSelects(all);
+  var n = {photo:0, video:0}; all.forEach(function(i){ if (n[i.type] !== undefined) n[i.type]++; });
+  mmEl('mmTypes').innerHTML = [['all', 'mmAll', all.length], ['photo', 'mmPhotos', n.photo], ['video', 'mmVideos', n.video]].map(function(x){
+    return '<button type="button" class="pill' + (MM.type === x[0] ? ' active' : '') + '" data-mm-type="' + x[0] + '">' + esc(t(x[1])) + '<span class="mm-n">' + x[2] + '</span></button>'; }).join('');
+  mmEl('mmSearch').placeholder = t('mmSearch'); mmEl('mmSearch').setAttribute('aria-label', t('mmSearch'));
+  mmEl('mmCount').textContent = MM.list.length + ' ' + t('mmItems');
+  mmEl('mmGrid').innerHTML = MM.list.length ? MM.list.map(mmCard).join('') : '<div class="mm-empty">' + esc(t(all.length ? 'mmEmpty' : 'mmNone')) + '</div>';
+  if (mmEl('mmViewer').open) mmShow();
+}
+function mmVideoHTML(it){
+  var srcs = it.sources || [{src:it.src, type:it.mime || ''}], nl = state.lang === 'nl';
+  var tr = function(src, lang, label, def){ return src ? '<track kind="captions" srclang="' + lang + '" label="' + label + '" src="' + esc(src) + '"' + (def ? ' default' : '') + '>' : ''; };
+  return '<video controls playsinline preload="metadata"' + (it.poster ? ' poster="' + esc(it.poster) + '"' : '') + ' aria-label="' + esc(mmL(it, 'title')) + '">' +
+    srcs.map(function(s){ return '<source src="' + esc(s.src) + '"' + (s.type ? ' type="' + esc(s.type) + '"' : '') + '>'; }).join('') +
+    tr(it.captions, 'en', 'English', !nl) + tr(it.captions_nl, 'nl', 'Nederlands', nl) + '</video>';
+}
+function mmShow(){
+  var it = MM.list[MM.cur]; if (!it) return;
+  var stage = mmEl('mmMedia'), v = stage.querySelector('video'); if (v) v.pause();
+  stage.innerHTML = it.type === 'video'
+    ? (it.embed && /^https:\/\//.test(it.embed) ? '<iframe src="' + esc(it.embed) + '" title="' + esc(mmL(it, 'title')) + '" allowfullscreen loading="lazy"></iframe>' : mmVideoHTML(it))
+    : '<img src="' + esc(it.src) + '" alt="' + esc(mmL(it, 'alt') || mmL(it, 'title')) + '">';
+  /* Stage takes the media's own aspect ratio so the info panel and the media are the same height (no letterbox bars). */
+  var stageBox = stage.parentNode, mmSetAR = function(w, h){ if (w > 0 && h > 0) stageBox.style.setProperty('--mm-ar', w + ' / ' + h); };
+  stageBox.style.setProperty('--mm-ar', it.type === 'video' ? '16 / 9' : '3 / 2');
+  var mImg = stage.querySelector('img'), mVid = stage.querySelector('video');
+  if (mImg){ if (mImg.complete) mmSetAR(mImg.naturalWidth, mImg.naturalHeight); else mImg.addEventListener('load', function(){ mmSetAR(mImg.naturalWidth, mImg.naturalHeight); }); }
+  if (mVid){ if (mVid.videoWidth) mmSetAR(mVid.videoWidth, mVid.videoHeight); else mVid.addEventListener('loadedmetadata', function(){ mmSetAR(mVid.videoWidth, mVid.videoHeight); }); }
+  mmEl('mmPos').textContent = (MM.cur + 1) + ' / ' + MM.list.length;
+  mmEl('mmPrev').setAttribute('aria-label', t('mmPrev')); mmEl('mmNext').setAttribute('aria-label', t('mmNext')); mmEl('mmClose').setAttribute('aria-label', t('mmClose'));
+  mmEl('mmPrev').hidden = mmEl('mmNext').hidden = MM.list.length < 2;
+  var fact = function(k, v){ return v ? '<dt>' + esc(t(k)) + '</dt><dd>' + esc(v) + '</dd>' : ''; };
+  var paras = mmL(it, 'description').split(/\n+/).map(function(p){ return '<p class="mm-desc">' + esc(p) + '</p>'; }).join('');
+  var tr = mmL(it, 'transcript');
+  var file = it.src || (it.sources && it.sources[0].src) || '';
+  mmEl('mmInfo').innerHTML =
+    '<div class="mm-chips">' + (it.pillar ? '<span class="mm-chip"><span class="pdot" style="background:' + IND_PCOL[it.pillar] + '"></span>' + esc(mmPillarName(it.pillar)) + '</span>' : '') +
+      '<span class="mm-chip">' + esc(t(it.type === 'video' ? 'mmVideo' : 'mmPhoto')) + '</span>' +
+      (it.sample ? '<span class="mm-chip sample">' + esc(t('mmSample')) + '</span>' : '') + (it.edited ? '<span class="mm-chip">' + esc(t('mmEditedChip')) + '</span>' : '') + '</div>' +
+    '<h2 id="mmVTitle">' + esc(mmL(it, 'title')) + '</h2>' + paras +
+    '<dl class="mm-facts">' + fact('mmFProject', mmL(it, 'project')) + fact('mmFPillar', mmPillarName(it.pillar)) + fact('mmFDistrict', it.district) +
+      fact('mmFDate', it.date ? mmDate(it.date) : '') + fact('mmFDuration', it.duration ? mmDur(it.duration) : '') + fact('mmFCredit', mmL(it, 'credit')) + '</dl>' +
+    (tr ? '<details><summary>' + esc(t('mmTranscript')) + '</summary>' + esc(tr) + '</details>' : '') +
+    (mmTags(it).length ? '<div class="mm-chips">' + mmTags(it).map(function(g){ return '<span class="mm-chip">#' + esc(g) + '</span>'; }).join('') + '</div>' : '') +
+    '<div class="mm-actions">' + (file ? '<a class="impact-btn-secondary" href="' + esc(file) + '" download>' + esc(t('mmDownload')) + '</a><a class="impact-btn-secondary" href="' + esc(file) + '" target="_blank" rel="noopener">' + esc(t('mmOpenOrig')) + '</a>' : '') +
+      '<button type="button" class="impact-btn-secondary" data-mm-edit="' + esc(it.id) + '">' + esc(t('mmEdit')) + '</button>' + (it.local ? '<button type="button" class="impact-btn-secondary mm-danger" data-mm-remove="' + esc(it.id) + '">' + esc(t('mmRemove')) + '</button>' : '') + '</div>';
+  mmEl('mmViewer').setAttribute('aria-labelledby', 'mmVTitle');
+}
+function mmOpen(id){
+  MM.list = mmFilter(); var i = MM.list.map(function(x){ return x.id; }).indexOf(id);
+  if (i < 0){ MM.list = mmAll(); i = MM.list.map(function(x){ return x.id; }).indexOf(id); }
+  if (i < 0) return;
+  MM.cur = i; mmShow(); if (!mmEl('mmViewer').open) mmEl('mmViewer').showModal();
+}
+function mmStep(d){ if (MM.list.length < 2) return; MM.cur = (MM.cur + d + MM.list.length) % MM.list.length; mmShow(); }
+function mmBind(){
+  var root = mmEl('tabMedia'), dlg = mmEl('mmViewer'), add = mmEl('mmAddDlg'), form = mmEl('mmForm');
+  root.addEventListener('click', function(e){
+    var el;
+    if ((el = e.target.closest('[data-mm-type]'))){ MM.type = el.dataset.mmType; mmRender(); return; }
+    if ((el = e.target.closest('[data-mm-open]'))){ mmOpen(el.dataset.mmOpen); return; }
+    if (e.target.closest('#mmAdd')){
+      mmFormMode(false); add.showModal();
+    }
+  });
+  mmEl('mmSearch').addEventListener('input', function(e){ MM.q = e.target.value; mmRender(); });
+  [['mmPillar', 'pillar'], ['mmProject', 'project'], ['mmDistrict', 'district']].forEach(function(p){
+    mmEl(p[0]).addEventListener('change', function(e){ MM[p[1]] = e.target.value; mmRender(); });
+  });
+  mmEl('mmPrev').addEventListener('click', function(){ mmStep(-1); });
+  mmEl('mmNext').addEventListener('click', function(){ mmStep(1); });
+  mmEl('mmClose').addEventListener('click', function(){ dlg.close(); });
+  dlg.addEventListener('close', function(){ mmEl('mmMedia').innerHTML = ''; });
+  dlg.addEventListener('click', function(e){ if (e.target === dlg) dlg.close(); });
+  dlg.addEventListener('keydown', function(e){
+    if (e.key === 'ArrowLeft' && !(e.target.tagName === 'VIDEO')){ e.preventDefault(); mmStep(-1); }
+    if (e.key === 'ArrowRight' && !(e.target.tagName === 'VIDEO')){ e.preventDefault(); mmStep(1); }
+  });
+  mmEl('mmInfo').addEventListener('click', function(e){
+    var eb = e.target.closest('[data-mm-edit]');
+    if (eb){ var eit = mmAll().filter(function(x){ return x.id === eb.dataset.mmEdit; })[0]; if (eit){ mmFormMode(true, eit); add.showModal(); } return; }
+    var b = e.target.closest('[data-mm-remove]'); if (!b) return;
+    var id = b.dataset.mmRemove, it = MM.local.filter(function(x){ return x.id === id; })[0];
+    mmLocalDel(id); if (it) URL.revokeObjectURL(it.src);
+    MM.local = MM.local.filter(function(x){ return x.id !== id; }); MM.sig = '';
+    MM.list = MM.list.filter(function(x){ return x.id !== id; });
+    if (!MM.list.length){ dlg.close(); } else { MM.cur = Math.min(MM.cur, MM.list.length - 1); }
+    mmRender();
+  });
+  mmEl('mmExport').addEventListener('click', mmExport);
+  mmEl('mmRevert').addEventListener('click', function(){
+    var id = MM.editId, o = MM.orig[id], it = mmAll().filter(function(x){ return x.id === id; })[0];
+    if (!o || !it) return;
+    Object.keys(o).forEach(function(k){ if (o[k] === undefined) delete it[k]; else it[k] = o[k]; });
+    delete it.edited; delete MM.orig[id]; mmOvDel(id); MM.sig = ''; add.close(); mmRender(); mmRefocus(id);
+  });
+  mmEl('mmAddClose').addEventListener('click', function(){ add.close(); });
+  mmEl('mmAddCancel').addEventListener('click', function(){ add.close(); });
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    var f = mmEl('mmFile').files[0], msg = mmEl('mmMsg'); msg.textContent = '';
+    if (MM.editId){ mmSaveEdit(MM.editId, mmFormVals(form.elements), add, msg); return; }
+    if (!f || !/^(image|video)\//.test(f.type)){ msg.textContent = t('mmBadFile'); return; }
+    var vals = mmFormVals(form.elements), id = 'L' + Date.now();
+    vals.date = vals.date || new Date().toISOString().slice(0, 10);
+    var rec = Object.assign({id:id, type:f.type.indexOf('video') === 0 ? 'video' : 'photo', blob:f}, vals);
+    mmLocalPut(rec, function(){ MM.local.push(mmFromLocal(rec)); MM.sig = ''; add.close(); mmRender(); }, function(){ msg.textContent = t('mmSaveFail'); });
+  });
+}
+mmBind(); mmInit();
+window.nduguImpactLang = function(){ return state.lang; };
+(function(){
+'use strict';
+/* Export for publishing: a tiny zip writer (stored, no compression) shared by the media and library tabs */
+window.nduguExport = (function(){
+  var T = null;
+  function table(){ if (T) return T; T = new Uint32Array(256); for (var n = 0; n < 256; n++){ var c = n; for (var k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1); T[n] = c >>> 0; } return T; }
+  function crc32(u8){ var t = table(), c = 0xFFFFFFFF; for (var i = 0; i < u8.length; i++) c = t[(c ^ u8[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+  async function zip(files){
+    var enc = new TextEncoder(), d = new Date();
+    var time = (d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1), date = ((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate();
+    var parts = [], central = [], offset = 0;
+    for (var i = 0; i < files.length; i++){
+      var f = files[i], blob = (typeof f.data === 'string') ? new Blob([f.data]) : f.data, name = enc.encode(f.name);
+      var crc = crc32(new Uint8Array(await blob.arrayBuffer())), size = blob.size;
+      var h = new DataView(new ArrayBuffer(30));
+      h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true); h.setUint16(6, 0x0800, true); h.setUint16(8, 0, true);
+      h.setUint16(10, time, true); h.setUint16(12, date, true); h.setUint32(14, crc, true); h.setUint32(18, size, true); h.setUint32(22, size, true);
+      h.setUint16(26, name.length, true); h.setUint16(28, 0, true);
+      parts.push(h.buffer, name, blob);
+      var c = new DataView(new ArrayBuffer(46));
+      c.setUint32(0, 0x02014b50, true); c.setUint16(4, 20, true); c.setUint16(6, 20, true); c.setUint16(8, 0x0800, true); c.setUint16(10, 0, true);
+      c.setUint16(12, time, true); c.setUint16(14, date, true); c.setUint32(16, crc, true); c.setUint32(20, size, true); c.setUint32(24, size, true);
+      c.setUint16(28, name.length, true); c.setUint32(42, offset, true);
+      central.push(c.buffer, name);
+      offset += 30 + name.length + size;
+    }
+    var csize = central.reduce(function(a, p){ return a + p.byteLength; }, 0);
+    var e = new DataView(new ArrayBuffer(22));
+    e.setUint32(0, 0x06054b50, true); e.setUint16(8, files.length, true); e.setUint16(10, files.length, true); e.setUint32(12, csize, true); e.setUint32(16, offset, true);
+    return new Blob(parts.concat(central, [e.buffer]), {type:'application/zip'});
+  }
+  function download(blob, name){
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+  }
+  function slug(s){
+    var o = '', n = String(s || '').toLowerCase().normalize('NFD');
+    for (var i = 0; i < n.length; i++){ var c = n.charCodeAt(i); if (c > 127) continue; o += ((c >= 48 && c <= 57) || (c >= 97 && c <= 122)) ? n.charAt(i) : '-'; }
+    return o.split('-').filter(Boolean).join('-').slice(0, 60) || 'item';
+  }
+  function ext(blob){
+    var map = {'image/jpeg':'jpg', 'image/png':'png', 'image/webp':'webp', 'image/gif':'gif', 'image/svg+xml':'svg', 'image/avif':'avif', 'video/mp4':'mp4', 'video/webm':'webm', 'video/quicktime':'mov', 'application/pdf':'pdf', 'text/plain':'txt', 'text/csv':'csv', 'text/markdown':'md'};
+    var m = (blob.type || '').toLowerCase(); if (map[m]) return map[m];
+    var nm = blob.name || '', d = nm.lastIndexOf('.'); return (d > 0 && nm.slice(d + 1).replace(/[^A-Za-z0-9]/g, '').toLowerCase().slice(0, 5)) || 'bin';
+  }
+  function unique(path, used){ var dot = path.lastIndexOf('.'), base = path.slice(0, dot), e = path.slice(dot), p = path, k = 1; while (used[p]) p = base + '-' + (++k) + e; used[p] = 1; return p; }
+  function today(){ return new Date().toISOString().slice(0, 10); }
+  return {zip:zip, download:download, slug:slug, ext:ext, unique:unique, today:today};
+})();
+var ROOT=document.getElementById('tabLibrary');if(!ROOT)return;
+var DEFAULT={version:1,documents:[
+ {id:'demo-project-brief',title:'Project brief · sample',title_nl:'Projectbeschrijving · voorbeeld',description:'Editable structure for project scope, milestones and ownership. Demo document.',description_nl:'Voorbeeld voor projectomvang, mijlpalen en verantwoordelijkheden. Demodocument.',url:'docs/project-brief-sample.pdf',format:'pdf',demo:true},
+ {id:'demo-monitoring-plan',title:'Monitoring plan · sample',title_nl:'Monitoringplan · voorbeeld',description:'Example monitoring and reporting plan. Demo document.',description_nl:'Voorbeeld van een monitoring- en rapportageplan. Demodocument.',url:'docs/monitoring-plan-sample.pdf',format:'pdf',demo:true}
+ ],sites:[]};
+var W={en:{eyebrow:'PROJECT RESOURCES',title:'Projects library',intro:'Documents and project websites in one place.',search:'Search library',searchPlaceholder:'Document, project or topic',filter:'Show',all:'All resources',documents:'Documents',sites:'Project sites',addDoc:'Add document',addSite:'Add project site',note:'Local uploads and links stay in this browser. Use Export for publishing to add them to the shared library.',document:'DOCUMENT',site:'PROJECT SITE',local:'This browser',published:'Published',demo:'DEMO',preview:'Preview',openFile:'Open / download',openSite:'Visit site',close:'Close',delete:'Remove',cancel:'Cancel',saveSite:'Save site',siteName:'Site name',siteUrl:'Website URL',siteDesc:'Description',empty:'No resources match. Try another search or add a document/site.',resources:'resources',fileSaved:'Document stored in this browser.',siteSaved:'Site link saved in this browser.',fileError:'Could not save the file. Check available browser storage.',linkError:'Enter a valid http:// or https:// URL.',previewUnavailable:'Preview is unavailable for this format. Choose Open / download.',pdfUnavailable:'If the document does not appear, choose Open / download.',noDb:'Browser file storage is unavailable here. Use a hosted site or publish documents in the project catalog.',removeConfirm:'Remove this locally saved resource?',sitePlaceholder:'https://example.org/project',toolsLabel:'Project library tools',exportBtn:'Export for publishing',exportNone:'Nothing to export yet: no documents or sites have been added in this browser.',exportDone:'Export downloaded: {n} new. Unzip it into the project folder and commit it, then the workflow publishes it.',exportFail:'The export could not be created.',exportNoCat:'The published library could not be loaded, so exporting now would drop it. Open the site from its web address and try again.',closePreview:'Close preview',siteNamePlaceholder:'Project portal',view:'View',siteDescription:'External project site'},
+ nl:{eyebrow:'PROJECTBRONNEN',title:'Projectbibliotheek',intro:'Documenten en projectwebsites op één plek.',search:'Zoeken in bibliotheek',searchPlaceholder:'Document, project of onderwerp',filter:'Tonen',all:'Alle bronnen',documents:'Documenten',sites:'Projectsites',addDoc:'Document toevoegen',addSite:'Projectsite toevoegen',note:'Lokale uploads en links blijven in deze browser. Gebruik Exporteren voor publicatie om ze aan de gedeelde bibliotheek toe te voegen.',document:'DOCUMENT',site:'PROJECTSITE',local:'Deze browser',published:'Gepubliceerd',demo:'DEMO',preview:'Voorbeeld',openFile:'Openen / downloaden',openSite:'Website bezoeken',close:'Sluiten',delete:'Verwijderen',cancel:'Annuleren',saveSite:'Site opslaan',siteName:'Naam website',siteUrl:'Website-URL',siteDesc:'Beschrijving',empty:'Geen resultaten. Probeer anders te zoeken of voeg een document/site toe.',resources:'bronnen',fileSaved:'Document opgeslagen in deze browser.',siteSaved:'Website opgeslagen in deze browser.',fileError:'Opslaan is mislukt. Controleer browseropslag.',linkError:'Voer een geldige http://- of https://-URL in.',previewUnavailable:'Geen voorbeeld voor dit formaat. Kies Openen / downloaden.',pdfUnavailable:'Als het document niet verschijnt, kies Openen / downloaden.',noDb:'Browseropslag is hier niet beschikbaar. Gebruik hosting of publiceer documenten in de catalogus.',removeConfirm:'Deze lokaal opgeslagen bron verwijderen?',sitePlaceholder:'https://example.org/project',toolsLabel:'Hulpmiddelen projectbibliotheek',exportBtn:'Exporteren voor publicatie',exportNone:'Niets om te exporteren: in deze browser zijn nog geen documenten of sites toegevoegd.',exportDone:'Export gedownload: {n} nieuw. Pak het uit in de projectmap en commit het, dan publiceert de workflow het.',exportFail:'De export kon niet worden gemaakt.',exportNoCat:'De gepubliceerde bibliotheek kon niet worden geladen; exporteren zou die kwijtraken. Open de site via het webadres en probeer opnieuw.',closePreview:'Voorbeeld sluiten',siteNamePlaceholder:'Projectportaal',view:'Bekijken',siteDescription:'Externe projectsite'}};
+var catalog=DEFAULT, localFiles=[],viewerURL=null,initDone=false,manifestLoaded=false,manifestOk=false;
+function lang(){return window.nduguImpactLang&&window.nduguImpactLang()==='nl'?'nl':'en'}
+function tr(k){return W[lang()][k]||k}
+function nameFor(x,field){return lang()==='nl'&&x[field+'_nl']?x[field+'_nl']:x[field]||''}
+function safe(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function localSites(){try{var a=JSON.parse(localStorage.getItem('impact-local-project-sites-v1')||'[]');return Array.isArray(a)?a.filter(function(x){return x.type==='site'&&external(x.url)}):[]}catch(e){return []}}
+function setLocalSites(a){try{localStorage.setItem('impact-local-project-sites-v1',JSON.stringify(a));return true}catch(e){return false}}
+function external(uri){try{var u=new URL(uri);return ['http:','https:'].includes(u.protocol)&&!u.username&&!u.password}catch(e){return false}}
+function docUrl(uri){if(typeof uri!=='string'||/^(javascript|data):/i.test(uri))return false;if(/^(?:\.\/)?[a-zA-Z0-9_./ -]+$/i.test(uri)&&!uri.includes('..')&&!uri.startsWith('//')&&!uri.startsWith('/'))return true;try{var u=new URL(uri,document.baseURI);return ['http:','https:','file:'].includes(u.protocol)&&!u.username&&!u.password}catch(e){return false}}
+function openDb(){return new Promise(function(res,rej){if(!window.indexedDB){rej(Error('not supported'));return}var r=indexedDB.open('impact-project-files-v1',1);r.onupgradeneeded=function(){if(!r.result.objectStoreNames.contains('files'))r.result.createObjectStore('files',{keyPath:'id'})};r.onsuccess=function(){res(r.result)};r.onerror=function(){rej(r.error||Error('Database error'))}})}
+function transact(mode,fn){return openDb().then(function(db){return new Promise(function(res,rej){var tx=db.transaction('files',mode),store=tx.objectStore('files'),r=fn(store);r.onsuccess=function(){res(r.result)};r.onerror=function(){rej(r.error||Error('Request failed'))};tx.oncomplete=function(){db.close()};tx.onerror=function(){db.close()}})})}
+function allFiles(){return transact('readonly',function(st){return st.getAll()}).catch(function(){return []})}
+function saveFile(o){return transact('readwrite',function(st){return st.put(o)})}
+function getFile(id){return transact('readonly',function(st){return st.get(id)})}
+function removeFile(id){return transact('readwrite',function(st){return st.delete(id)})}
+function status(t){document.getElementById('libStatus').textContent=t||''}
+function cleanItems(source){if(!source||typeof source!=='object')return DEFAULT;
+ var docs=Array.isArray(source.documents)?source.documents.filter(function(x){return x&&x.title&&x.url&&docUrl(x.url)}).map(function(x,i){return {id:String(x.id||'doc'+i),type:'document',title:String(x.title),title_nl:String(x.title_nl||''),description:String(x.description||''),description_nl:String(x.description_nl||''),url:String(x.url),format:String(x.format||''),demo:!!x.demo,published:true}}):[];
+ var sites=Array.isArray(source.sites)?source.sites.filter(function(x){return x&&x.title&&x.url&&external(x.url)}).map(function(x,i){return {id:String(x.id||'site'+i),type:'site',title:String(x.title),title_nl:String(x.title_nl||''),description:String(x.description||''),description_nl:String(x.description_nl||''),url:String(x.url),published:true}}):[];
+ return docs.concat(sites)}
+async function exportLibrary(){
+  var X=window.nduguExport,links=localSites(),docs=await allFiles();
+  if(!manifestOk){status(tr('exportNoCat'));return}
+  if(!links.length&&!docs.length){status(tr('exportNone'));return}
+  try{
+   var src=catalog&&typeof catalog==='object'?catalog:{},used={},ids={},files=[];
+   var out={version:1,documents:(Array.isArray(src.documents)?src.documents:[]).map(function(x){return Object.assign({},x)}),sites:(Array.isArray(src.sites)?src.sites:[]).map(function(x){return Object.assign({},x)})};
+   out.documents.concat(out.sites).forEach(function(x){if(x.url)used[x.url]=1;if(x.id)ids[x.id]=1});
+   function newId(p,s){var i=p+'-'+s,k=1;while(ids[i])i=p+'-'+s+'-'+(++k);ids[i]=1;return i}
+   docs.forEach(function(rec){
+    if(!rec||!rec.blob)return;var base=String(rec.title||'document').replace(/[.][^.]*$/,''),e=X.ext(rec.blob);
+    var path=X.unique('docs/'+X.slug(base)+'.'+e,used),d={id:newId('doc',X.slug(base)),title:base,url:path,format:e};
+    if(rec.description)d.description=rec.description;out.documents.push(d);files.push({name:path,data:rec.blob})});
+   links.forEach(function(l){var d={id:newId('site',X.slug(l.title)),title:l.title,url:l.url};if(l.description)d.description=l.description;out.sites.push(d)});
+   var blob=await X.zip([{name:'project-library.json',data:JSON.stringify(out,null,2)+'\n'}].concat(files));
+   X.download(blob,'library-export-'+X.today()+'.zip');status(tr('exportDone').replace('{n}',docs.length+links.length))
+  }catch(err){status(tr('exportFail'))}}
+function loadManifest(){if(manifestLoaded)return;manifestLoaded=true;if(location.protocol==='file:')return;
+ fetch('project-library.json',{cache:'no-store'}).then(function(r){if(!r.ok)throw Error('manifest not found');return r.json()}).then(function(j){catalog=j;manifestOk=true;render()}).catch(function(){/* packaged defaults remain usable */})}
+function entries(){var published=cleanItems(catalog),links=localSites();return published.concat(localFiles.map(function(x){return {id:x.id,type:'document',title:x.title,description:x.description||x.type||'',local:true,file:true,format:x.type||'',added:x.added}}),links)}
+function card(x){var site=x.type==='site',isLocal=!!x.local,kind=site?tr('site'):tr('document'),action=site?tr('openSite'):tr('preview');var desc=nameFor(x,'description')||(site?tr('siteDescription'):'');
+ return '<article class="lib-card" data-lib-id="'+safe(x.id)+'"><div class="lib-card-top"><span class="lib-kind '+(site?'site':'')+'">'+safe(kind)+'</span><span class="lib-local">'+safe(isLocal?tr('local'):(x.demo?tr('demo'):tr('published')))+'</span></div>'+
+ '<h3>'+safe(nameFor(x,'title'))+'</h3><p>'+safe(desc)+'</p><div class="lib-card-footer"><button type="button" class="impact-btn" data-action="primary" data-id="'+safe(x.id)+'">'+safe(action)+'</button>'+
+ (!site?'<button type="button" class="impact-btn-secondary" data-action="download" data-id="'+safe(x.id)+'">'+safe(tr('openFile'))+'</button>':'')+
+ (isLocal?'<button type="button" class="lib-remove" data-action="remove" data-id="'+safe(x.id)+'">'+safe(tr('delete'))+'</button>':'')+'</div></article>'}
+function render(){if(!initDone)return;ROOT.querySelectorAll('[data-lib]').forEach(function(node){var k=node.dataset.lib;if(tr(k))node.textContent=tr(k)});ROOT.querySelectorAll('[data-lib-placeholder]').forEach(function(node){node.placeholder=tr(node.dataset.libPlaceholder)});ROOT.querySelectorAll('[data-lib-aria]').forEach(function(node){node.setAttribute('aria-label',tr(node.dataset.libAria))});
+ for(var d of document.querySelectorAll('#libViewer [data-lib],#libSiteDialog [data-lib]')){d.textContent=tr(d.dataset.lib)}
+ document.querySelectorAll('#libViewer [data-lib-aria],#libSiteDialog [data-lib-aria]').forEach(function(node){node.setAttribute('aria-label',tr(node.dataset.libAria))});document.querySelectorAll('#libSiteDialog [data-lib-placeholder]').forEach(function(node){node.placeholder=tr(node.dataset.libPlaceholder)});
+ var q=document.getElementById('libSearch').value.trim().toLowerCase(),filter=document.getElementById('libFilter').value;
+ var shown=entries().filter(function(x){return (filter==='all'||x.type===filter)&&([x.title,x.title_nl,x.description,x.description_nl].join(' ').toLowerCase().includes(q))});
+ document.getElementById('libCount').textContent=shown.length+' '+tr('resources');document.getElementById('libGrid').innerHTML=shown.length?shown.map(card).join(''):'<div class="lib-empty">'+safe(tr('empty'))+'</div>'}
+function closeViewer(){var dlg=document.getElementById('libViewer');if(dlg.open)dlg.close();document.getElementById('libViewerBody').replaceChildren();document.getElementById('libViewerDownload').removeAttribute('href');if(viewerURL){URL.revokeObjectURL(viewerURL);viewerURL=null}}
+function previewFile(item,source,type){var body=document.getElementById('libViewerBody'),dl=document.getElementById('libViewerDownload');body.replaceChildren();dl.href=source;dl.download=item.file?item.title:'';
+ if(/pdf/i.test(type)||/\.pdf(?:\?|#|$)/i.test(source)){
+  var frame=document.createElement('iframe');frame.title=item.title;frame.src=source;frame.setAttribute('referrerpolicy','no-referrer');body.appendChild(frame);
+ }else if(/^image\//.test(type)||/\.(png|jpe?g|webp|gif)(?:\?|#|$)/i.test(source)){
+  var im=document.createElement('img');im.alt=item.title;im.src=source;body.appendChild(im);
+ }else if(/^text\//.test(type)||/\.(txt|md|csv)$/i.test(item.title)){
+  var pre=document.createElement('pre');pre.textContent=tr('previewUnavailable');body.appendChild(pre);
+  fetch(source).then(function(r){return r.text()}).then(function(t){pre.textContent=t.slice(0,300000)}).catch(function(){pre.textContent=tr('previewUnavailable')});
+ }else{var n=document.createElement('div');n.className='lib-not-previewable';n.textContent=tr('previewUnavailable');body.appendChild(n)}
+ document.getElementById('libViewerTitle').textContent=nameFor(item,'title');var dlg=document.getElementById('libViewer');if(!dlg.open)dlg.showModal()}
+function openNew(url){var a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener noreferrer';document.body.appendChild(a);a.click();a.remove()}
+async function openItem(x,action){if(x.type==='site'){if(external(x.url))openNew(x.url);return}
+ var url=x.url,type=x.format||'';
+ if(x.file){try{var got=await getFile(x.id);if(!got||!got.blob)throw Error('missing');url=URL.createObjectURL(got.blob);type=got.type||got.blob.type||type;viewerURL=url}catch(e){status(tr('fileError'));return}}
+ if(!url||(!x.file&&!docUrl(url))){status(tr('previewUnavailable'));return}
+ if(action==='download'){openNew(url);if(!x.file)return;setTimeout(function(){if(viewerURL===url){URL.revokeObjectURL(url);viewerURL=null}},30000)}
+ else previewFile(x,url,type)
+}
+async function refresh(){localFiles=await allFiles();render()}
+function setUp(){if(initDone)return;initDone=true;
+ document.getElementById('libSearch').addEventListener('input',render);document.getElementById('libFilter').addEventListener('change',render);
+ document.getElementById('libViewerClose').onclick=closeViewer;document.getElementById('libViewerDone').onclick=closeViewer;document.getElementById('libViewer').addEventListener('close',closeViewer);
+ document.getElementById('libAddSite').onclick=function(){document.getElementById('libSiteDialog').showModal()};
+ var closeSite=function(){document.getElementById('libSiteDialog').close()};document.getElementById('libSiteClose').onclick=closeSite;document.getElementById('libSiteCancel').onclick=closeSite;
+ document.getElementById('libSiteForm').addEventListener('submit',function(e){e.preventDefault();var fd=new FormData(e.target),url=String(fd.get('url')||'').trim(),title=String(fd.get('title')||'').trim();if(!external(url)){status(tr('linkError'));return}
+  var links=localSites();links.push({id:'local-link-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),type:'site',local:true,title:title,url:url,description:String(fd.get('description')||''),added:new Date().toISOString()});if(setLocalSites(links)){e.target.reset();closeSite();render();status(tr('siteSaved'))}else status(tr('fileError'))});
+ document.getElementById('libExport').addEventListener('click',exportLibrary);
+ document.getElementById('libFile').addEventListener('change',async function(e){var files=Array.from(e.target.files||[]);for(var file of files){if(file.size>18*1024*1024){status('Max file size: 18 MB ('+file.name+')');continue}try{await saveFile({id:'local-doc-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),title:file.name,blob:file,type:file.type||'',added:new Date().toISOString()});status(tr('fileSaved'))}catch(err){status(tr('noDb'))}}e.target.value='';await refresh()});
+ document.getElementById('libGrid').addEventListener('click',async function(e){var b=e.target.closest('[data-action]');if(!b)return;var x=entries().find(function(d){return d.id===b.dataset.id});if(!x)return;
+  if(b.dataset.action==='remove'){if(!confirm(tr('removeConfirm')))return;if(x.file){await removeFile(x.id);await refresh()}else{setLocalSites(localSites().filter(function(v){return v.id!==x.id}));render()}return}await openItem(x,b.dataset.action)});
+ loadManifest();refresh();}
+window.nduguLibraryRender=function(){setUp();render()};
+})();
 boot();
 })();
 

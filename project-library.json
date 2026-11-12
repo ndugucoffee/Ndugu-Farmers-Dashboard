@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "documents": [
+    {
+      "id": "demo-project-brief",
+      "title": "Project brief · sample",
+      "title_nl": "Projectbeschrijving · voorbeeld",
+      "description": "Editable structure for scope, milestones and ownership. Demo document.",
+      "description_nl": "Voorbeeld voor projectomvang, mijlpalen en verantwoordelijkheden. Demodocument.",
+      "url": "docs/project-brief-sample.pdf",
+      "format": "pdf",
+      "demo": true
+    },
+    {
+      "id": "demo-monitoring-plan",
+      "title": "Monitoring plan · sample",
+      "title_nl": "Monitoringplan · voorbeeld",
+      "description": "Example monitoring and reporting plan. Demo document.",
+      "description_nl": "Voorbeeld van een monitoring- en rapportageplan. Demodocument.",
+      "url": "docs/monitoring-plan-sample.pdf",
+      "format": "pdf",
+      "demo": true
+    }
+  ],
+  "sites": []
+}

@@ -1,0 +1,107 @@
+/* Unified Ndugu identity: primary #0E564C, white surfaces and complementary chart accents. */
+:root{
+  /* Main brand: supplied #0E564C.  Darker teal anchors the sidebar. */
+  --ndugu-green:#0E564C;--ndugu-green-dark:#083B34;--ndugu-green-mid:#16766A;
+  --ndugu-white:#FFFFFF;--ndugu-tint:#F1F9F7;
+  --paper:#F7FAF9;--surface:#FFFFFF;--surface-sunk:#EEF6F4;
+  --ink:#1B322E;--ink-soft:#49645D;--ink-faint:#6C817B;
+  --line:#DCE9E5;--line-strong:#C6DCD5;
+  --roast:#0E564C;--roast-deep:#083B34;--roast-light:#368779;--roast-wash:#E6F3EF;
+  --leaf:#0E564C;--leaf-light:#529D90;--leaf-wash:#E7F4F0;
+  --cherry:#387C70;--cherry-wash:#EDF6F3;
+  --honey:#648D63;--honey-wash:#EDF5EC;
+  --teal:#21796F;--olive:#88A989;--clay:#526E61;
+  --nav-bg:#083B34;--nav-edge:#0E564C;--nav-title:#F0FAF7;
+  --nav-btn:#0E564C;--nav-btn-hover:#16766A;
+  --nav-btn-current:#FFFFFF;--nav-btn-current-ink:#0E564C;
+  --tile-leaf:linear-gradient(135deg,#167467,#0A4A41);
+  --tile-honey:linear-gradient(135deg,#3C8B7D,#11675C);
+  --tile-roast:linear-gradient(135deg,#26796C,#0A5148);
+  --tile-cherry:linear-gradient(135deg,#34877B,#0C5B51);
+  --tile-teal:linear-gradient(135deg,#278578,#0A544B);
+  --tile-olive:linear-gradient(135deg,#429386,#155F55);
+}
+body{background:var(--paper)}
+.sidenav{background:var(--nav-bg)!important;border-color:var(--nav-edge)!important}
+.sidenav-title{color:var(--nav-title)!important}
+.navbtn{background:var(--nav-btn)!important;color:#FFFFFF!important;border-color:rgba(255,255,255,.13)!important}
+.navbtn:hover,.navbtn:focus-visible{background:var(--nav-btn-hover)!important;color:#FFFFFF!important}
+.navbtn[aria-current="page"]{background:#FFFFFF!important;color:#0E564C!important;border-color:#FFFFFF!important}
+.navbtn[aria-current="page"]:hover{background:#F0F8EB!important;color:#0E564C!important}
+.pill.active,.btn-primary,.back{background:var(--ndugu-green)!important;color:#FFF!important}
+.pill:not(.active):hover{background:#ECF7F4}
+::selection{background:var(--ndugu-green);color:#FFF}
+.ndugu-kpi-shell .ndg-tab[aria-selected="true"]{border-bottom-color:var(--ndugu-green)!important;color:var(--ndugu-green)!important;background:#EFF8F5!important}
+.ndugu-kpi-shell .ndg-tab:hover{color:var(--ndugu-green)!important}
+.ndx-app{--ndx-accent:#0E564C;--ndx-accent-soft:#E6F3EF;--ndx-ink:#203A35;--ndx-border:#DCE9E5;--ndx-bg:#F7FBF9}
+.ndx-app.ndx-domestic,.ndx-app.ndx-export,.ndx-app.ndx-production{--ndx-accent:#0E564C;--ndx-accent-soft:#E6F3EF}
+.ndx-summary-card{border-top-color:var(--ndx-accent)}
+.ndx-summary-card.ndx-card-1{border-top-color:#367A21}
+.ndx-summary-card.ndx-card-2{border-top-color:#4B9433}
+.ndx-summary-card.ndx-card-3{border-top-color:#68A850}
+.ndx-summary-card:hover{border-color:#ADCDA4}
+.ndx-mini-progress-track i{background:linear-gradient(90deg,#5A9945,#0E564C)}
+.ndx-heatcell.lv1,.ndx-heat-key .lv1{background:#EFF8EA}
+.ndx-heatcell.lv2,.ndx-heat-key .lv2{background:#CFE6C5}
+.ndx-heatcell.lv3,.ndx-heat-key .lv3{background:#95C983}
+.ndx-heatcell.lv4,.ndx-heat-key .lv4{background:#62A94A}
+.ndx-heatcell.lv5,.ndx-heat-key .lv5{background:#0E564C}
+.ndx-heading h1,.ndx-section-heading h2,.ndx-surface-head h2{color:#183D37}
+.ndx-app :is(button,input,select):focus-visible{outline:2px solid var(--ndugu-green);outline-offset:2px}
+.ndx-global-filters{display:flex;gap:13px 14px;align-items:flex-end;flex-wrap:wrap;padding:15px 17px;margin:0 0 21px;background:#FFF;border:1px solid #DDE9D9;border-radius:14px;box-shadow:0 4px 18px #214B1807}
+.ndx-global-filters label{display:grid;gap:6px;min-width:136px;flex:1 1 135px;color:#44643B;font-size:11px;font-weight:740}
+.ndx-global-filters label select,.ndx-global-filters label input{width:100%;height:38px;padding:0 12px;border:1px solid #C5D9BC;border-radius:8px;background:#F9FCF8;color:#1C3E15;font:inherit;font-size:12px;font-weight:680;cursor:pointer}
+.ndx-global-filters label:last-of-type{flex:0 1 154px}
+.ndx-filter-hint{width:100%;margin:2px 0 0;color:#687F60;font-size:10.5px;line-height:1.55}
+.ndx-mode-note{background:#F0F8F5;border-color:#D8E7D0;color:#35695F}
+.ndx-open-row{color:#0E564C;background:#E6F3EF}
+.ndx-drawer-cover{background:#10271085}
+.ndx-detail-highlights>div{background:#F5FAF2}
+@media(max-width:650px){.ndx-global-filters{padding:12px;gap:10px}.ndx-global-filters label{flex-basis:calc(50% - 12px)}.ndx-global-filters label:last-of-type{flex-basis:calc(50% - 12px)}}
+
+/* Visualization palette — restrained accents on the evergreen and white identity.
+   Green: primary; teal: comparison; gold: plan; blue and clay: categories.
+   Use sequential greens for heatmaps and keep risk/status semantics separate. */
+:root {
+  --viz-green: #0E564C;
+  --viz-teal: #287C78;
+  --viz-blue: #517A9D;
+  --viz-gold: #BE8A35;
+  --viz-clay: #B66A55;
+  --viz-sage: #87A86F;
+  --viz-grid: #E3EAE1;
+}
+.ndx-app .ndx-comp-legend{color:var(--viz-teal)}
+.ndx-app .ndx-comp-legend:before{border-top-color:var(--viz-teal)}
+.ndx-app .ndx-target-legend{color:#956821}
+.ndx-app .ndx-target-legend:before{border-top-color:var(--viz-gold)}
+.ndx-app .ndx-bullet-track em{border-right-color:var(--viz-gold)}
+.ndx-app .ndx-heatcell.lv4,.ndx-app .ndx-heat-key .lv4{color:#173711}
+.ndx-app .ndx-heatcell.lv5,.ndx-app .ndx-heat-key .lv5{color:#fff}
+
+/* Continuous brand strip at the bottom of every page.
+   In flow, not fixed, so no dashboard controls or footers are covered. */
+body::after{
+  content:"";
+  display:block;
+  width:100%;
+  height:12px;
+  min-height:12px;
+  flex:0 0 12px;
+  clear:both;
+  background:#0E564C;
+}
+
+/* Coordinate existing page footers with the shared theme. */
+footer{background:var(--ndugu-green-dark)!important;color:#D5EAE5!important;border-top-color:var(--ndugu-green)!important}
+footer h4{color:#F4FBF9!important}
+/* Boundary editor has a password overlay: keep the strip visible there too. */
+.edgate::after{content:"";position:absolute;bottom:0;left:0;right:0;height:12px;background:#0E564C;pointer-events:none}
+
+/* The Production and Internal Resources Definitions blocks use the same compact footer as other dashboards. */
+.ndugu-definitions-footer{margin-top:22px;padding:24px 0 30px;font-size:12.5px;line-height:1.7;background:var(--ndugu-green-dark);color:#D5EAE5;border-top:4px solid var(--ndugu-green)}
+.ndugu-definitions-footer .shell{max-width:1320px;width:100%;margin:0 auto;padding:0 32px}
+.ndugu-definitions-footer .fgrid{display:grid;grid-template-columns:minmax(0,1fr);gap:24px}
+.ndugu-definitions-footer h4{font-size:12.5px;color:#F4FBF9;font-weight:600;margin:0 0 8px;letter-spacing:.02em}
+.ndugu-definitions-footer p{margin:0;max-width:1000px;color:#D5EAE5}
+@media(max-width:900px){.ndugu-definitions-footer .shell{padding:0 18px}}
