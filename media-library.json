@@ -282,6 +282,26 @@
     "zonsopgang",
     "kleinschalig"
    ]
+  },
+  {
+   "id": "m009",
+   "type": "photo",
+   "src": "media/photos/director-of-operations-shows-partner-envoys-around-luvule-hu.jpg",
+   "title": "Director of operations shows partner envoys around Luvule hulling station",
+   "caption": "Director of operations shows partner envoys around Luvule hulling station",
+   "description": "Film from a training day: a trainer explains the process of coffee hulling to a farmer group, followed by the same practices applied in a shaded coffee and banana plot. It is used in follow-up visits so farmers can revisit the steps at home.",
+   "alt": "Luvule hulling station",
+   "project": "Regenerative agriculture",
+   "pillar": "profit",
+   "district": "Masaka",
+   "date": "2026-11-12",
+   "credit": "Luvule hulling station",
+   "tags": [
+    "masaka",
+    "#Luvule",
+    "#Ndugu",
+    "#Directorofoperations"
+   ]
   }
  ]
 }
