@@ -302,6 +302,27 @@
     "#Ndugu",
     "#Directorofoperations"
    ]
+  },
+  {
+   "id": "m010",
+   "type": "photo",
+   "src": "media/photos/ndugu-warehouse-at-luvule.jpg",
+   "title": "Ndugu warehouse at Luvule",
+   "caption": "Directors inspecting the main warehouse at Luvule",
+   "description": "Ndugu directors and partners inspecting the main coffee warehouse located in Luvule, Bukakkata road.",
+   "alt": "Directors inspecting the main warehouse at Luvule",
+   "project": "Digital cooperatives",
+   "pillar": "people",
+   "district": "Masaka",
+   "date": "2026-11-12",
+   "credit": "Luvule hulling station",
+   "tags": [
+    "masaka",
+    "#Luvule",
+    "#Ndugu",
+    "#Directors #Partnerships",
+    "#Coffee"
+   ]
   }
  ]
 }
