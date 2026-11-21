@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" width="1600" height="1000" preserveAspectRatio="xMidYMid slice">
+  <!-- Sign-in background: coffee terraces under shade trees on the slopes of
+       a mountain range, in the dashboards' greens, with a faint overlay of
+       mapped plot boundaries and contour lines (the EUDR maps). Used by
+       portal.html and secure-gate.js; drawn by hand, no external files. -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F4F9F1"/>
+      <stop offset=".55" stop-color="#DCEBD6"/>
+      <stop offset="1" stop-color="#C9DFC3"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="1180" cy="250" r="260" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFF7DF" stop-opacity=".95"/>
+      <stop offset=".35" stop-color="#FBF1D2" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#FBF1D2" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="near" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2F7A4A"/>
+      <stop offset="1" stop-color="#0E564C"/>
+    </linearGradient>
+    <linearGradient id="mid" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#76B257"/>
+      <stop offset="1" stop-color="#4E8E33"/>
+    </linearGradient>
+    <linearGradient id="shade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset=".55" stop-color="#0B4C43" stop-opacity="0"/>
+      <stop offset="1" stop-color="#0B4C43" stop-opacity=".45"/>
+    </linearGradient>
+    <path id="midTop" d="M0 690 C 260 620 520 660 760 628 S 1180 606 1400 646 S 1560 668 1600 660"/>
+    <path id="nearTop" d="M0 800 C 300 730 640 772 900 750 S 1360 708 1600 768"/>
+  </defs>
+
+  <rect width="1600" height="1000" fill="url(#sky)"/>
+  <rect width="1600" height="1000" fill="url(#sun)"/>
+
+  <!-- far ranges -->
+  <path d="M0 520 C 180 476 330 424 470 420 C 600 416 690 360 820 356 C 930 352 1010 400 1110 404 S 1400 446 1600 404 V1000 H0Z" fill="#C2DABC"/>
+  <path d="M0 600 C 220 540 420 566 640 524 S 1000 566 1200 504 S 1480 546 1600 524 V1000 H0Z" fill="#A2C99B"/>
+
+  <!-- contour lines over the ranges, like a terrain map -->
+  <g fill="none" stroke="#FFFFFF" stroke-opacity=".38" stroke-width="1.2">
+    <path d="M60 520 C 220 480 360 446 480 444 C 610 442 700 392 820 388 C 930 384 1010 428 1120 432 S 1380 466 1560 436"/>
+    <path d="M140 516 C 260 488 380 466 500 466 C 620 466 710 424 820 420 C 920 418 1000 454 1110 460 S 1340 482 1480 470"/>
+    <path d="M260 512 C 360 496 450 488 540 488 C 640 488 720 456 820 452 C 910 450 990 478 1080 486 S 1260 498 1380 494"/>
+    <path d="M420 508 C 520 504 600 504 660 500 C 740 494 780 482 830 480 C 900 480 960 496 1040 504 S 1160 512 1240 510"/>
+  </g>
+
+  <!-- middle slope with coffee rows -->
+  <path d="M0 690 C 260 620 520 660 760 628 S 1180 606 1400 646 S 1560 668 1600 660 V1000 H0Z" fill="url(#mid)"/>
+  <g fill="none" stroke-linecap="round">
+    <use href="#midTop" transform="translate(0 22)" stroke="#3F7F2E" stroke-width="10" stroke-dasharray="0 17"/>
+    <use href="#midTop" transform="translate(0 46)" stroke="#3B7A2C" stroke-width="12" stroke-dasharray="0 20"/>
+    <use href="#midTop" transform="translate(0 74)" stroke="#37752A" stroke-width="14" stroke-dasharray="0 23"/>
+    <use href="#midTop" transform="translate(0 106)" stroke="#337028" stroke-width="16" stroke-dasharray="0 26"/>
+  </g>
+
+  <!-- shade trees on the middle slope -->
+  <g>
+    <rect x="292" y="560" width="9" height="86" rx="3" fill="#5A4A32"/>
+    <ellipse cx="296" cy="556" rx="74" ry="30" fill="#1F6B47"/>
+    <ellipse cx="282" cy="548" rx="44" ry="18" fill="#2C7D52"/>
+    <rect x="976" y="548" width="8" height="78" rx="3" fill="#5A4A32"/>
+    <ellipse cx="980" cy="544" rx="64" ry="26" fill="#1F6B47"/>
+    <ellipse cx="968" cy="537" rx="38" ry="15" fill="#2C7D52"/>
+    <rect x="1290" y="566" width="8" height="84" rx="3" fill="#5A4A32"/>
+    <ellipse cx="1294" cy="562" rx="70" ry="28" fill="#1F6B47"/>
+    <ellipse cx="1281" cy="554" rx="42" ry="17" fill="#2C7D52"/>
+  </g>
+
+  <!-- near slope, darker, with larger coffee bushes and ripe cherries -->
+  <path d="M0 800 C 300 730 640 772 900 750 S 1360 708 1600 768 V1000 H0Z" fill="url(#near)"/>
+  <g fill="none" stroke-linecap="round">
+    <use href="#nearTop" transform="translate(0 30)" stroke="#3A8A56" stroke-width="20" stroke-dasharray="0 32"/>
+    <use href="#nearTop" transform="translate(0 30)" stroke="#C2412D" stroke-width="4" stroke-dasharray="0 32" stroke-dashoffset="-6"/>
+    <use href="#nearTop" transform="translate(0 72)" stroke="#358352" stroke-width="25" stroke-dasharray="0 40"/>
+    <use href="#nearTop" transform="translate(0 72)" stroke="#C2412D" stroke-width="5" stroke-dasharray="0 40" stroke-dashoffset="-8"/>
+    <use href="#nearTop" transform="translate(0 124)" stroke="#2F7B4D" stroke-width="31" stroke-dasharray="0 50"/>
+    <use href="#nearTop" transform="translate(0 124)" stroke="#C2412D" stroke-width="6" stroke-dasharray="0 50" stroke-dashoffset="-10"/>
+    <use href="#nearTop" transform="translate(0 188)" stroke="#29734A" stroke-width="38" stroke-dasharray="0 62"/>
+    <use href="#nearTop" transform="translate(0 188)" stroke="#C2412D" stroke-width="7" stroke-dasharray="0 62" stroke-dashoffset="-12"/>
+  </g>
+
+  <!-- a tall shade tree in the foreground -->
+  <g>
+    <rect x="132" y="600" width="14" height="210" rx="5" fill="#4A3C28"/>
+    <ellipse cx="139" cy="596" rx="128" ry="46" fill="#145B44"/>
+    <ellipse cx="118" cy="584" rx="80" ry="28" fill="#1F6B47"/>
+  </g>
+
+  <!-- mapped plot boundaries with their GPS points -->
+  <g stroke="#FFFFFF" stroke-width="1.6" stroke-linejoin="round" fill="#FFFFFF" fill-opacity=".07" stroke-opacity=".7">
+    <path d="M520 664 L640 646 L668 700 L548 716Z"/>
+    <path d="M668 700 L640 646 L770 634 L808 690Z"/>
+    <path d="M1060 648 L1180 632 L1214 690 L1086 704Z"/>
+    <path d="M380 812 L560 786 L600 872 L410 900Z"/>
+    <path d="M1140 776 L1320 744 L1372 830 L1176 856Z"/>
+  </g>
+  <g fill="#FFFFFF" fill-opacity=".9">
+    <circle cx="520" cy="664" r="3.2"/><circle cx="640" cy="646" r="3.2"/><circle cx="668" cy="700" r="3.2"/><circle cx="548" cy="716" r="3.2"/>
+    <circle cx="770" cy="634" r="3.2"/><circle cx="808" cy="690" r="3.2"/>
+    <circle cx="1060" cy="648" r="3.2"/><circle cx="1180" cy="632" r="3.2"/><circle cx="1214" cy="690" r="3.2"/><circle cx="1086" cy="704" r="3.2"/>
+    <circle cx="380" cy="812" r="4"/><circle cx="560" cy="786" r="4"/><circle cx="600" cy="872" r="4"/><circle cx="410" cy="900" r="4"/>
+    <circle cx="1140" cy="776" r="4"/><circle cx="1320" cy="744" r="4"/><circle cx="1372" cy="830" r="4"/><circle cx="1176" cy="856" r="4"/>
+  </g>
+
+  <rect width="1600" height="1000" fill="url(#shade)"/>
+</svg>

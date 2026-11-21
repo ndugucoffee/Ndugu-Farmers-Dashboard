@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script src="secure-gate.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon.ico" sizes="16x16 32x32" type="image/x-icon">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+<meta name="theme-color" content="#0E564C">
+<title>Coffee Minds | Ndugu Farmers Ltd</title>
+<style>
+  :root{
+    --paper:#F7FBF5; --surface:#FFFFFF;
+    --ink:#1F2D1A; --ink-soft:#4D5F47; --ink-faint:#72836B;
+    --line:#DCE8D8; --line-strong:#C8D8C1;
+    --roast:#0E564C; --roast-deep:#0B4C43; --honey:#6FA649;
+    --nav-bg:#0B4C43; --nav-edge:#0E564C; --nav-title:#F7FBF5;
+    --nav-btn:#0E564C; --nav-btn-hover:#126A5E;
+    --nav-btn-current:#FFFFFF; --nav-btn-current-ink:#0E564C;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+    font-size:15px; line-height:1.55; -webkit-font-smoothing:antialiased;
+  }
+  body::before{
+    content:''; position:fixed; top:0; left:0; right:0; height:4px; z-index:60;
+    background:linear-gradient(90deg,var(--roast-deep) 0%,var(--roast) 22%,#B23A1E 46%,var(--honey) 70%,#4E7C2E 100%);
+  }
+  .layout{display:flex; align-items:flex-start; min-height:100vh;}
+  .layout-main{flex:1 1 auto; min-width:0; max-width:100%;}
+  .sidenav{
+    flex:0 0 172px; width:172px; align-self:stretch;
+    position:sticky; top:4px; max-height:calc(100vh - 4px); overflow-y:auto;
+    background:var(--nav-bg); border-right:1px solid var(--nav-edge);
+    padding:16px 14px 28px; display:flex; flex-direction:column; gap:13px;
+  }
+  .sidenav-title{
+    color:var(--nav-title); font-size:12px; font-weight:600;
+    text-transform:uppercase; letter-spacing:0.12em; margin:0; padding:2px;
+  }
+  .navbtn{
+    display:block; text-align:center; text-decoration:none;
+    background:var(--nav-btn); color:#fff; font-size:13px; font-weight:500;
+    line-height:1.3; padding:12px 6px; border:1px solid rgba(255,252,246,0.10);
+    clip-path:polygon(9px 0, calc(100% - 9px) 0, 100% 9px, 100% calc(100% - 9px),
+                      calc(100% - 9px) 100%, 9px 100%, 0 calc(100% - 9px), 0 9px);
+    transition:background .15s ease;
+  }
+  .navbtn:hover{background:var(--nav-btn-hover);}
+  .navbtn:focus-visible{outline:none; box-shadow:inset 0 0 0 2px #fff;}
+  .navbtn[aria-current="page"]{
+    background:var(--nav-btn-current); color:var(--nav-btn-current-ink);
+    font-weight:600; border-color:transparent;
+  }
+  @media (prefers-reduced-motion:reduce){ .navbtn{transition:none;} }
+  @media (max-width:900px){
+    .layout{flex-direction:column;}
+    .sidenav{
+      position:static; width:auto; max-height:none; flex:0 0 auto; align-self:auto;
+      flex-direction:row; align-items:center; gap:10px; overflow-x:auto;
+      /* min-width:0 is what makes that overflow-x actually scroll: without it
+         the rail sizes to all nine buttons and widens the page instead. */
+      min-width:0; max-width:100%;
+      padding:12px 16px; border-right:none; border-bottom:1px solid var(--nav-edge);
+    }
+    .sidenav-title{display:none;}
+    .navbtn{flex:0 0 auto; padding:10px 16px; white-space:nowrap;}
+  }
+
+  header.topbar{
+    position:sticky; top:4px; z-index:50;
+    background:rgba(250,244,234,0.94); backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line-strong);
+  }
+  .topbar-inner{
+    max-width:1320px; margin:0 auto; padding:16px 32px;
+    display:flex; align-items:center; gap:14px;
+  }
+  .brand-mark{height:28px; width:auto; flex:none;}
+  .brand-text{
+    border-left:1px solid var(--line-strong); padding-left:14px;
+    font-size:12.5px; color:var(--ink-soft);
+  }
+
+  .stage{
+    max-width:1320px; margin:0 auto; padding:0 32px;
+    display:flex; align-items:center; justify-content:center;
+    min-height:calc(100vh - 66px);
+  }
+  .card{
+    max-width:520px; width:100%; text-align:center;
+    background:var(--surface); border:1px solid var(--line-strong);
+    border-radius:8px; padding:44px 40px 40px;
+    box-shadow:0 1px 2px rgba(42,26,16,0.04), 0 10px 26px -20px rgba(42,26,16,0.55);
+  }
+  .rule{width:30px; height:3px; border-radius:2px; background:var(--roast); margin:0 auto 18px;}
+  .eyebrow{
+    font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-size:11px; font-weight:600;
+    letter-spacing:0.13em; text-transform:uppercase; color:var(--ink-faint);
+    margin:0 0 10px;
+  }
+  h1{font-size:27px; line-height:1.18; font-weight:700; letter-spacing:-0.015em; margin:0 0 12px;}
+  .card p{margin:0 0 22px; color:var(--ink-soft); font-size:15px;}
+  .back{
+    display:inline-block; text-decoration:none;
+    background:var(--roast); color:#FFFCF6;
+    font-size:13.5px; font-weight:500; padding:11px 20px; border-radius:5px;
+    transition:background .15s ease;
+  }
+  .back:hover{background:#8A5A34;}
+  .back:focus-visible{outline:2px solid var(--roast); outline-offset:2px;}
+  @media (prefers-reduced-motion:reduce){ .back{transition:none;} }
+  @media (max-width:900px){ .stage{min-height:auto; padding:56px 18px 72px;} }
+  .pillgroup{display:flex; margin-left:auto; background:#F4EADA; border-radius:999px; padding:3px; gap:2px;}
+  .pill{
+    border:none; background:transparent; padding:7px 14px; border-radius:999px;
+    font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-size:13px; font-weight:500; color:var(--ink-soft);
+    cursor:pointer; transition:background .15s ease, color .15s ease;
+  }
+  .pill.active{background:var(--roast); color:#fff;}
+  .pill:not(.active):hover{color:var(--ink);}
+  .pill:focus-visible{outline:2px solid var(--roast); outline-offset:2px;}
+  @media (prefers-reduced-motion:reduce){ .pill{transition:none;} }
+</style>
+
+<style id="ndugu-green-theme-overrides">
+  :root{color-scheme:light;}
+  .sidenav{background:var(--nav-bg)!important;border-color:var(--nav-edge)!important}
+  .sidenav-title{color:var(--nav-title)!important}
+  .navbtn{background:var(--nav-btn)!important;color:#fff!important;border-color:rgba(255,255,255,.12)!important}
+  .navbtn:hover{background:var(--nav-btn-hover)!important}
+  .navbtn[aria-current="page"]{background:var(--nav-btn-current)!important;color:var(--nav-btn-current-ink)!important;border-color:transparent!important}
+  ::selection{background:#0E564C;color:#fff}
+</style>
+<script src="ndugu-preferences.js"></script>
+<link rel="stylesheet" href="ndugu-brand.css">
+</head>
+<body>
+
+<div class="layout">
+
+<nav class="sidenav" aria-label="Dashboards">
+  <p class="sidenav-title" data-i18n="navTitle">Navigation</p>
+  <form class="sidenav-search" action="portal.html" method="get" role="search"><input type="search" name="q" autocomplete="off" placeholder="Search…" data-ph-en="Search…" data-ph-nl="Zoeken…" aria-label="Find a farmer, cooperative, district or village in My dashboard" data-aria-nl="Zoek een boer, coöperatie, district of dorp in Mijn dashboard"></form>
+  <a class="navbtn" href="portal.html"      data-i18n="navPortal">My dashboard</a>
+  <a class="navbtn" href="impact.html"      data-i18n="navImpact">Ndugu Impact</a>
+  <a class="navbtn" href="domestic.html"    data-i18n="navDomestic">Domestic Trade</a>
+  <a class="navbtn" href="export.html"      data-i18n="navExport">Ndugu Export</a>
+  <a class="navbtn" href="finance.html"     data-i18n="navFinance">Ndugu Microfinance</a>
+  <a class="navbtn" href="production.html"  data-i18n="navProduction">Ndugu Production</a>
+  <a class="navbtn" href="coffee.html"      aria-current="page" data-i18n="navCoffee">Coffee Minds</a>
+  <a class="navbtn" href="eudr.html"        data-i18n="navEudr">EUDR Compliance</a>
+  <a class="navbtn" href="agritracker.html" data-i18n="navAgritracker">Internal resources</a>
+</nav>
+
+<div class="layout-main">
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <svg class="brand-mark" viewBox="0 0 1080 283.07" xmlns="http://www.w3.org/2000/svg" aria-label="Ndugu"><path fill="#0E564C" d="M240.49,8.16c23.92,0,77.27,38.63,98.88,117.28,18.77,68.29-39.55,149.46-67.6,149.46-58.41,0-45.53-94.28-43.23-104.85C251.07,79.45,214.74,8.16,240.49,8.16Z"/><path fill="#0E564C" d="M211,274.9c-23.92,0-77.27-35.1-98.88-106.55-18.77-62.06,39.55-135.81,67.6-135.81,58.41,0,45.53,85.66,43.23,95.27C200.41,210.13,236.74,274.9,211,274.9Z"/></svg>
+    <div class="brand-text" data-i18n="pageName">Coffee Minds</div>
+    <div class="pillgroup" id="langPills" role="group" aria-label="Language">
+      <button class="pill active" data-lang="en" aria-pressed="true">EN</button>
+      <button class="pill" data-lang="nl" aria-pressed="false">NL</button>
+    </div>
+  </div>
+</header>
+
+<main class="stage">
+  <div class="card">
+    <div class="rule"></div>
+    <p class="eyebrow" data-i18n="eyebrow">In development</p>
+    <h1 data-i18n="heading">The Coffee Minds dashboard is still being built.</h1>
+    <p data-i18n="body">This view is not ready yet. The sourcing and operations dashboard is live now, and the rest are being added in turn.</p>
+    <a class="back" href="domestic.html" data-i18n="back">Go to the Domestic dashboard</a>
+  </div>
+</main>
+
+</div><!-- /.layout-main -->
+</div><!-- /.layout -->
+
+<script>
+(function(){
+  var STR = {
+ "en": {
+  "navTitle": "Navigation",
+  "navPortal": "My dashboard",
+  "navImpact": "Ndugu Impact",
+  "navDomestic": "Domestic Trade",
+  "navExport": "Ndugu Export",
+  "navEudr": "EUDR Compliance",
+  "navFinance": "Ndugu Microfinance",
+  "navProduction": "Ndugu Production",
+  "navAgritracker": "Internal resources",
+  "navCoffee": "Coffee Minds",
+  "navAbout": "About us",
+  "navEditor": "Boundary editor",
+  "pageName": "Coffee Minds",
+  "pageTitle": "Coffee Minds | Ndugu Farmers Ltd",
+  "eyebrow": "In development",
+  "heading": "The Coffee Minds dashboard is still being built.",
+  "body": "This view is not ready yet. The sourcing and operations dashboard is live now, and the rest are being added in turn.",
+  "back": "Go to the Domestic dashboard"
+ },
+ "nl": {
+  "navTitle": "Navigatie",
+  "navPortal": "Mijn dashboard",
+  "navImpact": "Ndugu Impact",
+  "navDomestic": "Binnenlandse handel",
+  "navExport": "Ndugu Export",
+  "navEudr": "EUDR-naleving",
+  "navFinance": "Ndugu Microfinanciering",
+  "navProduction": "Ndugu Productie",
+  "navAgritracker": "Interne bronnen",
+  "navCoffee": "Coffee Minds",
+  "navAbout": "Over ons",
+  "navEditor": "Grenzen bewerken",
+  "pageName": "Coffee Minds",
+  "pageTitle": "Coffee Minds | Ndugu Farmers Ltd",
+  "eyebrow": "In ontwikkeling",
+  "heading": "Het Coffee Minds-dashboard wordt nog gebouwd.",
+  "body": "Dit overzicht is nog niet klaar. Het dashboard voor inkoop en operaties is nu live; de overige volgen een voor een.",
+  "back": "Ga naar het dashboard Binnenlandse handel"
+ }
+};
+  function apply(l){
+    document.documentElement.lang = l;
+    document.querySelectorAll('[data-i18n]').forEach(function(el){
+      var v = STR[l][el.getAttribute('data-i18n')]; if (v !== undefined) el.textContent = v;
+    });
+    document.title = STR[l].pageTitle;
+    document.querySelectorAll('#langPills .pill').forEach(function(b){
+      var on = b.getAttribute('data-lang') === l; b.classList.toggle('active', on); b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+  }
+  document.getElementById('langPills').addEventListener('click', function(e){
+    var b = e.target.closest('.pill'); if (b) apply(b.getAttribute('data-lang'));
+  });
+  if (new URLSearchParams(location.search).get('lang') === 'nl') apply('nl');
+})();
+</script>
+
+<!-- ndugu:analytics -->
+<!-- Visit counting. No cookie, no localStorage, no fingerprinting;
+     figures are private to the Ndugu Cloudflare account. Managed by
+     scripts/sync_analytics.py: edits here are overwritten. -->
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "667a8f6b0e6244bab958af8756cef50b"}'></script><!-- End Cloudflare Web Analytics -->
+<!-- /ndugu:analytics -->
+</body>
+</html>
