@@ -1,0 +1,2397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script src="secure-gate.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon.ico" sizes="16x16 32x32" type="image/x-icon">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+<meta name="theme-color" content="#0E564C">
+<title>Ndugu Farmers Ltd | Coffee Sourcing &amp; Operations</title>
+<!-- No webfont is loaded. Power BI's typeface is Segoe UI, which Microsoft
+     licenses with Windows and does not publish to Google Fonts, so it cannot
+     lawfully be served from here; it is named in the stack instead and falls
+     back on machines that lack it. Dropping the two Google Fonts families also
+     removes a render-blocking round trip, which is worth having on a Ugandan
+     connection. -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<!-- chart-data drill-down (scripts/chart_tables.py) -->
+<script>
+(function(){
+  'use strict';
+  if (!window.Chart) return;
+
+  var WORDS = {
+    en:{drill:'Open in My dashboard', drillOn:'Open “{0}” in My dashboard',
+        view:'View data', title:'Data behind this chart', csv:'Download CSV', copy:'Copy table',
+        copied:'Copied', close:'Close', total:'Total', share:'Share of this chart', hidden:'hidden in the chart',
+        series:'Series', label:'Category', value:'Value', none:'This chart is awaiting a compatible source. Explore the illustrative performance view.',
+        units:'Values', rows:'rows'},
+    nl:{drill:'Openen in Mijn dashboard', drillOn:'“{0}” openen in Mijn dashboard',
+        view:'Gegevens bekijken', title:'Gegevens achter deze grafiek', csv:'CSV downloaden', copy:'Tabel kopiëren',
+        copied:'Gekopieerd', close:'Sluiten', total:'Totaal', share:'Aandeel in deze grafiek', hidden:'verborgen in de grafiek',
+        series:'Reeks', label:'Categorie', value:'Waarde', none:'Deze grafiek heeft geen gegevens.',
+        units:'Waarden', rows:'rijen'}
+  };
+  function lang(){ return /^nl/i.test(document.documentElement.lang || '') ? 'nl' : 'en'; }
+  function W(){ return WORDS[lang()]; }
+  function txt(v){ return Array.isArray(v) ? v.join(' ') : (v === null || v === undefined ? '' : String(v)); }
+  function isNum(v){ return typeof v === 'number' && isFinite(v); }
+  function num(v){
+    if (!isNum(v)) return v === null || v === undefined ? '' : txt(v);
+    var a = Math.abs(v);
+    return v.toLocaleString(lang() === 'nl' ? 'nl-NL' : 'en-US',
+      {maximumFractionDigits: a >= 1000 ? 0 : a >= 10 ? 1 : 3});
+  }
+  function pctText(v){
+    return v.toLocaleString(lang() === 'nl' ? 'nl-NL' : 'en-US', {maximumFractionDigits:1}) + '%';
+  }
+  function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function axisTitle(chart, which){
+    var s = chart.options && chart.options.scales && chart.options.scales[which];
+    return s && s.title && s.title.display !== false && s.title.text ? txt(s.title.text) : '';
+  }
+
+  /* How the value axis labels a number, asked of the chart itself: a share
+     chart stores 0.329 and shows "33%", and the table should read the same
+     way the chart does. 'fraction' means 0.5 is shown as 50%, 'percent' that
+     50 is shown as 50%, '' anything else. */
+  function pctMode(chart, axis){
+    var sc = chart.scales && chart.scales[axis], cb = sc && sc.options && sc.options.ticks && sc.options.ticks.callback;
+    if (typeof cb !== 'function') return '';
+    try {
+      var s = String(cb.call(sc, 0.5, 0, [{value:0.5}]));
+      if (!/%/.test(s)) return '';
+      return /50/.test(s) ? 'fraction' : 'percent';
+    } catch (e){ return ''; }
+  }
+
+  /* The chart's data as a table: {head:[], rows:[[...]], numeric:[bool per column], note}
+     Category charts (bar, line, doughnut, ...) give one row per label and one
+     column per dataset; point charts (scatter, bubble, {x,y} data) give one
+     row per point. A floating bar [from, to] shows as "from – to". */
+  function tableOf(chart){
+    var w = W(), data = chart.data || {}, sets = data.datasets || [], labels = data.labels || [];
+    var horiz = chart.options && chart.options.indexAxis === 'y';
+    var catAxis = horiz ? 'y' : 'x', valAxis = horiz ? 'x' : 'y';
+    var name = function(d, k){
+      var n = txt(d.label) || (sets.length > 1 ? w.series + ' ' + (k + 1) : w.value);
+      return chart.isDatasetVisible(k) ? n : n + ' (' + w.hidden + ')';
+    };
+    var points = sets.some(function(d){
+      return (d.data || []).some(function(v){ return v && typeof v === 'object' && !Array.isArray(v); });
+    });
+    var out = {head:[], rows:[], numeric:[], note:''};
+    if (points){
+      var hasR = sets.some(function(d){ return (d.data || []).some(function(v){ return v && v.r !== undefined; }); });
+      out.head = [w.series, axisTitle(chart, 'x') || 'x', axisTitle(chart, 'y') || 'y'].concat(hasR ? ['r'] : []);
+      sets.forEach(function(d, k){
+        (d.data || []).forEach(function(v, i){
+          if (!v) return;
+          var row = [name(d, k), v.x !== undefined ? v.x : (labels[i] !== undefined ? txt(labels[i]) : i + 1), v.y];
+          if (hasR) row.push(v.r);
+          out.rows.push(row);
+        });
+      });
+    } else {
+      out.head = [axisTitle(chart, catAxis) || w.label].concat(sets.map(name));
+      var n = Math.max(labels.length, sets.reduce(function(m, d){ return Math.max(m, (d.data || []).length); }, 0));
+      for (var i = 0; i < n; i++){
+        out.rows.push([labels[i] !== undefined ? txt(labels[i]) : String(i + 1)].concat(sets.map(function(d){
+          var v = (d.data || [])[i];
+          if (Array.isArray(v) && v.length === 2 && isNum(v[0]) && isNum(v[1])) return num(v[0]) + ' – ' + num(v[1]);
+          return v === undefined ? null : v;
+        })));
+      }
+      /* one series of parts of a whole: its share is the useful second column */
+      var type = chart.config.type;
+      var whole = type === 'doughnut' || type === 'pie' || type === 'polarArea' ||
+                  (sets.length === 1 && type === 'bar' && !(chart.options.scales && chart.options.scales[valAxis] && chart.options.scales[valAxis].stacked));
+      if (sets.length === 1 && out.rows.length > 1 && whole){
+        var tot = out.rows.reduce(function(s, r){ return s + (isNum(r[1]) ? r[1] : 0); }, 0);
+        if (tot > 0 && out.rows.every(function(r){ return r[1] === null || isNum(r[1]); })){
+          out.head.push(w.share);
+          out.rows.forEach(function(r){ r.push(isNum(r[1]) ? (r[1] / tot * 100).toFixed(1) + '%' : ''); });
+        }
+      }
+      /* a total row where adding up makes sense: counts, volumes and values
+         in bars and doughnuts, not the points of a line */
+      if (out.rows.length > 1 && type !== 'line' && type !== 'radar'){
+        var totals = out.head.map(function(_, c){
+          if (c === 0) return w.total;
+          var vals = out.rows.map(function(r){ return r[c]; });
+          if (!vals.every(function(v){ return v === null || isNum(v); })) return '';
+          return vals.reduce(function(s, v){ return s + (v || 0); }, 0);
+        });
+        if (totals.slice(1).some(isNum)){
+          if (out.head[out.head.length - 1] === w.share) totals[totals.length - 1] = '100%';
+          out.total = totals;
+        }
+      }
+      var units = axisTitle(chart, valAxis);
+      if (units) out.note = w.units + ': ' + units;
+      var pm = pctMode(chart, valAxis);
+      if (pm){
+        /* values become percentages, in the table and in the file, and the
+           total row goes: shares and rates do not add up to anything */
+        out.pct = true; out.total = null;
+        out.rows.forEach(function(r){
+          for (var c = 1; c <= sets.length; c++) if (isNum(r[c])) r[c] = Math.round((pm === 'fraction' ? r[c] * 100 : r[c]) * 100) / 100;
+        });
+        for (var h = 1; h <= sets.length; h++) out.head[h] += ' (%)';
+      }
+    }
+    return out;
+  }
+
+  /* ---------- the window ---------- */
+  var box = null, current = null;
+  function ensureBox(){
+    if (box) return box;
+    var st = document.createElement('style');
+    st.textContent =
+      '.cd-menu{position:fixed;z-index:2001;background:var(--surface,#FFFCF6);' +
+        'border:1px solid var(--line-strong,#D8C4A6);border-radius:6px;' +
+        'box-shadow:0 10px 30px -12px rgba(42,26,16,.55);padding:4px;min-width:150px;}' +
+      '.cd-menu[hidden]{display:none;}' +
+      '.cd-menu button{display:block;width:100%;text-align:left;font:inherit;font-size:12.5px;' +
+        'color:var(--ink,#2A1A10);background:none;border:none;border-radius:4px;' +
+        'padding:7px 10px;cursor:pointer;}' +
+      '.cd-menu button:hover{background:var(--roast-wash,#E6F3EF);}' +
+      '.cd-over{position:fixed;inset:0;z-index:2000;background:rgba(42,26,16,.45);display:flex;' +
+        'align-items:center;justify-content:center;padding:16px;}' +
+      '.cd-over[hidden]{display:none;}' +
+      '.cd-win{background:var(--surface,#FFFCF6);color:var(--ink,#2A1A10);border:1px solid var(--line-strong,#D8C4A6);' +
+        'border-radius:8px;box-shadow:0 18px 50px -20px rgba(42,26,16,.6);width:min(760px,100%);' +
+        'max-height:min(86vh,900px);display:flex;flex-direction:column;}' +
+      '.cd-top{padding:16px 18px 10px;border-bottom:1px solid var(--line,#EADCC7);}' +
+      '.cd-top h3{margin:0;font-size:15px;}' +
+      '.cd-top p{margin:4px 0 0;font-size:12.5px;color:var(--ink-soft,#63483A);}' +
+      '.cd-body{overflow:auto;padding:0 18px;}' +
+      '.cd-body table{border-collapse:collapse;width:100%;font-size:12.5px;font-variant-numeric:tabular-nums;}' +
+      '.cd-body th,.cd-body td{padding:6px 10px;border-bottom:1px solid var(--line,#EADCC7);text-align:right;white-space:nowrap;}' +
+      '.cd-body th:first-child,.cd-body td:first-child{text-align:left;white-space:normal;}' +
+      '.cd-body thead th{position:sticky;top:0;background:var(--surface,#FFFCF6);font-weight:600;' +
+        'border-bottom:1px solid var(--line-strong,#D8C4A6);}' +
+      '.cd-body tfoot td{font-weight:600;border-top:1px solid var(--line-strong,#D8C4A6);border-bottom:none;}' +
+      '.cd-foot{display:flex;gap:8px;align-items:center;padding:12px 18px;border-top:1px solid var(--line,#EADCC7);}' +
+      '.cd-foot .grow{flex:1;font-size:12px;color:var(--ink-faint,#8A7059);}' +
+      '.cd-foot button{font:inherit;font-size:12.5px;padding:6px 12px;border-radius:5px;cursor:pointer;' +
+        'border:1px solid var(--line-strong,#D8C4A6);background:var(--surface,#FFFCF6);color:var(--ink,#2A1A10);}' +
+      '.cd-foot button.cd-main{background:var(--roast,#0E564C);border-color:var(--roast,#0E564C);color:#fff;}';
+    document.head.appendChild(st);
+    box = document.createElement('div');
+    box.className = 'cd-over'; box.hidden = true;
+    box.innerHTML = '<div class="cd-win" role="dialog" aria-modal="true" aria-labelledby="cdTitle">' +
+      '<div class="cd-top"><h3 id="cdTitle"></h3><p id="cdSub"></p></div>' +
+      '<div class="cd-body" id="cdBody"></div>' +
+      '<div class="cd-foot"><span class="grow" id="cdInfo"></span>' +
+      '<button type="button" id="cdCopy"></button><button type="button" id="cdCsv" class="cd-main"></button>' +
+      '<button type="button" id="cdClose"></button></div></div>';
+    document.body.appendChild(box);
+    box.addEventListener('click', function(e){ if (e.target === box) close(); });
+    document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && !box.hidden) close(); });
+    box.querySelector('#cdClose').addEventListener('click', close);
+    box.querySelector('#cdCsv').addEventListener('click', function(){
+      if (!current) return;
+      var csv = '﻿' + lines(current.t, ',').join('\r\n');
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+      a.download = current.file + '.csv';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
+    });
+    box.querySelector('#cdCopy').addEventListener('click', function(){
+      if (!current) return;
+      var b = this, t = lines(current.t, '\t').join('\n');
+      var done = function(){ b.textContent = W().copied; setTimeout(function(){ b.textContent = W().copy; }, 1500); };
+      if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(t).then(done, function(){});
+      else { var ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select();
+             try { document.execCommand('copy'); done(); } catch (e) {} ta.remove(); }
+    });
+    return box;
+  }
+  /* the file carries raw numbers, not the display formatting */
+  function lines(t, sep){
+    var q = function(v){
+      var s = v === null || v === undefined ? '' : String(v);
+      return sep === ',' && /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s.replace(/[\t\r\n]+/g, ' ');
+    };
+    var rows = [t.head].concat(t.rows);
+    if (t.total) rows.push(t.total);
+    return rows.map(function(r){ return r.map(q).join(sep); });
+  }
+  function close(){ if (box){ box.hidden = true; current = null; } if (lastBtn) lastBtn.focus(); }
+
+  var lastBtn = null;
+  function open(canvas, btn){
+    var chart = Chart.getChart(canvas);
+    if (!chart) return;
+    var w = W(), t = tableOf(chart), panel = canvas.closest('.panel') || canvas.parentElement;
+    var title = panel.querySelector('.panel-title'), note = panel.querySelector('.panel-note');
+    if (!title){
+      /* the only chart in its section carries no title of its own: the
+         section heading above it is its title */
+      var hs = Array.prototype.filter.call(document.querySelectorAll('h2, h3'), function(h){
+        return h.compareDocumentPosition(canvas) & Node.DOCUMENT_POSITION_FOLLOWING;
+      });
+      title = hs[hs.length - 1] || null;
+    }
+    /* a chart with a toggle (volume / value / price) shows one of several
+       measures; say which */
+    var active = panel.querySelector('.seg button.active');
+    ensureBox();
+    lastBtn = btn;
+    var name = title ? title.textContent.trim() : (canvas.id || w.title);
+    if (active) t.note = [active.textContent.trim(), t.note].filter(Boolean).join(' · ');
+    current = {t:t, file:(name || 'chart').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'chart'};
+    box.querySelector('#cdTitle').textContent = name;
+    box.querySelector('#cdSub').textContent = [note ? note.textContent.trim() : '', t.note].filter(Boolean).join(' · ');
+    box.querySelector('#cdCopy').textContent = w.copy;
+    box.querySelector('#cdCsv').textContent = w.csv;
+    box.querySelector('#cdClose').textContent = w.close;
+    box.querySelector('#cdInfo').textContent = t.rows.length ? t.rows.length + ' ' + w.rows : '';
+    box.querySelector('#cdBody').innerHTML = !t.rows.length ? '<p>' + esc(w.none) + '</p>' :
+      '<table><thead><tr>' + t.head.map(function(h){ return '<th>' + esc(h) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      t.rows.map(function(r){ return '<tr>' + r.map(function(v, c){
+        return '<td>' + esc(c ? (t.pct && isNum(v) ? pctText(v) : num(v)) : txt(v)) + '</td>'; }).join('') + '</tr>'; }).join('') +
+      '</tbody>' + (t.total ? '<tfoot><tr>' + t.total.map(function(v, c){ return '<td>' + esc(c ? num(v) : v) + '</td>'; }).join('') + '</tr></tfoot>' : '') +
+      '</table>';
+    box.hidden = false;
+    box.querySelector('#cdClose').focus();
+  }
+
+  /* ---------- drill-down into My dashboard ----------
+     The figures behind a chart on this page are summaries. The records under
+     them (cooperatives, farmers, deliveries, loans, lots, plots) are in My
+     dashboard, behind the same sign-in, and only for directors, finance and
+     managers: a viewer's sign-in carries no My dashboard, so they are not
+     offered the way in. The part of the chart clicked becomes the starting
+     selection: a season by its year, anything else (a district, a
+     cooperative, a village) through My dashboard's search. */
+  var PAGE_TAB = {'export.html':'export', 'finance.html':'finance', 'impact.html':'impact', 'eudr.html':'farmers'};
+  function canDrill(){
+    try {
+      var s = JSON.parse(sessionStorage.getItem('ndugu.portal.session') || 'null');
+      return !!(s && s.role !== 'viewer' && s.units && Object.keys(s.units).length);
+    } catch (e){ return false; }
+  }
+  function pickedLabel(chart, e){
+    if (!e || !chart.getElementsAtEventForMode) return null;
+    var hit = chart.getElementsAtEventForMode(e, 'nearest', {intersect:true}, false)[0];
+    if (!hit) return null;
+    var lab = chart.data.labels && chart.data.labels[hit.index];
+    lab = txt(lab).replace(/\*$/, '').trim();
+    return lab || null;
+  }
+  function drillHref(label){
+    var page = decodeURIComponent(location.pathname.split('/').pop() || 'index.html');
+    var h = [], q = '';
+    if (PAGE_TAB[page]) h.push('tab=' + PAGE_TAB[page]);
+    if (label && /^(19|20)\d\d$/.test(label)) h.push('season=' + label);
+    else if (label && /[A-Za-z]{3}/.test(label) && label.length <= 60) q = '?q=' + encodeURIComponent(label);
+    return 'portal.html' + q + (h.length ? '#' + h.join('&') : '');
+  }
+
+  /* ---------- the right-click menu ---------- */
+  var menu = null, menuCanvas = null, menuLabel = null;
+  function ensureMenu(){
+    if (menu) return menu;
+    menu = document.createElement('div');
+    menu.className = 'cd-menu'; menu.hidden = true;
+    menu.innerHTML = '<button type="button" id="cdMenuView"></button><button type="button" id="cdMenuDrill" hidden></button>';
+    document.body.appendChild(menu);
+    menu.querySelector('#cdMenuDrill').addEventListener('click', function(){
+      var href = drillHref(menuLabel);
+      hideMenu();
+      location.href = href;
+    });
+    menu.querySelector('#cdMenuView').addEventListener('click', function(){
+      var c = menuCanvas;
+      hideMenu();
+      if (c) open(c);
+    });
+    /* Any click or a second right-click outside the menu dismisses it, the
+       same way a native context menu behaves; Escape and scrolling/resizing
+       the window do too, since a menu anchored to a now-wrong position is
+       worse than no menu. */
+    document.addEventListener('mousedown', function(e){ if (!menu.hidden && !menu.contains(e.target)) hideMenu(); });
+    document.addEventListener('contextmenu', function(e){ if (!menu.hidden && !menu.contains(e.target)) hideMenu(); });
+    document.addEventListener('keydown', function(e){ if (e.key === 'Escape') hideMenu(); });
+    window.addEventListener('scroll', hideMenu, true);
+    window.addEventListener('resize', hideMenu);
+    return menu;
+  }
+  function hideMenu(){ if (menu) menu.hidden = true; menuCanvas = null; menuLabel = null; }
+  function showMenu(x, y, canvas, label){
+    ensureMenu();
+    menu.querySelector('#cdMenuView').textContent = W().view;
+    var d = menu.querySelector('#cdMenuDrill');
+    d.hidden = !canDrill();
+    d.textContent = label ? W().drillOn.replace('{0}', label) : W().drill;
+    menuCanvas = canvas; menuLabel = label || null;
+    menu.hidden = false;
+    /* Measured after becoming visible, then clamped so a chart near the
+       right or bottom edge doesn't open a menu partly off-screen. */
+    var mw = menu.offsetWidth, mh = menu.offsetHeight;
+    menu.style.left = Math.max(4, Math.min(x, window.innerWidth - mw - 4)) + 'px';
+    menu.style.top = Math.max(4, Math.min(y, window.innerHeight - mh - 4)) + 'px';
+  }
+
+  /* One listener per canvas, made once: charts are destroyed and rebuilt on
+     every filter change, and the menu looks the chart up when it is used,
+     the same way the old link did. Right-clicking the chart replaces the
+     browser's own context menu with this one rather than adding to it. */
+  function attach(chart){
+    var canvas = chart.canvas;
+    if (!canvas || canvas.dataset.cdLink) return;
+    canvas.dataset.cdLink = '1';
+    canvas.addEventListener('contextmenu', function(e){
+      e.preventDefault();
+      var ch = Chart.getChart ? Chart.getChart(canvas) : chart;
+      showMenu(e.clientX, e.clientY, canvas, ch ? pickedLabel(ch, e) : null);
+    });
+    ensureBox();
+  }
+  Chart.register({id:'chartDataTable', afterInit:attach});
+})();
+</script>
+<!-- /chart-data drill-down -->
+<style>
+  :root{
+    /* --- surfaces: raw parchment, cream, unbleached paper --- */
+    --paper:#F7FBF5;
+    --surface:#FFFFFF;
+    --surface-sunk:#F1F7EF;
+    /* --- ink: espresso --- */
+    --ink:#1F2D1A;
+    --ink-soft:#4D5F47;
+    --ink-faint:#72836B;
+    --line:#DCE8D8;
+    --line-strong:#C8D8C1;
+    /* --- roasted bean: the primary --- */
+    --roast:#0E564C;
+    --roast-deep:#0B4C43;
+    --roast-light:#368779;
+    --roast-wash:#EAF5E5;
+    /* --- leaf: the growing side --- */
+    --leaf:#0E564C;
+    --leaf-light:#6DAD4D;
+    --leaf-wash:#ECF6E8;
+    /* --- coffee cherry --- */
+    --cherry:#4E8E33;
+    --cherry-wash:#EEF7EA;
+    /* --- golden harvest --- */
+    --honey:#6FA649;
+    --honey-wash:#F1F8ED;
+    /* --- supporting --- */
+    --teal:#4D8F35;
+    --olive:#7EAD56;
+    --clay:#4C7A35;
+    /* Side navigation: drawn from the page's own palette: the rail is the
+       same espresso as the footer, so the dashboard sits framed between them.
+       Contrast (white on button 6.5:1, espresso on honey 6.2:1) is above AA. */
+    --nav-bg:#0B4C43;
+    --nav-edge:#0E564C;
+    --nav-title:#F7FBF5;
+    --nav-btn:#0E564C;
+    --nav-btn-hover:#126A5E;
+    --nav-btn-current:#FFFFFF;
+    --nav-btn-current-ink:#0E564C;
+    /* KPI tile gradients. Every stop was checked for white-text contrast
+       rather than picked by eye. Saturation is pushed well above the base
+       palette (leaf 0.46 -> 0.68, teal 0.50 -> 0.75) to make the row carry, but
+       each hue is then darkened only as far as it must be for white text to
+       clear 4.5:1. Full saturation passes too, and looks like neon rather than
+       coffee, so it was not used. The tiles are the loudest thing on the page;
+       unreadable labels on them would be the most visible possible mistake. */
+    --tile-leaf:linear-gradient(135deg,#5AA733 0%,#0E564C 100%);   /* 4.60:1 */
+    --tile-honey:linear-gradient(135deg,#87BC5E 0%,#5A9837 100%);  /* 4.58:1 */
+    --tile-roast:linear-gradient(135deg,#6CB345 0%,#0E564C 100%);  /* 4.55:1 */
+    --tile-cherry:linear-gradient(135deg,#75B852 0%,#438A23 100%); /* 4.57:1 */
+    --tile-teal:linear-gradient(135deg,#4FA45A 0%,#2E7F3D 100%);   /* 4.55:1 */
+    --tile-olive:linear-gradient(135deg,#95C96A 0%,#5B9438 100%);  /* 4.56:1 */
+
+    --radius-sm:4px;
+    --radius-md:8px;
+    --radius-lg:10px;
+    --shadow-pop:0 12px 30px -10px rgba(42,26,16,0.38);
+    --shadow-panel:0 1px 2px rgba(42,26,16,0.04), 0 10px 26px -20px rgba(42,26,16,0.55);
+  }
+  *{box-sizing:border-box;}
+  .kpi-value,.tile-value,.tile-foot,
+  table.leaderboard td.num,table.leaderboard th.num,
+  .district-row .qty,.district-detail b
+  {font-variant-numeric:tabular-nums; font-feature-settings:'tnum' 1;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+    font-size:15px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+    /* Power BI aligns figures with tabular numerals rather than a monospace
+     face. Segoe UI, Helvetica and Arial all ship fixed-width lining figures, so
+     columns still line up without a second typeface. */
+  .num{font-variant-numeric:tabular-nums; font-feature-settings:'tnum' 1;}
+  a{color:inherit;}
+  ::selection{background:var(--roast); color:#fff;}
+
+  /* ---------- Page frame: fixed side nav + the dashboard column ---------- */
+  .layout{display:flex; align-items:flex-start; min-height:100vh;}
+  .layout-main{flex:1 1 auto; min-width:0; max-width:100%;}   /* min-width:0 so grids can shrink */
+
+  .sidenav{
+    flex:0 0 172px; width:172px; align-self:stretch;
+    position:sticky; top:4px; max-height:calc(100vh - 4px); overflow-y:auto;
+    background:var(--nav-bg);
+    border-right:1px solid var(--nav-edge);
+    padding:16px 14px 28px;
+    display:flex; flex-direction:column; gap:13px;
+  }
+  .sidenav-title{
+    color:var(--nav-title); font-size:12px; font-weight:600;
+    text-transform:uppercase; letter-spacing:0.12em;
+    padding:2px 2px 2px; margin:0;
+  }
+  .navbtn{
+    display:block; text-align:center; text-decoration:none;
+    background:var(--nav-btn); color:#fff;
+    border:1px solid rgba(255,252,246,0.10);
+    font-size:13px; font-weight:500; line-height:1.3;
+    padding:12px 6px;
+    /* chamfered corners, matching the other dashboards' buttons */
+    clip-path:polygon(9px 0, calc(100% - 9px) 0, 100% 9px, 100% calc(100% - 9px),
+                      calc(100% - 9px) 100%, 9px 100%, 0 calc(100% - 9px), 0 9px);
+    transition:background .15s ease;
+  }
+  .navbtn:hover{background:var(--nav-btn-hover);}
+  /* clip-path would crop a normal outline, so the focus ring is drawn inside */
+  .navbtn:focus-visible{outline:none; box-shadow:inset 0 0 0 2px #fff;}
+  .navbtn[aria-current="page"]{
+    background:var(--nav-btn-current); color:var(--nav-btn-current-ink);
+    font-weight:600; border-color:transparent;
+  }
+  @media (prefers-reduced-motion:reduce){ .navbtn{transition:none;} }
+
+  @media (max-width:900px){
+    .layout{flex-direction:column;}
+    .sidenav{
+      position:static; width:auto; max-height:none; flex:0 0 auto; align-self:auto;
+      flex-direction:row; align-items:center; gap:10px;
+      /* min-width:0 is what makes overflow-x:auto actually scroll here: without
+         it the rail sizes to all nine buttons and drags the page wider than the
+         viewport rather than scrolling inside itself. */
+      min-width:0; max-width:100%;
+      overflow-x:auto; padding:12px 16px;
+      border-right:none; border-bottom:1px solid var(--nav-edge);
+    }
+    .sidenav-title{display:none;}
+    .navbtn{flex:0 0 auto; padding:10px 16px; white-space:nowrap;}
+  }
+
+  /* ---------- Layout shell ---------- */
+  .shell{max-width:1320px; margin:0 auto; padding:0 32px;}
+  @media (max-width:900px){ .shell{padding:0 18px;} }
+
+  /* ---------- Header ---------- */
+  body::before{
+    content:''; position:fixed; top:0; left:0; right:0; height:4px; z-index:60;
+    background:linear-gradient(90deg,var(--roast-deep) 0%,var(--roast) 22%,var(--cherry) 46%,var(--honey) 70%,var(--leaf) 100%);
+  }
+  header.topbar{
+    position:sticky; top:4px; z-index:50;
+    background:rgba(250,244,234,0.94);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line-strong);
+  }
+  .topbar-inner{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:8px 0; gap:20px; flex-wrap:wrap;
+  }
+  .brand{display:flex; align-items:center; gap:14px;}
+  .brand-mark{height:30px; width:auto; flex:none;}
+  .brand-text{border-left:1px solid var(--line-strong); padding-left:14px;}
+  .brand-text .role{font-size:12.5px; color:var(--ink-soft); margin-top:1px;}
+
+  .filterbar{display:flex; align-items:center; gap:18px; flex-wrap:wrap;}
+  .pillgroup{display:flex; background:var(--surface-sunk); border-radius:999px; padding:3px; gap:2px;}
+  .pill{
+    border:none; background:transparent; padding:7px 14px; border-radius:999px;
+    font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-size:13px; font-weight:500; color:var(--ink-soft);
+    cursor:pointer; transition:background .15s ease, color .15s ease;
+  }
+  .pill.active{background:var(--roast); color:#fff;}
+  .pill:not(.active):hover{color:var(--ink);}
+  .asof{font-size:12px; color:var(--ink-faint); white-space:nowrap;}
+
+  /* ---------- Section scaffolding ---------- */
+  section{padding:22px 0;}
+  section + section{border-top:1px solid var(--line);}
+  /* Part rails split the page into the two runs it actually serves: the
+     scale-and-impact read at the top, the operating detail below it. */
+  .part-rail{
+    display:flex; align-items:center; gap:12px;
+    margin:26px 0 0 0; padding-top:20px; border-top:2px solid var(--ink);
+  }
+  .part-rail span{
+    font-size:11.5px; font-weight:700; letter-spacing:.09em;
+    text-transform:uppercase; color:var(--ink); white-space:nowrap;
+  }
+  .part-rail::after{content:''; flex:1 1 auto; height:1px; background:var(--line);}
+  .part-rail + section{border-top:none; padding-top:10px;}
+  .section-head{
+    display:grid; grid-template-columns:repeat(12,minmax(0,1fr));
+    gap:24px; align-items:end; margin-bottom:12px;
+  }
+  .section-head > div:first-child{grid-column:span 8; min-width:0;}
+  .section-head h2{font-size:19px; margin:0 0 4px 0; font-weight:700; letter-spacing:-0.01em;}
+  .section-head h2::before{
+    content:''; display:block; width:44px; height:3px; border-radius:2px;
+    background:var(--roast); margin-bottom:7px;
+  }
+  .section-head p{margin:0; color:var(--ink-soft); font-size:14px; max-width:62ch;}
+  .section-tag{grid-column:span 4; align-self:end; font-size:12.5px; color:var(--ink-faint); text-align:right;}
+  @media (max-width:980px){
+    .section-head > div:first-child, .section-tag{grid-column:1 / -1;}
+    .section-tag{text-align:left;}
+  }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    padding-top:20px; padding-bottom:0; border-top:none;
+    background:
+      radial-gradient(ellipse 900px 460px at 8% -14%, var(--honey-wash) 0%, transparent 64%),
+      radial-gradient(ellipse 760px 400px at 100% -4%, var(--leaf-wash) 0%, transparent 60%),
+      radial-gradient(ellipse 520px 300px at 58% -18%, var(--roast-wash) 0%, transparent 66%);
+    margin-top:-1px;
+  }
+  .hero-head{margin-bottom:14px;}
+  /* the figure column is far taller than the badges; centring stops a dead
+     band opening up above them */
+  /* these sit before .hero h1 / .hero p.lede in the cascade, so they need
+     enough specificity to win rather than relying on source order */
+  .hero .hero-head h1{max-width:none;}
+  .hero .hero-head p.lede{max-width:none;}
+  .hero-eyebrow{font-size:14px; color:var(--roast); font-weight:600; margin:0 0 10px 0;}
+  .hero h1{font-size:25px; line-height:1.12; margin:0 0 9px 0; font-weight:700; letter-spacing:-0.015em; max-width:18ch;}
+  .hero p.lede{font-size:14.5px; color:var(--ink-soft); max-width:56ch; margin:0;}
+
+
+  /* ---------- Tile rows ----------
+     Row one (context) and row two (metrics) share one tile component so the
+     head of the page reads as a single grid. Row one runs deeper in tone than
+     row two, which gives the hierarchy without introducing another shape. */
+  .tilerow{
+    display:grid; grid-template-columns:repeat(12,minmax(0,1fr));
+    gap:10px; margin-top:14px;
+  }
+  @media (max-width:1100px){ .tilerow{grid-template-columns:repeat(6,minmax(0,1fr));} }
+  @media (max-width:640px){ .tilerow{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  /* Four-tile pages (export, EUDR) spread across the same twelve columns. */
+  .tilerow-4 .tile{grid-column:span 3;}
+  @media (max-width:1100px){ .tilerow-4 .tile{grid-column:span 3;} }
+  @media (max-width:640px){ .tilerow-4 .tile{grid-column:span 2;} }
+  .tile{
+    grid-column:span 2; min-width:0;
+    padding:13px 15px 13px; border-radius:var(--radius-lg);
+    background:var(--tile-roast); color:#fff;
+    box-shadow:0 1px 2px rgba(42,26,16,.10), 0 8px 18px -14px rgba(42,26,16,.55);
+    display:flex; flex-direction:column; justify-content:flex-start;
+  }
+  /* Row one is the network: who and what Ndugu is. It runs dark to light left
+     to right in the roast family, so the reading order is carried by tone as
+     well as position. Row two below does the same in teal. Every step is set
+     against a 4.5:1 contrast floor for white text, and the two rows share
+     their endpoints with the export dashboard so the pages read as one set. */
+  .tile-lead{background:linear-gradient(135deg,#663A18 0%,#4A2A11 100%);} /* 9.6:1 */
+  .tile-a{background:linear-gradient(135deg,#72401B 0%,#522E13 100%);}    /* 8.5:1 */
+  .tile-b{background:linear-gradient(135deg,#7E481E 0%,#5B3415 100%);}    /* 7.4:1 */
+  .tile-c{background:linear-gradient(135deg,#8C4F21 0%,#653918 100%);}    /* 6.5:1 */
+  .tile-d{background:linear-gradient(135deg,#9B5824 0%,#703F1A 100%);}    /* 5.5:1 */
+  .tile-e{background:linear-gradient(135deg,#AA6128 0%,#7B461D 100%);}    /* 4.7:1 */
+  .tile{position:relative;}
+  /* Top-right, low opacity: it should read as texture on the tile, not as a
+     second thing to look at. aria-hidden, because the label already says what
+     the tile is and a screen reader repeating it adds nothing. */
+  .tile-icon{
+    position:absolute; top:12px; right:13px; width:18px; height:18px;
+    color:#fff; opacity:.45; pointer-events:none;
+  }
+  .kpi-cell{position:relative;}
+  .kpi-cell .tile-icon{top:9px; right:10px; width:20px; height:20px; opacity:.28;}
+  .tile-label, .kpi-label{padding-right:26px; min-height:1.5em;}
+  .tile-label{
+    font-size:12px; font-weight:500; margin:0 0 6px 0;
+    color:rgba(255,255,255,.82); line-height:1.35;
+  }
+  .tile-value{
+    font-size:23px; font-weight:700; color:#fff; line-height:1.12;
+    font-variant-numeric:tabular-nums; overflow-wrap:break-word;
+  }
+  .tile-lead .tile-value{font-size:26px;}
+  .tile-value-sm{font-size:15px; line-height:1.3;}
+  .tile-foot{font-size:12.5px; color:rgba(255,255,255,.72); margin-top:5px; font-weight:400;}
+
+  /* ---------- KPI tiles ----------
+     Six saturated tiles rather than one bordered ledger strip. Each is its own
+     card so the row reads at a glance from across a room, which is what a
+     dashboard's headline numbers are for. Padding is deliberately tight: the
+     whole point of the change was to get more of the page above the fold. */
+  .kpi-strip{
+    margin-top:10px;
+    display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:10px;
+  }
+  @media (max-width:1100px){ .kpi-strip{grid-template-columns:repeat(3,minmax(0,1fr));} }
+  @media (max-width:560px){ .kpi-strip{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  .kpi-cell{
+    padding:13px 15px 13px; border-radius:var(--radius-lg);
+    background:var(--tile-roast); color:#fff; min-width:0;
+    box-shadow:0 1px 2px rgba(42,26,16,.10), 0 8px 18px -14px rgba(42,26,16,.55);
+  }
+  /* Row two is performance: what the network produced and what it was paid.
+     Same dark-to-light progression as row one, in the second family. */
+  .kpi-cell:nth-child(6n+1){background:linear-gradient(135deg,#0D4D45 0%,#093832 100%);} /* 9.7:1 */
+  .kpi-cell:nth-child(6n+2){background:linear-gradient(135deg,#0E564D 0%,#0A3E37 100%);} /* 8.5:1 */
+  .kpi-cell:nth-child(6n+3){background:linear-gradient(135deg,#106056 0%,#0B453E 100%);} /* 7.4:1 */
+  .kpi-cell:nth-child(6n+4){background:linear-gradient(135deg,#116A5F 0%,#0C4D44 100%);} /* 6.5:1 */
+  .kpi-cell:nth-child(6n+5){background:linear-gradient(135deg,#137568 0%,#0E554B 100%);} /* 5.6:1 */
+  .kpi-cell:nth-child(6n+6){background:linear-gradient(135deg,#158173 0%,#0F5D53 100%);} /* 4.8:1 */
+  .kpi-label{
+    font-size:11.5px; font-weight:500; margin:0 0 3px 0;
+    color:rgba(255,255,255,.88); letter-spacing:.01em;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .kpi-value{
+    font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-size:23px; font-weight:700; color:#fff;
+    line-height:1.12; overflow-wrap:break-word;
+  }
+  @media (max-width:560px){ .kpi-value{font-size:19px;} }
+  .kpi-value small{font-size:12px; font-weight:500; color:rgba(255,255,255,.75);}
+  /* On a coloured tile the up/down hues from the light theme have no contrast,
+     so the delta rides on the tile's own white at reduced opacity and the
+     arrow glyph carries the direction. */
+  .kpi-delta{
+    font-size:11.5px; margin-top:4px; display:flex; align-items:center; gap:4px;
+    color:rgba(255,255,255,.82);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .kpi-delta.up, .kpi-delta.down, .kpi-delta.flat{color:rgba(255,255,255,.82);}
+
+  /* ---------- KPI grid (twelve tiles, one story) ----------
+     Replaces the old two-row split with a single 4-column, 3-row grid: who
+     the network is (row 1) and how the season is moving (row 2) both run in
+     the teal/green family, so scale and activity read as one continuous
+     block; the closing row (org structure and credentials) switches to the
+     roast/brown family as a deliberate change of register. Each row still
+     lightens left to right within its family. */
+  .kpigrid{
+    display:grid; grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:10px; margin-top:14px;
+  }
+  @media (max-width:900px){ .kpigrid{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  @media (max-width:480px){ .kpigrid{grid-template-columns:1fr;} }
+  .kpigrid .tile{grid-column:span 1;}
+  /* Every stop below is one already validated elsewhere in this file (the
+     kpi-cell teal ramp and the tile-a..e roast ramp) — reused rather than
+     picked fresh, so the 4.5:1 white-text floor and the deuteranopia-safe
+     green stay intact without re-checking new hex. */
+  .kt1{background:linear-gradient(135deg,#0D4D45 0%,#093832 100%);} /* 9.7:1 */
+  .kt2{background:linear-gradient(135deg,#0E564D 0%,#0A3E37 100%);} /* 8.5:1 */
+  .kt3{background:linear-gradient(135deg,#106056 0%,#0B453E 100%);} /* 7.4:1 */
+  .kt4{background:linear-gradient(135deg,#116A5F 0%,#0C4D44 100%);} /* 6.5:1 */
+  .kt5{background:linear-gradient(135deg,#0E564D 0%,#0A3E37 100%);} /* 8.5:1 */
+  .kt6{background:linear-gradient(135deg,#106056 0%,#0B453E 100%);} /* 7.4:1 */
+  .kt7{background:linear-gradient(135deg,#116A5F 0%,#0C4D44 100%);} /* 6.5:1 */
+  .kt8{background:linear-gradient(135deg,#137568 0%,#0E554B 100%);} /* 5.6:1 */
+  .kt9{background:linear-gradient(135deg,#72401B 0%,#522E13 100%);} /* 8.5:1 */
+  .kt10{background:linear-gradient(135deg,#7E481E 0%,#5B3415 100%);} /* 7.4:1 */
+  .kt11{background:linear-gradient(135deg,#8C4F21 0%,#653918 100%);} /* 6.5:1 */
+  .kt12{background:linear-gradient(135deg,#9B5824 0%,#703F1A 100%);} /* 5.5:1 */
+
+  /* ---------- Generic panel ---------- */
+  .panel{
+    border:1px solid var(--line-strong); border-radius:var(--radius-md);
+    background:var(--surface); padding:14px; box-shadow:var(--shadow-panel);
+    display:flex; flex-direction:column; min-width:0;
+  }
+  .panel-title{font-size:14.5px; font-weight:600; margin:0 0 4px 0; min-height:1.4em;}
+  .panel-note{font-size:12.5px; color:var(--ink-faint); margin:0 0 8px 0; min-height:1.5em;}
+
+  /* ---------- Map section ---------- */
+  /* The map used to be the one section on the page with no card chrome —
+     every other panel, including the district ledger it sits beside, has a
+     border, a surface fill and a shadow. Giving it the same .panel treatment
+     plus its own title/note (matching the ledger's head) is what makes the
+     row read as two matching cards instead of a list beside a bare drawing. */
+  .map-panel{
+    position:relative; display:flex; flex-direction:column; min-width:0;
+    border:1px solid var(--line-strong); border-radius:var(--radius-md);
+    background:var(--surface); padding:14px; box-shadow:var(--shadow-panel);
+  }
+  /* A fixed height used to letterbox the map: at 420px tall the viewBox (a
+     near-square 900x943, 2.1deg lon by 2.2deg lat) only draws about 400px
+     wide, leaving 70-80px of bare parchment on each side of a col-6 track —
+     visible dead space rather than map. aspect-ratio matches the box to the
+     viewBox exactly instead, so the drawing fills the full column width with
+     nothing left over, and the column stays col-6, the same width as the
+     ledger beside it. The row is taller for it (roughly 600px on a typical
+     desktop width rather than 420), so the ledger's list below is no longer
+     capped to an old fixed height — .grid's align-items:stretch makes it
+     match the map, whichever is taller, same as it did before either panel
+     had an explicit height. Narrow viewports stack the two panels instead of
+     sitting them side by side, so nothing there needs to match a neighbour's
+     width; the map reverts to a plain fixed height there. */
+  .map-svg-wrap{
+    position:relative; width:100%; aspect-ratio:900/943;
+    border-radius:var(--radius-sm); overflow:hidden;
+    background:linear-gradient(180deg,var(--surface) 0%,var(--surface-sunk) 100%);
+    border:1px solid var(--line);
+  }
+  @media (max-width:980px){ .map-svg-wrap{aspect-ratio:auto; height:340px;} }
+  .map-svg-wrap svg{width:100%; height:100%; display:block;}
+  .map-tooltip{
+    position:absolute; pointer-events:none; z-index:10;
+    background:var(--ink); color:#fff; padding:9px 12px; border-radius:var(--radius-sm);
+    font-size:12.5px; line-height:1.45; box-shadow:var(--shadow-pop);
+    transform:translate(-50%,-115%); white-space:nowrap; opacity:0; transition:opacity .1s ease;
+  }
+  .map-tooltip strong{font-weight:600;}
+  .map-tooltip .num{color:#EBD6BC;}
+  .map-legend{display:flex; gap:18px; margin-top:10px; flex-wrap:wrap; font-size:12px; color:var(--ink-soft);}
+  .map-legend .item{display:flex; align-items:center; gap:6px;}
+  .map-legend .sw{width:11px; height:11px; border-radius:50%; flex:none;}
+
+  .district-ledger{
+    border:1px solid var(--line-strong); border-radius:var(--radius-md); background:var(--surface);
+    overflow:hidden; box-shadow:var(--shadow-panel); display:flex; flex-direction:column;
+    /* min-height:0 lets the list inside scroll instead of pushing this panel
+       taller than the map it sits beside; the two then end level. */
+    min-height:0;
+  }
+  /* flex-basis:0, not auto: the list's own row count must not feed into the
+     grid row's auto height, or an eleven-row list (taller than any map worth
+     drawing) would pull the map-panel card down to match it, leaving empty
+     space below the map instead of beside it. With a zero basis the ledger's
+     only contribution to that calculation is its header, so the map (sized
+     by aspect-ratio) is reliably what sets the row height, and this list
+     just grows to fill and scrolls within whatever that turns out to be —
+     the same relationship as before, just with the two panels' roles
+     swapped. Below 980px the two panels stack instead of sitting side by
+     side, so nothing here needs to match a neighbour's height; capped back
+     to a fixed scroll height there so one district-heavy list can't push the
+     page to an awkward length. */
+  #districtList{flex:1 1 0; overflow-y:auto; min-height:0;}
+  @media (max-width:980px){ #districtList{max-height:382px;} }
+  .district-ledger-head{padding:14px 16px 10px; border-bottom:1px solid var(--line);}
+  .district-row{
+    display:grid; grid-template-columns:1fr auto auto; gap:12px; align-items:center;
+    padding:6px 16px; border-bottom:1px solid var(--line); cursor:pointer;
+    transition:background .12s ease;
+  }
+  .district-row:last-child{border-bottom:none;}
+  .district-row:nth-child(even){background:var(--surface-sunk);}
+  .district-row:hover{background:var(--roast-wash);}
+  .district-row.selected{background:var(--roast-wash); box-shadow:inset 3px 0 0 var(--roast);}
+  .district-row .name{font-size:13.5px; font-weight:500; line-height:1.35;}
+  .district-row .sub{font-size:11.5px; color:var(--ink-faint); margin-top:1px; line-height:1.35;}
+  .district-row .bar-track{width:64px; height:5px; background:var(--surface-sunk); border-radius:3px; overflow:hidden; justify-self:end;}
+  .district-row .bar-fill{height:100%; background:linear-gradient(90deg,var(--roast) 0%,var(--roast-light) 100%);}
+  .district-row .qty{font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-size:13px; text-align:right; min-width:64px;}
+  .district-detail{padding:12px 16px; border-top:1px solid var(--line); background:var(--surface-sunk); font-size:12.5px; color:var(--ink-soft);}
+  .district-detail b{color:var(--ink); font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-weight:600;}
+
+  /* ---------- Chart toggle ---------- */
+  .toggle-row{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:14px;}
+  .seg{display:inline-flex; border:1px solid var(--line-strong); border-radius:var(--radius-sm); overflow:hidden;}
+  .seg button{
+    border:none; background:var(--surface); padding:8px 16px; font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+    font-size:13px; font-weight:500; color:var(--ink-soft); cursor:pointer; border-right:1px solid var(--line-strong);
+  }
+  .seg button:last-child{border-right:none;}
+  .seg button.active{background:var(--roast); color:#fff;}
+  /* flex-basis 0 keeps the canvas from feeding its own height back into the row */
+  .chart-box{position:relative; flex:1 1 0%; min-height:225px;}
+  .chart-box.short{min-height:180px;}
+  .chart-box canvas{position:absolute; left:0; top:0;}
+  .insight-line{
+    margin-top:9px; padding:8px 12px; background:var(--honey-wash); border-radius:var(--radius-sm);
+    font-size:13px; color:#5C3A15; border-left:3px solid var(--honey);
+  }
+  .insight-line b{font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-weight:600;}
+
+  /* ---------- 12-column layout grid ----------
+     Every row on the page sits on the same twelve columns with the same 24px
+     gutter, so panel edges line up vertically all the way down. Two-panel rows
+     split 6/6 (map, chart pairs); everything else spans 12.
+     minmax(0,1fr) stops a responsive canvas from forcing its column wider. */
+  .grid{
+    display:grid; grid-template-columns:repeat(12,minmax(0,1fr));
+    gap:14px; align-items:stretch;
+  }
+  .col-4{grid-column:span 4;}
+  .col-5{grid-column:span 5;}
+  .col-6{grid-column:span 6;}
+  .col-7{grid-column:span 7;}
+  .col-8{grid-column:span 8;}
+  .col-12{grid-column:span 12;}
+  /* A grid item defaults to min-width:auto, which is its CONTENT width, so a
+     wide table or a fixed-width canvas inside one pushes the whole page wider
+     than the viewport instead of scrolling within its own panel. */
+  .grid > [class*="col-"]{min-width:0;}
+  @media (max-width:980px){ .grid > [class*="col-"]{grid-column:1 / -1;} }
+
+  table.leaderboard{
+    width:100%; border-collapse:separate; border-spacing:0; font-size:13.5px;
+    table-layout:fixed; border:1px solid var(--line-strong);
+    border-radius:var(--radius-sm); overflow:hidden;
+  }
+  table.leaderboard th{
+    text-align:left; font-size:11px; font-weight:600; color:#F0DFC7;
+    background:var(--roast-deep);
+    padding:9px 14px; text-transform:uppercase; letter-spacing:0.07em; white-space:nowrap;
+  }
+  table.leaderboard td{
+    padding:8px 14px; border-bottom:1px solid var(--line);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  /* Alternating rows. The stripe is the palette's own parchment rather than a
+     grey, so it reads as part of the theme instead of a browser default. */
+  table.leaderboard tbody tr:nth-child(odd){background:var(--surface);}
+  table.leaderboard tbody tr:nth-child(even){background:var(--surface-sunk);}
+  table.leaderboard tbody tr:last-child td{border-bottom:none;}
+  table.leaderboard tbody tr:hover{background:var(--roast-wash);}
+  table.leaderboard td.num, table.leaderboard th.num{text-align:right; font-variant-numeric:tabular-nums;}
+  table.leaderboard td.name{font-weight:500;}
+  /* A code is an identifier, not a quantity, so it stays left-aligned under a
+     left-aligned header. It keeps tabular figures so the codes stack evenly. */
+  table.leaderboard td.code{
+    text-align:left; font-variant-numeric:tabular-nums; letter-spacing:.01em;
+  }
+  /* A rule down the left of the first data column, so the eye has a rail to
+     follow across a wide row. */
+  table.leaderboard td.rank{
+    color:var(--ink-faint); font-variant-numeric:tabular-nums;
+    box-shadow:inset 3px 0 0 var(--roast-wash);
+  }
+  table.leaderboard tbody tr:hover td.rank{box-shadow:inset 3px 0 0 var(--roast);}
+  /* Unconditional rather than only under 820px: the table has a 660px floor,
+     so any container narrower than that has to scroll it, and min-width:0 lets
+     the container shrink far enough for that to happen. */
+  .leaderboard-scroll{overflow-x:auto; min-width:0;}
+  @media (max-width:820px){ table.leaderboard{min-width:660px;} }
+
+  /* ---------- Footer ---------- */
+  footer{
+    margin-top:22px; padding:24px 0 30px; font-size:12.5px; line-height:1.7;
+    background:var(--roast-deep); color:#BFA98F;
+    border-top:4px solid var(--roast);
+  }
+  footer .fgrid{display:grid; grid-template-columns:1fr; gap:40px;}
+  footer h4{font-size:12.5px; color:#F0DFC7; font-weight:600; margin:0 0 8px 0; letter-spacing:0.02em;}
+
+  .vis-hidden{display:none !important;}
+
+  /* ---------- boot states (before data.json arrives) ---------- */
+  .boot{
+    max-width:640px; margin:0 auto; padding:96px 24px 120px; text-align:center;
+  }
+  .boot-spinner{
+    width:26px; height:26px; margin:0 auto 18px; border-radius:50%;
+    border:2.5px solid var(--line-strong); border-top-color:var(--roast);
+    animation:boot-spin .8s linear infinite;
+  }
+  @keyframes boot-spin{to{transform:rotate(360deg);}}
+  @media (prefers-reduced-motion:reduce){ .boot-spinner{animation-duration:2.4s;} }
+  .boot p{margin:0; color:var(--ink-soft); font-size:14px;}
+  .boot-title{font-size:16px; font-weight:600; color:var(--ink); margin:0 0 10px 0;}
+  .boot-detail{
+    font-size:13.5px; color:var(--ink-soft); line-height:1.6;
+    background:var(--surface); border:1px solid var(--line-strong);
+    border-left:3px solid var(--cherry); border-radius:var(--radius-sm);
+    padding:14px 16px; text-align:left; margin-top:16px;
+  }
+</style>
+<link rel="stylesheet" href="kpi-tree.css">
+
+<style id="ndugu-green-theme-overrides">
+  :root{color-scheme:light;}
+  .sidenav{background:var(--nav-bg)!important;border-color:var(--nav-edge)!important}
+  .sidenav-title{color:var(--nav-title)!important}
+  .navbtn{background:var(--nav-btn)!important;color:#fff!important;border-color:rgba(255,255,255,.12)!important}
+  .navbtn:hover{background:var(--nav-btn-hover)!important}
+  .navbtn[aria-current="page"]{background:var(--nav-btn-current)!important;color:var(--nav-btn-current-ink)!important;border-color:transparent!important}
+  ::selection{background:#0E564C;color:#fff}
+</style>
+<script src="ndugu-preferences.js"></script>
+<link rel="stylesheet" href="ndugu-brand.css">
+</head>
+<body>
+
+<div class="boot" id="bootLoading">
+  <div class="boot-spinner"></div>
+  <p>Loading dashboard data…</p>
+</div>
+
+<div class="boot" id="bootError" hidden>
+  <p class="boot-title"></p>
+  <p class="boot-detail"></p>
+</div>
+
+<div id="dashboard" hidden>
+
+<div class="layout">
+
+<nav class="sidenav" aria-label="Dashboards">
+  <p class="sidenav-title" data-i18n="navTitle">Navigation</p>
+  <form class="sidenav-search" action="portal.html" method="get" role="search"><input type="search" name="q" autocomplete="off" placeholder="Search…" data-ph-en="Search…" data-ph-nl="Zoeken…" aria-label="Find a farmer, cooperative, district or village in My dashboard" data-aria-nl="Zoek een boer, coöperatie, district of dorp in Mijn dashboard"></form>
+  <a class="navbtn" href="portal.html"      data-i18n="navPortal">My dashboard</a>
+  <a class="navbtn" href="impact.html"      data-i18n="navImpact">Ndugu Impact</a>
+  <a class="navbtn" href="domestic.html"    aria-current="page" data-i18n="navDomestic">Domestic Trade</a>
+  <a class="navbtn" href="export.html"      data-i18n="navExport">Ndugu Export</a>
+  <a class="navbtn" href="finance.html"     data-i18n="navFinance">Ndugu Microfinance</a>
+  <a class="navbtn" href="production.html"  data-i18n="navProduction">Ndugu Production</a>
+  <a class="navbtn" href="coffee.html"      data-i18n="navCoffee">Coffee Minds</a>
+  <a class="navbtn" href="eudr.html"        data-i18n="navEudr">EUDR Compliance</a>
+  <a class="navbtn" href="agritracker.html" data-i18n="navAgritracker">Internal resources</a>
+</nav>
+
+<div class="layout-main">
+
+<header class="topbar">
+  <div class="shell topbar-inner">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 1080 283.07" xmlns="http://www.w3.org/2000/svg"><style>.cls-1{fill:#0E564C;}</style><path class="cls-1" d="M469.14,81.5c41.67,0,59.71,16.51,59.71,54.37v74.95H495.56V136.89c0-18.81-7.62-27.19-26.42-27.19-19.06,0-26.94,8.38-26.94,27.19v73.93h-33V135.87C409.17,98,426.7,81.5,469.14,81.5Z"></path><path class="cls-1" d="M593.37,81.5c20.32,0,30,6.6,37.6,13.46h1.78V28.46h33V148.83c0,44.21-20.58,64.28-63.52,64.28S538,193,538,148.83v-3.05C538,100.3,556.78,81.5,593.37,81.5Zm8.89,103.41c21.85,0,30.49-9.91,30.49-37.1v-1c0-27.18-8.64-37.09-30.49-37.09s-31,9.91-31,37.09v1C571.26,175,580.41,184.91,602.26,184.91Z"></path><path class="cls-1" d="M872.33,81.5c42.94,0,63.52,20.83,63.52,65.29V203c0,41.92-16.51,60-65.3,60a216.77,216.77,0,0,1-39.89-3.81V232.42a251.24,251.24,0,0,0,36.84,3.3c26.93,0,35.32-8.38,35.32-26.17v-9.91H901c-7.62,6.86-17.28,13.47-37.6,13.47-36.59,0-55.39-18.8-55.39-64.28v-3.05C808.05,101.57,829.39,81.5,872.33,81.5Zm0,103.41c21.85,0,30.49-9.91,30.49-37.1v-1c0-27.18-8.64-37.09-30.49-37.09s-31,9.91-31,37.09v1C841.33,175,850.48,184.91,872.33,184.91Z"></path><path class="cls-1" d="M948,80.84h33v76.88c0,18.8,7.88,27.19,26.94,27.19,18.8,0,26.42-8.39,26.42-27.19V80.84h33.29v77.9c0,37.85-18,54.37-59.71,54.37-42.44,0-60-16.52-60-54.37Z"></path><path class="cls-1" d="M799.15,80.85v77.9c0,37.85-18,54.36-59.7,54.36-42.42,0-60-16.51-60-54.36V80.85h42.64c-2.25,3.84-4.59,11-7,15.49-.92,1.93-1.78,3.86-2.55,5.77C701,130,702.28,156.31,716,174.48c0,.05,0,.07,0,.1A17.61,17.61,0,0,0,721,180.2a58.17,58.17,0,0,0,15.73,11,72,72,0,0,0,9.46,3.76,38.85,38.85,0,0,1-1.71-3.76,34.06,34.06,0,0,1-1.9-6.37c-4.07-19.62,8.9-37.66,15.57-56.5,2.36-6.62,5.87-14.37,7.78-25.68a142.1,142.1,0,0,0,1.36-19.93c0-.65,0-1.28,0-1.88Z"></path><path class="cls-1" d="M727.74,164.64c-.71-.78-8.53-11.11,9-59.73,1.05-2.93,1.9-5.66,2.63-8.32a48.22,48.22,0,0,0,7.18-1.21,121.65,121.65,0,0,1-4.47,11.82C724.22,147.81,727.46,163.44,727.74,164.64Z"></path><path class="cls-1" d="M240.49,8.16c23.92,0,77.27,38.63,98.88,117.28,18.77,68.29-39.55,149.46-67.6,149.46-58.41,0-45.53-94.28-43.23-104.85C251.07,79.45,214.74,8.16,240.49,8.16Z"></path><path class="cls-1" d="M211,274.9c-23.92,0-77.27-35.1-98.88-106.55-18.77-62.06,39.55-135.81,67.6-135.81,58.41,0,45.53,85.66,43.23,95.27C200.41,210.13,236.74,274.9,211,274.9Z"></path><path class="cls-1" d="M26.3,232.09a1.23,1.23,0,0,1,.21,1.67c-2.34,3.26-4.74,6.56-7.06,9.66-2.53,3.4-4.81,11.58-3.74,15.5s13.52,6.38,14.86,5.51,6.18-12.52,9.21-18.78c5.6-11.56,10.67-23.4,16.91-34.59,3.93-7.06,9.14-13.4,14.22-20.32a1.26,1.26,0,0,0-1.2-2c-12,1.85-20.42,10.16-28.44,18.17-.42.51-1.11.14-1-.28,7.62-14.37,20.45-20.79,35.69-22.2,12.23-1.13,20.52,5.89,26.66,16a1.19,1.19,0,0,1,.15.35A87.14,87.14,0,0,1,105,211.9c1.6,8.2,1,16.38-3.08,23.78C88.2,260.16,66.79,273,39.23,274.86c-6,.42-12.9-2.41-18.38-5.52a17.38,17.38,0,0,1-6.48-23.26c2.67-5,6.53-9.34,10-13.91a1.24,1.24,0,0,1,1.81-.2Zm34.57,24.78C75,245,81.15,230.78,90.41,217.9c5.1-7.09,3.94-20.8,1.35-24.06-2.36-3-5.24-3.55-8.43-4.55a1.24,1.24,0,0,0-1.49.58c-3.94,7.42-8.61,18.78-12.33,21.86-3.88,3.21-10.55,14.84-15.05,22.86-4.67,8.31-21.06,26.12-19.63,32.62S59.72,257.83,60.87,256.87Z"></path></svg>
+      <div class="brand-text">
+        <div class="role" data-i18n="brandRole">Coffee Sourcing &amp; operations</div>
+      </div>
+    </div>
+    <div class="filterbar">
+      <div class="pillgroup" id="seasonPills">
+        <button class="pill active" data-season="all" data-i18n="seasonAll">All seasons</button>
+        <button class="pill" data-season="2024">2024</button>
+        <button class="pill" data-season="2025">2025</button>
+        <button class="pill" data-season="2026">2026</button>
+      </div>
+      <div class="pillgroup" id="currencyPills">
+        <button class="pill active" data-currency="UGX">UGX</button>
+        <button class="pill" data-currency="USD">USD</button>
+      </div>
+      <div class="pillgroup" id="langPills">
+        <button class="pill active" data-lang="en">EN</button>
+        <button class="pill" data-lang="nl">NL</button>
+      </div>
+      <div class="asof"><span data-i18n="asofLabel">Data through</span> <span class="num" id="asOfDate">-</span></div>
+    </div>
+  </div>
+</header>
+
+<main data-kpi-section="domestic" class="shell ndugu-kpi-shell">
+<div class="ndg-tabs" role="tablist" aria-label="Dashboard views">
+  <button type="button" class="ndg-tab" role="tab" id="ndg-tab-kpi" data-ndg-tab="kpi" aria-selected="true" aria-controls="ndg-kpi" tabindex="0">Performance dashboard</button>
+  <button type="button" class="ndg-tab" role="tab" id="ndg-tab-legacy" data-ndg-tab="analytics" aria-selected="false" aria-controls="ndg-legacy" tabindex="-1">Operations analytics</button>
+</div>
+<section class="ndg-panel" id="ndg-kpi" role="tabpanel" aria-labelledby="ndg-tab-kpi"></section>
+<div class="ndg-panel" id="ndg-legacy" role="tabpanel" aria-labelledby="ndg-tab-legacy" hidden><div id="ndg-legacy-error" class="ndg-msg" hidden></div>
+
+
+  <section class="hero">
+    <div class="hero-head">
+      <h2 data-i18n="heroH1">Greater Masaka's coffee, tracked from farm gate to export.</h2>
+      <p class="lede" data-i18n="heroLede">Ndugu Coop buys FAQ-grade robusta, certified under Rainforest Alliance, Fairtrade and 4C, from smallholder farmers across seven Ugandan districts, bulks it into export-ready lots, and hands it off to UGACOF, ETG and other buyers. This is where that pipeline stands today.</p>
+    </div>
+
+    <!-- Twelve tiles in one grid, three rows telling one story: who the
+         registry holds (row 1), how the season is moving (row 2), and the
+         organisation behind it (row 3). The first two rows share the
+         teal/green family since both are about the network's scale and
+         activity; the close switches to roast/brown for structure and
+         credentials. Each row still lightens left to right. -->
+    <div class="kpigrid">
+      <div class="tile kt1" id="tileFarmers">
+        <p class="tile-label" data-i18n="badge2l">Farmers registered</p>
+        <div class="tile-value num" id="badge2v">-</div>
+      </div>
+      <div class="tile kt2" id="tileMaleReg">
+        <p class="tile-label" data-i18n="lblMaleReg">javac.source=1.8</p>
+        <div class="tile-value num" id="kpiMaleRegV">-</div>
+        <div class="tile-foot num" id="kpiMaleRegF">-</div>
+      </div>
+      <div class="tile kt3" id="tileFemaleReg">
+        <p class="tile-label" data-i18n="lblFemaleReg">Female Farmers</p>
+        <div class="tile-value num" id="kpiFemaleRegV">-</div>
+        <div class="tile-foot num" id="kpiFemaleRegF">-</div>
+      </div>
+      <div class="tile kt4" id="tileYouthReg">
+        <p class="tile-label" data-i18n="kpiYouthReg">Youth (18–35) Farmers</p>
+        <div class="tile-value num" id="kpiYouthRegV">-</div>
+        <div class="tile-foot num" id="kpiYouthRegF">-</div>
+      </div>
+
+      <div class="tile kt5" id="tileActive">
+        <p class="tile-label" data-i18n="kpiActive">Active suppliers</p>
+        <div class="tile-value num" id="kpiActiveV">-</div>
+      </div>
+      <div class="tile kt6" id="tileLead">
+        <p class="tile-label" data-i18n="heroCap">Coffee purchased</p>
+        <div class="tile-value num" id="heroQty">-</div>
+        <div class="tile-foot num" id="heroWindow">May 2024 - Aug 2026</div>
+      </div>
+      <div class="tile kt7" id="tileWomenVol">
+        <p class="tile-label" data-i18n="kpiWomenVol">Female volume share</p>
+        <div class="tile-value num" id="kpiWomenVolV">-</div>
+        <div class="tile-foot num" id="kpiWomenVolF">-</div>
+      </div>
+      <div class="tile kt8" id="tileYouthVol">
+        <p class="tile-label" data-i18n="kpiYouthVol">Youth (18–35) volume share</p>
+        <div class="tile-value num" id="kpiYouthVolV">-</div>
+        <div class="tile-foot num" id="kpiYouthVolF">-</div>
+      </div>
+
+      <div class="tile kt9" id="tileBatches">
+        <p class="tile-label" data-i18n="kpiBatches">Batches dispatched</p>
+        <div class="tile-value num" id="kpiBatchesV">-</div>
+        <div class="tile-foot num" id="kpiBatchesF">-</div>
+      </div>
+      <div class="tile kt10" id="tileDistricts">
+        <p class="tile-label" data-i18n="kpiDistricts">Districts covered</p>
+        <div class="tile-value num" id="kpiDistrictsV">-</div>
+      </div>
+      <div class="tile kt11" id="tileCoops">
+        <p class="tile-label" data-i18n="badge4l">Cooperatives</p>
+        <div class="tile-value num" id="badge4v">-</div>
+      </div>
+      <div class="tile kt12" id="tileCert">
+        <p class="tile-label" data-i18n="badge1l">Certifications</p>
+        <div class="tile-value tile-value-sm" data-i18n="badge1v">RFA · 4C · Fairtrade · EUDR</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="part-rail"><span data-i18n="partScale">Scale and impact</span></div>
+
+  <section id="sec-network">
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="networkH2">Farmer network</h2>
+      </div>
+      <div class="section-tag" data-i18n="networkTag">11,375 registered · 4,536 have delivered</div>
+    </div>
+    <div class="grid">
+      <div class="panel col-6">
+        <div class="panel-title" data-i18n="genderTitle">Gender</div>
+        <div class="panel-note" data-i18n="genderNote">Registered network vs. volume delivered, all-time</div>
+        <div class="chart-box short"><canvas id="genderChart"></canvas></div>
+      </div>
+      <div class="panel col-6">
+        <div class="panel-title" data-i18n="youthTitle">Youth involvement</div>
+        <div class="panel-note" data-i18n="youthNote">Registered network vs. volume delivered, by age group</div>
+        <div class="chart-box short"><canvas id="youthChart"></canvas></div>
+      </div>
+      <div class="panel col-6">
+        <div class="panel-title" data-i18n="farmsizeTitle">Farm size</div>
+        <div class="panel-note" data-i18n="farmsizeNote">Registered farmers by plot size</div>
+        <div class="chart-box short"><canvas id="farmsizeChart"></canvas></div>
+      </div>
+      <div class="panel col-6">
+        <div class="panel-title" data-i18n="coopTitle">Top cooperatives</div>
+        <div class="panel-note" data-i18n="coopNote">By registered farmer count</div>
+        <div class="chart-box short"><canvas id="coopChart"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="sec-map">
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="mapH2">Area of operation</h2>
+        <p data-i18n="mapP">Click a district for its detail.</p>
+      </div>
+      <div class="section-tag" id="mapSelectedTag" data-i18n="mapTagAll">Showing all districts</div>
+    </div>
+    <div class="grid">
+      <div class="map-panel col-6">
+        <div class="panel-title" data-i18n="mapPanelTitle">Farmer density by district</div>
+        <div class="panel-note" data-i18n="mapPanelNote">Bubble size tracks active volume</div>
+        <div class="map-svg-wrap" id="mapSvgWrap">
+          <div class="map-tooltip" id="mapTooltip"></div>
+        </div>
+        <div class="map-legend">
+          <span class="item"><span class="sw" style="background:var(--roast);"></span><span data-i18n="legendActive">Active sourcing (bubble size = volume)</span></span>
+          <span class="item"><span class="sw" style="background:transparent;border:1.5px dashed var(--honey);"></span><span data-i18n="legendRegistered">Registered, not yet active</span></span>
+          <span class="item"><span class="sw" style="background:var(--leaf); opacity:.4; width:6px; height:6px;"></span><span data-i18n="legendFarmer">Individual farmer</span></span>
+        </div>
+      </div>
+      <div class="district-ledger col-6">
+        <div class="district-ledger-head">
+          <div class="panel-title" data-i18n="districtLedgerTitle">Districts, ranked by volume</div>
+          <div class="panel-note" data-i18n="districtLedgerNote">Active farmers / registered farmers</div>
+        </div>
+        <div id="districtList"></div>
+        <div class="district-detail vis-hidden" id="districtDetail"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="part-rail"><span data-i18n="partOps">Operations</span></div>
+
+  <section id="sec-trend">
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="trendH2">Volume, value &amp; price over time</h2>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="toggle-row">
+        <div class="seg" id="trendToggle">
+          <button class="active" data-metric="qty" data-i18n="metricQty">Volume (kg)</button>
+          <button data-metric="amount" id="btnMetricAmount">Value (UGX)</button>
+          <button data-metric="price" data-i18n="metricPrice">Price per kg</button>
+        </div>
+        <div class="map-legend" style="margin-top:0;">
+          <span class="item"><span class="sw" style="background:var(--leaf); border-radius:2px; width:11px; height:11px;"></span><span data-i18n="season2024">Season 2024</span></span>
+          <span class="item"><span class="sw" style="background:var(--roast); border-radius:2px; width:11px; height:11px;"></span><span data-i18n="season2025">Season 2025</span></span>
+          <span class="item"><span class="sw" style="background:var(--honey); border-radius:2px; width:11px; height:11px;"></span><span data-i18n="season2026">Season 2026</span></span>
+        </div>
+      </div>
+      <div class="chart-box"><canvas id="trendChart"></canvas></div>
+      <div class="insight-line" id="trendInsight"></div>
+    </div>
+  </section>
+
+
+  <section id="sec-route">
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="routeH2">Field team &amp; route to market</h2>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="panel col-6">
+        <div class="panel-title" data-i18n="fmTitle">Field manager performance</div>
+        <div class="panel-note" id="fmSelectedNote" data-i18n="fmNote">Volume sourced, current filter</div>
+        <div class="chart-box short"><canvas id="fmChart"></canvas></div>
+      </div>
+      <div class="panel col-6">
+        <div class="panel-title" data-i18n="buyerMixTitle">Buyer mix by month</div>
+        <div class="panel-note" data-i18n="buyerMixNote">1,079 batches, 8,494 t dispatched all-time</div>
+        <div class="chart-box short"><canvas id="buyerChart"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+
+  <section id="sec-suppliers">
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="leaderTitle">Top suppliers, all-time</h2>
+      </div>
+      <div class="section-tag" id="leaderTag"></div>
+    </div>
+    <div class="panel">
+      <div class="leaderboard-scroll">
+        <table class="leaderboard">
+          <colgroup>
+            <col style="width:56px"><col style="width:30%"><col style="width:34%">
+            <col style="width:15%"><col>
+          </colgroup>
+          <thead>
+            <tr>
+              <th data-i18n="thRank">#</th>
+              <th data-i18n="thFarmer">Farmer</th>
+              <th data-i18n="thDistrictVillage">District / village</th>
+              <th class="num" data-i18n="thDeliveries">Deliveries</th>
+              <th class="num" data-i18n="thVolume">Volume</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboardBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+</div><!-- /#ndg-legacy -->
+</main>
+
+<footer>
+  <div class="shell fgrid">
+    <div>
+      <h4 data-i18n="footerDefH">Definitions</h4>
+      <p data-i18n="footerDefP">FAQ: Fair Average Quality. Certification: Rainforest Alliance, Fairtrade and 4C. Active supplier: a registered farmer with at least one recorded delivery in this window. Batch: a bulked, graded lot dispatched to a buyer.</p>
+    </div>
+  </div>
+</footer>
+
+</div><!-- /.layout-main -->
+</div><!-- /.layout -->
+
+</div><!-- /#dashboard -->
+
+<script>
+(function(){
+"use strict";
+
+/* ---------------------------------------------------------------------------
+   The page ships with no numbers in it. Everything is read from ./data.json,
+   which scripts/build_data.py regenerates from the Excel exports. Boot order:
+   fetch -> validate -> start(). Any failure lands in the error panel below
+   rather than a blank page.
+   --------------------------------------------------------------------------- */
+var DATA = null;
+
+var REQUIRED_KEYS = ['meta','kpis','seasons','monthly','batches_monthly','buyers',
+  'districts','field_managers','gender_registered','gender_volume','farm_size',
+  'cooperatives','youth','points','top_farmers','season_district','season_manager','month_buyer'];
+
+function showFatal(title, detail){
+  var el = document.getElementById('bootError');
+  document.getElementById('bootLoading').hidden = true;
+  el.hidden = false;
+  el.querySelector('.boot-title').textContent = title;
+  el.querySelector('.boot-detail').textContent = detail;
+  if (window.nduguKpiTree) window.nduguKpiTree.setError(detail);
+}
+
+function boot(){
+  /* cache-bust so a fresh deploy is picked up straight away */
+  fetch('./data.json?v=' + Date.now(), {cache:'no-store'})
+    .then(function(r){
+      if (!r.ok) throw new Error('HTTP ' + r.status + ' ' + r.statusText);
+      return r.json();
+    })
+    .then(function(json){
+      var missing = REQUIRED_KEYS.filter(function(k){ return !(k in json); });
+      if (missing.length) throw new Error('data.json is missing: ' + missing.join(', '));
+      DATA = json;
+      if (window.nduguKpiTree) window.nduguKpiTree.setOperationalData('domestic', json);
+      document.getElementById('bootLoading').hidden = true;
+      document.getElementById('dashboard').hidden = false;
+      start();
+    })
+    .catch(function(err){
+      var hint = (location.protocol === 'file:')
+        ? 'The page was opened straight from disk. Browsers block fetch() on file:// URLs. Serve the folder over HTTP instead (python -m http.server 8000) or use the deployed GitHub Pages URL.'
+        : 'Could not load ./data.json next to this page. If this is a fresh deploy, check that the build workflow finished and published data.json.';
+      showFatal('Dashboard data could not be loaded', hint + '  [' + err.message + ']');
+    });
+}
+
+/* ============================= formatters ============================= */
+var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function fmtInt(v){ return Math.round(v).toLocaleString(numLocale()); }
+function fmtTonnes(kg){
+  var t = kg/1000;
+  return t.toLocaleString(numLocale(),{maximumFractionDigits: t<10?2:1}) + ' t';
+}
+function fmtKgShort(kg){
+  if (kg >= 1000) return fmtTonnes(kg);
+  return fmtInt(kg) + ' kg';
+}
+/* usd: the same figure in USD, converted delivery by delivery at each year's
+   average rate (scripts/fx.py). Only when a figure has none is it divided by
+   FX_RATE, the rate the whole run averages out at. */
+function inUSD(v, usd){ return (usd !== undefined && usd !== null) ? usd : v/FX_RATE; }
+function fmtUGX(v, usd){
+  var val = state.currency==='USD' ? inUSD(v, usd) : v;
+  var sym = state.currency==='USD' ? 'USD ' : 'UGX ';
+  var abs = Math.abs(val);
+  if (abs >= 1e9) return sym + (val/1e9).toLocaleString(numLocale(),{maximumFractionDigits:1}) + bigUnit('bn');
+  if (abs >= 1e6) return sym + (val/1e6).toLocaleString(numLocale(),{maximumFractionDigits:1}) + bigUnit('m');
+  return sym + fmtInt(val);
+}
+function fmtPrice(v, usd){
+  if (v===null || v===undefined) return '-';
+  if (state.currency==='USD') return '$' + inUSD(v, usd).toLocaleString(numLocale(),{minimumFractionDigits:2, maximumFractionDigits:2});
+  return 'UGX ' + fmtInt(v);
+}
+/* toFixed always emits a full stop, which is wrong in Dutch; the locale
+   formatter gives 61,6% in NL and 61.6% in EN off the same figure. */
+function fmtPct(v){
+  return (v*100).toLocaleString(numLocale(),{minimumFractionDigits:1, maximumFractionDigits:1}) + '%';
+}
+function fmtMonth(m){ var p=m.split('-'); return monthsArr()[parseInt(p[1],10)-1] + " '" + p[0].slice(2); }
+function fmtMonthYear(d){ var p=d.split('-'); return monthsArr()[parseInt(p[1],10)-1] + ' ' + p[0]; }
+/* Farm-size buckets arrive as data keys ("0.5-1 ha"); NL wants a decimal comma. */
+function fmtFarmSize(k){ return state.lang==='nl' ? String(k).replace(/(\d)\.(\d)/g, '$1,$2') : k; }
+function fmtDateHuman(d){ var p=d.split('-'); return parseInt(p[2],10) + ' ' + monthsArr()[parseInt(p[1],10)-1] + ' ' + p[0]; }
+function esc(s){ return (s===null||s===undefined) ? '' : String(s).replace(/[&<>]/g, function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}); }
+
+/* ============================= palette ============================= */
+/* Same stack as the CSS, but single-quoted: it is written into a
+   double-quoted SVG font-family attribute, where a double quote would end
+   the attribute early and silently drop the font. */
+var SVG_FONT = "'Segoe UI','Segoe UI Web (West European)',-apple-system,"+
+               "BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif";
+/* Dotted grid lines: present enough to read a value against, recessive
+   enough not to compete with the bars. Applied through Chart.defaults so a
+   chart added later picks it up without being told. */
+
+/* ============================= tile icons =============================
+   Hand-drawn glyphs rather than an icon library: no extra request, no
+   dependency, and nothing here resembles anyone's logo or brand mark. Each is
+   a 24x24 stroke path so they share a weight, and they sit at low opacity so
+   they decorate the tile without competing with the figure on it. */
+var ICONS = {
+  /* coffee bean: an ellipse with the crease down it */
+  bean:'<ellipse cx="12" cy="12" rx="6.5" ry="9" transform="rotate(-35 12 12)"/>'+
+       '<path d="M8 16c2.5-2.6 5.5-5.6 8-8"/>',
+  /* rosette seal for certification */
+  seal:'<circle cx="12" cy="9.5" r="5.5"/><path d="M9 14.5 7.5 21l4.5-2.4 4.5 2.4L15 14.5"/>',
+  /* one person */
+  person:'<circle cx="12" cy="8" r="3.5"/><path d="M5.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/>',
+  /* several people, for a cooperative */
+  group:'<circle cx="9" cy="8.5" r="3"/><path d="M3 19c0-3.1 2.7-5.2 6-5.2s6 2.1 6 5.2"/>'+
+        '<path d="M16 6.4a3 3 0 0 1 0 5.7"/><path d="M17.5 13.9c2.1.5 3.5 2.2 3.5 4.4"/>',
+  /* map pin */
+  pin:'<path d="M12 21s6.5-6.2 6.5-11a6.5 6.5 0 1 0-13 0C5.5 14.8 12 21 12 21Z"/>'+
+      '<circle cx="12" cy="10" r="2.4"/>',
+  /* banknote */
+  cash:'<rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.8"/>'+
+       '<path d="M6 9.5v5M18 9.5v5"/>',
+  /* price tag */
+  tag:'<path d="M11 3.5H4.5A1.5 1.5 0 0 0 3 5v6.4c0 .4.2.8.4 1l8.6 8.6a1.5 1.5 0 0 0 2.1 0l6-6a1.5 1.5 0 0 0 0-2.1L11.6 4a1.5 1.5 0 0 0-1-.5Z"/>'+
+      '<circle cx="7.5" cy="8.5" r="1.4"/>',
+  /* stacked crate, for a dispatched batch */
+  crate:'<path d="M3 8.2 12 4l9 4.2v7.6L12 20l-9-4.2Z"/><path d="M3 8.2 12 12.4l9-4.2M12 12.4V20"/>',
+  /* surveyed plot boundary */
+  plot:'<path d="M4 6.5 10 4l4.5 2.5L20 4.4v13.2L14.5 20 10 17.5 4 20Z"/><path d="M10 4v13.5M14.5 6.5V20"/>',
+  /* calendar window */
+  window:'<rect x="3.5" y="5.5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3.5v4M16 3.5v4"/>',
+  /* leaf, for the growing side */
+  leaf:'<path d="M20 4C10 4 4 9 4 15.5A4.5 4.5 0 0 0 8.5 20C15 20 20 14 20 4Z"/><path d="M15 9C10.5 11 8 14.5 7 19"/>'
+};
+function icon(name){
+  var d = ICONS[name];
+  if (!d) return '';
+  return '<svg class="tile-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" ' +
+         'fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" ' +
+         'stroke-linejoin="round">' + d + '</svg>';
+}
+
+var GRID_DASH = [2, 3];
+var CHART_FONT = '"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif';
+var COLORS = {
+  roast:'#0E564C', roastDeep:'#083B34', roastLight:'#358879', roastWash:'#EAF4E6',
+  leaf:'#367729', leafLight:'#70A95A', leafWash:'#EAF5E5',
+  cherry:'#5D9842', cherryWash:'#EAF5E8',
+  honey:'#73A35A', honeyWash:'#F3FAEF',
+  teal:'#2D7950', olive:'#82AF65', clay:'#568940',
+  ink:'#21351B', inkSoft:'#486541', inkFaint:'#6D8467', line:'#DDE9D8'
+};
+/* Seasons read as a roast progression: green cherry -> roasted -> golden. */
+/* One green across every dashboard: the dark teal of the KPI tiles. It is not
+   a decorative choice. On this background it measures 9.5:1, where the leaf
+   green it replaces measured 4.8:1, and against the clay it sits beside in the
+   moisture chart a deuteranope saw a CIEDE2000 separation of 1.2 with leaf
+   green, which is no separation at all. With this green that pair measures
+   28.8, and green against gold measures 49.0. Gold is still below 3:1 on this
+   background, so every gold mark stays labelled or sits beside a table. */
+var GREEN = '#0E564C';
+
+var SEASON_COLOR = {2024:COLORS.teal, 2025:COLORS.roast, 2026:COLORS.honey};
+var BUYER_COLOR = {UGACOF:COLORS.roast, ETG:COLORS.cherry, NDUGUEXPORT:COLORS.honey, OLAM:COLORS.teal, SUPERBIA:COLORS.leaf, TOPOFTHECROP:COLORS.clay};
+
+Chart.defaults.font.family = '"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif';
+Chart.defaults.color = COLORS.inkSoft;
+Chart.defaults.font.size = 11.5;
+Chart.defaults.scale.grid.borderDash = GRID_DASH;
+Chart.defaults.scale.grid.color = COLORS.line;
+Chart.defaults.scale.grid.tickBorderDash = GRID_DASH;
+
+/* ---------------------------------------------------------------------------
+   Chart registry. A <canvas> can only hold ONE live Chart instance; calling
+   `new Chart()` over a canvas that still has one throws "Canvas is already in
+   use". Every re-render (language switch, currency switch, season filter) goes
+   through mountChart so the previous instance is always destroyed first.
+   --------------------------------------------------------------------------- */
+var CHARTS = {};
+function mountChart(canvasId, cfg){
+  var el = document.getElementById(canvasId);
+  if (!el) return null;
+  var prev = CHARTS[canvasId] || (typeof Chart.getChart === 'function' ? Chart.getChart(el) : null);
+  if (prev) prev.destroy();
+  CHARTS[canvasId] = new Chart(el.getContext('2d'), cfg);
+  return CHARTS[canvasId];
+}
+
+/* ============================= state ============================= */
+/* USD figures come from data.json, converted at the calendar-year average rate
+   of each delivery (data/usd-ugx-annual.csv). FX_RATE is only the rate the whole
+   run averages out at, from meta.fx_ugx_per_usd, for a figure with no USD twin. */
+var FX_RATE = 3777;
+var state = { season:'all', district:null, trendMetric:'qty', currency:'UGX', lang:'en' };
+
+/* ============================= i18n ============================= */
+var MONTHS_EN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var MONTHS_NL = ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
+function monthsArr(){ return state.lang==='nl' ? MONTHS_NL : MONTHS_EN; }
+function numLocale(){ return state.lang==='nl' ? 'nl-NL' : 'en-US'; }
+function bigUnit(u){
+  /* NL keeps the Dutch lowercase abbreviations (mln / mrd); EN uses a capital
+     M for millions so it does not read as a stray unit next to the figure. */
+  if (state.lang === 'nl') return u==='bn' ? 'mrd' : (u==='m' ? 'mln' : u);
+  return u==='m' ? 'M' : u;
+}
+
+/* ---------------------------------------------------------------------------
+   Numbers that appear inside sentences. These used to be typed into the copy,
+   which meant every daily rebuild silently made them wrong. They are derived
+   from data.json instead and recomputed on each language switch (formatting
+   is locale-dependent).
+   --------------------------------------------------------------------------- */
+var FACTS = {};
+function computeFacts(){
+  var k = DATA.kpis;
+  var mapped = 0, lakeFarmers = 0;
+  DATA.points.forEach(function(pt){
+    mapped += pt.n;
+    if (pt.lat<LAT_MIN || pt.lat>LAT_MAX || pt.lon<LON_MIN || pt.lon>LON_MAX) return;
+    if (pointInLake(pt.lat, pt.lon)) lakeFarmers += pt.n;
+  });
+  var buyers = DATA.buyers.slice().sort(function(a,b){ return b.qty_kg-a.qty_kg; });
+  FACTS = {
+    registered: k.n_registered_farmers,
+    activeFarmers: k.n_active_farmers,
+    activeDistricts: DATA.districts.filter(function(d){ return d.qty_kg>0; }).length,
+    emerging: DATA.districts.filter(function(d){ return d.qty_kg===0 && d.n_registered>0; }).length,
+    batches: k.n_batches,
+    batchQty: k.total_batch_qty_kg,
+    transactions: k.n_transactions,
+    topN: DATA.top_farmers.length,
+    under18: (DATA.youth && DATA.youth.excluded_under_18) || 0,
+    lakeFarmers: lakeFarmers,
+    lakePct: mapped ? (lakeFarmers/mapped*100).toFixed(1) : '0.0',
+    fx: FX_RATE,
+    generated: (DATA.meta && DATA.meta.generated) || '-',
+    firstMonth: fmtMonthYear(k.date_min),
+    dateMinHuman: fmtDateHuman(k.date_min),
+    dateMaxHuman: fmtDateHuman(k.date_max),
+    buyer1: buyers[0] ? buyers[0].buyer : '', buyer2: buyers[1] ? buyers[1].buyer : ''
+  };
+}
+
+var STR = {
+en:{
+  docTitle:'Ndugu Farmers Ltd | Sourcing & Operations',
+  navTitle:'Navigation', navPortal:'My dashboard', navEditor:'Boundary editor',
+  navDomestic:'Domestic Trade', navExport:'Ndugu Export', navEudr:'EUDR Compliance', navImpact:'Ndugu Impact',
+  navProduction:'Ndugu Production', navFinance:'Ndugu Microfinance', navAgritracker:'Internal resources',
+  navCoffee:'Coffee Minds', navAbout:'About us',
+  brandRole:'Sourcing & operations',
+  asofLabel:'Data through',
+  heroH1:"Greater Masaka's coffee, tracked from farm gate to export.",
+  heroLede:function(f){ return 'FAQ-grade robusta from smallholders across '+f.activeDistricts+' districts, bulked into export lots for '+f.buyer1+', '+f.buyer2+' and others.'; },
+  badge1v:'RFA · Fairtrade · 4C · EUDR', badge1l:'Certifications',
+  badge4l:'Cooperatives', lblMaleReg:'Male Farmers', lblFemaleReg:'Female Farmers',
+  kpiWomenVol:'Female volume share', kpiYouthReg:'Youth (18–35) farmers',
+  kpiYouthVol:'Youth (18–35) volume share', lblOf:'of', lblRegistered:'registered',
+  badge2l:'Farmers registered',
+  badge3l:function(f){ return 'Sourcing districts' + (f.emerging ? ', '+f.emerging+' emerging' : ''); },
+  heroCap:'Coffee purchased',
+  mapH2:'Area of operation',
+  mapP:'Click a district for its detail.',
+  mapTagAll:'Showing all districts',
+  mapPanelTitle:'Farmer density by district', mapPanelNote:'Bubble size tracks active volume',
+  legendActive:'Active sourcing (bubble size = volume)',
+  legendRegistered:'Registered, not yet active',
+  legendFarmer:'Individual farmer',
+  districtLedgerTitle:'Districts, ranked by volume',
+  districtLedgerNote:'Active farmers / registered farmers',
+  farmersWord:'farmers',
+  trendH2:'Volume, value &amp; price over time',
+  metricQty:'Volume (kg)', metricAmount:'Value', metricPrice:'Price per kg',
+  seasonAll:'All seasons', otherGroups:function(n){ return 'Other (' + n + ' groups)'; },
+  fxNote:function(list, prov){ return 'USD at the calendar-year average rate, UGX per USD (' + list + ')' + (prov ? '. Provisional: ' + prov : '') + '.'; },
+  chartLabelQty:'Volume (kg)', chartLabelAmount:'Value', chartLabelPrice:'Avg price /kg',
+  season2024:'Season 2024', season2025:'Season 2025', season2026:'Season 2026',
+  partScale:'Scale and impact',
+  partOps:'Operations',
+  routeH2:'Field team &amp; route to market',
+  buyerMixTitle:'Buyer mix by month',
+  buyerMixNote:function(f){ return fmtInt(f.batches)+' batches, '+fmtTonnes(f.batchQty)+' dispatched all-time'; },
+  fmTitle:'Field manager performance',
+  fmNote:'Volume sourced, current filter',
+  fmFarmersAvg:'farmers', fmAvgSuffix:'/kg avg',
+  networkH2:'Farmer network',
+  networkTag:function(f){ return fmtInt(f.registered)+' registered · '+fmtInt(f.activeFarmers)+' have delivered'; },
+  genderTitle:'Gender', genderNote:'Registered network vs. volume delivered, all-time',
+  youthTitle:'Youth involvement', youthNote:'Registered network vs. volume delivered, by age group',
+  farmsizeTitle:'Farm size', farmsizeNote:'Registered farmers by plot size',
+  coopTitle:'Top cooperatives', coopNote:'By registered farmer count',
+  genderFemale:'Female', genderMale:'Male',
+  shareRegistry:'Share of registry', shareVolume:'Share of volume',
+  youthSenior:'Senior 60+', youthAdult:'Adult 36–59', youthYouth:'Youth 18–35',
+  leaderTitle:'Top suppliers, all-time',
+  leaderTag:function(n,total){ return 'Top '+n+' of '+total+' active suppliers'; },
+  thRank:'#', thFarmer:'Farmer code', thDistrictVillage:'District / village', thDeliveries:'Deliveries', thVolume:'Volume',
+  footerDefH:'Definitions',
+  footerDefP:'FAQ: Fair Average Quality. Certification: Rainforest Alliance, Fairtrade and 4C. Active supplier: a registered farmer with at least one recorded delivery in this window. Batch: a bulked, graded lot dispatched to a buyer.',
+  kpiActive:'Active suppliers',
+  kpiDistricts:'Districts covered', kpiBatches:'Batches dispatched', kpiToExporters:'to exporters',
+  lakeLabel:'Lake Victoria',
+  tipRegisteredNoDeliv:'farmers registered', tipNoDelivYet:'no deliveries yet', tipNoDelivWindow:'no deliveries in this window',
+  tipActiveFarmers:'active farmers', tipAvgPrice:'avg. price',
+  ddEmerging: function(n){ return fmtInt(n)+' farmers registered through this district, none have delivered yet.'; },
+  ddNoActivity: function(active,reg){ return fmtInt(active)+' of '+fmtInt(reg)+' registered farmers have delivered historically; no deliveries recorded in this window.'; },
+  ddActive: function(active,reg,txnPart,vol,price){ return fmtInt(active)+' of '+fmtInt(reg)+' registered farmers have delivered, '+txnPart+vol+' at an average of <b>'+price+'</b>.'; },
+  ddTxnPart: function(n){ return fmtInt(n)+' transactions, '; },
+  trendInsight: function(pct,dir,q25,q24,f25,f24,pf24,pf25){
+    return 'Season 2025 volume came in <b>'+pct+'% '+dir+'</b> season 2024 ('+q25+' vs '+q24+'), even with more active farmers (<b>'+f25+'</b> vs <b>'+f24+'</b>). Average delivery per farmer fell from <b>'+pf24+' kg</b> to <b>'+pf25+' kg</b>, consistent with robusta\'s natural biennial bearing cycle rather than farmer attrition.';
+  },
+  trendBelow:'below', trendAbove:'above'
+},
+nl:{
+  docTitle:'Ndugu Farmers Ltd | Inkoop & operaties',
+  navTitle:'Navigatie', navPortal:'Mijn dashboard', navEditor:'Grenzen bewerken', navEudr:'EUDR-naleving',
+  navDomestic:'Binnenlandse handel', navExport:'Ndugu Export', navImpact:'Ndugu Impact',
+  navProduction:'Ndugu Productie', navFinance:'Ndugu Microfinanciering', navAgritracker:'Interne bronnen',
+  navCoffee:'Coffee Minds', navAbout:'Over ons',
+  brandRole:'Inkoop &amp; operaties',
+  asofLabel:'Gegevens tot',
+  heroH1:'Koffie uit Groot-Masaka, gevolgd van boerderij tot export.',
+  heroLede:function(f){ return 'FAQ-kwaliteit robusta van kleine boeren in '+f.activeDistricts+' districten, gebundeld tot exportpartijen voor '+f.buyer1+', '+f.buyer2+' en anderen.'; },
+  badge1v:'RFA · Fairtrade · 4C · EUDR', badge1l:'Certificeringen',
+  badge4l:'Coöperaties', lblMaleReg:'Mannen in het register', lblFemaleReg:'Vrouwen in het register',
+  kpiWomenVol:'Vrouwen in geleverd volume', kpiYouthReg:'Jongeren (18–35) in het register',
+  kpiYouthVol:'Jongeren (18–35) in geleverd volume', lblOf:'van', lblRegistered:'geregistreerd',
+  badge2l:'Geregistreerde boeren',
+  badge3l:function(f){ return 'Inkoopdistricten' + (f.emerging ? ', '+f.emerging+' opkomend' : ''); },
+  heroCap:'Ingekochte koffie',
+  mapH2:'Werkgebied',
+  mapP:'Klik op een district voor details.',
+  mapTagAll:'Alle districten getoond',
+  mapPanelTitle:'Boerendichtheid per district', mapPanelNote:'Bubbelgrootte volgt actief volume',
+  legendActive:'Actieve inkoop (bubbelgrootte = volume)',
+  legendRegistered:'Geregistreerd, nog niet actief',
+  legendFarmer:'Individuele boer',
+  districtLedgerTitle:'Districten, gerangschikt op volume',
+  districtLedgerNote:'Actieve boeren / geregistreerde boeren',
+  farmersWord:'boeren',
+  trendH2:'Volume, waarde &amp; prijs in de tijd',
+  metricQty:'Volume (kg)', metricAmount:'Waarde', metricPrice:'Prijs per kg',
+  seasonAll:'Alle seizoenen', otherGroups:function(n){ return 'Overige (' + n + ' groepen)'; },
+  fxNote:function(list, prov){ return 'USD tegen de gemiddelde koers van het kalenderjaar, UGX per USD (' + list + ')' + (prov ? '. Voorlopig: ' + prov : '') + '.'; },
+  chartLabelQty:'Volume (kg)', chartLabelAmount:'Waarde', chartLabelPrice:'Gem. prijs/kg',
+  season2024:'Seizoen 2024', season2025:'Seizoen 2025', season2026:'Seizoen 2026',
+  partScale:'Omvang en impact',
+  partOps:'Bedrijfsvoering',
+  routeH2:'Veldteam &amp; route naar de markt',
+  buyerMixTitle:'Kopersmix per maand',
+  buyerMixNote:function(f){ return fmtInt(f.batches)+' partijen, '+fmtTonnes(f.batchQty)+' verzonden (totaal)'; },
+  fmTitle:'Prestaties veldmedewerkers',
+  fmNote:'Ingekocht volume, huidig filter',
+  fmFarmersAvg:'boeren', fmAvgSuffix:'/kg gem.',
+  networkH2:'Boerennetwerk',
+  networkTag:function(f){ return fmtInt(f.registered)+' geregistreerd · '+fmtInt(f.activeFarmers)+' hebben geleverd'; },
+  genderTitle:'Geslacht', genderNote:'Geregistreerd netwerk vs. geleverd volume, aller tijden',
+  youthTitle:'Betrokkenheid van jongeren', youthNote:'Geregistreerd netwerk vs. geleverd volume, per leeftijdsgroep',
+  farmsizeTitle:'Bedrijfsgrootte', farmsizeNote:'Geregistreerde boeren naar perceelgrootte',
+  coopTitle:'Grootste coöperaties', coopNote:'Naar aantal geregistreerde boeren',
+  genderFemale:'Vrouw', genderMale:'Man',
+  shareRegistry:'Aandeel register', shareVolume:'Aandeel volume',
+  youthSenior:'Senior 60+', youthAdult:'Volwassen 36–59', youthYouth:'Jongeren 18–35',
+  leaderTitle:'Grootste leveranciers, aller tijden',
+  leaderTag:function(n,total){ return 'Top '+n+' van '+total+' actieve leveranciers'; },
+  thRank:'#', thFarmer:'Boerencode', thDistrictVillage:'District / dorp', thDeliveries:'Leveringen', thVolume:'Volume',
+  footerDefH:'Definities',
+  footerDefP:'FAQ: Fair Average Quality. Certificering: Rainforest Alliance, Fairtrade en 4C. Actieve leverancier: een geregistreerde boer met minstens één geregistreerde levering in deze periode. Partij: een gebundelde, gesorteerde lading verzonden naar een koper.',
+  kpiActive:'Actieve leveranciers',
+  kpiDistricts:'Districten gedekt', kpiBatches:'Verzonden partijen', kpiToExporters:'naar exporteurs',
+  lakeLabel:'Victoriameer',
+  tipRegisteredNoDeliv:'boeren geregistreerd', tipNoDelivYet:'nog geen leveringen', tipNoDelivWindow:'geen leveringen in deze periode',
+  tipActiveFarmers:'actieve boeren', tipAvgPrice:'gem. prijs',
+  ddEmerging: function(n){ return fmtInt(n)+' boeren geregistreerd via dit district, nog niemand heeft geleverd.'; },
+  ddNoActivity: function(active,reg){ return fmtInt(active)+' van '+fmtInt(reg)+' geregistreerde boeren hebben ooit geleverd; geen leveringen in deze periode.'; },
+  ddActive: function(active,reg,txnPart,vol,price){ return fmtInt(active)+' van '+fmtInt(reg)+' geregistreerde boeren hebben geleverd, '+txnPart+vol+' tegen een gemiddelde van <b>'+price+'</b>.'; },
+  ddTxnPart: function(n){ return fmtInt(n)+' transacties, '; },
+  trendInsight: function(pct,dir,q25,q24,f25,f24,pf24,pf25){
+    return 'Het volume van seizoen 2025 kwam <b>'+pct+'% '+dir+'</b> seizoen 2024 uit ('+q25+' vs '+q24+'), ondanks meer actieve boeren (<b>'+f25+'</b> vs <b>'+f24+'</b>). De gemiddelde levering per boer daalde van <b>'+pf24+' kg</b> naar <b>'+pf25+' kg</b>. Dit past bij de natuurlijke tweejaarlijkse draagcyclus van robusta, niet bij het wegvallen van boeren.';
+  },
+  trendBelow:'lager dan', trendAbove:'hoger dan'
+}
+};
+function T(k){ var d = STR[state.lang] || STR.en; var v = (d[k]!==undefined) ? d[k] : STR.en[k]; return v===undefined ? k : v; }
+function applyStaticI18n(){
+  document.documentElement.lang = state.lang;
+  document.querySelectorAll('[data-i18n]').forEach(function(el){
+    var v = T(el.getAttribute('data-i18n'));
+    if (typeof v === 'function') v = v(FACTS);   /* copy with live figures in it */
+    if (typeof v === 'string') el.innerHTML = v;
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(function(el){
+    el.setAttribute('placeholder', T(el.getAttribute('data-i18n-placeholder')));
+  });
+}
+
+/* ============================= header / hero ============================= */
+/* All of these are locale-sensitive (month names, thousands separators, currency),
+   so they are re-rendered on every language / currency change rather than set once. */
+function renderHero(){
+  document.title = T('docTitle');
+  document.getElementById('asOfDate').textContent = fmtDateHuman(DATA.kpis.date_max);
+  /* The lead tile now follows the season pills like the KPI row does. It used
+     to be fixed at the all-time total, which meant that selecting a season left
+     it showing a different number from every other figure on the page, and made
+     it an exact repeat of the first KPI in the default view. */
+  var d = seasonData(state.season);
+  document.getElementById('heroQty').textContent = fmtTonnes(d.qty_kg);
+  document.getElementById('heroWindow').textContent =
+    fmtMonthYear(d.date_min) + ' – ' + fmtMonthYear(d.date_max);
+}
+
+/* ============================= KPI strip ============================= */
+function seasonData(season){
+  if (season==='all') return {
+    qty_kg: DATA.kpis.total_qty_kg,
+    amount_ugx: DATA.kpis.total_amount_ugx,
+    avg_price: DATA.kpis.avg_price_kg,
+    n_transactions: DATA.kpis.n_transactions,
+    n_farmers: DATA.kpis.n_active_farmers,
+    n_districts: DATA.kpis.n_districts,
+    date_min: DATA.kpis.date_min,
+    date_max: DATA.kpis.date_max
+  };
+  var row = DATA.seasons.find(function(s){ return String(s.season)===String(season); });
+  return row;
+}
+function renderKPIs(){
+  var s = state.season;
+  var d = seasonData(s);
+  var isAll = s==='all';
+  var registered = DATA.kpis.n_registered_farmers;
+  var farmers = isAll ? DATA.kpis.n_active_farmers : d.n_farmers;
+  var districts = isAll ? DATA.kpis.n_districts : d.n_districts;
+
+  document.getElementById('kpiActiveV').innerHTML = fmtInt(farmers)+' <small>/ '+fmtInt(registered)+'</small>';
+  document.getElementById('kpiDistrictsV').textContent = fmtInt(districts);
+
+  /* Batches only total sensibly across the whole run — there is no per-season
+     count to fall back to — so this tile always shows the all-time figure,
+     the same convention Farmers registered and Cooperatives already use. */
+  document.getElementById('kpiBatchesV').textContent = fmtInt(DATA.kpis.n_batches);
+  document.getElementById('kpiBatchesF').textContent =
+    fmtTonnes(DATA.kpis.total_batch_qty_kg) + ' ' + T('kpiToExporters');
+}
+
+/* ============================= season pills ============================= */
+document.getElementById('seasonPills').addEventListener('click', function(e){
+  var btn = e.target.closest('.pill');
+  if (!btn) return;
+  document.querySelectorAll('#seasonPills .pill').forEach(function(p){ p.classList.remove('active'); });
+  btn.classList.add('active');
+  state.season = btn.getAttribute('data-season');
+  renderHero();
+  renderKPIs();
+  renderDistrictList();
+  renderMapBubbles();
+  renderTrendChart();
+  renderFMChart();
+});
+
+/* ============================= currency pills ============================= */
+function updateCurrencyLabels(){
+  var cur = state.currency==='USD' ? 'USD' : 'UGX';
+  var btnAmt = document.getElementById('btnMetricAmount');
+  if (btnAmt) btnAmt.textContent = T('metricAmount') + ' (' + cur + ')';
+  var fxm = DATA && DATA.meta && DATA.meta.fx, usdPill = document.querySelector('#currencyPills [data-currency="USD"]');
+  if (fxm && usdPill) {
+    var list = Object.keys(fxm.rates).sort().map(function(y){ return y + ': ' + fmtInt(fxm.rates[y]); }).join(' · ');
+    usdPill.title = T('fxNote')(list, (fxm.provisional || []).join(', '));
+  }
+}
+document.getElementById('currencyPills').addEventListener('click', function(e){
+  var btn = e.target.closest('.pill');
+  if (!btn) return;
+  document.querySelectorAll('#currencyPills .pill').forEach(function(p){ p.classList.remove('active'); });
+  btn.classList.add('active');
+  state.currency = btn.getAttribute('data-currency');
+  updateCurrencyLabels();
+  renderHero();
+  renderKPIs();
+  renderTrendChart();
+  renderLeaderboard();
+  renderDistrictDetail();
+});
+
+/* ============================= language pills ============================= */
+/* Re-render everything that carries language-dependent text or number formatting.
+   Static markup first, then the data-driven views, then the charts (each of which
+   replaces its own canvas instance via mountChart). */
+/* The hero cards carry a figure and a label separately, so the figure is
+   filled here rather than through data-i18n like a plain string. */
+/* Which glyph belongs on which tile. Kept beside the tiles rather than in the
+   markup so a tile and its icon cannot drift apart. */
+var TILE_ICONS = {
+  tileLead:'bean', tileCert:'seal', tileFarmers:'person', tileCoops:'group',
+  tileActive:'group', tileDistricts:'pin', tileBatches:'crate',
+  tileMaleReg:'person', tileFemaleReg:'person', tileWomenVol:'bean',
+  tileYouthReg:'leaf', tileYouthVol:'bean'
+};
+function paintTileIcons(){
+  Object.keys(TILE_ICONS).forEach(function(id){
+    var el = document.getElementById(id);
+    if (!el || el.querySelector('.tile-icon')) return;
+    el.insertAdjacentHTML('afterbegin', icon(TILE_ICONS[id]));
+  });
+}
+
+/* Registry counts (gender_registered, youth.registered) and delivered-volume
+   splits (gender_volume, youth.volume_kg) are each their own all-time total —
+   not DATA.kpis' totals, which include deliveries the gender/age fields don't
+   cover — so every share here is computed against its own field's sum. */
+function shareOf(part, whole){ return whole ? part / whole : 0; }
+function renderHeroCards(){
+  paintTileIcons();
+  var g = DATA.gender_registered || {};
+  var women = g.Female || 0, totalReg = (g.Male || 0) + women;
+  var gv = DATA.gender_volume || {};
+  var womenVol = gv.Female || 0, totalVol = (gv.Male || 0) + womenVol;
+  var yr = (DATA.youth && DATA.youth.registered) || {};
+  var youthReg = yr['Youth (18-35)'] || 0;
+  var totalYouthReg = (yr['Youth (18-35)']||0) + (yr['Adult (36-59)']||0) + (yr['Senior (60+)']||0);
+  var yv = (DATA.youth && DATA.youth.volume_kg) || {};
+  var youthVol = yv['Youth (18-35)'] || 0;
+  var totalYouthVol = (yv['Youth (18-35)']||0) + (yv['Adult (36-59)']||0) + (yv['Senior (60+)']||0);
+
+  document.getElementById('badge2v').textContent = fmtInt(FACTS.registered);
+  document.getElementById('badge4v').textContent = fmtInt(DATA.kpis.n_cooperatives || 0);
+
+  var men = g.Male || 0;
+  document.getElementById('kpiMaleRegV').textContent = fmtPct(shareOf(men, totalReg));
+  document.getElementById('kpiMaleRegF').textContent =
+    fmtInt(men) + ' ' + T('lblOf') + ' ' + fmtInt(totalReg) + ' ' + T('lblRegistered');
+  document.getElementById('kpiFemaleRegV').textContent = fmtPct(shareOf(women, totalReg));
+  document.getElementById('kpiFemaleRegF').textContent =
+    fmtInt(women) + ' ' + T('lblOf') + ' ' + fmtInt(totalReg) + ' ' + T('lblRegistered');
+  document.getElementById('kpiWomenVolV').textContent = fmtPct(shareOf(womenVol, totalVol));
+  document.getElementById('kpiWomenVolF').textContent =
+    fmtTonnes(womenVol) + ' ' + T('lblOf') + ' ' + fmtTonnes(totalVol);
+  document.getElementById('kpiYouthRegV').textContent = fmtPct(shareOf(youthReg, totalYouthReg));
+  document.getElementById('kpiYouthRegF').textContent =
+    fmtInt(youthReg) + ' ' + T('lblOf') + ' ' + fmtInt(totalYouthReg) + ' ' + T('lblRegistered');
+  document.getElementById('kpiYouthVolV').textContent = fmtPct(shareOf(youthVol, totalYouthVol));
+  document.getElementById('kpiYouthVolF').textContent =
+    fmtTonnes(youthVol) + ' ' + T('lblOf') + ' ' + fmtTonnes(totalYouthVol);
+}
+
+function applyLanguage(){
+  computeFacts();       /* figures embedded in prose, formatted for this language */
+  applyStaticI18n();
+  renderHeroCards();
+  applyMapStaticLabelsI18n();
+  updateCurrencyLabels();
+  renderHero();
+  renderKPIs();
+  renderDistrictList();   /* also re-renders the detail box and the map tag */
+  renderMapBubbles();
+  renderTrendChart();
+  renderBuyerChart();
+  renderFMChart();
+  renderGenderChart();
+  renderYouthChart();
+  renderFarmsizeChart();
+  renderCoopChart();
+  renderLeaderboard();
+}
+document.getElementById('langPills').addEventListener('click', function(e){
+  var btn = e.target.closest('.pill');
+  if (!btn) return;
+  if (btn.getAttribute('data-lang') === state.lang) return;
+  document.querySelectorAll('#langPills .pill').forEach(function(p){ p.classList.remove('active'); });
+  btn.classList.add('active');
+  state.lang = btn.getAttribute('data-lang');
+  applyLanguage();
+});
+
+/* ============================= district data helpers ============================= */
+function districtsForSeason(){
+  if (state.season==='all'){
+    return DATA.districts.filter(function(d){ return d.qty_kg>0 || d.n_registered>=100; })
+      .sort(function(a,b){return b.qty_kg-a.qty_kg;});
+  }
+  var rows = DATA.season_district.filter(function(r){ return String(r.season)===String(state.season); });
+  var byName = {};
+  rows.forEach(function(r){ byName[r.district]=r; });
+  return DATA.districts.map(function(d){
+    var r = byName[d.district];
+    return {
+      district:d.district, lat:d.lat, lon:d.lon, n_registered:d.n_registered,
+      qty_kg: r? r.qty_kg:0, amount_ugx: r? r.amount_ugx:0, amount_usd: r? r.amount_usd:0,
+      n_active_farmers: r? r.n_farmers:0, n_transactions: r? r.n_transactions:0,
+      avg_price: (r && r.qty_kg) ? r.amount_ugx/r.qty_kg : null,
+      avg_price_usd: (r && r.qty_kg && r.amount_usd != null) ? r.amount_usd/r.qty_kg : null
+    };
+  }).filter(function(d){ return d.qty_kg>0 || d.n_registered>=100; })
+    .sort(function(a,b){return b.qty_kg-a.qty_kg;});
+}
+
+/* ============================= district ledger list ============================= */
+function renderDistrictList(){
+  var rows = districtsForSeason();
+  var maxQty = Math.max.apply(null, rows.map(function(r){return r.qty_kg;}).concat([1]));
+  var html = rows.map(function(r){
+    var pct = Math.round((r.qty_kg/maxQty)*100);
+    var sel = (state.district===r.district) ? ' selected':'';
+    var isEmerging = isAllTimeEmerging(r.district);
+    var noActivityThisPeriod = r.qty_kg===0;
+    return '<div class="district-row'+sel+'" data-district="'+esc(r.district)+'">'+
+      '<div><div class="name">'+esc(r.district)+'</div><div class="sub">'+fmtInt(r.n_active_farmers)+' / '+fmtInt(r.n_registered)+' '+T('farmersWord')+'</div></div>'+
+      '<div class="bar-track"><div class="bar-fill" style="width:'+pct+'%;'+(isEmerging?'background:var(--honey);':'')+'"></div></div>'+
+      '<div class="qty num">'+ (noActivityThisPeriod? '-' : fmtKgShort(r.qty_kg)) +'</div>'+
+    '</div>';
+  }).join('');
+  document.getElementById('districtList').innerHTML = html;
+
+  document.querySelectorAll('.district-row').forEach(function(el){
+    el.addEventListener('click', function(){
+      var name = el.getAttribute('data-district');
+      state.district = (state.district===name) ? null : name;
+      renderDistrictList();
+      renderMapBubbles();
+      renderDistrictDetail();
+    });
+  });
+  renderDistrictDetail();
+  document.getElementById('mapSelectedTag').textContent = state.district ? state.district : T('mapTagAll');
+}
+
+function renderDistrictDetail(){
+  var box = document.getElementById('districtDetail');
+  if (!state.district){ box.classList.add('vis-hidden'); return; }
+  var rows = districtsForSeason();
+  var r = rows.find(function(x){return x.district===state.district;});
+  if (!r){ box.classList.add('vis-hidden'); return; }
+  box.classList.remove('vis-hidden');
+  var priceStr = r.avg_price ? fmtPrice(r.avg_price, r.avg_price_usd)+'/kg' : '-';
+  var body;
+  if (isAllTimeEmerging(r.district)){
+    body = T('ddEmerging')(r.n_registered);
+  } else if (r.qty_kg===0){
+    body = T('ddNoActivity')(r.n_active_farmers, r.n_registered);
+  } else {
+    body = T('ddActive')(r.n_active_farmers, r.n_registered,
+      (r.n_transactions? T('ddTxnPart')(r.n_transactions):''),
+      fmtKgShort(r.qty_kg), priceStr);
+  }
+  box.innerHTML = '<b>'+esc(r.district)+'</b>: '+body;
+}
+
+/* ============================= MAP (SVG) ============================= */
+var MAP_W=900, MAP_H=943;   /* equal scale: 900/2.1deg lon == 943/2.2deg lat */
+var LON_MIN=30.9, LON_MAX=33.0, LAT_MIN=-1.05, LAT_MAX=1.15;
+function proj(lat,lon){
+  return {
+    x: (lon-LON_MIN)/(LON_MAX-LON_MIN)*MAP_W,
+    y: (LAT_MAX-lat)/(LAT_MAX-LAT_MIN)*MAP_H
+  };
+}
+var DISTRICT_COLOR_ORDER = [COLORS.roast, COLORS.cherry, COLORS.leaf, COLORS.honey, COLORS.teal, COLORS.olive, COLORS.clay, COLORS.roastLight];
+var districtColorMap = {};
+
+// "Emerging" (registered but never active) is an ALL-TIME property of a district, e.g. Kiboga.
+// It must not be confused with a district that simply had no deliveries in the currently
+// selected season filter (e.g. Ntungamo only shipped in 2026, Mukono only in 2024).
+var ALL_TIME_QTY = {};
+
+/* Built from data.json, so it cannot run until the fetch resolves. */
+function initLookups(){
+  DATA.meta.districts_legend.forEach(function(d,i){
+    districtColorMap[d] = DISTRICT_COLOR_ORDER[i % DISTRICT_COLOR_ORDER.length];
+  });
+  DATA.districts.forEach(function(d){ ALL_TIME_QTY[d.district] = d.qty_kg; });
+}
+function isAllTimeEmerging(districtName){ return (ALL_TIME_QTY[districtName]||0) === 0; }
+
+function buildStaticMapSVG(){
+  var svgParts = [];
+  svgParts.push('<svg viewBox="0 0 '+MAP_W+' '+MAP_H+'" xmlns="http://www.w3.org/2000/svg">');
+  /* Soft drop shadow under each bubble, the same weight the tooltip and
+     panels already carry, so the bubbles sit visibly above the map instead
+     of reading as flat coloured dots on flat parchment. */
+  svgParts.push('<defs><filter id="bubbleShadow" x="-60%" y="-60%" width="220%" height="220%">'+
+    '<feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-color="'+COLORS.roastDeep+'" flood-opacity="0.28"/>'+
+    '</filter></defs>');
+
+  // graticule
+  svgParts.push('<g stroke="'+COLORS.line+'" stroke-width="1">');
+  for (var lon=31.0; lon<=33.0; lon+=0.5){
+    var p1=proj(LAT_MIN,lon), p2=proj(LAT_MAX,lon);
+    svgParts.push('<line x1="'+p1.x+'" y1="'+p1.y+'" x2="'+p2.x+'" y2="'+p2.y+'"/>');
+  }
+  for (var lat=-1.0; lat<=1.0; lat+=0.5){
+    var q1=proj(lat,LON_MIN), q2=proj(lat,LON_MAX);
+    svgParts.push('<line x1="'+q1.x+'" y1="'+q1.y+'" x2="'+q2.x+'" y2="'+q2.y+'"/>');
+  }
+  svgParts.push('</g>');
+  svgParts.push('<g fill="'+COLORS.inkFaint+'" font-size="10" font-family="'+SVG_FONT+'">');
+  for (var lon2=31.0; lon2<=33.0; lon2+=0.5){
+    var lp = proj(LAT_MAX, lon2);
+    svgParts.push('<text x="'+(lp.x+3)+'" y="14">'+lon2.toFixed(1)+'°E</text>');
+  }
+  svgParts.push('</g>');
+
+  /* Lake fill reads as a wash of the site's own teal rather than a stock map
+     blue, so the water sits in the same palette as everything else on the
+     page instead of looking like a different tool drew it. */
+  var d = 'M ' + LAKE_POLY.map(function(pt){ var p=proj(pt[1],pt[0]); return p.x+' '+p.y; }).join(' L ') + ' Z';
+  svgParts.push('<path d="'+d+'" fill="rgba(44,122,131,0.16)" stroke="rgba(44,122,131,0.32)" stroke-width="1"/>');
+  var lakeLabelP = proj(-0.45,32.55);
+  svgParts.push('<text id="lakeLabelText" x="'+lakeLabelP.x+'" y="'+lakeLabelP.y+'" fill="'+COLORS.teal+'" font-size="13" font-style="italic" font-family="'+SVG_FONT+'">'+T('lakeLabel')+'</text>');
+
+  // Kampala reference marker
+  var kp = proj(0.3476, 32.5825);
+  svgParts.push('<g>'+
+    '<circle cx="'+kp.x+'" cy="'+kp.y+'" r="4" fill="none" stroke="'+COLORS.ink+'" stroke-width="1.5"/>'+
+    '<circle cx="'+kp.x+'" cy="'+kp.y+'" r="1.5" fill="'+COLORS.ink+'"/>'+
+    '<text x="'+(kp.x+8)+'" y="'+(kp.y+4)+'" fill="'+COLORS.ink+'" font-size="12" font-family="'+SVG_FONT+'">Kampala</text>'+
+  '</g>');
+
+  // farmer density dots: skip any that fall on the lake side of the shoreline
+  svgParts.push('<g>');
+  DATA.points.forEach(function(pt){
+    if (pt.lat<LAT_MIN || pt.lat>LAT_MAX || pt.lon<LON_MIN || pt.lon>LON_MAX) return;
+    if (pointInLake(pt.lat, pt.lon)) return;
+    var p = proj(pt.lat, pt.lon);
+    var col = districtColorMap[pt.district] || COLORS.leaf;
+    var r = 1.1 + Math.min(pt.n,8)*0.18;
+    svgParts.push('<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="'+r.toFixed(1)+'" fill="'+col+'" opacity="0.34"/>');
+  });
+  svgParts.push('</g>');
+
+  // scale bar + compass
+  var sbStart = proj(LAT_MIN+0.04, 31.0), sbEnd = proj(LAT_MIN+0.04, 31.5);
+  svgParts.push('<g font-family="'+SVG_FONT+'" font-size="10.5" fill="'+COLORS.inkSoft+'">'+
+    '<line x1="'+sbStart.x+'" y1="'+sbStart.y+'" x2="'+sbEnd.x+'" y2="'+sbEnd.y+'" stroke="'+COLORS.inkSoft+'" stroke-width="1.5"/>'+
+    '<line x1="'+sbStart.x+'" y1="'+(sbStart.y-4)+'" x2="'+sbStart.x+'" y2="'+(sbStart.y+4)+'" stroke="'+COLORS.inkSoft+'" stroke-width="1.5"/>'+
+    '<line x1="'+sbEnd.x+'" y1="'+(sbEnd.y-4)+'" x2="'+sbEnd.x+'" y2="'+(sbEnd.y+4)+'" stroke="'+COLORS.inkSoft+'" stroke-width="1.5"/>'+
+    '<text x="'+sbStart.x+'" y="'+(sbStart.y+18)+'">~55 km</text>'+
+  '</g>');
+  var nX = MAP_W-40, nY = 34;
+  svgParts.push('<g font-family="'+SVG_FONT+'" font-size="11" fill="'+COLORS.ink+'" text-anchor="middle">'+
+    '<line x1="'+nX+'" y1="'+(nY+16)+'" x2="'+nX+'" y2="'+(nY-10)+'" stroke="'+COLORS.ink+'" stroke-width="1.5"/>'+
+    '<path d="M '+(nX-4)+' '+(nY-4)+' L '+nX+' '+(nY-12)+' L '+(nX+4)+' '+(nY-4)+' Z" fill="'+COLORS.ink+'"/>'+
+    '<text x="'+nX+'" y="'+(nY+30)+'">N</text>'+
+  '</g>');
+
+  // bubble layer placeholder group (populated separately)
+  svgParts.push('<g id="bubbleLayer"></g>');
+
+  svgParts.push('</svg>');
+  document.getElementById('mapSvgWrap').insertAdjacentHTML('afterbegin', svgParts.join(''));
+}
+function applyMapStaticLabelsI18n(){
+  var el = document.getElementById('lakeLabelText');
+  if (el) el.textContent = T('lakeLabel');
+}
+
+// Lake Victoria, traced from GSHHG full-resolution coastline data (level 2, lakes),
+// clipped to this map's window and simplified to ~1px at render scale. Not sketched by
+// hand: the shore passes 0.157°N off Katosi and 0.291°N at the head of Murchison Bay,
+// matching the surveyed positions of those places. Mukono's farmers sit ~37 km inland
+// of it, which is where they actually are.
+var LAKE_POLY = [
+  [31.8669,-1.0500],[31.8694,-1.0350],[31.8617,-1.0219],[31.8575,-1.0194],[31.8486,-1.0292],[31.8403,-1.0264],
+  [31.8392,-0.9958],[31.8322,-0.9889],[31.8225,-0.9933],[31.8222,-1.0167],[31.8169,-1.0181],[31.8090,-1.0500],
+  [31.7663,-1.0500],[31.7636,-1.0275],[31.7850,-1.0008],[31.7869,-0.9892],[31.7678,-0.9600],[31.7711,-0.9244],
+  [31.7625,-0.9047],[31.7700,-0.8717],[31.7658,-0.8619],[31.7422,-0.8439],[31.7203,-0.8472],[31.7031,-0.8442],
+  [31.6975,-0.8361],[31.6964,-0.8175],[31.6994,-0.8003],[31.7264,-0.7389],[31.7600,-0.7106],[31.7811,-0.6706],
+  [31.8019,-0.6503],[31.8039,-0.6453],[31.7825,-0.6272],[31.7908,-0.5750],[31.7994,-0.5564],[31.8231,-0.5389],
+  [31.8406,-0.4844],[31.8586,-0.4681],[31.9175,-0.4308],[31.9578,-0.3819],[31.9919,-0.3208],[32.0061,-0.3078],
+  [32.0206,-0.3081],[32.0286,-0.3278],[32.0378,-0.3167],[32.0203,-0.2931],[32.0089,-0.2700],[32.0058,-0.2522],
+  [31.9886,-0.2506],[31.9817,-0.2439],[31.9764,-0.2281],[31.9808,-0.2000],[31.9758,-0.1911],[31.9619,-0.1792],
+  [31.9231,-0.1983],[31.9350,-0.1722],[31.9314,-0.1619],[31.9414,-0.1447],[31.9247,-0.1408],[31.9239,-0.1306],
+  [31.9417,-0.1275],[31.9536,-0.1122],[31.9894,-0.0931],[32.0725,-0.0989],[32.0731,-0.0925],[32.0506,-0.0706],
+  [32.0303,-0.0778],[32.0200,-0.0744],[32.0181,-0.0500],[32.0406,-0.0514],[32.0800,-0.0356],[32.0967,-0.0381],
+  [32.1231,-0.0594],[32.1514,-0.0719],[32.1917,-0.0758],[32.1956,-0.0594],[32.2108,-0.0406],[32.1958,-0.0017],
+  [32.1975,0.0167],[32.2081,0.0333],[32.2031,0.0142],[32.2075,-0.0022],[32.2317,-0.0119],[32.2608,-0.0375],
+  [32.2825,-0.0314],[32.2886,-0.0239],[32.2928,0.0036],[32.2631,0.0214],[32.2511,0.0417],[32.2542,0.0461],
+  [32.3219,0.0200],[32.3556,0.0133],[32.3586,-0.0031],[32.3531,-0.0244],[32.3558,-0.0286],[32.3736,-0.0283],
+  [32.3769,-0.0247],[32.3656,-0.0086],[32.3789,0.0122],[32.3753,0.0225],[32.3772,0.0539],[32.3750,0.0656],
+  [32.3644,0.0756],[32.3664,0.0806],[32.3883,0.0864],[32.3981,0.0731],[32.4281,0.0844],[32.4369,0.0894],
+  [32.4486,0.1186],[32.4583,0.1092],[32.4572,0.0928],[32.4333,0.0619],[32.4131,0.0547],[32.4158,0.0453],
+  [32.4319,0.0339],[32.4464,0.0281],[32.4600,0.0353],[32.4936,0.0839],[32.5028,0.0792],[32.5089,0.0506],
+  [32.5183,0.0522],[32.5194,0.0700],[32.5261,0.0769],[32.5411,0.0719],[32.5531,0.0564],[32.5500,0.0461],
+  [32.5664,0.0464],[32.5722,0.0594],[32.5478,0.0897],[32.5417,0.1117],[32.5492,0.1178],[32.5714,0.0992],
+  [32.5811,0.0967],[32.5850,0.1064],[32.5736,0.1294],[32.5808,0.1358],[32.5981,0.1394],[32.5972,0.1442],
+  [32.5750,0.1561],[32.5781,0.1761],[32.5683,0.1772],[32.5647,0.1872],[32.5733,0.1992],[32.5789,0.2006],
+  [32.5914,0.1928],[32.5961,0.1936],[32.6000,0.2031],[32.6164,0.2036],[32.6200,0.2269],[32.6319,0.2492],
+  [32.6347,0.2731],[32.6414,0.2869],[32.6508,0.2911],[32.6617,0.2886],[32.6661,0.2792],[32.6603,0.2578],
+  [32.6472,0.2369],[32.6481,0.2256],[32.6625,0.2194],[32.6725,0.2300],[32.6769,0.2219],[32.6719,0.2014],
+  [32.6544,0.1844],[32.6547,0.1681],[32.6672,0.1600],[32.6906,0.1633],[32.6978,0.1767],[32.7114,0.1836],
+  [32.7144,0.1994],[32.7225,0.2053],[32.7303,0.1856],[32.7417,0.1761],[32.7417,0.1706],[32.7194,0.1586],
+  [32.7053,0.1383],[32.6867,0.1456],[32.6756,0.1294],[32.6556,0.1297],[32.6642,0.1108],[32.6619,0.0903],
+  [32.6819,0.0872],[32.7031,0.0939],[32.7211,0.1100],[32.7431,0.1078],[32.7522,0.1258],[32.7778,0.1175],
+  [32.7903,0.1025],[32.7950,0.1117],[32.7950,0.1383],[32.8064,0.1475],[32.8103,0.1572],[32.8236,0.1444],
+  [32.8456,0.1503],[32.8553,0.1431],[32.8525,0.1778],[32.8650,0.1644],[32.8697,0.1667],[32.8708,0.1831],
+  [32.8808,0.1936],[32.8897,0.1903],[32.8878,0.1800],[32.9011,0.1728],[32.8836,0.1561],[32.8844,0.1497],
+  [32.8969,0.1419],[32.8944,0.1378],[32.8758,0.1353],[32.8733,0.1242],[32.8758,0.1128],[32.8964,0.1064],
+  [32.8972,0.0722],[32.9081,0.0708],[32.9194,0.0803],[32.9456,0.0819],[32.9631,0.0919],[32.9789,0.0889],
+  [33.0000,0.1014],[33.0000,-1.0500]
+];
+
+function pointInLake(lat, lon){
+  var inside = false;
+  for (var i=0, j=LAKE_POLY.length-1; i<LAKE_POLY.length; j=i++){
+    var xi=LAKE_POLY[i][0], yi=LAKE_POLY[i][1], xj=LAKE_POLY[j][0], yj=LAKE_POLY[j][1];
+    var intersects = ((yi>lat) !== (yj>lat)) && (lon < (xj-xi)*(lat-yi)/(yj-yi)+xi);
+    if (intersects) inside = !inside;
+}
+  return inside;
+}
+
+function bubbleRadius(qty){
+  if (qty<=0) return 9; /* small presence marker for a district that's inactive this period but not all-time */
+  var r = 15 + Math.sqrt(qty)*0.027;
+  return Math.min(r, 68);
+}
+
+function renderMapBubbles(){
+  var svg = document.querySelector('#mapSvgWrap svg');
+  if (!svg) return;
+  var layer = svg.querySelector('#bubbleLayer');
+  layer.innerHTML = '';
+  var rows = districtsForSeason();
+  // include Kiboga (registered-only) always, even if season filter zeroes it, since it is a static registration fact
+  var kiboga = DATA.districts.find(function(d){return d.district==='Kiboga';});
+  if (kiboga && !rows.find(function(r){return r.district==='Kiboga';})) rows = rows.concat([kiboga]);
+
+  rows.forEach(function(r){
+    if (r.lat===null) return;
+    var p = proj(r.lat, r.lon);
+    var isEmerging = isAllTimeEmerging(r.district);
+    var rad = isEmerging ? 22 : bubbleRadius(r.qty_kg);
+    var isSel = state.district===r.district;
+    var g = document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.setAttribute('data-district', r.district);
+    g.style.cursor='pointer';
+
+    var circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    circle.setAttribute('cx', p.x); circle.setAttribute('cy', p.y); circle.setAttribute('r', rad);
+    circle.setAttribute('filter', 'url(#bubbleShadow)');
+    if (isEmerging){
+      circle.setAttribute('fill', 'rgba(210,145,31,0.12)');
+      circle.setAttribute('stroke', COLORS.honey);
+      circle.setAttribute('stroke-width', isSel?3:1.75);
+      circle.setAttribute('stroke-dasharray','4,3');
+    } else {
+      circle.setAttribute('fill', isSel ? COLORS.roastDeep : 'rgba(123,74,36,0.76)');
+      circle.setAttribute('stroke', '#FFFCF6');
+      circle.setAttribute('stroke-width', isSel?3:1.5);
+    }
+    g.appendChild(circle);
+
+    if (rad>26 || isSel){
+      var label = document.createElementNS('http://www.w3.org/2000/svg','text');
+      label.setAttribute('x', p.x); label.setAttribute('y', p.y+4);
+      label.setAttribute('text-anchor','middle');
+      label.setAttribute('font-family', SVG_FONT);
+      label.setAttribute('font-size', 11.5);
+      label.setAttribute('font-weight', 600);
+      label.setAttribute('fill', isEmerging ? COLORS.roastDeep : '#FFFCF6');
+      label.textContent = r.district;
+      g.appendChild(label);
+    }
+
+    g.addEventListener('mousemove', function(e){ showMapTooltip(e, r, isEmerging); });
+    g.addEventListener('mouseleave', hideMapTooltip);
+    g.addEventListener('click', function(){
+      state.district = (state.district===r.district) ? null : r.district;
+      renderDistrictList();
+      renderMapBubbles();
+    });
+    layer.appendChild(g);
+  });
+}
+
+var tooltipEl = document.getElementById('mapTooltip');
+function showMapTooltip(e, r, isEmerging){
+  var wrap = document.getElementById('mapSvgWrap');
+  var box = wrap.getBoundingClientRect();
+  var x = e.clientX - box.left, y = e.clientY - box.top;
+  tooltipEl.style.left = x+'px'; tooltipEl.style.top = y+'px';
+  tooltipEl.style.opacity = 1;
+  if (isEmerging){
+    tooltipEl.innerHTML = '<strong>'+esc(r.district)+'</strong><br>'+fmtInt(r.n_registered)+' '+T('tipRegisteredNoDeliv')+'<br>'+T('tipNoDelivYet');
+  } else if (r.qty_kg===0){
+    tooltipEl.innerHTML = '<strong>'+esc(r.district)+'</strong><br>'+fmtInt(r.n_registered)+' '+T('tipRegisteredNoDeliv')+'<br>'+T('tipNoDelivWindow');
+  } else {
+    tooltipEl.innerHTML = '<strong>'+esc(r.district)+'</strong><br>'+
+      '<span class="num">'+fmtKgShort(r.qty_kg)+'</span> · '+fmtInt(r.n_active_farmers)+' '+T('tipActiveFarmers')+'<br>'+
+      '<span class="num">'+fmtPrice(r.avg_price, r.avg_price_usd)+'/kg</span> '+T('tipAvgPrice');
+  }
+}
+function hideMapTooltip(){ tooltipEl.style.opacity = 0; }
+
+/* ============================= TREND CHART ============================= */
+function renderTrendChart(){
+  var metric = state.trendMetric;
+  var labels = DATA.monthly.map(function(m){ return fmtMonth(m.month); });
+  var usdOn = state.currency==='USD';
+  var values = DATA.monthly.map(function(m){ return metric==='qty' ? m.qty_kg :
+    metric==='amount' ? (usdOn ? inUSD(m.amount_ugx, m.amount_usd) : m.amount_ugx) :
+    (usdOn ? inUSD(m.avg_price, m.avg_price_usd) : m.avg_price); });
+  var colors = DATA.monthly.map(function(m){
+    var base = SEASON_COLOR[m.season] || COLORS.roast;
+    if (state.season!=='all' && String(m.season)!==String(state.season)) return base+'35';
+    return base;
+  });
+
+  var cfg = {
+    type: metric==='price' ? 'line' : 'bar',
+    data: { labels: labels, datasets: [{
+      label: metric==='qty'?T('chartLabelQty'): metric==='amount'?T('chartLabelAmount'):T('chartLabelPrice'),
+      data: values,
+      backgroundColor: colors,
+      borderColor: metric==='price' ? COLORS.roast : colors,
+      borderWidth: metric==='price' ? 2 : 0,
+      pointRadius: metric==='price' ? 2.5 : 0,
+      pointBackgroundColor: COLORS.roast,
+      tension: 0.25,
+      borderRadius: metric==='price' ? 0 : 2,
+      maxBarThickness: 26
+    }]},
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor: COLORS.ink, padding:10, titleFont:{family:CHART_FONT},
+          bodyFont:{family:CHART_FONT},
+          callbacks:{ label: function(c){
+            if (metric==='qty') return fmtInt(c.parsed.y)+' kg';
+            /* values are already in the chosen currency */
+            if (metric==='amount') return fmtUGX(c.parsed.y, c.parsed.y);
+            return fmtPrice(c.parsed.y, c.parsed.y)+' /kg';
+          }}
+        }
+      },
+      scales:{
+        x:{ grid:{display:false}, ticks:{maxRotation:0, autoSkip:true, maxTicksLimit:14, font:{family:CHART_FONT}} },
+        y:{ grid:{color:COLORS.line, borderDash:GRID_DASH}, ticks:{ callback:function(v){
+              if (metric==='qty') return (v/1000).toLocaleString(numLocale())+'t';
+              if (metric==='amount'){
+                var val = v;
+                var sym = state.currency==='USD' ? '$' : '';
+                if (val === 0) return sym + '0';   /* a zero tick is neither millions nor billions */
+                if (Math.abs(val) >= 1e9) return sym+(val/1e9).toLocaleString(numLocale(),{maximumFractionDigits:1})+bigUnit('bn');
+                return sym+(val/1e6).toLocaleString(numLocale(),{maximumFractionDigits:1})+bigUnit('m');
+              }
+              /* price */
+              if (state.currency==='USD') return '$'+v.toLocaleString(numLocale(),{minimumFractionDigits:2, maximumFractionDigits:2});
+              return v.toLocaleString(numLocale());
+            }, font:{family:CHART_FONT} } }
+      }
+    }
+  };
+  mountChart('trendChart', cfg);
+
+  var s24=DATA.seasons[0], s25=DATA.seasons[1];
+  var qtyDelta = ((s25.qty_kg-s24.qty_kg)/s24.qty_kg*100).toFixed(1);
+  var perFarmer24 = Math.round(s24.qty_kg/s24.n_farmers), perFarmer25=Math.round(s25.qty_kg/s25.n_farmers);
+  document.getElementById('trendInsight').innerHTML = T('trendInsight')(
+    Math.abs(qtyDelta), (qtyDelta<0?T('trendBelow'):T('trendAbove')),
+    fmtTonnes(s25.qty_kg), fmtTonnes(s24.qty_kg),
+    fmtInt(s25.n_farmers), fmtInt(s24.n_farmers),
+    fmtInt(perFarmer24), fmtInt(perFarmer25)
+  );
+}
+
+document.getElementById('trendToggle').addEventListener('click', function(e){
+  var btn = e.target.closest('button');
+  if (!btn) return;
+  document.querySelectorAll('#trendToggle button').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  state.trendMetric = btn.getAttribute('data-metric');
+  renderTrendChart();
+});
+
+/* ============================= BUYER STACKED CHART ============================= */
+function renderBuyerChart(){
+  var months = DATA.batches_monthly.map(function(m){return m.month;});
+  var buyers = DATA.buyers.map(function(b){return b.buyer;});
+  var byMonthBuyer = {};
+  DATA.month_buyer.forEach(function(r){ byMonthBuyer[r.month+'|'+r.buyer]=r.qty_kg; });
+  var datasets = buyers.map(function(b){
+    return {
+      label:b,
+      data: months.map(function(m){ return byMonthBuyer[m+'|'+b] || 0; }),
+      backgroundColor: BUYER_COLOR[b] || COLORS.inkFaint,
+      maxBarThickness: 22
+    };
+  });
+  mountChart('buyerChart', {
+    type:'bar',
+    data:{ labels: months.map(fmtMonth), datasets: datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{position:'bottom', labels:{boxWidth:10, boxHeight:10, font:{family:CHART_FONT, size:11.5}, color:COLORS.inkSoft}},
+        tooltip:{ backgroundColor:COLORS.ink, callbacks:{ label:function(c){ return c.dataset.label+': '+fmtInt(c.parsed.y)+' kg'; } } } },
+      scales:{ x:{stacked:true, grid:{display:false}, ticks:{maxTicksLimit:10, font:{family:CHART_FONT}}},
+               y:{stacked:true, grid:{color:COLORS.line, borderDash:GRID_DASH}, ticks:{callback:function(v){return (v/1000).toLocaleString(numLocale())+'t';}, font:{family:CHART_FONT}}} }
+    }
+  });
+}
+
+/* ============================= FIELD MANAGER CHART ============================= */
+function renderFMChart(){
+  var rows;
+  if (state.season==='all'){
+    rows = DATA.field_managers.slice();
+  } else {
+    rows = DATA.season_manager.filter(function(r){return String(r.season)===String(state.season);}).slice();
+  }
+  rows = rows.map(function(r){
+    return Object.assign({}, r, { avg_price: (r.avg_price!==undefined && r.avg_price!==null) ? r.avg_price : (r.qty_kg ? r.amount_ugx/r.qty_kg : 0),
+      avg_price_usd: (r.avg_price_usd!=null) ? r.avg_price_usd : (r.qty_kg && r.amount_usd!=null ? r.amount_usd/r.qty_kg : null) });
+  });
+  rows.sort(function(a,b){return a.qty_kg-b.qty_kg;}); /* ascending: Chart.js horizontal bars render index 0 at the bottom */
+  mountChart('fmChart', {
+    type:'bar',
+    data:{
+      labels: rows.map(function(r){return r.manager;}),
+      datasets:[{ data: rows.map(function(r){return r.qty_kg;}), backgroundColor: COLORS.roast, maxBarThickness:22, borderRadius:2 }]
+    },
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false},
+        tooltip:{ backgroundColor:COLORS.ink, callbacks:{ label:function(c){
+          var r = rows[c.dataIndex];
+          return [fmtInt(r.qty_kg)+' kg · '+fmtInt(r.n_farmers)+' '+T('fmFarmersAvg'), fmtPrice(r.avg_price, r.avg_price_usd)+T('fmAvgSuffix')];
+        } } } },
+      scales:{ x:{ grid:{color:COLORS.line, borderDash:GRID_DASH}, ticks:{callback:function(v){return (v/1000).toLocaleString(numLocale())+'t';}, font:{family:CHART_FONT}} },
+               y:{ grid:{display:false}, ticks:{font:{family:CHART_FONT, size:12}} } }
+    }
+  });
+}
+
+/* ============================= GENDER CHART ============================= */
+function renderGenderChart(){
+  var totalReg = DATA.gender_registered.Male + DATA.gender_registered.Female;
+  var totalVol = DATA.gender_volume.Male + DATA.gender_volume.Female;
+  var regPct = { Male: DATA.gender_registered.Male/totalReg, Female: DATA.gender_registered.Female/totalReg };
+  var volPct = { Male: DATA.gender_volume.Male/totalVol, Female: DATA.gender_volume.Female/totalVol };
+  mountChart('genderChart', {
+    type:'bar',
+    data:{
+      labels:[T('genderFemale'),T('genderMale')],
+      datasets:[
+        {label:T('shareRegistry'), data:[regPct.Female, regPct.Male], backgroundColor: COLORS.roast, maxBarThickness:26, borderRadius:2},
+        {label:T('shareVolume'), data:[volPct.Female, volPct.Male], backgroundColor: COLORS.honey, maxBarThickness:26, borderRadius:2}
+      ]
+    },
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{position:'bottom', labels:{boxWidth:10, boxHeight:10, font:{family:CHART_FONT, size:11.5}, color:COLORS.inkSoft}},
+        tooltip:{ backgroundColor:COLORS.ink, callbacks:{ label:function(c){ return c.dataset.label+': '+fmtPct(c.parsed.x); } } } },
+      scales:{ x:{ grid:{color:COLORS.line, borderDash:GRID_DASH}, ticks:{callback:function(v){return Math.round(v*100)+'%';}, font:{family:CHART_FONT}}, max:0.75 },
+               y:{ grid:{display:false} } }
+    }
+  });
+}
+
+/* ============================= YOUTH CHART ============================= */
+function renderYouthChart(){
+  var cats = [
+    {key:'Senior (60+)', label:T('youthSenior')},
+    {key:'Adult (36-59)', label:T('youthAdult')},
+    {key:'Youth (18-35)', label:T('youthYouth')}
+  ]; /* Chart.js horizontal bars render index 0 at the bottom, so Youth (last) lands on top */
+  var totalReg = cats.reduce(function(s,c){return s+DATA.youth.registered[c.key];},0);
+  var totalVol = cats.reduce(function(s,c){return s+DATA.youth.volume_kg[c.key];},0);
+  var regPct = cats.map(function(c){return DATA.youth.registered[c.key]/totalReg;});
+  var volPct = cats.map(function(c){return DATA.youth.volume_kg[c.key]/totalVol;});
+  mountChart('youthChart', {
+    type:'bar',
+    data:{
+      labels: cats.map(function(c){return c.label;}),
+      datasets:[
+        {label:T('shareRegistry'), data:regPct, backgroundColor: COLORS.roast, maxBarThickness:22, borderRadius:2},
+        {label:T('shareVolume'), data:volPct, backgroundColor: COLORS.honey, maxBarThickness:22, borderRadius:2}
+      ]
+    },
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{position:'bottom', labels:{boxWidth:10, boxHeight:10, font:{family:CHART_FONT, size:11.5}, color:COLORS.inkSoft}},
+        tooltip:{ backgroundColor:COLORS.ink, callbacks:{ label:function(c){ return c.dataset.label+': '+fmtPct(c.parsed.x); } } } },
+      scales:{ x:{ grid:{color:COLORS.line, borderDash:GRID_DASH}, ticks:{callback:function(v){return Math.round(v*100)+'%';}, font:{family:CHART_FONT}}, max:0.65 },
+               y:{ grid:{display:false} } }
+    }
+  });
+}
+
+/* ============================= FARM SIZE CHART ============================= */
+function renderFarmsizeChart(){
+  var labels = Object.keys(DATA.farm_size);
+  var values = labels.map(function(k){return DATA.farm_size[k];});
+  mountChart('farmsizeChart', {
+    type:'bar',
+    data:{ labels: labels.map(fmtFarmSize), datasets:[{ data: values, backgroundColor: GREEN, maxBarThickness:34, borderRadius:2 }] },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ backgroundColor:COLORS.ink, callbacks:{label:function(c){return fmtInt(c.parsed.y)+' '+T('farmersWord');}} } },
+      scales:{ x:{ grid:{display:false}, ticks:{font:{family:CHART_FONT, size:10.5}} },
+               y:{ grid:{color:COLORS.line, borderDash:GRID_DASH}, ticks:{font:{family:CHART_FONT}} } }
+    }
+  });
+}
+
+/* ============================= COOPERATIVE CHART ============================= */
+function renderCoopChart(){
+  var rows = DATA.cooperatives.slice().sort(function(a,b){return a.n_farmers-b.n_farmers;});
+  mountChart('coopChart', {
+    type:'bar',
+    data:{ labels: rows.map(function(r){ var m = /^Other \((\d+) groups\)$/.exec(r.cooperative);
+        return m ? T('otherGroups')(m[1]) : r.cooperative; }), datasets:[{ data: rows.map(function(r){return r.n_farmers;}), backgroundColor: COLORS.cherry, maxBarThickness:16, borderRadius:2 }] },
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ backgroundColor:COLORS.ink, callbacks:{label:function(c){return fmtInt(c.parsed.x)+' '+T('farmersWord');}} } },
+      scales:{ x:{ grid:{color:COLORS.line, borderDash:GRID_DASH}, ticks:{font:{family:CHART_FONT}} },
+               y:{ grid:{display:false}, ticks:{font:{family:CHART_FONT, size:10.5}} } }
+    }
+  });
+}
+
+/* ============================= LEADERBOARD ============================= */
+function renderLeaderboard(){
+  var html = DATA.top_farmers.map(function(f, i){
+    var loc = [f.village, f.district].filter(Boolean).join(', ');
+    return '<tr><td class="rank">'+(i+1)+'</td><td class="name code">'+esc(f.code)+'</td><td>'+esc(loc)+'</td>'+
+      '<td class="num">'+fmtInt(f.n_deliveries)+'</td><td class="num">'+fmtKgShort(f.qty_kg)+'</td></tr>';
+  }).join('');
+  document.getElementById('leaderboardBody').innerHTML = html;
+  var tag = document.getElementById('leaderTag');
+  if (tag) tag.textContent = T('leaderTag')(DATA.top_farmers.length, fmtInt(DATA.kpis.n_active_farmers));
+}
+
+/* ============================= INIT ============================= */
+function start(){
+  if (DATA.meta && DATA.meta.fx_ugx_per_usd > 0) FX_RATE = DATA.meta.fx_ugx_per_usd;
+  initLookups();
+  buildStaticMapSVG();  /* the SVG shell must exist before bubbles are drawn into it */
+  applyLanguage();      /* single entry point, the same path EN and NL take on every switch */
+}
+
+boot();
+
+})();
+
+</script>
+
+
+<script src="kpi-tree-data.js"></script>
+<script src="kpi-illustrative-data.js"></script>
+<script src="ndugu-kpi-translations.js"></script>
+<script src="kpi-tree.js"></script>
+<!-- ndugu:analytics -->
+<!-- Visit counting. No cookie, no localStorage, no fingerprinting;
+     figures are private to the Ndugu Cloudflare account. Managed by
+     scripts/sync_analytics.py: edits here are overwritten. -->
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "667a8f6b0e6244bab958af8756cef50b"}'></script><!-- End Cloudflare Web Analytics -->
+<!-- /ndugu:analytics -->
+</body>
+</html>

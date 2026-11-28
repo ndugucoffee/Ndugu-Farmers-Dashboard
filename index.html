@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+(function(){
+  try {
+    var r = document.referrer, same = r && r.indexOf(location.origin + '/') === 0 && location.origin !== 'null';
+    if (same) return;
+    var s = JSON.parse(sessionStorage.getItem('ndugu.portal.session') || 'null');
+    var a = +sessionStorage.getItem('ndugu.portal.active') || 0;
+    if (s && !(a && Date.now() - a > 15 * 60 * 1000)) location.replace('portal.html' + location.search + location.hash);
+  } catch (e) {}
+})();
+</script>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon.ico" sizes="16x16 32x32" type="image/x-icon">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+<meta name="theme-color" content="#0E564C">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<title>Ndugu Farmers Ltd | Ndugu in numbers</title>
+<meta name="description" content="Ndugu Farmers Ltd in the Ugandan coffee sector: farmers reached, coffee bought, payments to farmers, inclusion and deforestation-free sourcing, in totals.">
+<style>
+  :root{
+    /* --- surfaces: raw parchment, cream, unbleached paper --- */
+    --paper:#F7FBF5;
+    --surface:#FFFFFF;
+    --surface-sunk:#F1F7EF;
+    /* --- ink: espresso --- */
+    --ink:#1F2D1A;
+    --ink-soft:#4D5F47;
+    --ink-faint:#72836B;
+    --line:#DCE8D8;
+    --line-strong:#C8D8C1;
+    /* --- roasted bean: the primary --- */
+    --roast:#0E564C;
+    --roast-deep:#0B4C43;
+    --roast-light:#368779;
+    --roast-wash:#EAF5E5;
+    /* --- leaf: the growing side --- */
+    --leaf:#0E564C;
+    --leaf-light:#6DAD4D;
+    --leaf-wash:#ECF6E8;
+    /* --- coffee cherry --- */
+    --cherry:#4E8E33;
+    --cherry-wash:#EEF7EA;
+    /* --- golden harvest --- */
+    --honey:#6FA649;
+    --honey-wash:#F1F8ED;
+    /* --- supporting --- */
+    --teal:#4D8F35;
+    --olive:#7EAD56;
+    --clay:#4C7A35;
+    /* Side navigation: drawn from the page's own palette: the rail is the
+       same espresso as the footer, so the dashboard sits framed between them.
+       Contrast (white on button 6.5:1, espresso on honey 6.2:1) is above AA. */
+    --nav-bg:#0B4C43;
+    --nav-edge:#0E564C;
+    --nav-title:#F7FBF5;
+    --nav-btn:#0E564C;
+    --nav-btn-hover:#126A5E;
+    --nav-btn-current:#FFFFFF;
+    --nav-btn-current-ink:#0E564C;
+    /* KPI tile gradients. Every stop was checked for white-text contrast
+       rather than picked by eye. Saturation is pushed well above the base
+       palette (leaf 0.46 -> 0.68, teal 0.50 -> 0.75) to make the row carry, but
+       each hue is then darkened only as far as it must be for white text to
+       clear 4.5:1. Full saturation passes too, and looks like neon rather than
+       coffee, so it was not used. The tiles are the loudest thing on the page;
+       unreadable labels on them would be the most visible possible mistake. */
+    --tile-leaf:linear-gradient(135deg,#5AA733 0%,#0E564C 100%);   /* 4.60:1 */
+    --tile-honey:linear-gradient(135deg,#87BC5E 0%,#5A9837 100%);  /* 4.58:1 */
+    --tile-roast:linear-gradient(135deg,#6CB345 0%,#0E564C 100%);  /* 4.55:1 */
+    --tile-cherry:linear-gradient(135deg,#75B852 0%,#438A23 100%); /* 4.57:1 */
+    --tile-teal:linear-gradient(135deg,#4FA45A 0%,#2E7F3D 100%);   /* 4.55:1 */
+    --tile-olive:linear-gradient(135deg,#95C96A 0%,#5B9438 100%);  /* 4.56:1 */
+
+    --radius-sm:4px;
+    --radius-md:8px;
+    --radius-lg:10px;
+    --shadow-pop:0 12px 30px -10px rgba(42,26,16,0.38);
+    --shadow-panel:0 1px 2px rgba(42,26,16,0.04), 0 10px 26px -20px rgba(42,26,16,0.55);
+  }
+  *{box-sizing:border-box;}
+  .kpi-value,.tile-value,.tile-foot,
+  table.leaderboard td.num,table.leaderboard th.num,
+  .district-row .qty,.district-detail b
+  {font-variant-numeric:tabular-nums; font-feature-settings:'tnum' 1;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+    font-size:15px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+    /* Power BI aligns figures with tabular numerals rather than a monospace
+     face. Segoe UI, Helvetica and Arial all ship fixed-width lining figures, so
+     columns still line up without a second typeface. */
+  .num{font-variant-numeric:tabular-nums; font-feature-settings:'tnum' 1;}
+  a{color:inherit;}
+  ::selection{background:var(--roast); color:#fff;}
+
+  /* ---------- Page frame: fixed side nav + the dashboard column ---------- */
+  .layout{display:flex; align-items:flex-start; min-height:100vh;}
+  .layout-main{flex:1 1 auto; min-width:0; max-width:100%;}   /* min-width:0 so grids can shrink */
+
+  .sidenav{
+    flex:0 0 172px; width:172px; align-self:stretch;
+    position:sticky; top:4px; max-height:calc(100vh - 4px); overflow-y:auto;
+    background:var(--nav-bg);
+    border-right:1px solid var(--nav-edge);
+    padding:16px 14px 28px;
+    display:flex; flex-direction:column; gap:13px;
+  }
+  .sidenav-title{
+    color:var(--nav-title); font-size:12px; font-weight:600;
+    text-transform:uppercase; letter-spacing:0.12em;
+    padding:2px 2px 2px; margin:0;
+  }
+  .navbtn{
+    display:block; text-align:center; text-decoration:none;
+    background:var(--nav-btn); color:#fff;
+    border:1px solid rgba(255,252,246,0.10);
+    font-size:13px; font-weight:500; line-height:1.3;
+    padding:12px 6px;
+    /* chamfered corners, matching the other dashboards' buttons */
+    clip-path:polygon(9px 0, calc(100% - 9px) 0, 100% 9px, 100% calc(100% - 9px),
+                      calc(100% - 9px) 100%, 9px 100%, 0 calc(100% - 9px), 0 9px);
+    transition:background .15s ease;
+  }
+  .navbtn:hover{background:var(--nav-btn-hover);}
+  /* clip-path would crop a normal outline, so the focus ring is drawn inside */
+  .navbtn:focus-visible{outline:none; box-shadow:inset 0 0 0 2px #fff;}
+  .navbtn[aria-current="page"]{
+    background:var(--nav-btn-current); color:var(--nav-btn-current-ink);
+    font-weight:600; border-color:transparent;
+  }
+  @media (prefers-reduced-motion:reduce){ .navbtn{transition:none;} }
+
+  @media (max-width:900px){
+    .layout{flex-direction:column;}
+    .sidenav{
+      position:static; width:auto; max-height:none; flex:0 0 auto; align-self:auto;
+      flex-direction:row; align-items:center; gap:10px;
+      /* min-width:0 is what makes overflow-x:auto actually scroll here: without
+         it the rail sizes to all nine buttons and drags the page wider than the
+         viewport rather than scrolling inside itself. */
+      min-width:0; max-width:100%;
+      overflow-x:auto; padding:12px 16px;
+      border-right:none; border-bottom:1px solid var(--nav-edge);
+    }
+    .sidenav-title{display:none;}
+    .navbtn{flex:0 0 auto; padding:10px 16px; white-space:nowrap;}
+  }
+
+  /* ---------- Layout shell ---------- */
+  .shell{max-width:1320px; margin:0 auto; padding:0 32px;}
+  @media (max-width:900px){ .shell{padding:0 18px;} }
+
+  /* ---------- Header ---------- */
+  body::before{
+    content:''; position:fixed; top:0; left:0; right:0; height:4px; z-index:60;
+    background:linear-gradient(90deg,var(--roast-deep) 0%,var(--roast) 22%,var(--cherry) 46%,var(--honey) 70%,var(--leaf) 100%);
+  }
+  header.topbar{
+    position:sticky; top:4px; z-index:50;
+    background:rgba(250,244,234,0.94);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line-strong);
+  }
+  .topbar-inner{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:8px 0; gap:20px; flex-wrap:wrap;
+  }
+  .brand{display:flex; align-items:center; gap:14px;}
+  .brand-mark{height:30px; width:auto; flex:none;}
+  .brand-text{border-left:1px solid var(--line-strong); padding-left:14px;}
+  .brand-text .role{font-size:12.5px; color:var(--ink-soft); margin-top:1px;}
+
+  .filterbar{display:flex; align-items:center; gap:18px; flex-wrap:wrap;}
+  .pillgroup{display:flex; background:var(--surface-sunk); border-radius:999px; padding:3px; gap:2px;}
+  .pill{
+    border:none; background:transparent; padding:7px 14px; border-radius:999px;
+    font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-size:13px; font-weight:500; color:var(--ink-soft);
+    cursor:pointer; transition:background .15s ease, color .15s ease;
+  }
+  .pill.active{background:var(--roast); color:#fff;}
+  .pill:not(.active):hover{color:var(--ink);}
+  .asof{font-size:12px; color:var(--ink-faint); white-space:nowrap;}
+
+  /* ---------- Section scaffolding ---------- */
+  section{padding:22px 0;}
+  section + section{border-top:1px solid var(--line);}
+  /* Part rails split the page into the two runs it actually serves: the
+     scale-and-impact read at the top, the operating detail below it. */
+  .part-rail{
+    display:flex; align-items:center; gap:12px;
+    margin:26px 0 0 0; padding-top:20px; border-top:2px solid var(--ink);
+  }
+  .part-rail span{
+    font-size:11.5px; font-weight:700; letter-spacing:.09em;
+    text-transform:uppercase; color:var(--ink); white-space:nowrap;
+  }
+  .part-rail::after{content:''; flex:1 1 auto; height:1px; background:var(--line);}
+  .part-rail + section{border-top:none; padding-top:10px;}
+  .section-head{
+    display:grid; grid-template-columns:repeat(12,minmax(0,1fr));
+    gap:24px; align-items:end; margin-bottom:12px;
+  }
+  .section-head > div:first-child{grid-column:span 8; min-width:0;}
+  .section-head h2{font-size:19px; margin:0 0 4px 0; font-weight:700; letter-spacing:-0.01em;}
+  .section-head h2::before{
+    content:''; display:block; width:44px; height:3px; border-radius:2px;
+    background:var(--roast); margin-bottom:7px;
+  }
+  .section-head p{margin:0; color:var(--ink-soft); font-size:14px; max-width:62ch;}
+  .section-tag{grid-column:span 4; align-self:end; font-size:12.5px; color:var(--ink-faint); text-align:right;}
+  @media (max-width:980px){
+    .section-head > div:first-child, .section-tag{grid-column:1 / -1;}
+    .section-tag{text-align:left;}
+  }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    padding-top:20px; padding-bottom:0; border-top:none;
+    background:
+      radial-gradient(ellipse 900px 460px at 8% -14%, var(--honey-wash) 0%, transparent 64%),
+      radial-gradient(ellipse 760px 400px at 100% -4%, var(--leaf-wash) 0%, transparent 60%),
+      radial-gradient(ellipse 520px 300px at 58% -18%, var(--roast-wash) 0%, transparent 66%);
+    margin-top:-1px;
+  }
+  .hero-head{margin-bottom:14px;}
+  /* the figure column is far taller than the badges; centring stops a dead
+     band opening up above them */
+  /* these sit before .hero h1 / .hero p.lede in the cascade, so they need
+     enough specificity to win rather than relying on source order */
+  .hero .hero-head h1{max-width:none;}
+  .hero .hero-head p.lede{max-width:none;}
+  .hero-eyebrow{font-size:14px; color:var(--roast); font-weight:600; margin:0 0 10px 0;}
+  .hero h1{font-size:25px; line-height:1.12; margin:0 0 9px 0; font-weight:700; letter-spacing:-0.015em; max-width:18ch;}
+  .hero p.lede{font-size:14.5px; color:var(--ink-soft); max-width:56ch; margin:0;}
+
+
+  /* ---------- Tile rows ----------
+     Row one (context) and row two (metrics) share one tile component so the
+     head of the page reads as a single grid. Row one runs deeper in tone than
+     row two, which gives the hierarchy without introducing another shape. */
+  .tilerow{
+    display:grid; grid-template-columns:repeat(12,minmax(0,1fr));
+    gap:10px; margin-top:14px;
+  }
+  @media (max-width:1100px){ .tilerow{grid-template-columns:repeat(6,minmax(0,1fr));} }
+  @media (max-width:640px){ .tilerow{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  /* Four-tile pages (export, EUDR) spread across the same twelve columns. */
+  .tilerow-4 .tile{grid-column:span 3;}
+  @media (max-width:1100px){ .tilerow-4 .tile{grid-column:span 3;} }
+  @media (max-width:640px){ .tilerow-4 .tile{grid-column:span 2;} }
+  .tile{
+    grid-column:span 2; min-width:0;
+    padding:13px 15px 13px; border-radius:var(--radius-lg);
+    background:var(--tile-roast); color:#fff;
+    box-shadow:0 1px 2px rgba(42,26,16,.10), 0 8px 18px -14px rgba(42,26,16,.55);
+    display:flex; flex-direction:column; justify-content:flex-start;
+  }
+  /* Row one is the network: who and what Ndugu is. It runs dark to light left
+     to right in the roast family, so the reading order is carried by tone as
+     well as position. Row two below does the same in teal. Every step is set
+     against a 4.5:1 contrast floor for white text, and the two rows share
+     their endpoints with the export dashboard so the pages read as one set. */
+  .tile-lead{background:linear-gradient(135deg,#663A18 0%,#4A2A11 100%);} /* 9.6:1 */
+  .tile-a{background:linear-gradient(135deg,#72401B 0%,#522E13 100%);}    /* 8.5:1 */
+  .tile-b{background:linear-gradient(135deg,#7E481E 0%,#5B3415 100%);}    /* 7.4:1 */
+  .tile-c{background:linear-gradient(135deg,#8C4F21 0%,#653918 100%);}    /* 6.5:1 */
+  .tile-d{background:linear-gradient(135deg,#9B5824 0%,#703F1A 100%);}    /* 5.5:1 */
+  .tile-e{background:linear-gradient(135deg,#AA6128 0%,#7B461D 100%);}    /* 4.7:1 */
+  .tile{position:relative;}
+  /* Top-right, low opacity: it should read as texture on the tile, not as a
+     second thing to look at. aria-hidden, because the label already says what
+     the tile is and a screen reader repeating it adds nothing. */
+  .tile-icon{
+    position:absolute; top:12px; right:13px; width:18px; height:18px;
+    color:#fff; opacity:.45; pointer-events:none;
+  }
+  .kpi-cell{position:relative;}
+  .kpi-cell .tile-icon{top:9px; right:10px; width:20px; height:20px; opacity:.28;}
+  .tile-label, .kpi-label{padding-right:26px; min-height:1.5em;}
+  .tile-label{
+    font-size:12px; font-weight:500; margin:0 0 6px 0;
+    color:rgba(255,255,255,.82); line-height:1.35;
+  }
+  .tile-value{
+    font-size:23px; font-weight:700; color:#fff; line-height:1.12;
+    font-variant-numeric:tabular-nums; overflow-wrap:break-word;
+  }
+  .tile-lead .tile-value{font-size:26px;}
+  .tile-value-sm{font-size:15px; line-height:1.3;}
+  .tile-foot{font-size:12.5px; color:rgba(255,255,255,.72); margin-top:5px; font-weight:400;}
+
+  /* ---------- KPI tiles ----------
+     Six saturated tiles rather than one bordered ledger strip. Each is its own
+     card so the row reads at a glance from across a room, which is what a
+     dashboard's headline numbers are for. Padding is deliberately tight: the
+     whole point of the change was to get more of the page above the fold. */
+  .kpi-strip{
+    margin-top:10px;
+    display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:10px;
+  }
+  @media (max-width:1100px){ .kpi-strip{grid-template-columns:repeat(3,minmax(0,1fr));} }
+  @media (max-width:560px){ .kpi-strip{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  .kpi-cell{
+    padding:13px 15px 13px; border-radius:var(--radius-lg);
+    background:var(--tile-roast); color:#fff; min-width:0;
+    box-shadow:0 1px 2px rgba(42,26,16,.10), 0 8px 18px -14px rgba(42,26,16,.55);
+  }
+  /* Row two is performance: what the network produced and what it was paid.
+     Same dark-to-light progression as row one, in the second family. */
+  .kpi-cell:nth-child(6n+1){background:linear-gradient(135deg,#0D4D45 0%,#093832 100%);} /* 9.7:1 */
+  .kpi-cell:nth-child(6n+2){background:linear-gradient(135deg,#0E564D 0%,#0A3E37 100%);} /* 8.5:1 */
+  .kpi-cell:nth-child(6n+3){background:linear-gradient(135deg,#106056 0%,#0B453E 100%);} /* 7.4:1 */
+  .kpi-cell:nth-child(6n+4){background:linear-gradient(135deg,#116A5F 0%,#0C4D44 100%);} /* 6.5:1 */
+  .kpi-cell:nth-child(6n+5){background:linear-gradient(135deg,#137568 0%,#0E554B 100%);} /* 5.6:1 */
+  .kpi-cell:nth-child(6n+6){background:linear-gradient(135deg,#158173 0%,#0F5D53 100%);} /* 4.8:1 */
+  .kpi-label{
+    font-size:11.5px; font-weight:500; margin:0 0 3px 0;
+    color:rgba(255,255,255,.88); letter-spacing:.01em;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .kpi-value{
+    font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-size:23px; font-weight:700; color:#fff;
+    line-height:1.12; overflow-wrap:break-word;
+  }
+  @media (max-width:560px){ .kpi-value{font-size:19px;} }
+  .kpi-value small{font-size:12px; font-weight:500; color:rgba(255,255,255,.75);}
+  /* On a coloured tile the up/down hues from the light theme have no contrast,
+     so the delta rides on the tile's own white at reduced opacity and the
+     arrow glyph carries the direction. */
+  .kpi-delta{
+    font-size:11.5px; margin-top:4px; display:flex; align-items:center; gap:4px;
+    color:rgba(255,255,255,.82);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .kpi-delta.up, .kpi-delta.down, .kpi-delta.flat{color:rgba(255,255,255,.82);}
+
+  /* ---------- KPI grid (twelve tiles, one story) ----------
+     Replaces the old two-row split with a single 4-column, 3-row grid: who
+     the network is (row 1) and how the season is moving (row 2) both run in
+     the teal/green family, so scale and activity read as one continuous
+     block; the closing row (org structure and credentials) switches to the
+     roast/brown family as a deliberate change of register. Each row still
+     lightens left to right within its family. */
+  .kpigrid{
+    display:grid; grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:10px; margin-top:14px;
+  }
+  @media (max-width:900px){ .kpigrid{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  @media (max-width:480px){ .kpigrid{grid-template-columns:1fr;} }
+  .kpigrid .tile{grid-column:span 1;}
+  /* Every stop below is one already validated elsewhere in this file (the
+     kpi-cell teal ramp and the tile-a..e roast ramp) — reused rather than
+     picked fresh, so the 4.5:1 white-text floor and the deuteranopia-safe
+     green stay intact without re-checking new hex. */
+  .kt1{background:linear-gradient(135deg,#0D4D45 0%,#093832 100%);} /* 9.7:1 */
+  .kt2{background:linear-gradient(135deg,#0E564D 0%,#0A3E37 100%);} /* 8.5:1 */
+  .kt3{background:linear-gradient(135deg,#106056 0%,#0B453E 100%);} /* 7.4:1 */
+  .kt4{background:linear-gradient(135deg,#116A5F 0%,#0C4D44 100%);} /* 6.5:1 */
+  .kt5{background:linear-gradient(135deg,#0E564D 0%,#0A3E37 100%);} /* 8.5:1 */
+  .kt6{background:linear-gradient(135deg,#106056 0%,#0B453E 100%);} /* 7.4:1 */
+  .kt7{background:linear-gradient(135deg,#116A5F 0%,#0C4D44 100%);} /* 6.5:1 */
+  .kt8{background:linear-gradient(135deg,#137568 0%,#0E554B 100%);} /* 5.6:1 */
+  .kt9{background:linear-gradient(135deg,#72401B 0%,#522E13 100%);} /* 8.5:1 */
+  .kt10{background:linear-gradient(135deg,#7E481E 0%,#5B3415 100%);} /* 7.4:1 */
+  .kt11{background:linear-gradient(135deg,#8C4F21 0%,#653918 100%);} /* 6.5:1 */
+  .kt12{background:linear-gradient(135deg,#9B5824 0%,#703F1A 100%);} /* 5.5:1 */
+
+  /* ---------- Generic panel ---------- */
+  .panel{
+    border:1px solid var(--line-strong); border-radius:var(--radius-md);
+    background:var(--surface); padding:14px; box-shadow:var(--shadow-panel);
+    display:flex; flex-direction:column; min-width:0;
+  }
+  .panel-title{font-size:14.5px; font-weight:600; margin:0 0 4px 0; min-height:1.4em;}
+  .panel-note{font-size:12.5px; color:var(--ink-faint); margin:0 0 8px 0; min-height:1.5em;}
+
+  /* ---------- Map section ---------- */
+  /* The map used to be the one section on the page with no card chrome —
+     every other panel, including the district ledger it sits beside, has a
+     border, a surface fill and a shadow. Giving it the same .panel treatment
+     plus its own title/note (matching the ledger's head) is what makes the
+     row read as two matching cards instead of a list beside a bare drawing. */
+  .map-panel{
+    position:relative; display:flex; flex-direction:column; min-width:0;
+    border:1px solid var(--line-strong); border-radius:var(--radius-md);
+    background:var(--surface); padding:14px; box-shadow:var(--shadow-panel);
+  }
+  /* A fixed height used to letterbox the map: at 420px tall the viewBox (a
+     near-square 900x943, 2.1deg lon by 2.2deg lat) only draws about 400px
+     wide, leaving 70-80px of bare parchment on each side of a col-6 track —
+     visible dead space rather than map. aspect-ratio matches the box to the
+     viewBox exactly instead, so the drawing fills the full column width with
+     nothing left over, and the column stays col-6, the same width as the
+     ledger beside it. The row is taller for it (roughly 600px on a typical
+     desktop width rather than 420), so the ledger's list below is no longer
+     capped to an old fixed height — .grid's align-items:stretch makes it
+     match the map, whichever is taller, same as it did before either panel
+     had an explicit height. Narrow viewports stack the two panels instead of
+     sitting them side by side, so nothing there needs to match a neighbour's
+     width; the map reverts to a plain fixed height there. */
+  .map-svg-wrap{
+    position:relative; width:100%; aspect-ratio:900/943;
+    border-radius:var(--radius-sm); overflow:hidden;
+    background:linear-gradient(180deg,var(--surface) 0%,var(--surface-sunk) 100%);
+    border:1px solid var(--line);
+  }
+  @media (max-width:980px){ .map-svg-wrap{aspect-ratio:auto; height:340px;} }
+  .map-svg-wrap svg{width:100%; height:100%; display:block;}
+  .map-tooltip{
+    position:absolute; pointer-events:none; z-index:10;
+    background:var(--ink); color:#fff; padding:9px 12px; border-radius:var(--radius-sm);
+    font-size:12.5px; line-height:1.45; box-shadow:var(--shadow-pop);
+    transform:translate(-50%,-115%); white-space:nowrap; opacity:0; transition:opacity .1s ease;
+  }
+  .map-tooltip strong{font-weight:600;}
+  .map-tooltip .num{color:#EBD6BC;}
+  .map-legend{display:flex; gap:18px; margin-top:10px; flex-wrap:wrap; font-size:12px; color:var(--ink-soft);}
+  .map-legend .item{display:flex; align-items:center; gap:6px;}
+  .map-legend .sw{width:11px; height:11px; border-radius:50%; flex:none;}
+
+  .district-ledger{
+    border:1px solid var(--line-strong); border-radius:var(--radius-md); background:var(--surface);
+    overflow:hidden; box-shadow:var(--shadow-panel); display:flex; flex-direction:column;
+    /* min-height:0 lets the list inside scroll instead of pushing this panel
+       taller than the map it sits beside; the two then end level. */
+    min-height:0;
+  }
+  /* flex-basis:0, not auto: the list's own row count must not feed into the
+     grid row's auto height, or an eleven-row list (taller than any map worth
+     drawing) would pull the map-panel card down to match it, leaving empty
+     space below the map instead of beside it. With a zero basis the ledger's
+     only contribution to that calculation is its header, so the map (sized
+     by aspect-ratio) is reliably what sets the row height, and this list
+     just grows to fill and scrolls within whatever that turns out to be —
+     the same relationship as before, just with the two panels' roles
+     swapped. Below 980px the two panels stack instead of sitting side by
+     side, so nothing here needs to match a neighbour's height; capped back
+     to a fixed scroll height there so one district-heavy list can't push the
+     page to an awkward length. */
+  #districtList{flex:1 1 0; overflow-y:auto; min-height:0;}
+  @media (max-width:980px){ #districtList{max-height:382px;} }
+  .district-ledger-head{padding:14px 16px 10px; border-bottom:1px solid var(--line);}
+  .district-row{
+    display:grid; grid-template-columns:1fr auto auto; gap:12px; align-items:center;
+    padding:6px 16px; border-bottom:1px solid var(--line); cursor:pointer;
+    transition:background .12s ease;
+  }
+  .district-row:last-child{border-bottom:none;}
+  .district-row:nth-child(even){background:var(--surface-sunk);}
+  .district-row:hover{background:var(--roast-wash);}
+  .district-row.selected{background:var(--roast-wash); box-shadow:inset 3px 0 0 var(--roast);}
+  .district-row .name{font-size:13.5px; font-weight:500; line-height:1.35;}
+  .district-row .sub{font-size:11.5px; color:var(--ink-faint); margin-top:1px; line-height:1.35;}
+  .district-row .bar-track{width:64px; height:5px; background:var(--surface-sunk); border-radius:3px; overflow:hidden; justify-self:end;}
+  .district-row .bar-fill{height:100%; background:linear-gradient(90deg,var(--roast) 0%,var(--roast-light) 100%);}
+  .district-row .qty{font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-size:13px; text-align:right; min-width:64px;}
+  .district-detail{padding:12px 16px; border-top:1px solid var(--line); background:var(--surface-sunk); font-size:12.5px; color:var(--ink-soft);}
+  .district-detail b{color:var(--ink); font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-weight:600;}
+
+  /* ---------- Chart toggle ---------- */
+  .toggle-row{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:14px;}
+  .seg{display:inline-flex; border:1px solid var(--line-strong); border-radius:var(--radius-sm); overflow:hidden;}
+  .seg button{
+    border:none; background:var(--surface); padding:8px 16px; font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+    font-size:13px; font-weight:500; color:var(--ink-soft); cursor:pointer; border-right:1px solid var(--line-strong);
+  }
+  .seg button:last-child{border-right:none;}
+  .seg button.active{background:var(--roast); color:#fff;}
+  /* flex-basis 0 keeps the canvas from feeding its own height back into the row */
+  .chart-box{position:relative; flex:1 1 0%; min-height:225px;}
+  .chart-box.short{min-height:180px;}
+  .chart-box canvas{position:absolute; left:0; top:0;}
+  .insight-line{
+    margin-top:9px; padding:8px 12px; background:var(--honey-wash); border-radius:var(--radius-sm);
+    font-size:13px; color:#5C3A15; border-left:3px solid var(--honey);
+  }
+  .insight-line b{font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-weight:600;}
+
+  /* ---------- 12-column layout grid ----------
+     Every row on the page sits on the same twelve columns with the same 24px
+     gutter, so panel edges line up vertically all the way down. Two-panel rows
+     split 6/6 (map, chart pairs); everything else spans 12.
+     minmax(0,1fr) stops a responsive canvas from forcing its column wider. */
+  .grid{
+    display:grid; grid-template-columns:repeat(12,minmax(0,1fr));
+    gap:14px; align-items:stretch;
+  }
+  .col-4{grid-column:span 4;}
+  .col-5{grid-column:span 5;}
+  .col-6{grid-column:span 6;}
+  .col-7{grid-column:span 7;}
+  .col-8{grid-column:span 8;}
+  .col-12{grid-column:span 12;}
+  /* A grid item defaults to min-width:auto, which is its CONTENT width, so a
+     wide table or a fixed-width canvas inside one pushes the whole page wider
+     than the viewport instead of scrolling within its own panel. */
+  .grid > [class*="col-"]{min-width:0;}
+  @media (max-width:980px){ .grid > [class*="col-"]{grid-column:1 / -1;} }
+
+  table.leaderboard{
+    width:100%; border-collapse:separate; border-spacing:0; font-size:13.5px;
+    table-layout:fixed; border:1px solid var(--line-strong);
+    border-radius:var(--radius-sm); overflow:hidden;
+  }
+  table.leaderboard th{
+    text-align:left; font-size:11px; font-weight:600; color:#F0DFC7;
+    background:var(--roast-deep);
+    padding:9px 14px; text-transform:uppercase; letter-spacing:0.07em; white-space:nowrap;
+  }
+  table.leaderboard td{
+    padding:8px 14px; border-bottom:1px solid var(--line);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  /* Alternating rows. The stripe is the palette's own parchment rather than a
+     grey, so it reads as part of the theme instead of a browser default. */
+  table.leaderboard tbody tr:nth-child(odd){background:var(--surface);}
+  table.leaderboard tbody tr:nth-child(even){background:var(--surface-sunk);}
+  table.leaderboard tbody tr:last-child td{border-bottom:none;}
+  table.leaderboard tbody tr:hover{background:var(--roast-wash);}
+  table.leaderboard td.num, table.leaderboard th.num{text-align:right; font-variant-numeric:tabular-nums;}
+  table.leaderboard td.name{font-weight:500;}
+  /* A code is an identifier, not a quantity, so it stays left-aligned under a
+     left-aligned header. It keeps tabular figures so the codes stack evenly. */
+  table.leaderboard td.code{
+    text-align:left; font-variant-numeric:tabular-nums; letter-spacing:.01em;
+  }
+  /* A rule down the left of the first data column, so the eye has a rail to
+     follow across a wide row. */
+  table.leaderboard td.rank{
+    color:var(--ink-faint); font-variant-numeric:tabular-nums;
+    box-shadow:inset 3px 0 0 var(--roast-wash);
+  }
+  table.leaderboard tbody tr:hover td.rank{box-shadow:inset 3px 0 0 var(--roast);}
+  /* Unconditional rather than only under 820px: the table has a 660px floor,
+     so any container narrower than that has to scroll it, and min-width:0 lets
+     the container shrink far enough for that to happen. */
+  .leaderboard-scroll{overflow-x:auto; min-width:0;}
+  @media (max-width:820px){ table.leaderboard{min-width:660px;} }
+
+  /* ---------- Footer ---------- */
+  footer{
+    margin-top:22px; padding:24px 0 30px; font-size:12.5px; line-height:1.7;
+    background:var(--roast-deep); color:#BFA98F;
+    border-top:4px solid var(--roast);
+  }
+  footer .fgrid{display:grid; grid-template-columns:1fr; gap:40px;}
+  footer h4{font-size:12.5px; color:#F0DFC7; font-weight:600; margin:0 0 8px 0; letter-spacing:0.02em;}
+
+  .vis-hidden{display:none !important;}
+
+  /* ---------- boot states (before data.json arrives) ---------- */
+  .boot{
+    max-width:640px; margin:0 auto; padding:96px 24px 120px; text-align:center;
+  }
+  .boot-spinner{
+    width:26px; height:26px; margin:0 auto 18px; border-radius:50%;
+    border:2.5px solid var(--line-strong); border-top-color:var(--roast);
+    animation:boot-spin .8s linear infinite;
+  }
+  @keyframes boot-spin{to{transform:rotate(360deg);}}
+  @media (prefers-reduced-motion:reduce){ .boot-spinner{animation-duration:2.4s;} }
+  .boot p{margin:0; color:var(--ink-soft); font-size:14px;}
+  .boot-title{font-size:16px; font-weight:600; color:var(--ink); margin:0 0 10px 0;}
+  .boot-detail{
+    font-size:13.5px; color:var(--ink-soft); line-height:1.6;
+    background:var(--surface); border:1px solid var(--line-strong);
+    border-left:3px solid var(--cherry); border-radius:var(--radius-sm);
+    padding:14px 16px; text-align:left; margin-top:16px;
+  }
+
+  .signin{display:inline-flex; align-items:center; padding:7px 16px; border-radius:999px; background:var(--roast); color:#fff; font-weight:600; font-size:13.5px; text-decoration:none; white-space:nowrap;}
+  .signin:hover{background:var(--roast-deep);} .signin:focus-visible{outline:3px solid var(--roast); outline-offset:3px;}
+  .asof{color:var(--ink-faint); font-size:13px;}
+  /* The UGX / USD pills show one currency at a time. */
+  body:not(.usd) .cur-usd, body.usd .cur-ugx{display:none;}
+  .psec{scroll-margin-top:90px;}
+  @media (max-width:480px){ .kpigrid{grid-template-columns:repeat(2,minmax(0,1fr));} .kpigrid .tile-value{font-size:18px;} }
+  .scgrid{display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:14px 18px;}
+  @media (max-width:1100px){ .scgrid{grid-template-columns:repeat(3,minmax(0,1fr));} }
+  @media (max-width:560px){ .scgrid{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  .sch{display:flex; flex-direction:column; gap:4px; font-size:12.5px; color:var(--ink-soft); min-height:3.6em;}
+  .scv b{font-size:21px; color:var(--ink);} .sct{font-size:12px; color:var(--ink-faint);}
+  .sbar{display:block; height:6px; margin-top:6px; background:var(--line); border-radius:3px; overflow:hidden;}
+  .sbar i{display:block; height:100%; background:var(--roast); border-radius:3px;}
+  .chip{align-self:flex-start; font-size:11px; font-weight:600; padding:1px 8px; border-radius:999px; white-space:nowrap;}
+  .chip.ok{background:var(--roast-wash); color:var(--roast);} .chip.go{background:var(--surface-sunk); color:var(--ink-soft); border:1px solid var(--line);}
+  .pend{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-top:12px;}
+  .pendh{font-size:12px; font-weight:600; color:var(--ink-faint); margin-right:4px;}
+  .pchip{font-size:11.5px; padding:2px 9px; border:1px dashed var(--line-strong); border-radius:999px; color:var(--ink-soft); background:var(--surface);}
+  .chart-box.tall{min-height:300px;}
+  .foot-note{font-size:12px; color:var(--ink-faint); margin:22px 0 6px; line-height:1.6;}
+  .foot-note a{color:var(--ink-soft);}
+  .about-foot{background:var(--roast-deep); color:#CFE3D8; padding:18px 0; margin-top:8px; font-size:12.5px; text-align:center;}
+</style>
+
+<style id="ndugu-green-theme-overrides">
+  :root{color-scheme:light;}
+  .sidenav{background:var(--nav-bg)!important;border-color:var(--nav-edge)!important}
+  .sidenav-title{color:var(--nav-title)!important}
+  .navbtn{background:var(--nav-btn)!important;color:#fff!important;border-color:rgba(255,255,255,.12)!important}
+  .navbtn:hover{background:var(--nav-btn-hover)!important}
+  .navbtn[aria-current="page"]{background:var(--nav-btn-current)!important;color:var(--nav-btn-current-ink)!important;border-color:transparent!important}
+  ::selection{background:#0E564C;color:#fff}
+</style>
+<script src="ndugu-preferences.js"></script>
+<link rel="stylesheet" href="ndugu-brand.css">
+</head>
+<body>
+
+<div class="layout">
+<div class="layout-main">
+<header class="topbar">
+  <div class="shell topbar-inner">
+    <div class="brand"><svg class="brand-mark" viewBox="0 0 1080 283.07" xmlns="http://www.w3.org/2000/svg"><style>.cls-1{fill:#0E564C;}</style><path class="cls-1" d="M469.14,81.5c41.67,0,59.71,16.51,59.71,54.37v74.95H495.56V136.89c0-18.81-7.62-27.19-26.42-27.19-19.06,0-26.94,8.38-26.94,27.19v73.93h-33V135.87C409.17,98,426.7,81.5,469.14,81.5Z"></path><path class="cls-1" d="M593.37,81.5c20.32,0,30,6.6,37.6,13.46h1.78V28.46h33V148.83c0,44.21-20.58,64.28-63.52,64.28S538,193,538,148.83v-3.05C538,100.3,556.78,81.5,593.37,81.5Zm8.89,103.41c21.85,0,30.49-9.91,30.49-37.1v-1c0-27.18-8.64-37.09-30.49-37.09s-31,9.91-31,37.09v1C571.26,175,580.41,184.91,602.26,184.91Z"></path><path class="cls-1" d="M872.33,81.5c42.94,0,63.52,20.83,63.52,65.29V203c0,41.92-16.51,60-65.3,60a216.77,216.77,0,0,1-39.89-3.81V232.42a251.24,251.24,0,0,0,36.84,3.3c26.93,0,35.32-8.38,35.32-26.17v-9.91H901c-7.62,6.86-17.28,13.47-37.6,13.47-36.59,0-55.39-18.8-55.39-64.28v-3.05C808.05,101.57,829.39,81.5,872.33,81.5Zm0,103.41c21.85,0,30.49-9.91,30.49-37.1v-1c0-27.18-8.64-37.09-30.49-37.09s-31,9.91-31,37.09v1C841.33,175,850.48,184.91,872.33,184.91Z"></path><path class="cls-1" d="M948,80.84h33v76.88c0,18.8,7.88,27.19,26.94,27.19,18.8,0,26.42-8.39,26.42-27.19V80.84h33.29v77.9c0,37.85-18,54.37-59.71,54.37-42.44,0-60-16.52-60-54.37Z"></path><path class="cls-1" d="M799.15,80.85v77.9c0,37.85-18,54.36-59.7,54.36-42.42,0-60-16.51-60-54.36V80.85h42.64c-2.25,3.84-4.59,11-7,15.49-.92,1.93-1.78,3.86-2.55,5.77C701,130,702.28,156.31,716,174.48c0,.05,0,.07,0,.1A17.61,17.61,0,0,0,721,180.2a58.17,58.17,0,0,0,15.73,11,72,72,0,0,0,9.46,3.76,38.85,38.85,0,0,1-1.71-3.76,34.06,34.06,0,0,1-1.9-6.37c-4.07-19.62,8.9-37.66,15.57-56.5,2.36-6.62,5.87-14.37,7.78-25.68a142.1,142.1,0,0,0,1.36-19.93c0-.65,0-1.28,0-1.88Z"></path><path class="cls-1" d="M727.74,164.64c-.71-.78-8.53-11.11,9-59.73,1.05-2.93,1.9-5.66,2.63-8.32a48.22,48.22,0,0,0,7.18-1.21,121.65,121.65,0,0,1-4.47,11.82C724.22,147.81,727.46,163.44,727.74,164.64Z"></path><path class="cls-1" d="M240.49,8.16c23.92,0,77.27,38.63,98.88,117.28,18.77,68.29-39.55,149.46-67.6,149.46-58.41,0-45.53-94.28-43.23-104.85C251.07,79.45,214.74,8.16,240.49,8.16Z"></path><path class="cls-1" d="M211,274.9c-23.92,0-77.27-35.1-98.88-106.55-18.77-62.06,39.55-135.81,67.6-135.81,58.41,0,45.53,85.66,43.23,95.27C200.41,210.13,236.74,274.9,211,274.9Z"></path><path class="cls-1" d="M26.3,232.09a1.23,1.23,0,0,1,.21,1.67c-2.34,3.26-4.74,6.56-7.06,9.66-2.53,3.4-4.81,11.58-3.74,15.5s13.52,6.38,14.86,5.51,6.18-12.52,9.21-18.78c5.6-11.56,10.67-23.4,16.91-34.59,3.93-7.06,9.14-13.4,14.22-20.32a1.26,1.26,0,0,0-1.2-2c-12,1.85-20.42,10.16-28.44,18.17-.42.51-1.11.14-1-.28,7.62-14.37,20.45-20.79,35.69-22.2,12.23-1.13,20.52,5.89,26.66,16a1.19,1.19,0,0,1,.15.35A87.14,87.14,0,0,1,105,211.9c1.6,8.2,1,16.38-3.08,23.78C88.2,260.16,66.79,273,39.23,274.86c-6,.42-12.9-2.41-18.38-5.52a17.38,17.38,0,0,1-6.48-23.26c2.67-5,6.53-9.34,10-13.91a1.24,1.24,0,0,1,1.81-.2Zm34.57,24.78C75,245,81.15,230.78,90.41,217.9c5.1-7.09,3.94-20.8,1.35-24.06-2.36-3-5.24-3.55-8.43-4.55a1.24,1.24,0,0,0-1.49.58c-3.94,7.42-8.61,18.78-12.33,21.86-3.88,3.21-10.55,14.84-15.05,22.86-4.67,8.31-21.06,26.12-19.63,32.62S59.72,257.83,60.87,256.87Z"></path></svg><div class="brand-text"><div class="role" data-i18n="brandRole">Ndugu in numbers</div></div></div>
+    <div class="filterbar"><div class="pillgroup" id="langPills">
+      <button class="pill active" data-lang="en">EN</button><button class="pill" data-lang="nl">NL</button>
+    </div><div class="pillgroup" id="currencyPills">
+      <button class="pill active" data-currency="UGX">UGX</button><button class="pill" data-currency="USD">USD</button>
+    </div><a class="signin" href="portal.html" data-i18n="signIn">Sign in</a></div>
+  </div>
+</header>
+<main class="shell">
+
+  <section class="hero">
+    <div class="hero-head">
+      <p class="hero-eyebrow" data-i18n="eyebrow">People · Planet · Profit</p>
+      <h1 data-i18n="h1">Ndugu in the coffee sector</h1>
+      <p class="lede"><span data-i18n="lede">Traceable smallholder robusta from Uganda's Greater Masaka region.</span> <span class="asof"><span data-i18n="asOf">Figures to</span> 2026-08-25.</span></p>
+    </div>
+    <div class="kpigrid"><div class="tile kt1"><svg class="tile-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/></svg><p class="tile-label" data-i18n="tRegistered">Farmers registered</p><div class="tile-value num">11,375</div></div><div class="tile kt2"><svg class="tile-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/></svg><p class="tile-label" data-i18n="tActive">Farmers who sold to us</p><div class="tile-value num">4,536</div></div><div class="tile kt3"><svg class="tile-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="12" rx="6.5" ry="9" transform="rotate(-35 12 12)"/><path d="M8 16c2.5-2.6 5.5-5.6 8-8"/></svg><p class="tile-label" data-i18n="tTonnes">Coffee bought</p><div class="tile-value num">8,361 t</div><div class="tile-foot num"><span data-i18n="tSince">since</span> 2024</div></div><div class="tile kt4"><svg class="tile-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.8"/><path d="M6 9.5v5M18 9.5v5"/></svg><p class="tile-label" data-i18n="tPaid">Paid to farmers</p><div class="tile-value num"><span class="cur-ugx">UGX 113 bn</span><span class="cur-usd">USD 31 M</span></div><div class="tile-foot num"><span class="cur-ugx">≈ USD 31 M</span><span class="cur-usd">≈ UGX 113 bn</span></div></div><div class="tile kt5"><svg class="tile-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/></svg><p class="tile-label" data-i18n="tWomen">Women farmers</p><div class="tile-value num">33%</div><div class="tile-foot num"><span data-i18n="targetC">Target</span> 40%</div></div><div class="tile kt6"><svg class="tile-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/></svg><p class="tile-label" data-i18n="tYouth">Youth (18–35)</p><div class="tile-value num">14%</div><div class="tile-foot num"><span data-i18n="targetC">Target</span> 20%</div></div><div class="tile kt7"><svg class="tile-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8.5" r="3"/><path d="M3 19c0-3.1 2.7-5.2 6-5.2s6 2.1 6 5.2"/><path d="M16 6.4a3 3 0 0 1 0 5.7"/><path d="M17.5 13.9c2.1.5 3.5 2.2 3.5 4.4"/></svg><p class="tile-label" data-i18n="tCoops">Cooperatives</p><div class="tile-value num">30</div></div><div class="tile kt8"><svg class="tile-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s6.5-6.2 6.5-11a6.5 6.5 0 1 0-13 0C5.5 14.8 12 21 12 21Z"/><circle cx="12" cy="10" r="2.4"/></svg><p class="tile-label" data-i18n="tDistricts">Districts</p><div class="tile-value num">10</div></div><div class="tile kt9"><svg class="tile-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4C10 4 4 9 4 15.5A4.5 4.5 0 0 0 8.5 20C15 20 20 14 20 4Z"/><path d="M15 9C10.5 11 8 14.5 7 19"/></svg><p class="tile-label" data-i18n="tEudr">EUDR-ready volume</p><div class="tile-value num">97%</div></div><div class="tile kt10"><svg class="tile-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5 10 4l4.5 2.5L20 4.4v13.2L14.5 20 10 17.5 4 20Z"/><path d="M10 4v13.5M14.5 6.5V20"/></svg><p class="tile-label" data-i18n="tPlots">Plots mapped</p><div class="tile-value num">11,594</div><div class="tile-foot num">97% <span data-i18n="tClear">deforestation-free</span></div></div><div class="tile kt11"><svg class="tile-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9.5" r="5.5"/><path d="M9 14.5 7.5 21l4.5-2.4 4.5 2.4L15 14.5"/></svg><p class="tile-label" data-i18n="tCert">Certified farmers</p><div class="tile-value num">89%</div><div class="tile-foot num"><span data-i18n="tInspected">of inspected</span></div></div><div class="tile kt12"><svg class="tile-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.2 12 4l9 4.2v7.6L12 20l-9-4.2Z"/><path d="M3 8.2 12 12.4l9-4.2M12 12.4V20"/></svg><p class="tile-label" data-i18n="tShare">Share of Uganda's exports</p><div class="tile-value num">≈ 1.0%</div><div class="tile-foot num">2024 <span data-i18n="tSeason">season</span></div></div></div>
+  </section>
+
+  <section id="targets" class="psec"><div class="section-head"><div><h2 data-i18n="hTargets">2028 targets</h2></div><div class="section-tag"><span data-i18n="tagTargets">Ndugu results framework 2023–2028</span></div></div>
+    <div class="panel"><div class="scgrid"><div class="sc"><div class="sch"><span data-i18n="scFarmers">Farmers registered</span><span class="chip go">57% <span data-i18n="ofTarget">of target</span></span></div><div class="scv"><b class="num">11,375</b> <span class="sct">/ 20,000</span></div><div class="sbar"><i style="width:56.9%"></i></div></div><div class="sc"><div class="sch"><span data-i18n="scWomen">Women farmers</span><span class="chip go">82% <span data-i18n="ofTarget">of target</span></span></div><div class="scv"><b class="num">33%</b> <span class="sct">/ 40%</span></div><div class="sbar"><i style="width:82.3%"></i></div></div><div class="sc"><div class="sch"><span data-i18n="scYouth">Youth farmers</span><span class="chip go">71% <span data-i18n="ofTarget">of target</span></span></div><div class="scv"><b class="num">14%</b> <span class="sct">/ 20%</span></div><div class="sbar"><i style="width:71.4%"></i></div></div><div class="sc"><div class="sch"><span data-i18n="scCert">Certified and traceable</span><span class="chip ok">✓ <span data-i18n="met">Met</span></span></div><div class="scv"><b class="num">89%</b> <span class="sct">/ 80%</span></div><div class="sbar"><i style="width:100.0%"></i></div></div><div class="sc"><div class="sch"><span data-i18n="scDigital">Cooperatives on digital records</span><span class="chip ok">✓ <span data-i18n="met">Met</span></span></div><div class="scv"><b class="num">30</b> <span class="sct">/ 20</span></div><div class="sbar"><i style="width:100.0%"></i></div></div><div class="sc"><div class="sch"><span data-i18n="scEudr">EUDR-ready volume</span><span class="chip go">97% <span data-i18n="ofTarget">of target</span></span></div><div class="scv"><b class="num">97%</b> <span class="sct">/ 100%</span></div><div class="sbar"><i style="width:96.8%"></i></div></div></div></div>
+  </section>
+
+  <section id="people" class="psec"><div class="section-head"><div><h2 data-i18n="hPeople">People</h2></div><div class="section-tag"><span data-i18n="tagPeople">Inclusion of women and youth, smallholder reach</span></div></div>
+    <div class="grid">
+      <div class="panel col-6"><div class="panel-title" data-i18n="cGender">Women: registered vs coffee sold</div><div class="panel-note"><span data-i18n="nReg">Farmer register</span></div><div class="chart-box short"><canvas id="cGender" role="img" aria-label="Women: registered vs coffee sold"></canvas></div></div>
+      <div class="panel col-6"><div class="panel-title" data-i18n="cAge">Age group: registered vs coffee sold</div><div class="panel-note"><span data-i18n="nReg">Farmer register</span></div><div class="chart-box short"><canvas id="cAge" role="img" aria-label="Age group: registered vs coffee sold"></canvas></div></div>
+      <div class="panel col-6"><div class="panel-title" data-i18n="cSize">Farm size</div><div class="panel-note"><span data-i18n="nReg">Farmer register</span> · <span data-i18n="nFarmers">farmers</span></div><div class="chart-box short"><canvas id="cSize" role="img" aria-label="Farm size"></canvas></div></div>
+      <div class="panel col-6"><div class="panel-title" data-i18n="cOwn">Who owns the coffee farm</div><div class="panel-note"><span data-i18n="nSurvey">Survey,</span> 1,560 <span data-i18n="nFarmers25">farmers, 2025</span></div><div class="chart-box short"><canvas id="cOwn" role="img" aria-label="Who owns the coffee farm"></canvas></div></div>
+    </div>
+    <div class="pend"><span class="pendh" data-i18n="pendH">Being measured</span><span class="pchip" data-i18n="pend_i3a">Health care access</span><span class="pchip" data-i18n="pend_i3b">Children in school</span><span class="pchip" data-i18n="pend_i3c">Zero child labour</span><span class="pchip" data-i18n="pend_i3d">Women control earnings</span><span class="pchip" data-i18n="pend_i3e">Youth control earnings</span><span class="pchip" data-i18n="pend_o3">Social committees</span><span class="pchip" data-i18n="pend_p34">Youth jobs</span></div>
+  </section>
+
+  <section id="planet" class="psec"><div class="section-head"><div><h2 data-i18n="hPlanet">Planet</h2></div><div class="section-tag"><span data-i18n="tagPlanet">EU deforestation regulation, certification, trees</span></div></div>
+    <div class="grid">
+      <div class="panel col-6"><div class="panel-title" data-i18n="cEudr">EUDR readiness</div><div class="panel-note"><span data-i18n="nEudr">Share of coffee volume bought</span></div><div class="chart-box short"><canvas id="cEudr" role="img" aria-label="EUDR readiness"></canvas></div></div>
+      <div class="panel col-6"><div class="panel-title" data-i18n="cScreen">Satellite screening of mapped plots</div><div class="panel-note"><span data-i18n="nScreen">Forest 2020 (JRC) and tree-cover loss since (Hansen)</span></div><div class="chart-box short"><canvas id="cScreen" role="img" aria-label="Satellite screening of mapped plots"></canvas></div></div>
+      <div class="panel col-6"><div class="panel-title" data-i18n="cCert">Certification</div><div class="panel-note"><span data-i18n="nInsp">Inspections,</span> 5,591 <span data-i18n="nFarmers25">farmers, 2025</span></div><div class="chart-box short"><canvas id="cCert" role="img" aria-label="Certification"></canvas></div></div>
+      <div class="panel col-6"><div class="panel-title" data-i18n="cAgro">Trees on coffee farms</div><div class="panel-note"><span data-i18n="nSurvey">Survey,</span> 1,560 <span data-i18n="nFarmers25">farmers, 2025</span> · 29% <span data-i18n="nAgro">practise agroforestry</span></div><div class="chart-box short"><canvas id="cAgro" role="img" aria-label="Trees on coffee farms"></canvas></div></div>
+    </div>
+    <div class="pend"><span class="pendh" data-i18n="pendH">Being measured</span><span class="pchip" data-i18n="pend_i2a">On-farm emissions</span><span class="pchip" data-i18n="pend_i2b">Soil health</span><span class="pchip" data-i18n="pend_o2a">Regenerative practices</span><span class="pchip" data-i18n="pend_o2c">Biochar units</span><span class="pchip" data-i18n="pend_p2">Farmers trained</span></div>
+  </section>
+
+  <section id="profit" class="psec"><div class="section-head"><div><h2 data-i18n="hProfit">Profit</h2></div><div class="section-tag"><span data-i18n="tagProfit">Farmer income, market access, finance</span></div></div>
+    <div class="grid">
+      <div class="panel col-6"><div class="panel-title" data-i18n="cSeason">Coffee bought by season</div><div class="panel-note"><span data-i18n="nSeason">Tonnes · farmers paid in the tooltip</span></div><div class="chart-box short"><canvas id="cSeason" role="img" aria-label="Coffee bought by season"></canvas></div></div>
+      <div class="panel col-6"><div class="panel-title" data-i18n="cPer">Average paid per farmer</div><div class="panel-note"><span class="cur-ugx" data-i18n="uUgxM">UGX million</span><span class="cur-usd" data-i18n="uUsd">USD</span> · <span data-i18n="nPerS">per season</span></div><div class="chart-box short"><canvas id="cPer" role="img" aria-label="Average paid per farmer"></canvas></div></div>
+      <div class="panel col-6"><div class="panel-title" data-i18n="cGrades">Direct exports by grade</div><div class="panel-note">325 t · 10 <span data-i18n="nBuyers">buyers</span></div><div class="chart-box short"><canvas id="cGrades" role="img" aria-label="Direct exports by grade"></canvas></div></div>
+      <div class="panel col-6"><div class="panel-title" data-i18n="cCredit">Credit extended</div><div class="panel-note"><span class="cur-ugx" data-i18n="uUgxM">UGX million</span><span class="cur-usd" data-i18n="uUsdK">USD thousand</span> · <span data-i18n="nCreditS">by product</span></div><div class="chart-box short"><canvas id="cCredit" role="img" aria-label="Credit extended"></canvas></div></div>
+    </div>
+    <div class="pend"><span class="pendh" data-i18n="pendH">Being measured</span><span class="pchip" data-i18n="pend_i1a">Living income</span><span class="pchip" data-i18n="pend_i1b">Income +30% since 2023</span><span class="pchip" data-i18n="pend_i1c">Living income price</span><span class="pchip" data-i18n="pend_o12">Farmers borrowing via SACCOs and VSLAs</span></div>
+  </section>
+
+  <section id="where" class="psec"><div class="section-head"><div><h2 data-i18n="hWhere">Where we work</h2></div><div class="section-tag"><span data-i18n="tagWhere">Coffee bought by district</span></div></div>
+    <div class="grid">
+      <div class="panel col-12"><div class="panel-title" data-i18n="cDistricts">Coffee bought by district</div><div class="panel-note"><span data-i18n="nDistricts">Tonnes · registered farmers in the tooltip</span></div><div class="chart-box"><canvas id="cDistricts" role="img" aria-label="Coffee bought by district"></canvas></div></div>
+    </div>
+  </section>
+
+  <p class="foot-note"><span data-i18n="foot1">Totals and shares only, from Ndugu's own records; no individual farmer, buyer, contract or price is shown. Built</span> 2026-11-28. <span data-i18n="foot2">National figure:</span> <a href="https://nilepost.co.ug/coffee-production/297681/coffee-exports-value-rise-in-september-as-exports-hit-shs765bn" target="_blank" rel="noopener">UCDA, 2024/25</a>. <a href="about.html" data-i18n="aboutLink">About Ndugu</a></p>
+</main>
+<footer class="about-foot"><span>Ndugu Farmers Ltd</span></footer>
+</div>
+</div>
+
+<script>
+
+(function(){
+var DATA = {"gender": {"reg": [0.3292, 0.6708], "vol": [0.2849, 0.7151]}, "age": {"reg": [0.1429, 0.5893, 0.2678], "vol": [0.1041, 0.5831, 0.3128]}, "size": [3734, 2323, 2336, 1801, 248, 209], "sizeLabels": ["<0.5 ha", "0.5-1 ha", "1-2 ha", "2-5 ha", "5-10 ha", "10+ ha"], "own": [0.1909, 0.4794, 0.3223, 0.0074], "eudr": [0.8742, 0.0935, 0.0323], "eudrKeys": ["ready_polygon", "ready_point", "not_ready"], "screen": [["clear", 11247], ["loss", 195]], "agro": [["Scattered trees on farm", 739], ["Boundary Planting", 316], ["Windrow", 114], ["Compound", 85], ["Woodlots", 65], ["Open/cultivated area", 57]], "agroN": 1487, "cert": [0.8948, 0.2878], "seasons": [[2024, 4805, 3346, 19.61, 5255], [2025, 3143, 3420, 12.24, 3351], [2026, 413, 840, 6.77, 1803]], "grades": [["Screen 15", 227.0], ["Screen 12", 51.8], ["Screen 18", 35.4], ["Low grades", 10.1]], "credit": [["Trade working capital", 1620, 431.8], ["Fertiliser", 321, 85.5], ["School fees", 27, 7.2]], "districts": [["Masaka", 6164, 5138], ["Bukomansimbi", 1076, 1738], ["Rakai", 426, 1190], ["Kyotera", 312, 732], ["Mukono", 149, 188], ["Ntungamo", 107, 294], ["Lwengo", 32, 30], ["Luuka", 1, 13], ["Kayunga", 0, 58], ["Kiboga", 0, 1986], ["Other districts", 1, 2]]};
+var I18N = {"en": {"lbl_Female": "Women", "lbl_Male": "Men", "lbl_reg": "Registered", "lbl_vol": "Coffee sold", "lbl_Youth (18-35)": "18–35", "lbl_Adult (36-59)": "36–59", "lbl_Senior (60+)": "60+", "lbl_Woman": "A woman", "lbl_Man": "A man", "lbl_All family members": "Whole family", "lbl_Children": "Children", "lbl_ready_polygon": "Ready: boundary mapped", "lbl_ready_point": "Ready: GPS point", "lbl_not_ready": "Not yet ready", "lbl_low_precision": "GPS too imprecise", "lbl_needs_polygon": "Needs a boundary", "lbl_no_gps": "No GPS yet", "lbl_zeroed": "GPS recorded as zero", "lbl_outside_uganda": "GPS outside Uganda", "lbl_clear": "No deforestation", "lbl_loss": "Tree-cover loss, checking", "lbl_unscreened": "Not yet screened", "lbl_RA": "Rainforest Alliance", "lbl_4C": "4C", "lbl_Trade working capital": "Trade finance", "lbl_Fertiliser": "Fertiliser", "lbl_School fees": "School fees", "lbl_Medcare": "Health care", "lbl_inProgress": "in progress", "lbl_farmers": "farmers", "lbl_plots": "plots", "lbl_t": "t", "lbl_ofVolume": "of volume", "lbl_ofInspected": "of inspected farmers", "lbl_ofSurveyed": "of surveyed farmers", "lbl_mUGX": "UGX M"}, "nl": {"brandRole": "Ndugu in cijfers", "signIn": "Inloggen", "myDash": "Mijn dashboard", "eyebrow": "Mensen · Planeet · Welvaart", "h1": "Ndugu in de koffiesector", "lede": "Traceerbare robusta van kleine boeren uit de regio Groot-Masaka in Oeganda.", "asOf": "Cijfers tot", "tRegistered": "Geregistreerde boeren", "tActive": "Boeren die aan ons verkochten", "tTonnes": "Koffie ingekocht", "tSince": "sinds", "tPaid": "Betaald aan boeren", "tWomen": "Vrouwelijke boeren", "tYouth": "Jongeren (18–35)", "targetC": "Doel", "tCoops": "Coöperaties", "tDistricts": "Districten", "tEudr": "EUDR-klaar volume", "tPlots": "Percelen in kaart", "tClear": "ontbossingsvrij", "tCert": "Gecertificeerde boeren", "tInspected": "van geïnspecteerden", "tShare": "Aandeel in export Oeganda", "tSeason": "seizoen", "hTargetsR": "Doelen 2028", "hTargets": "Doelen 2028", "tagTargets": "Resultatenkader Ndugu 2023–2028", "met": "Gehaald", "ofTarget": "van doel", "scFarmers": "Geregistreerde boeren", "scWomen": "Vrouwelijke boeren", "scYouth": "Jonge boeren", "scCert": "Gecertificeerd en traceerbaar", "scDigital": "Coöperaties met digitale administratie", "scEudr": "EUDR-klaar volume", "hPeopleR": "Mensen", "hPeople": "Mensen", "tagPeople": "Inclusie van vrouwen en jongeren, bereik onder kleine boeren", "cGender": "Vrouwen: geregistreerd vs verkochte koffie", "cAge": "Leeftijd: geregistreerd vs verkochte koffie", "cSize": "Bedrijfsgrootte", "cOwn": "Wie bezit de koffietuin", "nFarmers": "boeren", "nSurvey": "Enquête,", "nFarmers25": "boeren, 2025", "nInsp": "Inspecties,", "nReg": "Boerenregister", "hPlanetR": "Planeet", "hPlanet": "Planeet", "tagPlanet": "Europese ontbossingsverordening, certificering, bomen", "cEudr": "EUDR-gereedheid", "nEudr": "Aandeel van het ingekochte koffievolume", "cScreen": "Satellietscreening van percelen", "nScreen": "Bos 2020 (JRC) en verlies van boombedekking sindsdien (Hansen)", "cCert": "Certificering", "cAgro": "Bomen op koffiebedrijven", "nAgro": "past agroforestry toe", "hProfitR": "Welvaart", "hProfit": "Welvaart", "tagProfit": "Inkomen van boeren, markttoegang, financiering", "cSeason": "Ingekochte koffie per seizoen", "nSeason": "Ton · betaalde boeren in de tooltip", "cPer": "Gemiddeld betaald per boer", "uUgxM": "Miljoen UGX", "uUsd": "USD", "uUsdK": "Duizend USD", "nPerS": "per seizoen", "cGrades": "Directe export per sortering", "nBuyers": "afnemers", "cCredit": "Verstrekt krediet", "nCreditS": "per product", "hWhereR": "Waar we werken", "hWhere": "Waar we werken", "tagWhere": "Ingekochte koffie per district", "cDistricts": "Ingekochte koffie per district", "nDistricts": "Ton · geregistreerde boeren in de tooltip", "pendH": "Wordt gemeten", "foot1": "Alleen totalen en aandelen, uit Ndugu's eigen administratie; geen individuele boer, afnemer, contract of prijs. Gemaakt", "foot2": "Nationaal cijfer:", "aboutLink": "Over Ndugu", "lbl_Female": "Vrouwen", "lbl_Male": "Mannen", "lbl_reg": "Geregistreerd", "lbl_vol": "Verkochte koffie", "lbl_Youth (18-35)": "18–35", "lbl_Adult (36-59)": "36–59", "lbl_Senior (60+)": "60+", "lbl_Woman": "Een vrouw", "lbl_Man": "Een man", "lbl_All family members": "Hele gezin", "lbl_Children": "Kinderen", "lbl_ready_polygon": "Klaar: grens in kaart", "lbl_ready_point": "Klaar: GPS-punt", "lbl_not_ready": "Nog niet klaar", "lbl_low_precision": "GPS te onnauwkeurig", "lbl_needs_polygon": "Grens nodig", "lbl_no_gps": "Nog geen GPS", "lbl_zeroed": "GPS als nul vastgelegd", "lbl_outside_uganda": "GPS buiten Oeganda", "lbl_clear": "Geen ontbossing", "lbl_loss": "Verlies boombedekking, in controle", "lbl_unscreened": "Nog niet gescreend", "lbl_RA": "Rainforest Alliance", "lbl_4C": "4C", "lbl_Trade working capital": "Handelsfinanciering", "lbl_Fertiliser": "Kunstmest", "lbl_School fees": "Schoolgeld", "lbl_Medcare": "Zorg", "lbl_inProgress": "loopt nog", "lbl_farmers": "boeren", "lbl_plots": "percelen", "lbl_t": "t", "lbl_ofVolume": "van het volume", "lbl_ofInspected": "van de geïnspecteerde boeren", "lbl_ofSurveyed": "van de ondervraagde boeren", "lbl_mUGX": "mln UGX", "lbl_Scattered trees on farm": "Verspreide bomen", "lbl_Boundary Planting": "Grensbeplanting", "lbl_Windrow": "Windsingel", "lbl_Compound": "Rond het erf", "lbl_Woodlots": "Houtpercelen", "lbl_Open/cultivated area": "Open/bebouwd terrein", "pend_i1a": "Leefbaar inkomen", "pend_i1b": "Inkomen +30% sinds 2023", "pend_i1c": "Prijs voor leefbaar inkomen", "pend_o12": "Boeren die lenen via SACCO's en VSLA's", "pend_i2a": "Uitstoot op het bedrijf", "pend_i2b": "Bodemgezondheid", "pend_o2a": "Regeneratieve methoden", "pend_o2c": "Biochar-eenheden", "pend_p2": "Getrainde boeren", "pend_i3a": "Toegang tot zorg", "pend_i3b": "Kinderen op school", "pend_i3c": "Geen kinderarbeid", "pend_i3d": "Vrouwen beslissen over inkomen", "pend_i3e": "Jongeren beslissen over inkomen", "pend_o3": "Sociale comités", "pend_p34": "Banen voor jongeren"}};
+var PREF_KEY = 'ndugu:view-preferences', lang = 'en', cur = 'UGX', orig = {}, charts = [];
+// The same saved choices the dashboards use (ndugu-preferences.js).
+try { var pf = JSON.parse(localStorage.getItem(PREF_KEY) || '{}') || {};
+      if (pf.lang === 'nl') lang = 'nl'; if (pf.currency === 'USD') cur = 'USD'; } catch (e) {}
+function savePref(k, v){ try { var p = JSON.parse(localStorage.getItem(PREF_KEY) || '{}') || {}; p[k] = v; localStorage.setItem(PREF_KEY, JSON.stringify(p)); } catch (e) {} }
+function T(k){ var v = I18N[lang]['lbl_'+k]; if (v === undefined) v = I18N.en['lbl_'+k]; return v === undefined ? k : v; }
+function nf(v, d){ return Number(v).toLocaleString(lang === 'nl' ? 'nl-NL' : 'en-GB', {maximumFractionDigits: d || 0, minimumFractionDigits: d || 0}); }
+function pc(v){ return Math.round(v * 100) + '%'; }
+
+/* The dashboards' palette (domestic.html COLORS), unchanged. */
+var C = {roast:'#0E564C', roastDeep:'#083B34', roastLight:'#358879', leaf:'#367729', cherry:'#5D9842',
+         honey:'#73A35A', teal:'#2D7950', olive:'#82AF65', clay:'#568940',
+         ink:'#21351B', inkSoft:'#486541', inkFaint:'#6D8467', line:'#DDE9D8', warn:'#9B5824', grey:'#B9C7B4'};
+var SEASON_COLOR = {2024:C.teal, 2025:C.roast, 2026:C.honey};
+var FONT = '"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif';
+Chart.defaults.font.family = FONT; Chart.defaults.font.size = 11.5; Chart.defaults.color = C.inkSoft;
+Chart.defaults.scale.grid.color = C.line; Chart.defaults.scale.grid.borderDash = [2, 3];
+Chart.defaults.maintainAspectRatio = false;
+var TIP = {backgroundColor:C.ink, padding:10, titleFont:{family:FONT}, bodyFont:{family:FONT}};
+var LEG = {position:'bottom', labels:{boxWidth:10, boxHeight:10, color:C.inkSoft}};
+
+function hbar(id, labels, sets, opt){
+  opt = opt || {};
+  return new Chart(document.getElementById(id), {type:'bar',
+    data:{labels:labels, datasets:sets.map(function(s){ return Object.assign({maxBarThickness:22, borderRadius:3, borderSkipped:false}, s); })},
+    options:{indexAxis: opt.vertical ? 'x' : 'y', responsive:true,
+      plugins:{legend: sets.length > 1 ? LEG : {display:false}, tooltip:Object.assign({}, TIP, {callbacks:{label: opt.tip}})},
+      scales: opt.vertical
+        ? {x:{grid:{display:false}}, y:{beginAtZero:true, ticks:{callback: opt.tick}}}
+        : {x:{beginAtZero:true, max: opt.max, ticks:{callback: opt.tick}}, y:{grid:{display:false}}}}});
+}
+var pctTick = function(v){ return Math.round(v * 100) + '%'; };
+
+function draw(){
+  charts.forEach(function(c){ c.destroy(); }); charts = [];
+  var D = DATA;
+  charts.push(hbar('cGender', ['Female','Male'].map(T),
+    [{label:T('reg'), data:D.gender.reg, backgroundColor:C.roast}, {label:T('vol'), data:D.gender.vol, backgroundColor:C.honey}],
+    {max:1, tick:pctTick, tip:function(c){ return c.dataset.label + ': ' + pc(c.parsed.x); }}));
+  charts.push(hbar('cAge', ['Youth (18-35)','Adult (36-59)','Senior (60+)'].map(T),
+    [{label:T('reg'), data:D.age.reg, backgroundColor:C.roast}, {label:T('vol'), data:D.age.vol, backgroundColor:C.honey}],
+    {max:1, tick:pctTick, tip:function(c){ return c.dataset.label + ': ' + pc(c.parsed.x); }}));
+  charts.push(hbar('cSize', D.sizeLabels, [{data:D.size, backgroundColor:C.cherry}],
+    {vertical:true, tick:function(v){ return nf(v); }, tip:function(c){ return nf(c.parsed.y) + ' ' + T('farmers'); }}));
+  charts.push(hbar('cOwn', ['Woman','Man','All family members','Children'].map(T),
+    [{data:D.own, backgroundColor:[C.roast, C.roastLight, C.teal, C.olive]}],
+    {tick:pctTick, tip:function(c){ return pc(c.parsed.x) + ' ' + T('ofSurveyed'); }}));
+
+  var ready = D.eudrKeys.map(function(k){ return k.indexOf('ready_') === 0; });
+  charts.push(hbar('cEudr', D.eudrKeys.map(T), [{data:D.eudr, backgroundColor:ready.map(function(r){ return r ? C.roast : C.warn; }), maxBarThickness:34}],
+    {max:1, tick:pctTick, tip:function(c){ return (c.parsed.x * 100).toFixed(1) + '% ' + T('ofVolume'); }}));
+  var SC = {clear:C.roast, loss:C.warn, unscreened:C.grey};
+  charts.push(hbar('cScreen', D.screen.map(function(r){ return T(r[0]); }),
+    [{data:D.screen.map(function(r){ return r[1]; }), backgroundColor:D.screen.map(function(r){ return SC[r[0]]; }), maxBarThickness:34}],
+    {tick:function(v){ return nf(v); }, tip:function(c){ return nf(c.parsed.x) + ' ' + T('plots'); }}));
+  charts.push(hbar('cCert', ['RA','4C'].map(T), [{data:D.cert, backgroundColor:C.leaf}],
+    {max:1, tick:pctTick, tip:function(c){ return pc(c.parsed.x) + ' ' + T('ofInspected'); }}));
+  charts.push(hbar('cAgro', D.agro.map(function(r){ return T(r[0]); }),
+    [{data:D.agro.map(function(r){ return r[1] / D.agroN; }), backgroundColor:C.leaf}],
+    {tick:pctTick, tip:function(c){ return pc(c.parsed.x) + ' ' + T('ofSurveyed'); }}));
+
+  var last = D.seasons[D.seasons.length - 1][0];
+  var sLab = D.seasons.map(function(s){ return s[0] === last ? s[0] + ' (' + T('inProgress') + ')' : String(s[0]); });
+  var sCol = D.seasons.map(function(s){ return SEASON_COLOR[s[0]] || C.roast; });
+  charts.push(hbar('cSeason', sLab, [{data:D.seasons.map(function(s){ return s[1]; }), backgroundColor:sCol, maxBarThickness:46}],
+    {vertical:true, tick:function(v){ return nf(v) + ' t'; },
+     tip:function(c){ var s = D.seasons[c.dataIndex]; return [nf(s[1]) + ' t', nf(s[2]) + ' ' + T('farmers')]; }}));
+  var usd = cur === 'USD';
+  charts.push(hbar('cPer', sLab, [{data:D.seasons.map(function(s){ return usd ? s[4] : s[3]; }), backgroundColor:sCol, maxBarThickness:46}],
+    {vertical:true, tick:function(v){ return usd ? '$' + nf(v) : nf(v, 0) + ' M'; },
+     tip:function(c){ return usd ? 'USD ' + nf(c.parsed.y) : 'UGX ' + nf(c.parsed.y, 1) + ' M'; }}));
+  charts.push(hbar('cGrades', D.grades.map(function(r){ return r[0]; }), [{data:D.grades.map(function(r){ return r[1]; }), backgroundColor:C.roast}],
+    {tick:function(v){ return nf(v) + ' t'; }, tip:function(c){ return nf(c.parsed.x, 1) + ' t'; }}));
+  charts.push(hbar('cCredit', D.credit.map(function(r){ return T(r[0]); }), [{data:D.credit.map(function(r){ return usd ? r[2] : r[1]; }), backgroundColor:C.teal}],
+    {tick:function(v){ return nf(v); }, tip:function(c){ return usd ? 'USD ' + nf(c.parsed.x, 1) + 'k' : 'UGX ' + nf(c.parsed.x) + ' M'; }}));
+  charts.push(hbar('cDistricts', D.districts.map(function(r){ return r[0] === 'Other districts' ? (lang === 'nl' ? 'Overige districten' : r[0]) : r[0]; }),
+    [{data:D.districts.map(function(r){ return r[1]; }), backgroundColor:C.roast}],
+    {tick:function(v){ return nf(v) + ' t'; },
+     tip:function(c){ var r = D.districts[c.dataIndex]; return [nf(r[1]) + ' t', (r[2] >= 10 ? nf(r[2]) : '< 10') + ' ' + T('farmers')]; }}));
+}
+
+// Someone already signed in in this tab (portal.html's session, within its
+// 15-minute idle limit) sees "My dashboard" instead of "Sign in".
+try {
+  var ss = JSON.parse(sessionStorage.getItem('ndugu.portal.session') || 'null');
+  var sa = +sessionStorage.getItem('ndugu.portal.active') || 0;
+  if (ss && !(sa && Date.now() - sa > 15 * 60 * 1000)) {
+    var si = document.querySelector('.signin');
+    if (si) { si.setAttribute('data-i18n', 'myDash'); si.innerHTML = 'My dashboard'; }
+  }
+} catch (e) {}
+document.querySelectorAll('[data-i18n]').forEach(function(el, i){ el.setAttribute('data-i18n-i', i); orig[i] = el.innerHTML; });
+function apply(){
+  document.querySelectorAll('[data-i18n]').forEach(function(el){
+    var v = lang === 'nl' ? I18N.nl[el.getAttribute('data-i18n')] : undefined;
+    el.innerHTML = v ? v : orig[el.getAttribute('data-i18n-i')];
+  });
+  document.querySelectorAll('#langPills .pill').forEach(function(p){ p.classList.toggle('active', p.getAttribute('data-lang') === lang); });
+  document.querySelectorAll('#currencyPills .pill').forEach(function(p){ p.classList.toggle('active', p.getAttribute('data-currency') === cur); });
+  document.body.classList.toggle('usd', cur === 'USD');
+  document.title = lang === 'nl' ? 'Ndugu Farmers Ltd | Ndugu in cijfers' : 'Ndugu Farmers Ltd | Ndugu in numbers';
+  document.documentElement.lang = lang;
+  draw();
+}
+document.getElementById('langPills').addEventListener('click', function(e){
+  var b = e.target.closest('.pill'); if (!b) return;
+  lang = b.getAttribute('data-lang'); savePref('lang', lang);
+  apply();
+});
+document.getElementById('currencyPills').addEventListener('click', function(e){
+  var b = e.target.closest('.pill'); if (!b) return;
+  cur = b.getAttribute('data-currency'); savePref('currency', cur);
+  apply();
+});
+apply();
+})();
+
+</script>
+<!-- ndugu:analytics -->
+<!-- Visit counting. No cookie, no localStorage, no fingerprinting;
+     figures are private to the Ndugu Cloudflare account. Managed by
+     scripts/sync_analytics.py: edits here are overwritten. -->
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "667a8f6b0e6244bab958af8756cef50b"}'></script><!-- End Cloudflare Web Analytics -->
+<!-- /ndugu:analytics -->
+</body>
+</html>

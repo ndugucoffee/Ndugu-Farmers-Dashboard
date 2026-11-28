@@ -1,0 +1,2544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script src="secure-gate.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon.ico" sizes="16x16 32x32" type="image/x-icon">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+<meta name="theme-color" content="#0E564C">
+<title>Ndugu Farmers Ltd | Export Programme</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<!-- chart-data drill-down (scripts/chart_tables.py) -->
+<script>
+(function(){
+  'use strict';
+  if (!window.Chart) return;
+
+  var WORDS = {
+    en:{drill:'Open in My dashboard', drillOn:'Open “{0}” in My dashboard',
+        view:'View data', title:'Data behind this chart', csv:'Download CSV', copy:'Copy table',
+        copied:'Copied', close:'Close', total:'Total', share:'Share of this chart', hidden:'hidden in the chart',
+        series:'Series', label:'Category', value:'Value', none:'This chart is awaiting a compatible source. Explore the illustrative performance view.',
+        units:'Values', rows:'rows'},
+    nl:{drill:'Openen in Mijn dashboard', drillOn:'“{0}” openen in Mijn dashboard',
+        view:'Gegevens bekijken', title:'Gegevens achter deze grafiek', csv:'CSV downloaden', copy:'Tabel kopiëren',
+        copied:'Gekopieerd', close:'Sluiten', total:'Totaal', share:'Aandeel in deze grafiek', hidden:'verborgen in de grafiek',
+        series:'Reeks', label:'Categorie', value:'Waarde', none:'Deze grafiek heeft geen gegevens.',
+        units:'Waarden', rows:'rijen'}
+  };
+  function lang(){ return /^nl/i.test(document.documentElement.lang || '') ? 'nl' : 'en'; }
+  function W(){ return WORDS[lang()]; }
+  function txt(v){ return Array.isArray(v) ? v.join(' ') : (v === null || v === undefined ? '' : String(v)); }
+  function isNum(v){ return typeof v === 'number' && isFinite(v); }
+  function num(v){
+    if (!isNum(v)) return v === null || v === undefined ? '' : txt(v);
+    var a = Math.abs(v);
+    return v.toLocaleString(lang() === 'nl' ? 'nl-NL' : 'en-US',
+      {maximumFractionDigits: a >= 1000 ? 0 : a >= 10 ? 1 : 3});
+  }
+  function pctText(v){
+    return v.toLocaleString(lang() === 'nl' ? 'nl-NL' : 'en-US', {maximumFractionDigits:1}) + '%';
+  }
+  function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function axisTitle(chart, which){
+    var s = chart.options && chart.options.scales && chart.options.scales[which];
+    return s && s.title && s.title.display !== false && s.title.text ? txt(s.title.text) : '';
+  }
+
+  /* How the value axis labels a number, asked of the chart itself: a share
+     chart stores 0.329 and shows "33%", and the table should read the same
+     way the chart does. 'fraction' means 0.5 is shown as 50%, 'percent' that
+     50 is shown as 50%, '' anything else. */
+  function pctMode(chart, axis){
+    var sc = chart.scales && chart.scales[axis], cb = sc && sc.options && sc.options.ticks && sc.options.ticks.callback;
+    if (typeof cb !== 'function') return '';
+    try {
+      var s = String(cb.call(sc, 0.5, 0, [{value:0.5}]));
+      if (!/%/.test(s)) return '';
+      return /50/.test(s) ? 'fraction' : 'percent';
+    } catch (e){ return ''; }
+  }
+
+  /* The chart's data as a table: {head:[], rows:[[...]], numeric:[bool per column], note}
+     Category charts (bar, line, doughnut, ...) give one row per label and one
+     column per dataset; point charts (scatter, bubble, {x,y} data) give one
+     row per point. A floating bar [from, to] shows as "from – to". */
+  function tableOf(chart){
+    var w = W(), data = chart.data || {}, sets = data.datasets || [], labels = data.labels || [];
+    var horiz = chart.options && chart.options.indexAxis === 'y';
+    var catAxis = horiz ? 'y' : 'x', valAxis = horiz ? 'x' : 'y';
+    var name = function(d, k){
+      var n = txt(d.label) || (sets.length > 1 ? w.series + ' ' + (k + 1) : w.value);
+      return chart.isDatasetVisible(k) ? n : n + ' (' + w.hidden + ')';
+    };
+    var points = sets.some(function(d){
+      return (d.data || []).some(function(v){ return v && typeof v === 'object' && !Array.isArray(v); });
+    });
+    var out = {head:[], rows:[], numeric:[], note:''};
+    if (points){
+      var hasR = sets.some(function(d){ return (d.data || []).some(function(v){ return v && v.r !== undefined; }); });
+      out.head = [w.series, axisTitle(chart, 'x') || 'x', axisTitle(chart, 'y') || 'y'].concat(hasR ? ['r'] : []);
+      sets.forEach(function(d, k){
+        (d.data || []).forEach(function(v, i){
+          if (!v) return;
+          var row = [name(d, k), v.x !== undefined ? v.x : (labels[i] !== undefined ? txt(labels[i]) : i + 1), v.y];
+          if (hasR) row.push(v.r);
+          out.rows.push(row);
+        });
+      });
+    } else {
+      out.head = [axisTitle(chart, catAxis) || w.label].concat(sets.map(name));
+      var n = Math.max(labels.length, sets.reduce(function(m, d){ return Math.max(m, (d.data || []).length); }, 0));
+      for (var i = 0; i < n; i++){
+        out.rows.push([labels[i] !== undefined ? txt(labels[i]) : String(i + 1)].concat(sets.map(function(d){
+          var v = (d.data || [])[i];
+          if (Array.isArray(v) && v.length === 2 && isNum(v[0]) && isNum(v[1])) return num(v[0]) + ' – ' + num(v[1]);
+          return v === undefined ? null : v;
+        })));
+      }
+      /* one series of parts of a whole: its share is the useful second column */
+      var type = chart.config.type;
+      var whole = type === 'doughnut' || type === 'pie' || type === 'polarArea' ||
+                  (sets.length === 1 && type === 'bar' && !(chart.options.scales && chart.options.scales[valAxis] && chart.options.scales[valAxis].stacked));
+      if (sets.length === 1 && out.rows.length > 1 && whole){
+        var tot = out.rows.reduce(function(s, r){ return s + (isNum(r[1]) ? r[1] : 0); }, 0);
+        if (tot > 0 && out.rows.every(function(r){ return r[1] === null || isNum(r[1]); })){
+          out.head.push(w.share);
+          out.rows.forEach(function(r){ r.push(isNum(r[1]) ? (r[1] / tot * 100).toFixed(1) + '%' : ''); });
+        }
+      }
+      /* a total row where adding up makes sense: counts, volumes and values
+         in bars and doughnuts, not the points of a line */
+      if (out.rows.length > 1 && type !== 'line' && type !== 'radar'){
+        var totals = out.head.map(function(_, c){
+          if (c === 0) return w.total;
+          var vals = out.rows.map(function(r){ return r[c]; });
+          if (!vals.every(function(v){ return v === null || isNum(v); })) return '';
+          return vals.reduce(function(s, v){ return s + (v || 0); }, 0);
+        });
+        if (totals.slice(1).some(isNum)){
+          if (out.head[out.head.length - 1] === w.share) totals[totals.length - 1] = '100%';
+          out.total = totals;
+        }
+      }
+      var units = axisTitle(chart, valAxis);
+      if (units) out.note = w.units + ': ' + units;
+      var pm = pctMode(chart, valAxis);
+      if (pm){
+        /* values become percentages, in the table and in the file, and the
+           total row goes: shares and rates do not add up to anything */
+        out.pct = true; out.total = null;
+        out.rows.forEach(function(r){
+          for (var c = 1; c <= sets.length; c++) if (isNum(r[c])) r[c] = Math.round((pm === 'fraction' ? r[c] * 100 : r[c]) * 100) / 100;
+        });
+        for (var h = 1; h <= sets.length; h++) out.head[h] += ' (%)';
+      }
+    }
+    return out;
+  }
+
+  /* ---------- the window ---------- */
+  var box = null, current = null;
+  function ensureBox(){
+    if (box) return box;
+    var st = document.createElement('style');
+    st.textContent =
+      '.cd-menu{position:fixed;z-index:2001;background:var(--surface,#FFFCF6);' +
+        'border:1px solid var(--line-strong,#D8C4A6);border-radius:6px;' +
+        'box-shadow:0 10px 30px -12px rgba(42,26,16,.55);padding:4px;min-width:150px;}' +
+      '.cd-menu[hidden]{display:none;}' +
+      '.cd-menu button{display:block;width:100%;text-align:left;font:inherit;font-size:12.5px;' +
+        'color:var(--ink,#2A1A10);background:none;border:none;border-radius:4px;' +
+        'padding:7px 10px;cursor:pointer;}' +
+      '.cd-menu button:hover{background:var(--roast-wash,#E6F3EF);}' +
+      '.cd-over{position:fixed;inset:0;z-index:2000;background:rgba(42,26,16,.45);display:flex;' +
+        'align-items:center;justify-content:center;padding:16px;}' +
+      '.cd-over[hidden]{display:none;}' +
+      '.cd-win{background:var(--surface,#FFFCF6);color:var(--ink,#2A1A10);border:1px solid var(--line-strong,#D8C4A6);' +
+        'border-radius:8px;box-shadow:0 18px 50px -20px rgba(42,26,16,.6);width:min(760px,100%);' +
+        'max-height:min(86vh,900px);display:flex;flex-direction:column;}' +
+      '.cd-top{padding:16px 18px 10px;border-bottom:1px solid var(--line,#EADCC7);}' +
+      '.cd-top h3{margin:0;font-size:15px;}' +
+      '.cd-top p{margin:4px 0 0;font-size:12.5px;color:var(--ink-soft,#63483A);}' +
+      '.cd-body{overflow:auto;padding:0 18px;}' +
+      '.cd-body table{border-collapse:collapse;width:100%;font-size:12.5px;font-variant-numeric:tabular-nums;}' +
+      '.cd-body th,.cd-body td{padding:6px 10px;border-bottom:1px solid var(--line,#EADCC7);text-align:right;white-space:nowrap;}' +
+      '.cd-body th:first-child,.cd-body td:first-child{text-align:left;white-space:normal;}' +
+      '.cd-body thead th{position:sticky;top:0;background:var(--surface,#FFFCF6);font-weight:600;' +
+        'border-bottom:1px solid var(--line-strong,#D8C4A6);}' +
+      '.cd-body tfoot td{font-weight:600;border-top:1px solid var(--line-strong,#D8C4A6);border-bottom:none;}' +
+      '.cd-foot{display:flex;gap:8px;align-items:center;padding:12px 18px;border-top:1px solid var(--line,#EADCC7);}' +
+      '.cd-foot .grow{flex:1;font-size:12px;color:var(--ink-faint,#8A7059);}' +
+      '.cd-foot button{font:inherit;font-size:12.5px;padding:6px 12px;border-radius:5px;cursor:pointer;' +
+        'border:1px solid var(--line-strong,#D8C4A6);background:var(--surface,#FFFCF6);color:var(--ink,#2A1A10);}' +
+      '.cd-foot button.cd-main{background:var(--roast,#0E564C);border-color:var(--roast,#0E564C);color:#fff;}';
+    document.head.appendChild(st);
+    box = document.createElement('div');
+    box.className = 'cd-over'; box.hidden = true;
+    box.innerHTML = '<div class="cd-win" role="dialog" aria-modal="true" aria-labelledby="cdTitle">' +
+      '<div class="cd-top"><h3 id="cdTitle"></h3><p id="cdSub"></p></div>' +
+      '<div class="cd-body" id="cdBody"></div>' +
+      '<div class="cd-foot"><span class="grow" id="cdInfo"></span>' +
+      '<button type="button" id="cdCopy"></button><button type="button" id="cdCsv" class="cd-main"></button>' +
+      '<button type="button" id="cdClose"></button></div></div>';
+    document.body.appendChild(box);
+    box.addEventListener('click', function(e){ if (e.target === box) close(); });
+    document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && !box.hidden) close(); });
+    box.querySelector('#cdClose').addEventListener('click', close);
+    box.querySelector('#cdCsv').addEventListener('click', function(){
+      if (!current) return;
+      var csv = '﻿' + lines(current.t, ',').join('\r\n');
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+      a.download = current.file + '.csv';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
+    });
+    box.querySelector('#cdCopy').addEventListener('click', function(){
+      if (!current) return;
+      var b = this, t = lines(current.t, '\t').join('\n');
+      var done = function(){ b.textContent = W().copied; setTimeout(function(){ b.textContent = W().copy; }, 1500); };
+      if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(t).then(done, function(){});
+      else { var ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select();
+             try { document.execCommand('copy'); done(); } catch (e) {} ta.remove(); }
+    });
+    return box;
+  }
+  /* the file carries raw numbers, not the display formatting */
+  function lines(t, sep){
+    var q = function(v){
+      var s = v === null || v === undefined ? '' : String(v);
+      return sep === ',' && /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s.replace(/[\t\r\n]+/g, ' ');
+    };
+    var rows = [t.head].concat(t.rows);
+    if (t.total) rows.push(t.total);
+    return rows.map(function(r){ return r.map(q).join(sep); });
+  }
+  function close(){ if (box){ box.hidden = true; current = null; } if (lastBtn) lastBtn.focus(); }
+
+  var lastBtn = null;
+  function open(canvas, btn){
+    var chart = Chart.getChart(canvas);
+    if (!chart) return;
+    var w = W(), t = tableOf(chart), panel = canvas.closest('.panel') || canvas.parentElement;
+    var title = panel.querySelector('.panel-title'), note = panel.querySelector('.panel-note');
+    if (!title){
+      /* the only chart in its section carries no title of its own: the
+         section heading above it is its title */
+      var hs = Array.prototype.filter.call(document.querySelectorAll('h2, h3'), function(h){
+        return h.compareDocumentPosition(canvas) & Node.DOCUMENT_POSITION_FOLLOWING;
+      });
+      title = hs[hs.length - 1] || null;
+    }
+    /* a chart with a toggle (volume / value / price) shows one of several
+       measures; say which */
+    var active = panel.querySelector('.seg button.active');
+    ensureBox();
+    lastBtn = btn;
+    var name = title ? title.textContent.trim() : (canvas.id || w.title);
+    if (active) t.note = [active.textContent.trim(), t.note].filter(Boolean).join(' · ');
+    current = {t:t, file:(name || 'chart').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'chart'};
+    box.querySelector('#cdTitle').textContent = name;
+    box.querySelector('#cdSub').textContent = [note ? note.textContent.trim() : '', t.note].filter(Boolean).join(' · ');
+    box.querySelector('#cdCopy').textContent = w.copy;
+    box.querySelector('#cdCsv').textContent = w.csv;
+    box.querySelector('#cdClose').textContent = w.close;
+    box.querySelector('#cdInfo').textContent = t.rows.length ? t.rows.length + ' ' + w.rows : '';
+    box.querySelector('#cdBody').innerHTML = !t.rows.length ? '<p>' + esc(w.none) + '</p>' :
+      '<table><thead><tr>' + t.head.map(function(h){ return '<th>' + esc(h) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      t.rows.map(function(r){ return '<tr>' + r.map(function(v, c){
+        return '<td>' + esc(c ? (t.pct && isNum(v) ? pctText(v) : num(v)) : txt(v)) + '</td>'; }).join('') + '</tr>'; }).join('') +
+      '</tbody>' + (t.total ? '<tfoot><tr>' + t.total.map(function(v, c){ return '<td>' + esc(c ? num(v) : v) + '</td>'; }).join('') + '</tr></tfoot>' : '') +
+      '</table>';
+    box.hidden = false;
+    box.querySelector('#cdClose').focus();
+  }
+
+  /* ---------- drill-down into My dashboard ----------
+     The figures behind a chart on this page are summaries. The records under
+     them (cooperatives, farmers, deliveries, loans, lots, plots) are in My
+     dashboard, behind the same sign-in, and only for directors, finance and
+     managers: a viewer's sign-in carries no My dashboard, so they are not
+     offered the way in. The part of the chart clicked becomes the starting
+     selection: a season by its year, anything else (a district, a
+     cooperative, a village) through My dashboard's search. */
+  var PAGE_TAB = {'export.html':'export', 'finance.html':'finance', 'impact.html':'impact', 'eudr.html':'farmers'};
+  function canDrill(){
+    try {
+      var s = JSON.parse(sessionStorage.getItem('ndugu.portal.session') || 'null');
+      return !!(s && s.role !== 'viewer' && s.units && Object.keys(s.units).length);
+    } catch (e){ return false; }
+  }
+  function pickedLabel(chart, e){
+    if (!e || !chart.getElementsAtEventForMode) return null;
+    var hit = chart.getElementsAtEventForMode(e, 'nearest', {intersect:true}, false)[0];
+    if (!hit) return null;
+    var lab = chart.data.labels && chart.data.labels[hit.index];
+    lab = txt(lab).replace(/\*$/, '').trim();
+    return lab || null;
+  }
+  function drillHref(label){
+    var page = decodeURIComponent(location.pathname.split('/').pop() || 'index.html');
+    var h = [], q = '';
+    if (PAGE_TAB[page]) h.push('tab=' + PAGE_TAB[page]);
+    if (label && /^(19|20)\d\d$/.test(label)) h.push('season=' + label);
+    else if (label && /[A-Za-z]{3}/.test(label) && label.length <= 60) q = '?q=' + encodeURIComponent(label);
+    return 'portal.html' + q + (h.length ? '#' + h.join('&') : '');
+  }
+
+  /* ---------- the right-click menu ---------- */
+  var menu = null, menuCanvas = null, menuLabel = null;
+  function ensureMenu(){
+    if (menu) return menu;
+    menu = document.createElement('div');
+    menu.className = 'cd-menu'; menu.hidden = true;
+    menu.innerHTML = '<button type="button" id="cdMenuView"></button><button type="button" id="cdMenuDrill" hidden></button>';
+    document.body.appendChild(menu);
+    menu.querySelector('#cdMenuDrill').addEventListener('click', function(){
+      var href = drillHref(menuLabel);
+      hideMenu();
+      location.href = href;
+    });
+    menu.querySelector('#cdMenuView').addEventListener('click', function(){
+      var c = menuCanvas;
+      hideMenu();
+      if (c) open(c);
+    });
+    /* Any click or a second right-click outside the menu dismisses it, the
+       same way a native context menu behaves; Escape and scrolling/resizing
+       the window do too, since a menu anchored to a now-wrong position is
+       worse than no menu. */
+    document.addEventListener('mousedown', function(e){ if (!menu.hidden && !menu.contains(e.target)) hideMenu(); });
+    document.addEventListener('contextmenu', function(e){ if (!menu.hidden && !menu.contains(e.target)) hideMenu(); });
+    document.addEventListener('keydown', function(e){ if (e.key === 'Escape') hideMenu(); });
+    window.addEventListener('scroll', hideMenu, true);
+    window.addEventListener('resize', hideMenu);
+    return menu;
+  }
+  function hideMenu(){ if (menu) menu.hidden = true; menuCanvas = null; menuLabel = null; }
+  function showMenu(x, y, canvas, label){
+    ensureMenu();
+    menu.querySelector('#cdMenuView').textContent = W().view;
+    var d = menu.querySelector('#cdMenuDrill');
+    d.hidden = !canDrill();
+    d.textContent = label ? W().drillOn.replace('{0}', label) : W().drill;
+    menuCanvas = canvas; menuLabel = label || null;
+    menu.hidden = false;
+    /* Measured after becoming visible, then clamped so a chart near the
+       right or bottom edge doesn't open a menu partly off-screen. */
+    var mw = menu.offsetWidth, mh = menu.offsetHeight;
+    menu.style.left = Math.max(4, Math.min(x, window.innerWidth - mw - 4)) + 'px';
+    menu.style.top = Math.max(4, Math.min(y, window.innerHeight - mh - 4)) + 'px';
+  }
+
+  /* One listener per canvas, made once: charts are destroyed and rebuilt on
+     every filter change, and the menu looks the chart up when it is used,
+     the same way the old link did. Right-clicking the chart replaces the
+     browser's own context menu with this one rather than adding to it. */
+  function attach(chart){
+    var canvas = chart.canvas;
+    if (!canvas || canvas.dataset.cdLink) return;
+    canvas.dataset.cdLink = '1';
+    canvas.addEventListener('contextmenu', function(e){
+      e.preventDefault();
+      var ch = Chart.getChart ? Chart.getChart(canvas) : chart;
+      showMenu(e.clientX, e.clientY, canvas, ch ? pickedLabel(ch, e) : null);
+    });
+    ensureBox();
+  }
+  Chart.register({id:'chartDataTable', afterInit:attach});
+})();
+</script>
+<!-- /chart-data drill-down -->
+<style>
+  :root{
+    /* --- surfaces: raw parchment, cream, unbleached paper --- */
+    --paper:#F7FBF5;
+    --surface:#FFFFFF;
+    --surface-sunk:#F1F7EF;
+    /* --- ink: espresso --- */
+    --ink:#1F2D1A;
+    --ink-soft:#4D5F47;
+    --ink-faint:#72836B;
+    --line:#DCE8D8;
+    --line-strong:#C8D8C1;
+    /* --- roasted bean: the primary --- */
+    --roast:#0E564C;
+    --roast-deep:#0B4C43;
+    --roast-light:#368779;
+    --roast-wash:#EAF5E5;
+    /* --- leaf: the growing side --- */
+    --leaf:#0E564C;
+    --leaf-light:#6DAD4D;
+    --leaf-wash:#ECF6E8;
+    /* --- coffee cherry --- */
+    --cherry:#4E8E33;
+    --cherry-wash:#EEF7EA;
+    /* --- golden harvest --- */
+    --honey:#6FA649;
+    --honey-wash:#F1F8ED;
+    /* --- supporting --- */
+    --teal:#4D8F35;
+    --olive:#7EAD56;
+    --clay:#4C7A35;
+    /* Side navigation: drawn from the page's own palette: the rail is the
+       same espresso as the footer, so the dashboard sits framed between them.
+       Contrast (white on button 6.5:1, espresso on honey 6.2:1) is above AA. */
+    --nav-bg:#0B4C43;
+    --nav-edge:#0E564C;
+    --nav-title:#F7FBF5;
+    --nav-btn:#0E564C;
+    --nav-btn-hover:#126A5E;
+    --nav-btn-current:#FFFFFF;
+    --nav-btn-current-ink:#0E564C;
+    /* KPI tile gradients. Every stop was checked for white-text contrast
+       rather than picked by eye. Saturation is pushed well above the base
+       palette (leaf 0.46 -> 0.68, teal 0.50 -> 0.75) to make the row carry, but
+       each hue is then darkened only as far as it must be for white text to
+       clear 4.5:1. Full saturation passes too, and looks like neon rather than
+       coffee, so it was not used. The tiles are the loudest thing on the page;
+       unreadable labels on them would be the most visible possible mistake. */
+    --tile-leaf:linear-gradient(135deg,#5AA733 0%,#0E564C 100%);   /* 4.60:1 */
+    --tile-honey:linear-gradient(135deg,#87BC5E 0%,#5A9837 100%);  /* 4.58:1 */
+    --tile-roast:linear-gradient(135deg,#6CB345 0%,#0E564C 100%);  /* 4.55:1 */
+    --tile-cherry:linear-gradient(135deg,#75B852 0%,#438A23 100%); /* 4.57:1 */
+    --tile-teal:linear-gradient(135deg,#4FA45A 0%,#2E7F3D 100%);   /* 4.55:1 */
+    --tile-olive:linear-gradient(135deg,#95C96A 0%,#5B9438 100%);  /* 4.56:1 */
+
+    --radius-sm:4px;
+    --radius-md:8px;
+    --radius-lg:10px;
+    --shadow-pop:0 12px 30px -10px rgba(42,26,16,0.38);
+    --shadow-panel:0 1px 2px rgba(42,26,16,0.04), 0 10px 26px -20px rgba(42,26,16,0.55);
+  }
+  *{box-sizing:border-box;}
+  .kpi-value,.tile-value,.tile-foot,
+  table.leaderboard td.num,table.leaderboard th.num,
+  .district-row .qty,.district-detail b
+  {font-variant-numeric:tabular-nums; font-feature-settings:'tnum' 1;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+    font-size:15px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+    /* Power BI aligns figures with tabular numerals rather than a monospace
+     face. Segoe UI, Helvetica and Arial all ship fixed-width lining figures, so
+     columns still line up without a second typeface. */
+  .num{font-variant-numeric:tabular-nums; font-feature-settings:'tnum' 1;}
+  a{color:inherit;}
+  ::selection{background:var(--roast); color:#fff;}
+
+  /* ---------- Page frame: fixed side nav + the dashboard column ---------- */
+  .layout{display:flex; align-items:flex-start; min-height:100vh;}
+  .layout-main{flex:1 1 auto; min-width:0; max-width:100%;}   /* min-width:0 so grids can shrink */
+
+  .sidenav{
+    flex:0 0 172px; width:172px; align-self:stretch;
+    position:sticky; top:4px; max-height:calc(100vh - 4px); overflow-y:auto;
+    background:var(--nav-bg);
+    border-right:1px solid var(--nav-edge);
+    padding:16px 14px 28px;
+    display:flex; flex-direction:column; gap:13px;
+  }
+  .sidenav-title{
+    color:var(--nav-title); font-size:12px; font-weight:600;
+    text-transform:uppercase; letter-spacing:0.12em;
+    padding:2px 2px 2px; margin:0;
+  }
+  .navbtn{
+    display:block; text-align:center; text-decoration:none;
+    background:var(--nav-btn); color:#fff;
+    border:1px solid rgba(255,252,246,0.10);
+    font-size:13px; font-weight:500; line-height:1.3;
+    padding:12px 6px;
+    /* chamfered corners, matching the other dashboards' buttons */
+    clip-path:polygon(9px 0, calc(100% - 9px) 0, 100% 9px, 100% calc(100% - 9px),
+                      calc(100% - 9px) 100%, 9px 100%, 0 calc(100% - 9px), 0 9px);
+    transition:background .15s ease;
+  }
+  .navbtn:hover{background:var(--nav-btn-hover);}
+  /* clip-path would crop a normal outline, so the focus ring is drawn inside */
+  .navbtn:focus-visible{outline:none; box-shadow:inset 0 0 0 2px #fff;}
+  .navbtn[aria-current="page"]{
+    background:var(--nav-btn-current); color:var(--nav-btn-current-ink);
+    font-weight:600; border-color:transparent;
+  }
+  @media (prefers-reduced-motion:reduce){ .navbtn{transition:none;} }
+
+  @media (max-width:900px){
+    .layout{flex-direction:column;}
+    .sidenav{
+      position:static; width:auto; max-height:none; flex:0 0 auto; align-self:auto;
+      flex-direction:row; align-items:center; gap:10px;
+      /* min-width:0 is what makes overflow-x:auto actually scroll here: without
+         it the rail sizes to all nine buttons and drags the page wider than the
+         viewport rather than scrolling inside itself. */
+      min-width:0; max-width:100%;
+      overflow-x:auto; padding:12px 16px;
+      border-right:none; border-bottom:1px solid var(--nav-edge);
+    }
+    .sidenav-title{display:none;}
+    .navbtn{flex:0 0 auto; padding:10px 16px; white-space:nowrap;}
+  }
+
+  /* ---------- Layout shell ---------- */
+  .shell{max-width:1320px; margin:0 auto; padding:0 32px;}
+  @media (max-width:900px){ .shell{padding:0 18px;} }
+
+  /* ---------- Header ---------- */
+  body::before{
+    content:''; position:fixed; top:0; left:0; right:0; height:4px; z-index:60;
+    background:linear-gradient(90deg,var(--roast-deep) 0%,var(--roast) 22%,var(--cherry) 46%,var(--honey) 70%,var(--leaf) 100%);
+  }
+  header.topbar{
+    position:sticky; top:4px; z-index:50;
+    background:rgba(250,244,234,0.94);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line-strong);
+  }
+  .topbar-inner{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:8px 0; gap:20px; flex-wrap:wrap;
+  }
+  .brand{display:flex; align-items:center; gap:14px;}
+  .brand-mark{height:30px; width:auto; flex:none;}
+  .brand-text{border-left:1px solid var(--line-strong); padding-left:14px;}
+  .brand-text .role{font-size:12.5px; color:var(--ink-soft); margin-top:1px;}
+
+  .filterbar{display:flex; align-items:center; gap:18px; flex-wrap:wrap;}
+  .pillgroup{display:flex; background:var(--surface-sunk); border-radius:999px; padding:3px; gap:2px;}
+  .pill{
+    border:none; background:transparent; padding:7px 14px; border-radius:999px;
+    font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-size:13px; font-weight:500; color:var(--ink-soft);
+    cursor:pointer; transition:background .15s ease, color .15s ease;
+  }
+  .pill.active{background:var(--roast); color:#fff;}
+  .pill:not(.active):hover{color:var(--ink);}
+  .asof{font-size:12px; color:var(--ink-faint); white-space:nowrap;}
+
+  /* ---------- Section scaffolding ---------- */
+  section{padding:22px 0;}
+  section + section{border-top:1px solid var(--line);}
+  /* Part rails split the page into the two runs it actually serves: the
+     scale-and-impact read at the top, the operating detail below it. */
+  .part-rail{
+    display:flex; align-items:center; gap:12px;
+    margin:26px 0 0 0; padding-top:20px; border-top:2px solid var(--ink);
+  }
+  .part-rail span{
+    font-size:11.5px; font-weight:700; letter-spacing:.09em;
+    text-transform:uppercase; color:var(--ink); white-space:nowrap;
+  }
+  .part-rail::after{content:''; flex:1 1 auto; height:1px; background:var(--line);}
+  .part-rail + section{border-top:none; padding-top:10px;}
+  .section-head{
+    display:grid; grid-template-columns:repeat(12,minmax(0,1fr));
+    gap:24px; align-items:end; margin-bottom:12px;
+  }
+  .section-head > div:first-child{grid-column:span 8; min-width:0;}
+  .section-head h2{font-size:19px; margin:0 0 4px 0; font-weight:700; letter-spacing:-0.01em;}
+  .section-head h2::before{
+    content:''; display:block; width:44px; height:3px; border-radius:2px;
+    background:var(--roast); margin-bottom:7px;
+  }
+  .section-head p{margin:0; color:var(--ink-soft); font-size:14px; max-width:62ch;}
+  .section-tag{grid-column:span 4; align-self:end; font-size:12.5px; color:var(--ink-faint); text-align:right;}
+  @media (max-width:980px){
+    .section-head > div:first-child, .section-tag{grid-column:1 / -1;}
+    .section-tag{text-align:left;}
+  }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    padding-top:20px; padding-bottom:0; border-top:none;
+    background:
+      radial-gradient(ellipse 900px 460px at 8% -14%, var(--honey-wash) 0%, transparent 64%),
+      radial-gradient(ellipse 760px 400px at 100% -4%, var(--leaf-wash) 0%, transparent 60%),
+      radial-gradient(ellipse 520px 300px at 58% -18%, var(--roast-wash) 0%, transparent 66%);
+    margin-top:-1px;
+  }
+  .hero-head{margin-bottom:14px;}
+  /* the figure column is far taller than the badges; centring stops a dead
+     band opening up above them */
+  /* these sit before .hero h1 / .hero p.lede in the cascade, so they need
+     enough specificity to win rather than relying on source order */
+  .hero .hero-head h1{max-width:none;}
+  .hero .hero-head p.lede{max-width:none;}
+  .hero-eyebrow{font-size:14px; color:var(--roast); font-weight:600; margin:0 0 10px 0;}
+  .hero h1{font-size:25px; line-height:1.12; margin:0 0 9px 0; font-weight:700; letter-spacing:-0.015em; max-width:18ch;}
+  .hero p.lede{font-size:14.5px; color:var(--ink-soft); max-width:56ch; margin:0;}
+
+
+  /* ---------- Tile rows ----------
+     Row one (context) and row two (metrics) share one tile component so the
+     head of the page reads as a single grid. Row one runs deeper in tone than
+     row two, which gives the hierarchy without introducing another shape. */
+  .tilerow{
+    display:grid; grid-template-columns:repeat(12,minmax(0,1fr));
+    gap:10px; margin-top:14px;
+  }
+  @media (max-width:1100px){ .tilerow{grid-template-columns:repeat(6,minmax(0,1fr));} }
+  @media (max-width:640px){ .tilerow{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  /* Four-tile pages (export, EUDR) spread across the same twelve columns. */
+  .tilerow-4 .tile{grid-column:span 3;}
+  @media (max-width:1100px){ .tilerow-4 .tile{grid-column:span 3;} }
+  @media (max-width:640px){ .tilerow-4 .tile{grid-column:span 2;} }
+  .tile{
+    grid-column:span 2; min-width:0;
+    padding:13px 15px 13px; border-radius:var(--radius-lg);
+    background:var(--tile-roast); color:#fff;
+    box-shadow:0 1px 2px rgba(42,26,16,.10), 0 8px 18px -14px rgba(42,26,16,.55);
+    display:flex; flex-direction:column; justify-content:flex-start;
+  }
+  /* Row one is the network: who and what Ndugu is. It runs dark to light left
+     to right in the roast family, so the reading order is carried by tone as
+     well as position. Row two below does the same in teal. Every step is set
+     against a 4.5:1 contrast floor for white text, and the two rows share
+     their endpoints with the export dashboard so the pages read as one set. */
+  .tile-lead{background:linear-gradient(135deg,#663A18 0%,#4A2A11 100%);} /* 9.6:1 */
+  .tile-a{background:linear-gradient(135deg,#72401B 0%,#522E13 100%);}    /* 8.5:1 */
+  .tile-b{background:linear-gradient(135deg,#7E481E 0%,#5B3415 100%);}    /* 7.4:1 */
+  .tile-c{background:linear-gradient(135deg,#8C4F21 0%,#653918 100%);}    /* 6.5:1 */
+  .tile-d{background:linear-gradient(135deg,#9B5824 0%,#703F1A 100%);}    /* 5.5:1 */
+  .tile-e{background:linear-gradient(135deg,#AA6128 0%,#7B461D 100%);}    /* 4.7:1 */
+  .tile{position:relative;}
+  /* Top-right, low opacity: it should read as texture on the tile, not as a
+     second thing to look at. aria-hidden, because the label already says what
+     the tile is and a screen reader repeating it adds nothing. */
+  .tile-icon{
+    position:absolute; top:12px; right:13px; width:18px; height:18px;
+    color:#fff; opacity:.45; pointer-events:none;
+  }
+  .kpi-cell{position:relative;}
+  .kpi-cell .tile-icon{top:9px; right:10px; width:20px; height:20px; opacity:.28;}
+  .tile-label, .kpi-label{padding-right:26px; min-height:1.5em;}
+  .tile-label{
+    font-size:12px; font-weight:500; margin:0 0 6px 0;
+    color:rgba(255,255,255,.82); line-height:1.35;
+  }
+  .tile-value{
+    font-size:23px; font-weight:700; color:#fff; line-height:1.12;
+    font-variant-numeric:tabular-nums; overflow-wrap:break-word;
+  }
+  .tile-lead .tile-value{font-size:26px;}
+  .tile-value-sm{font-size:15px; line-height:1.3;}
+  .tile-foot{font-size:12.5px; color:rgba(255,255,255,.72); margin-top:5px; font-weight:400;}
+
+  /* ---------- KPI tiles ----------
+     Six saturated tiles rather than one bordered ledger strip. Each is its own
+     card so the row reads at a glance from across a room, which is what a
+     dashboard's headline numbers are for. Padding is deliberately tight: the
+     whole point of the change was to get more of the page above the fold. */
+  .kpi-strip{
+    margin-top:10px;
+    display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:10px;
+  }
+  @media (max-width:1100px){ .kpi-strip{grid-template-columns:repeat(3,minmax(0,1fr));} }
+  @media (max-width:560px){ .kpi-strip{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  .kpi-cell{
+    padding:13px 15px 13px; border-radius:var(--radius-lg);
+    background:var(--tile-roast); color:#fff; min-width:0;
+    box-shadow:0 1px 2px rgba(42,26,16,.10), 0 8px 18px -14px rgba(42,26,16,.55);
+  }
+  /* Row two is performance: what the network produced and what it was paid.
+     Same dark-to-light progression as row one, in the second family. */
+  .kpi-cell:nth-child(6n+1){background:linear-gradient(135deg,#0D4D45 0%,#093832 100%);} /* 9.7:1 */
+  .kpi-cell:nth-child(6n+2){background:linear-gradient(135deg,#0E564D 0%,#0A3E37 100%);} /* 8.5:1 */
+  .kpi-cell:nth-child(6n+3){background:linear-gradient(135deg,#106056 0%,#0B453E 100%);} /* 7.4:1 */
+  .kpi-cell:nth-child(6n+4){background:linear-gradient(135deg,#116A5F 0%,#0C4D44 100%);} /* 6.5:1 */
+  .kpi-cell:nth-child(6n+5){background:linear-gradient(135deg,#137568 0%,#0E554B 100%);} /* 5.6:1 */
+  .kpi-cell:nth-child(6n+6){background:linear-gradient(135deg,#158173 0%,#0F5D53 100%);} /* 4.8:1 */
+  .kpi-label{
+    font-size:11.5px; font-weight:500; margin:0 0 3px 0;
+    color:rgba(255,255,255,.88); letter-spacing:.01em;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .kpi-value{
+    font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-size:23px; font-weight:700; color:#fff;
+    line-height:1.12; overflow-wrap:break-word;
+  }
+  @media (max-width:560px){ .kpi-value{font-size:19px;} }
+  .kpi-value small{font-size:12px; font-weight:500; color:rgba(255,255,255,.75);}
+  /* On a coloured tile the up/down hues from the light theme have no contrast,
+     so the delta rides on the tile's own white at reduced opacity and the
+     arrow glyph carries the direction. */
+  .kpi-delta{
+    font-size:11.5px; margin-top:4px; display:flex; align-items:center; gap:4px;
+    color:rgba(255,255,255,.82);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .kpi-delta.up, .kpi-delta.down, .kpi-delta.flat{color:rgba(255,255,255,.82);}
+
+  /* ---------- KPI grid (twelve tiles, one story) ----------
+     Replaces the old two-row split with a single 4-column, 3-row grid: who
+     the network is (row 1) and how the season is moving (row 2) both run in
+     the teal/green family, so scale and activity read as one continuous
+     block; the closing row (org structure and credentials) switches to the
+     roast/brown family as a deliberate change of register. Each row still
+     lightens left to right within its family. */
+  .kpigrid{
+    display:grid; grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:10px; margin-top:14px;
+  }
+  @media (max-width:900px){ .kpigrid{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  @media (max-width:480px){ .kpigrid{grid-template-columns:1fr;} }
+  .kpigrid .tile{grid-column:span 1;}
+  /* Every stop below is one already validated elsewhere in this file (the
+     kpi-cell teal ramp and the tile-a..e roast ramp) — reused rather than
+     picked fresh, so the 4.5:1 white-text floor and the deuteranopia-safe
+     green stay intact without re-checking new hex. */
+  .kt1{background:linear-gradient(135deg,#0D4D45 0%,#093832 100%);} /* 9.7:1 */
+  .kt2{background:linear-gradient(135deg,#0E564D 0%,#0A3E37 100%);} /* 8.5:1 */
+  .kt3{background:linear-gradient(135deg,#106056 0%,#0B453E 100%);} /* 7.4:1 */
+  .kt4{background:linear-gradient(135deg,#116A5F 0%,#0C4D44 100%);} /* 6.5:1 */
+  .kt5{background:linear-gradient(135deg,#0E564D 0%,#0A3E37 100%);} /* 8.5:1 */
+  .kt6{background:linear-gradient(135deg,#106056 0%,#0B453E 100%);} /* 7.4:1 */
+  .kt7{background:linear-gradient(135deg,#116A5F 0%,#0C4D44 100%);} /* 6.5:1 */
+  .kt8{background:linear-gradient(135deg,#137568 0%,#0E554B 100%);} /* 5.6:1 */
+  .kt9{background:linear-gradient(135deg,#72401B 0%,#522E13 100%);} /* 8.5:1 */
+  .kt10{background:linear-gradient(135deg,#7E481E 0%,#5B3415 100%);} /* 7.4:1 */
+  .kt11{background:linear-gradient(135deg,#8C4F21 0%,#653918 100%);} /* 6.5:1 */
+  .kt12{background:linear-gradient(135deg,#9B5824 0%,#703F1A 100%);} /* 5.5:1 */
+
+  /* ---------- Generic panel ---------- */
+  .panel{
+    border:1px solid var(--line-strong); border-radius:var(--radius-md);
+    background:var(--surface); padding:14px; box-shadow:var(--shadow-panel);
+    display:flex; flex-direction:column; min-width:0;
+  }
+  .panel-title{font-size:14.5px; font-weight:600; margin:0 0 4px 0; min-height:1.4em;}
+  .panel-note{font-size:12.5px; color:var(--ink-faint); margin:0 0 8px 0; min-height:1.5em;}
+
+  /* ---------- Map section ---------- */
+  /* The map used to be the one section on the page with no card chrome —
+     every other panel, including the district ledger it sits beside, has a
+     border, a surface fill and a shadow. Giving it the same .panel treatment
+     plus its own title/note (matching the ledger's head) is what makes the
+     row read as two matching cards instead of a list beside a bare drawing. */
+  .map-panel{
+    position:relative; display:flex; flex-direction:column; min-width:0;
+    border:1px solid var(--line-strong); border-radius:var(--radius-md);
+    background:var(--surface); padding:14px; box-shadow:var(--shadow-panel);
+  }
+  /* A fixed height used to letterbox the map: at 420px tall the viewBox (a
+     near-square 900x943, 2.1deg lon by 2.2deg lat) only draws about 400px
+     wide, leaving 70-80px of bare parchment on each side of a col-6 track —
+     visible dead space rather than map. aspect-ratio matches the box to the
+     viewBox exactly instead, so the drawing fills the full column width with
+     nothing left over, and the column stays col-6, the same width as the
+     ledger beside it. The row is taller for it (roughly 600px on a typical
+     desktop width rather than 420), so the ledger's list below is no longer
+     capped to an old fixed height — .grid's align-items:stretch makes it
+     match the map, whichever is taller, same as it did before either panel
+     had an explicit height. Narrow viewports stack the two panels instead of
+     sitting them side by side, so nothing there needs to match a neighbour's
+     width; the map reverts to a plain fixed height there. */
+  .map-svg-wrap{
+    position:relative; width:100%; aspect-ratio:900/943;
+    border-radius:var(--radius-sm); overflow:hidden;
+    background:linear-gradient(180deg,var(--surface) 0%,var(--surface-sunk) 100%);
+    border:1px solid var(--line);
+  }
+  @media (max-width:980px){ .map-svg-wrap{aspect-ratio:auto; height:340px;} }
+  .map-svg-wrap svg{width:100%; height:100%; display:block;}
+  .map-tooltip{
+    position:absolute; pointer-events:none; z-index:10;
+    background:var(--ink); color:#fff; padding:9px 12px; border-radius:var(--radius-sm);
+    font-size:12.5px; line-height:1.45; box-shadow:var(--shadow-pop);
+    transform:translate(-50%,-115%); white-space:nowrap; opacity:0; transition:opacity .1s ease;
+  }
+  .map-tooltip strong{font-weight:600;}
+  .map-tooltip .num{color:#EBD6BC;}
+  .map-legend{display:flex; gap:18px; margin-top:10px; flex-wrap:wrap; font-size:12px; color:var(--ink-soft);}
+  .map-legend .item{display:flex; align-items:center; gap:6px;}
+  .map-legend .sw{width:11px; height:11px; border-radius:50%; flex:none;}
+
+  .district-ledger{
+    border:1px solid var(--line-strong); border-radius:var(--radius-md); background:var(--surface);
+    overflow:hidden; box-shadow:var(--shadow-panel); display:flex; flex-direction:column;
+    /* min-height:0 lets the list inside scroll instead of pushing this panel
+       taller than the map it sits beside; the two then end level. */
+    min-height:0;
+  }
+  /* flex-basis:0, not auto: the list's own row count must not feed into the
+     grid row's auto height, or an eleven-row list (taller than any map worth
+     drawing) would pull the map-panel card down to match it, leaving empty
+     space below the map instead of beside it. With a zero basis the ledger's
+     only contribution to that calculation is its header, so the map (sized
+     by aspect-ratio) is reliably what sets the row height, and this list
+     just grows to fill and scrolls within whatever that turns out to be —
+     the same relationship as before, just with the two panels' roles
+     swapped. Below 980px the two panels stack instead of sitting side by
+     side, so nothing here needs to match a neighbour's height; capped back
+     to a fixed scroll height there so one district-heavy list can't push the
+     page to an awkward length. */
+  #districtList{flex:1 1 0; overflow-y:auto; min-height:0;}
+  @media (max-width:980px){ #districtList{max-height:382px;} }
+  .district-ledger-head{padding:14px 16px 10px; border-bottom:1px solid var(--line);}
+  .district-row{
+    display:grid; grid-template-columns:1fr auto auto; gap:12px; align-items:center;
+    padding:6px 16px; border-bottom:1px solid var(--line); cursor:pointer;
+    transition:background .12s ease;
+  }
+  .district-row:last-child{border-bottom:none;}
+  .district-row:nth-child(even){background:var(--surface-sunk);}
+  .district-row:hover{background:var(--roast-wash);}
+  .district-row.selected{background:var(--roast-wash); box-shadow:inset 3px 0 0 var(--roast);}
+  .district-row .name{font-size:13.5px; font-weight:500; line-height:1.35;}
+  .district-row .sub{font-size:11.5px; color:var(--ink-faint); margin-top:1px; line-height:1.35;}
+  .district-row .bar-track{width:64px; height:5px; background:var(--surface-sunk); border-radius:3px; overflow:hidden; justify-self:end;}
+  .district-row .bar-fill{height:100%; background:linear-gradient(90deg,var(--roast) 0%,var(--roast-light) 100%);}
+  .district-row .qty{font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-size:13px; text-align:right; min-width:64px;}
+  .district-detail{padding:12px 16px; border-top:1px solid var(--line); background:var(--surface-sunk); font-size:12.5px; color:var(--ink-soft);}
+  .district-detail b{color:var(--ink); font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-weight:600;}
+
+  /* ---------- Chart toggle ---------- */
+  .toggle-row{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:14px;}
+  .seg{display:inline-flex; border:1px solid var(--line-strong); border-radius:var(--radius-sm); overflow:hidden;}
+  .seg button{
+    border:none; background:var(--surface); padding:8px 16px; font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+    font-size:13px; font-weight:500; color:var(--ink-soft); cursor:pointer; border-right:1px solid var(--line-strong);
+  }
+  .seg button:last-child{border-right:none;}
+  .seg button.active{background:var(--roast); color:#fff;}
+  /* flex-basis 0 keeps the canvas from feeding its own height back into the row */
+  .chart-box{position:relative; flex:1 1 0%; min-height:225px;}
+  .chart-box.short{min-height:180px;}
+  .chart-box canvas{position:absolute; left:0; top:0;}
+  .insight-line{
+    margin-top:9px; padding:8px 12px; background:var(--honey-wash); border-radius:var(--radius-sm);
+    font-size:13px; color:#5C3A15; border-left:3px solid var(--honey);
+  }
+  .insight-line b{font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-weight:600;}
+
+  /* ---------- 12-column layout grid ----------
+     Every row on the page sits on the same twelve columns with the same 24px
+     gutter, so panel edges line up vertically all the way down. Two-panel rows
+     split 6/6 (map, chart pairs); everything else spans 12.
+     minmax(0,1fr) stops a responsive canvas from forcing its column wider. */
+  .grid{
+    display:grid; grid-template-columns:repeat(12,minmax(0,1fr));
+    gap:14px; align-items:stretch;
+  }
+  .col-4{grid-column:span 4;}
+  .col-5{grid-column:span 5;}
+  .col-6{grid-column:span 6;}
+  .col-7{grid-column:span 7;}
+  .col-8{grid-column:span 8;}
+  .col-12{grid-column:span 12;}
+  /* A grid item defaults to min-width:auto, which is its CONTENT width, so a
+     wide table or a fixed-width canvas inside one pushes the whole page wider
+     than the viewport instead of scrolling within its own panel. */
+  .grid > [class*="col-"]{min-width:0;}
+  @media (max-width:980px){ .grid > [class*="col-"]{grid-column:1 / -1;} }
+
+  table.leaderboard{
+    width:100%; border-collapse:separate; border-spacing:0; font-size:13.5px;
+    table-layout:fixed; border:1px solid var(--line-strong);
+    border-radius:var(--radius-sm); overflow:hidden;
+  }
+  table.leaderboard th{
+    text-align:left; font-size:11px; font-weight:600; color:#F0DFC7;
+    background:var(--roast-deep);
+    padding:9px 14px; text-transform:uppercase; letter-spacing:0.07em; white-space:nowrap;
+  }
+  table.leaderboard td{
+    padding:8px 14px; border-bottom:1px solid var(--line);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  /* Alternating rows. The stripe is the palette's own parchment rather than a
+     grey, so it reads as part of the theme instead of a browser default. */
+  table.leaderboard tbody tr:nth-child(odd){background:var(--surface);}
+  table.leaderboard tbody tr:nth-child(even){background:var(--surface-sunk);}
+  table.leaderboard tbody tr:last-child td{border-bottom:none;}
+  table.leaderboard tbody tr:hover{background:var(--roast-wash);}
+  table.leaderboard td.num, table.leaderboard th.num{text-align:right; font-variant-numeric:tabular-nums;}
+  table.leaderboard td.name{font-weight:500;}
+  /* A code is an identifier, not a quantity, so it stays left-aligned under a
+     left-aligned header. It keeps tabular figures so the codes stack evenly. */
+  table.leaderboard td.code{
+    text-align:left; font-variant-numeric:tabular-nums; letter-spacing:.01em;
+  }
+  /* A rule down the left of the first data column, so the eye has a rail to
+     follow across a wide row. */
+  table.leaderboard td.rank{
+    color:var(--ink-faint); font-variant-numeric:tabular-nums;
+    box-shadow:inset 3px 0 0 var(--roast-wash);
+  }
+  table.leaderboard tbody tr:hover td.rank{box-shadow:inset 3px 0 0 var(--roast);}
+  /* Unconditional rather than only under 820px: the table has a 660px floor,
+     so any container narrower than that has to scroll it, and min-width:0 lets
+     the container shrink far enough for that to happen. */
+  .leaderboard-scroll{overflow-x:auto; min-width:0;}
+  @media (max-width:820px){ table.leaderboard{min-width:660px;} }
+
+  /* ---------- Footer ---------- */
+  footer{
+    margin-top:22px; padding:24px 0 30px; font-size:12.5px; line-height:1.7;
+    background:var(--roast-deep); color:#BFA98F;
+    border-top:4px solid var(--roast);
+  }
+  footer .fgrid{display:grid; grid-template-columns:1fr; gap:40px;}
+  footer h4{font-size:12.5px; color:#F0DFC7; font-weight:600; margin:0 0 8px 0; letter-spacing:0.02em;}
+
+  .vis-hidden{display:none !important;}
+
+  /* ---------- boot states (before data.json arrives) ---------- */
+  .boot{
+    max-width:640px; margin:0 auto; padding:96px 24px 120px; text-align:center;
+  }
+  .boot-spinner{
+    width:26px; height:26px; margin:0 auto 18px; border-radius:50%;
+    border:2.5px solid var(--line-strong); border-top-color:var(--roast);
+    animation:boot-spin .8s linear infinite;
+  }
+  @keyframes boot-spin{to{transform:rotate(360deg);}}
+  @media (prefers-reduced-motion:reduce){ .boot-spinner{animation-duration:2.4s;} }
+  .boot p{margin:0; color:var(--ink-soft); font-size:14px;}
+  .boot-title{font-size:16px; font-weight:600; color:var(--ink); margin:0 0 10px 0;}
+  .boot-detail{
+    font-size:13.5px; color:var(--ink-soft); line-height:1.6;
+    background:var(--surface); border:1px solid var(--line-strong);
+    border-left:3px solid var(--cherry); border-radius:var(--radius-sm);
+    padding:14px 16px; text-align:left; margin-top:16px;
+  }
+
+  /* ---------- Export-only ---------- */
+
+  /* .grid and .panel set a display value, which outranks the user agent's
+     [hidden] rule. Without this a panel hidden for a season with no such data
+     keeps its space and draws an empty chart. */
+  [hidden]{display:none !important;}
+
+  /* Ten headline tiles, five to a row: sourcing above, market below. Each row
+     runs dark to light left to right within one colour family, so the reading
+     order is carried by tone as well as position. Every tone is chosen against
+     a 4.5:1 contrast floor for white text. */
+  .tilegrid{
+    display:grid; grid-template-columns:repeat(5,minmax(0,1fr));
+    gap:10px; margin-top:16px;
+  }
+  @media (max-width:1100px){ .tilegrid{grid-template-columns:repeat(3,minmax(0,1fr));} }
+  @media (max-width:640px){ .tilegrid{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  /* .tile carries grid-column:span 2 for index.html's 12-column tile row.
+     This grid is five columns wide, so each tile takes one of them. */
+  .tilegrid .tile{grid-column:auto; min-width:0;}
+
+  .tone-s1{background:linear-gradient(135deg,#663A18 0%,#4A2A11 100%);}
+  .tone-s2{background:linear-gradient(135deg,#77431C 0%,#563114 100%);}
+  .tone-s3{background:linear-gradient(135deg,#884D20 0%,#623817 100%);}
+  .tone-s4{background:linear-gradient(135deg,#995724 0%,#6F3F1A 100%);}
+  .tone-s5{background:linear-gradient(135deg,#AA6128 0%,#7B461D 100%);}
+  .tone-m1{background:linear-gradient(135deg,#0D4D45 0%,#093832 100%);}
+  .tone-m2{background:linear-gradient(135deg,#0F5A50 0%,#0B413A 100%);}
+  .tone-m3{background:linear-gradient(135deg,#11675C 0%,#0C4B42 100%);}
+  .tone-m4{background:linear-gradient(135deg,#137467 0%,#0E544B 100%);}
+  .tone-m5{background:linear-gradient(135deg,#158173 0%,#0F5D53 100%);}
+
+  .tilegrid-legend{
+    display:flex; flex-wrap:wrap; gap:8px 26px; margin:10px 0 0;
+    font-size:11.5px; color:var(--ink-soft);
+  }
+  .tilegrid-legend b{color:var(--ink); font-weight:600;}
+  .tilegrid-legend > span{display:flex; gap:6px; align-items:baseline;}
+  .tilegrid-legend > span::before{
+    content:''; width:9px; height:9px; border-radius:2px; flex:0 0 auto;
+    position:relative; top:1px;
+  }
+  .tilegrid-legend > span:nth-child(1)::before{background:#884D20;}
+  .tilegrid-legend > span:nth-child(2)::before{background:#11675C;}
+
+  /* Shipment ledger: one row per lot, on the same columns as the district
+     ledger on the domestic page. */
+  .lot-row{
+    display:grid; grid-template-columns:2.2rem 1fr auto auto; gap:12px;
+    align-items:center; padding:8px 16px; border-bottom:1px solid var(--line);
+  }
+  .lot-row:last-child{border-bottom:none;}
+  .lot-row:nth-child(even){background:var(--surface-sunk);}
+  .lot-row:hover{background:var(--roast-wash);}
+  .lot-row .seq{font-size:12px; color:var(--ink-faint); font-variant-numeric:tabular-nums;}
+  .lot-row .who{min-width:0;}
+  .lot-row .who .name{font-size:13.5px; font-weight:500; line-height:1.35;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .lot-row .who .sub{font-size:11.5px; color:var(--ink-faint); margin-top:1px; line-height:1.35;}
+  .lot-row .qty{font-size:13px; text-align:right; font-variant-numeric:tabular-nums;}
+  .lot-row .screen{
+    font-size:11px; font-weight:600; letter-spacing:0.04em;
+    padding:3px 8px; border-radius:999px; white-space:nowrap;
+  }
+  .screen-15{background:var(--roast-wash); color:#6B3F1D;}
+  .screen-12{background:var(--leaf-wash);  color:#3B5F22;}
+  .screen-18{background:var(--honey-wash); color:#7A5310;}
+  .screen-na{background:var(--surface-sunk); color:var(--ink-faint);}
+
+  /* Marks a value shown as recorded rather than corrected. */
+  .flag{
+    display:inline-block; margin-left:6px; font-size:10.5px; font-weight:600;
+    color:var(--clay); border:1px solid var(--clay); border-radius:3px;
+    padding:0 4px; line-height:1.5; cursor:help;
+  }
+
+  .callout{
+    border:1px solid var(--line-strong); border-left:3px solid var(--teal);
+    border-radius:var(--radius-sm); background:var(--surface);
+    padding:14px 16px; font-size:13px; color:var(--ink-soft); line-height:1.6;
+  }
+  .callout b{color:var(--ink); font-weight:600;}
+  .callout + .callout{margin-top:10px;}
+
+  .flow{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-bottom:14px;}
+  @media (max-width:820px){ .flow{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  .flow-step{
+    border:1px solid var(--line-strong); border-radius:var(--radius-sm);
+    background:var(--surface-sunk); padding:11px 13px; position:relative;
+  }
+  .flow-step .lab{font-size:11.5px; color:var(--ink-soft); margin-bottom:5px;}
+  .flow-step .val{font-size:18px; font-weight:600; color:var(--ink);
+    font-variant-numeric:tabular-nums;}
+  .flow-step .foot{font-size:11.5px; color:var(--ink-faint); margin-top:3px;}
+  .flow-step:nth-child(1){border-top:3px solid #663A18;}
+  .flow-step:nth-child(2){border-top:3px solid #884D20;}
+  .flow-step:nth-child(3){border-top:3px solid #AA6128;}
+  .flow-step:nth-child(4){border-top:3px solid #11675C;}
+
+  /* Contract ledger. The bar is the fulfilment share, so the column can be
+     scanned for short contracts without reading the figures. */
+  .con-row{
+    display:grid; grid-template-columns:minmax(0,5fr) minmax(0,6fr) 9.5rem; gap:18px;
+    align-items:center; padding:10px 16px; border-bottom:1px solid var(--line);
+  }
+  .con-row:last-child{border-bottom:none;}
+  .con-row:nth-child(even){background:var(--surface-sunk);}
+  .con-row:hover{background:var(--roast-wash);}
+  .con-row .who{min-width:0;}
+  .con-row .who .name{font-size:13.5px; font-weight:600; line-height:1.35;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .con-row .who .sub{font-size:11.5px; color:var(--ink-faint); margin-top:1px; line-height:1.4;}
+  .con-row .bar{height:8px; border-radius:4px; background:var(--surface-sunk); overflow:hidden;}
+  .con-row .bar span{display:block; height:100%; border-radius:4px; background:#11675C;}
+  .con-row .bar.short span{background:#AA6128;}
+  .con-row .bar.none span{background:var(--clay);}
+  .con-row .qty{font-size:12.5px; text-align:right; color:var(--ink-soft);
+    font-variant-numeric:tabular-nums;}
+  .con-row .qty b{display:block; font-size:13px; color:var(--ink); font-weight:600;}
+  @media (max-width:640px){
+    .con-row{grid-template-columns:1fr 5rem;}
+    .con-row .bar{grid-column:1 / -1;}
+  }
+
+  /* A ledger sets the height of its row, so both scroll rather than stretch. */
+  #lotList{max-height:520px; overflow-y:auto;}
+  #contractList{max-height:420px; overflow-y:auto;}
+
+  /* Two figures side by side under a chart. */
+  .statpair{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:12px;}
+  .statpair > div{
+    border:1px solid var(--line-strong); border-radius:var(--radius-sm);
+    background:var(--surface-sunk); padding:10px 12px;
+  }
+  .statpair .lab{font-size:11.5px; color:var(--ink-soft);}
+  .statpair .val{font-size:17px; font-weight:600; color:var(--ink); margin-top:3px;
+    font-variant-numeric:tabular-nums;}
+</style>
+
+<link rel="stylesheet" href="kpi-tree.css">
+
+<style id="ndugu-green-theme-overrides">
+  :root{color-scheme:light;}
+  .sidenav{background:var(--nav-bg)!important;border-color:var(--nav-edge)!important}
+  .sidenav-title{color:var(--nav-title)!important}
+  .navbtn{background:var(--nav-btn)!important;color:#fff!important;border-color:rgba(255,255,255,.12)!important}
+  .navbtn:hover{background:var(--nav-btn-hover)!important}
+  .navbtn[aria-current="page"]{background:var(--nav-btn-current)!important;color:var(--nav-btn-current-ink)!important;border-color:transparent!important}
+  ::selection{background:#0E564C;color:#fff}
+</style>
+<script src="ndugu-preferences.js"></script>
+<link rel="stylesheet" href="ndugu-brand.css">
+</head>
+<body>
+
+<div class="boot" id="bootLoading">
+  <div class="boot-spinner"></div>
+  <p>Loading dashboard data&hellip;</p>
+</div>
+
+<div class="boot" id="bootError" hidden>
+  <p class="boot-title"></p>
+  <p class="boot-detail"></p>
+</div>
+
+<div id="dashboard" hidden>
+
+<div class="layout">
+
+<nav class="sidenav" aria-label="Dashboards">
+  <p class="sidenav-title" data-i18n="navTitle">Navigation</p>
+  <form class="sidenav-search" action="portal.html" method="get" role="search"><input type="search" name="q" autocomplete="off" placeholder="Search…" data-ph-en="Search…" data-ph-nl="Zoeken…" aria-label="Find a farmer, cooperative, district or village in My dashboard" data-aria-nl="Zoek een boer, coöperatie, district of dorp in Mijn dashboard"></form>
+  <a class="navbtn" href="portal.html"      data-i18n="navPortal">My dashboard</a>
+  <a class="navbtn" href="impact.html"      data-i18n="navImpact">Ndugu Impact</a>
+  <a class="navbtn" href="domestic.html"    data-i18n="navDomestic">Domestic Trade</a>
+  <a class="navbtn" href="export.html"      aria-current="page" data-i18n="navExport">Ndugu Export</a>
+  <a class="navbtn" href="finance.html"     data-i18n="navFinance">Ndugu Microfinance</a>
+  <a class="navbtn" href="production.html"  data-i18n="navProduction">Ndugu Production</a>
+  <a class="navbtn" href="coffee.html"      data-i18n="navCoffee">Coffee Minds</a>
+  <a class="navbtn" href="eudr.html"        data-i18n="navEudr">EUDR Compliance</a>
+  <a class="navbtn" href="agritracker.html" data-i18n="navAgritracker">Internal resources</a>
+</nav>
+
+<div class="layout-main">
+
+<header class="topbar">
+  <div class="shell topbar-inner">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 1080 283.07" xmlns="http://www.w3.org/2000/svg"><style>.cls-1{fill:#0E564C;}</style><path class="cls-1" d="M469.14,81.5c41.67,0,59.71,16.51,59.71,54.37v74.95H495.56V136.89c0-18.81-7.62-27.19-26.42-27.19-19.06,0-26.94,8.38-26.94,27.19v73.93h-33V135.87C409.17,98,426.7,81.5,469.14,81.5Z"></path><path class="cls-1" d="M593.37,81.5c20.32,0,30,6.6,37.6,13.46h1.78V28.46h33V148.83c0,44.21-20.58,64.28-63.52,64.28S538,193,538,148.83v-3.05C538,100.3,556.78,81.5,593.37,81.5Zm8.89,103.41c21.85,0,30.49-9.91,30.49-37.1v-1c0-27.18-8.64-37.09-30.49-37.09s-31,9.91-31,37.09v1C571.26,175,580.41,184.91,602.26,184.91Z"></path><path class="cls-1" d="M872.33,81.5c42.94,0,63.52,20.83,63.52,65.29V203c0,41.92-16.51,60-65.3,60a216.77,216.77,0,0,1-39.89-3.81V232.42a251.24,251.24,0,0,0,36.84,3.3c26.93,0,35.32-8.38,35.32-26.17v-9.91H901c-7.62,6.86-17.28,13.47-37.6,13.47-36.59,0-55.39-18.8-55.39-64.28v-3.05C808.05,101.57,829.39,81.5,872.33,81.5Zm0,103.41c21.85,0,30.49-9.91,30.49-37.1v-1c0-27.18-8.64-37.09-30.49-37.09s-31,9.91-31,37.09v1C841.33,175,850.48,184.91,872.33,184.91Z"></path><path class="cls-1" d="M948,80.84h33v76.88c0,18.8,7.88,27.19,26.94,27.19,18.8,0,26.42-8.39,26.42-27.19V80.84h33.29v77.9c0,37.85-18,54.37-59.71,54.37-42.44,0-60-16.52-60-54.37Z"></path><path class="cls-1" d="M799.15,80.85v77.9c0,37.85-18,54.36-59.7,54.36-42.42,0-60-16.51-60-54.36V80.85h42.64c-2.25,3.84-4.59,11-7,15.49-.92,1.93-1.78,3.86-2.55,5.77C701,130,702.28,156.31,716,174.48c0,.05,0,.07,0,.1A17.61,17.61,0,0,0,721,180.2a58.17,58.17,0,0,0,15.73,11,72,72,0,0,0,9.46,3.76,38.85,38.85,0,0,1-1.71-3.76,34.06,34.06,0,0,1-1.9-6.37c-4.07-19.62,8.9-37.66,15.57-56.5,2.36-6.62,5.87-14.37,7.78-25.68a142.1,142.1,0,0,0,1.36-19.93c0-.65,0-1.28,0-1.88Z"></path><path class="cls-1" d="M727.74,164.64c-.71-.78-8.53-11.11,9-59.73,1.05-2.93,1.9-5.66,2.63-8.32a48.22,48.22,0,0,0,7.18-1.21,121.65,121.65,0,0,1-4.47,11.82C724.22,147.81,727.46,163.44,727.74,164.64Z"></path><path class="cls-1" d="M240.49,8.16c23.92,0,77.27,38.63,98.88,117.28,18.77,68.29-39.55,149.46-67.6,149.46-58.41,0-45.53-94.28-43.23-104.85C251.07,79.45,214.74,8.16,240.49,8.16Z"></path><path class="cls-1" d="M211,274.9c-23.92,0-77.27-35.1-98.88-106.55-18.77-62.06,39.55-135.81,67.6-135.81,58.41,0,45.53,85.66,43.23,95.27C200.41,210.13,236.74,274.9,211,274.9Z"></path><path class="cls-1" d="M26.3,232.09a1.23,1.23,0,0,1,.21,1.67c-2.34,3.26-4.74,6.56-7.06,9.66-2.53,3.4-4.81,11.58-3.74,15.5s13.52,6.38,14.86,5.51,6.18-12.52,9.21-18.78c5.6-11.56,10.67-23.4,16.91-34.59,3.93-7.06,9.14-13.4,14.22-20.32a1.26,1.26,0,0,0-1.2-2c-12,1.85-20.42,10.16-28.44,18.17-.42.51-1.11.14-1-.28,7.62-14.37,20.45-20.79,35.69-22.2,12.23-1.13,20.52,5.89,26.66,16a1.19,1.19,0,0,1,.15.35A87.14,87.14,0,0,1,105,211.9c1.6,8.2,1,16.38-3.08,23.78C88.2,260.16,66.79,273,39.23,274.86c-6,.42-12.9-2.41-18.38-5.52a17.38,17.38,0,0,1-6.48-23.26c2.67-5,6.53-9.34,10-13.91a1.24,1.24,0,0,1,1.81-.2Zm34.57,24.78C75,245,81.15,230.78,90.41,217.9c5.1-7.09,3.94-20.8,1.35-24.06-2.36-3-5.24-3.55-8.43-4.55a1.24,1.24,0,0,0-1.49.58c-3.94,7.42-8.61,18.78-12.33,21.86-3.88,3.21-10.55,14.84-15.05,22.86-4.67,8.31-21.06,26.12-19.63,32.62S59.72,257.83,60.87,256.87Z"></path></svg>
+      <div class="brand-text">
+        <div class="role" data-i18n="brandRole">Export programme</div>
+      </div>
+    </div>
+    <div class="filterbar">
+      <div class="pillgroup" id="seasonPills"></div>
+      <div class="pillgroup" id="currencyPills">
+        <button class="pill active" data-currency="USD">USD</button>
+        <button class="pill" data-currency="UGX">UGX</button>
+      </div>
+      <div class="pillgroup" id="langPills">
+        <button class="pill active" data-lang="en">EN</button>
+        <button class="pill" data-lang="nl">NL</button>
+      </div>
+      <div class="asof"><span data-i18n="asofLabel">Season</span> <span class="num" id="asOfSeason">-</span></div>
+    </div>
+  </div>
+</header>
+
+<main data-kpi-section="export" class="shell ndugu-kpi-shell">
+<div class="ndg-tabs" role="tablist" aria-label="Dashboard views">
+  <button type="button" class="ndg-tab" role="tab" id="ndg-tab-kpi" data-ndg-tab="kpi" aria-selected="true" aria-controls="ndg-kpi" tabindex="0">Performance dashboard</button>
+  <button type="button" class="ndg-tab" role="tab" id="ndg-tab-legacy" data-ndg-tab="analytics" aria-selected="false" aria-controls="ndg-legacy" tabindex="-1">Operations analytics</button>
+</div>
+<section class="ndg-panel" id="ndg-kpi" role="tabpanel" aria-labelledby="ndg-tab-kpi"></section>
+<div class="ndg-panel" id="ndg-legacy" role="tabpanel" aria-labelledby="ndg-tab-legacy" hidden><div id="ndg-legacy-error" class="ndg-msg" hidden></div>
+
+
+  <section class="hero">
+    <div class="hero-head">
+      <p class="hero-eyebrow" data-i18n="heroEyebrow">Export programme</p>
+      <h1 data-i18n="heroH1">Green coffee shipped direct to roasters and importers</h1>
+      <p class="lede" data-i18n="heroLede">-</p>
+    </div>
+
+    <!-- Ten tiles, five to a row. The top row is the sourcing side and the
+         bottom row the market side, each running dark to light left to right
+         in its own colour family. Built in script so the cells can report
+         "not recorded" for a season whose sheet lacks the field. -->
+    <div class="tilegrid" id="tileGrid"></div>
+    <p class="tilegrid-legend">
+      <span><b data-i18n="rowSourcingH">Sourcing</b> <span data-i18n="rowSourcingN">what was bought, from whom, at what quality</span></span>
+      <span><b data-i18n="rowMarketH">Market</b> <span data-i18n="rowMarketN">what shipped, to whom, at what price, and what was collected</span></span>
+    </p>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="secSourceH">Where the coffee came from</h2>
+        <p data-i18n="secSourceP">-</p>
+      </div>
+      <div class="section-tag" data-i18n="secSourceTag">Intake by buying site, quality and supplier</div>
+    </div>
+    <div class="grid" id="intakeQualityGrid">
+      <div class="col-7 panel" id="sitePanel">
+        <p class="panel-title" data-i18n="panSiteH">Intake by buying site</p>
+        <p class="panel-note" data-i18n="panSiteN">Net kilograms bought in, by recorded site.</p>
+        <div class="chart-box"><canvas id="siteChart"></canvas></div>
+        <div class="insight-line" id="siteInsight">-</div>
+      </div>
+      <div class="col-5 panel" id="moisturePanel">
+        <p class="panel-title" data-i18n="panMoistH">Moisture at intake</p>
+        <p class="panel-note" data-i18n="panMoistN">Deliveries by recorded moisture, one bar per percentage point.</p>
+        <div class="chart-box"><canvas id="moistChart"></canvas></div>
+        <div class="statpair">
+          <div><div class="lab" data-i18n="lblMoistMean">Mean moisture</div><div class="val" id="moistMean">-</div></div>
+          <div><div class="lab" data-i18n="lblMoistIn">At or below 14%</div><div class="val" id="moistIn">-</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="secMonthH">Intake and shipment through the season</h2>
+        <p data-i18n="secMonthP">-</p>
+      </div>
+      <div class="section-tag" data-i18n="secMonthTag">Net kilograms by month</div>
+    </div>
+    <div class="grid">
+      <div class="col-12 panel">
+        <p class="panel-title" data-i18n="panShipH">Bought in against shipped out</p>
+        <p class="panel-note" data-i18n="panShipN">Net kilograms bought in and net kilograms shipped, by month.</p>
+        <div class="chart-box"><canvas id="shipChart"></canvas></div>
+        <div class="insight-line" id="shipInsight">-</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="secYoyH">Season against season</h2>
+        <p data-i18n="secYoyP">-</p>
+      </div>
+      <div class="section-tag" data-i18n="secYoyTag">Calendar month, both years</div>
+    </div>
+    <div class="grid">
+      <div class="col-6 panel">
+        <p class="panel-title" data-i18n="panYoyBuyH">Monthly purchase volume</p>
+        <p class="panel-note" data-i18n="panYoyBuyN">Net kilograms bought in, 2025 dashed against 2026 solid.</p>
+        <div class="chart-box"><canvas id="yoyBuyChart"></canvas></div>
+      </div>
+      <div class="col-6 panel">
+        <p class="panel-title" data-i18n="panYoySellH">Monthly sales volume</p>
+        <p class="panel-note" data-i18n="panYoySellN">Net kilograms shipped, on the same scale as the panel beside it.</p>
+        <div class="chart-box"><canvas id="yoySellChart"></canvas></div>
+      </div>
+      <div class="col-12">
+        <div class="insight-line" id="yoyInsight">-</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="secBuyersH">Where the coffee went</h2>
+        <p data-i18n="secBuyersP">-</p>
+      </div>
+      <div class="section-tag" data-i18n="secBuyersTag">Volume by buyer and screen grade</div>
+    </div>
+    <div class="grid">
+      <div class="col-7 panel">
+        <p class="panel-title" data-i18n="panBuyerH">Volume by buyer</p>
+        <p class="panel-note" data-i18n="panBuyerN">Kilograms shipped, all lots in the season.</p>
+        <div class="chart-box"><canvas id="buyerChart"></canvas></div>
+        <div class="insight-line" id="buyerInsight">-</div>
+      </div>
+      <div class="col-5 panel">
+        <p class="panel-title" data-i18n="panScreenH">Screen grade mix</p>
+        <p class="panel-note" data-i18n="panScreenN">Bean size determines which roasters a lot can serve.</p>
+        <div class="chart-box"><canvas id="screenChart"></canvas></div>
+        <div class="insight-line" id="screenInsight">-</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="secFlowH">From purchase to shipment</h2>
+        <p data-i18n="secFlowP">-</p>
+      </div>
+      <div class="section-tag" data-i18n="secFlowTag">Volume reconciliation and data notes</div>
+    </div>
+    <div class="grid">
+      <div class="col-12 panel">
+        <div class="flow">
+          <div class="flow-step">
+            <div class="lab" data-i18n="flow1">Bought in, FAQ</div>
+            <div class="val" id="flow1">-</div>
+            <div class="foot" id="flow1sub">-</div>
+          </div>
+          <div class="flow-step">
+            <div class="lab" data-i18n="flow2">Bought in, already graded</div>
+            <div class="val" id="flow2">-</div>
+            <div class="foot" id="flow2sub">-</div>
+          </div>
+          <div class="flow-step">
+            <div class="lab" data-i18n="flow3">Total intake</div>
+            <div class="val" id="flow3">-</div>
+            <div class="foot" data-i18n="flow3sub">before grading losses</div>
+          </div>
+          <div class="flow-step">
+            <div class="lab" data-i18n="flow4">Shipped</div>
+            <div class="val" id="flow4">-</div>
+            <div class="foot" id="flow4sub">-</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="secContracts">
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="secConH">Contracted against shipped</h2>
+        <p data-i18n="secConP">-</p>
+      </div>
+      <div class="section-tag" data-i18n="secConTag">Every contract on file</div>
+    </div>
+    <div class="grid">
+      <div class="col-12">
+        <div class="district-ledger">
+          <div class="district-ledger-head">
+            <p class="panel-title" style="margin:0;" data-i18n="panConH">Contract fulfilment</p>
+            <p class="panel-note" style="margin:2px 0 0;" data-i18n="panConN">Contracted volume against volume shipped under that reference.</p>
+          </div>
+          <div id="contractList"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="secLotsH">Shipment ledger</h2>
+        <p data-i18n="secLotsP">-</p>
+      </div>
+      <div class="section-tag" data-i18n="secLotsTag">Every lot dispatched this season</div>
+    </div>
+    <div class="grid">
+      <div class="col-12">
+        <div class="district-ledger">
+          <div class="district-ledger-head">
+            <p class="panel-title" style="margin:0;" data-i18n="panLotsH">Lots dispatched</p>
+            <p class="panel-note" style="margin:2px 0 0;" data-i18n="panLotsN">Date recorded, contract, buyer, screen and volume.</p>
+          </div>
+          <div id="lotList"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="secSuppH">Largest suppliers</h2>
+        <p data-i18n="secSuppP">-</p>
+      </div>
+      <div class="section-tag" data-i18n="secSuppTag">Ranked by net weight delivered</div>
+    </div>
+    <div class="grid">
+      <div class="col-12 panel">
+        <div class="leaderboard-scroll">
+          <table class="leaderboard">
+            <!-- Fixed proportions rather than one column absorbing the slack,
+                 so the four data columns carry equal weight across the row. -->
+            <colgroup>
+              <col style="width:4rem"><col style="width:24%"><col style="width:24%">
+              <col style="width:24%"><col style="width:24%">
+            </colgroup>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th data-i18n="thSupplier">Supplier ref</th>
+                <th class="num" data-i18n="thDeliveries">Deliveries</th>
+                <th class="num" data-i18n="thNetKg">Net delivered</th>
+                <th class="num" data-i18n="thShare">Share</th>
+              </tr>
+            </thead>
+            <tbody id="supplierBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div><!-- /#ndg-legacy -->
+</main>
+
+<footer>
+  <div class="shell fgrid">
+    <div>
+      <h4 data-i18n="footerDefH">Definitions</h4>
+      <p data-i18n="footerDefP">-</p>
+    </div>
+  </div>
+</footer>
+
+</div><!-- /.layout-main -->
+</div><!-- /.layout -->
+
+</div><!-- /#dashboard -->
+
+<script>
+
+(function(){
+"use strict";
+
+/* Every figure on this page is read from ./export-data.json, which
+   scripts/build_export.py regenerates from the export workbook. The cost base,
+   per-lot margins, per-buyer unit prices and supplier pay are read by that
+   script and are not written to the payload, so they cannot appear here. */
+var DATA = null;
+var REQUIRED_KEYS = ['meta','seasons'];
+/* Every renderer reads the selected season's block rather than the payload
+   root, so a new season in the workbook adds a pill and nothing else. */
+function D(){ return DATA.seasons[state.season]; }
+function seasonList(){ return DATA.meta.seasons.slice(); }
+function prevSeason(){
+  var all = seasonList(), i = all.indexOf(state.season);
+  return (i > 0) ? DATA.seasons[all[i-1]] : null;
+}
+
+function showFatal(title, detail){
+  var el = document.getElementById('bootError');
+  document.getElementById('bootLoading').hidden = true;
+  el.hidden = false;
+  el.querySelector('.boot-title').textContent = title;
+  el.querySelector('.boot-detail').textContent = detail;
+  if (window.nduguKpiTree) window.nduguKpiTree.setError(detail);
+}
+
+function boot(){
+  if (typeof Chart === 'undefined'){
+    showFatal('Charting library could not be loaded',
+      'The page loads Chart.js from cdnjs.cloudflare.com and the request did not complete. ' +
+      'This is usually a network or proxy restriction rather than a problem with the ' +
+      'dashboard itself. Check that cdnjs.cloudflare.com is reachable from this machine.');
+    return;
+  }
+  fetch('./export-data.json?v=' + Date.now(), {cache:'no-store'})
+    .then(function(r){
+      if (!r.ok) throw new Error('HTTP ' + r.status + ' ' + r.statusText);
+      return r.json();
+    })
+    .then(function(json){
+      var missing = REQUIRED_KEYS.filter(function(k){ return !(k in json); });
+      if (missing.length) throw new Error('export-data.json is missing: ' + missing.join(', '));
+      DATA = json;
+      if (window.nduguKpiTree) window.nduguKpiTree.setOperationalData('export', json);
+      document.getElementById('bootLoading').hidden = true;
+      document.getElementById('dashboard').hidden = false;
+      start();
+    })
+    .catch(function(err){
+      var hint = (location.protocol === 'file:')
+        ? 'The page was opened straight from disk. Browsers block fetch() on file:// URLs. Serve the folder over HTTP instead (python -m http.server 8000) or use the deployed GitHub Pages URL.'
+        : 'Could not load ./export-data.json next to this page. If this is a fresh deploy, check that the build workflow finished and published it.';
+      showFatal('Dashboard data could not be loaded', hint + '  [' + err.message + ']');
+    });
+}
+
+/* ============================= state ============================= */
+var FX_RATE = 3777;
+var state = { currency:'USD', lang:'en', season:'all' };
+
+/* ============================= formatters ============================= */
+var MONTHS_EN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var MONTHS_NL = ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
+function monthsArr(){ return state.lang==='nl' ? MONTHS_NL : MONTHS_EN; }
+function numLocale(){ return state.lang==='nl' ? 'nl-NL' : 'en-US'; }
+function bigUnit(u){
+  /* NL keeps the Dutch lowercase abbreviations (mln / mrd); EN uses a capital
+     M for millions so it does not read as a stray unit next to the figure. */
+  if (state.lang === 'nl') return u==='bn' ? 'mrd' : (u==='m' ? 'mln' : u);
+  return u==='m' ? 'M' : u;
+}
+function fmtInt(v){ return Math.round(v).toLocaleString(numLocale()); }
+function fmtTonnes(kg){
+  var t = kg/1000;
+  return t.toLocaleString(numLocale(),{maximumFractionDigits: t<10?2:1}) + ' t';
+}
+function fmtKgShort(kg){ return kg >= 1000 ? fmtTonnes(kg) : fmtInt(kg) + ' kg'; }
+/* Axis ticks stay in one unit the whole way up the scale: fmtKgShort would
+   label the zero tick "0 kg" and every other tick in tonnes. */
+function fmtAxisKg(kg){
+  return (kg/1000).toLocaleString(numLocale(),{maximumFractionDigits:1}) + ' t';
+}
+/* Money arrives in USD on this page (the sales sheet records it that way), so
+   the UGX toggle multiplies rather than divides. */
+function fmtMoney(usd){
+  var val = state.currency==='UGX' ? usd*FX_RATE : usd;
+  var sym = state.currency==='UGX' ? 'UGX ' : 'USD ';
+  var abs = Math.abs(val);
+  if (abs >= 1e9) return sym + (val/1e9).toLocaleString(numLocale(),{maximumFractionDigits:2}) + bigUnit('bn');
+  if (abs >= 1e6) return sym + (val/1e6).toLocaleString(numLocale(),{maximumFractionDigits:2}) + bigUnit('m');
+  return sym + fmtInt(val);
+}
+function fmtPerKg(usd){
+  if (usd===null || usd===undefined) return '-';
+  if (state.currency==='UGX') return 'UGX ' + fmtInt(usd*FX_RATE);
+  return 'USD ' + usd.toLocaleString(numLocale(),{minimumFractionDigits:2, maximumFractionDigits:2});
+}
+/* The 2026 sheet records revenue in both currencies at the rate on the lot, so
+   the UGX view uses the figure the workbook actually holds rather than the
+   indicative rate applied to a USD total. Only where a season has no recorded
+   UGX figure does it fall back to converting. */
+function fmtMoneyPair(usd, ugx){
+  if (state.currency === 'UGX'){
+    if (ugx === null || ugx === undefined) return fmtMoney(usd);
+    var abs = Math.abs(ugx);
+    if (abs >= 1e9) return 'UGX ' + (ugx/1e9).toLocaleString(numLocale(),{maximumFractionDigits:2}) + bigUnit('bn');
+    if (abs >= 1e6) return 'UGX ' + (ugx/1e6).toLocaleString(numLocale(),{maximumFractionDigits:2}) + bigUnit('m');
+    return 'UGX ' + fmtInt(ugx);
+  }
+  return fmtMoney(usd);
+}
+function fmtRevenue(sales){ return fmtMoneyPair(sales.revenue_usd, sales.revenue_ugx); }
+function fmtPrice(sales){
+  if (state.currency === 'UGX' && sales.avg_realised_ugx_per_kg)
+    return 'UGX ' + fmtInt(sales.avg_realised_ugx_per_kg);
+  return fmtPerKg(sales.avg_realised_usd_per_kg);
+}
+/* toFixed always emits a full stop, which is wrong in Dutch; the locale
+   formatter gives 61,6% in NL and 61.6% in EN off the same figure. */
+function fmtPct(v){
+  return (v*100).toLocaleString(numLocale(),{minimumFractionDigits:1, maximumFractionDigits:1}) + '%';
+}
+function fmtMonth(m){ var p=m.split('-'); return monthsArr()[parseInt(p[1],10)-1] + " '" + p[0].slice(2); }
+function fmtDate(d){
+  if (!d) return '-';
+  var p = d.split('-');
+  return parseInt(p[2],10) + ' ' + monthsArr()[parseInt(p[1],10)-1] + ' ' + p[0];
+}
+function esc(s){
+  return (s===null||s===undefined) ? '' :
+    String(s).replace(/[&<>]/g, function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});
+}
+
+/* ============================= palette ============================= */
+/* Dotted grid lines, matching index.html, set through Chart.defaults so any
+   chart added later inherits them. */
+/* ============================= tile icons =============================
+   Inline 24x24 stroke paths, so the page carries no icon dependency. */
+var ICONS = {
+  /* coffee bean */
+  bean:'<ellipse cx="12" cy="12" rx="6.5" ry="9" transform="rotate(-35 12 12)"/>'+
+       '<path d="M8 16c2.5-2.6 5.5-5.6 8-8"/>',
+  /* certification seal */
+  seal:'<circle cx="12" cy="9.5" r="5.5"/><path d="M9 14.5 7.5 21l4.5-2.4 4.5 2.4L15 14.5"/>',
+  /* supplier */
+  person:'<circle cx="12" cy="8" r="3.5"/><path d="M5.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/>',
+  /* group of suppliers */
+  group:'<circle cx="9" cy="8.5" r="3"/><path d="M3 19c0-3.1 2.7-5.2 6-5.2s6 2.1 6 5.2"/>'+
+        '<path d="M16 6.4a3 3 0 0 1 0 5.7"/><path d="M17.5 13.9c2.1.5 3.5 2.2 3.5 4.4"/>',
+  /* buying site */
+  pin:'<path d="M12 21s6.5-6.2 6.5-11a6.5 6.5 0 1 0-13 0C5.5 14.8 12 21 12 21Z"/>'+
+      '<circle cx="12" cy="10" r="2.4"/>',
+  /* revenue */
+  cash:'<rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.8"/>'+
+       '<path d="M6 9.5v5M18 9.5v5"/>',
+  /* price */
+  tag:'<path d="M11 3.5H4.5A1.5 1.5 0 0 0 3 5v6.4c0 .4.2.8.4 1l8.6 8.6a1.5 1.5 0 0 0 2.1 0l6-6a1.5 1.5 0 0 0 0-2.1L11.6 4a1.5 1.5 0 0 0-1-.5Z"/>'+
+      '<circle cx="7.5" cy="8.5" r="1.4"/>',
+  /* dispatched lot */
+  crate:'<path d="M3 8.2 12 4l9 4.2v7.6L12 20l-9-4.2Z"/><path d="M3 8.2 12 12.4l9-4.2M12 12.4V20"/>',
+  /* intake */
+  plot:'<path d="M4 6.5 10 4l4.5 2.5L20 4.4v13.2L14.5 20 10 17.5 4 20Z"/><path d="M10 4v13.5M14.5 6.5V20"/>',
+  /* buyers */
+  window:'<rect x="3.5" y="5.5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3.5v4M16 3.5v4"/>',
+  /* quality */
+  leaf:'<path d="M20 4C10 4 4 9 4 15.5A4.5 4.5 0 0 0 8.5 20C15 20 20 14 20 4Z"/><path d="M15 9C10.5 11 8 14.5 7 19"/>'
+};
+function icon(name){
+  var d = ICONS[name];
+  if (!d) return '';
+  return '<svg class="tile-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" ' +
+         'fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" ' +
+         'stroke-linejoin="round">' + d + '</svg>';
+}
+
+function icon(name){
+  var d = ICONS[name];
+  if (!d) return '';
+  return '<svg class="tile-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" ' +
+         'fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" ' +
+         'stroke-linejoin="round">' + d + '</svg>';
+}
+
+var GRID_DASH = [2, 3];
+var CHART_FONT = '"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif';
+var COLORS = {
+  roast:'#0E564C', roastDeep:'#083B34', roastLight:'#358879', roastWash:'#EAF4E6',
+  leaf:'#367729', leafLight:'#70A95A', leafWash:'#EAF5E5',
+  cherry:'#5D9842', cherryWash:'#EAF5E8',
+  honey:'#73A35A', honeyWash:'#F3FAEF',
+  teal:'#2D7950', olive:'#82AF65', clay:'#568940',
+  ink:'#21351B', inkSoft:'#486541', inkFaint:'#6D8467', line:'#DDE9D8'
+};
+/* One green across every dashboard: the dark teal of the KPI tiles. It is not
+   a decorative choice. On this background it measures 9.5:1, where the leaf
+   green it replaces measured 4.8:1, and against the clay it sits beside in the
+   moisture chart a deuteranope saw a CIEDE2000 separation of 1.2 with leaf
+   green, which is no separation at all. With this green that pair measures
+   28.8, and green against gold measures 49.0. Gold is still below 3:1 on this
+   background, so every gold mark stays labelled or sits beside a table. */
+var GREEN = '#0E564C';
+
+var BUYER_CYCLE = [COLORS.roast, COLORS.teal, COLORS.honey, COLORS.olive, COLORS.cherry, COLORS.leaf, COLORS.clay];
+/* Screen grades keep a fixed colour so the doughnut, the ledger badges and the
+   legend agree. */
+var SCREEN_COLOR = {'Screen 12':COLORS.leaf, 'Screen 15':COLORS.roast, 'Screen 18':COLORS.honey,
+  'Low grades':COLORS.clay, 'AA Arabica':COLORS.teal, 'FAQ':COLORS.olive};
+function screenColor(k){ return SCREEN_COLOR[k] || COLORS.inkFaint; }
+/* build_export.py folds every recorded spelling into this fixed set. */
+function screenClass(s){
+  return s==='Screen 12' ? 'screen-12' : s==='Screen 15' ? 'screen-15'
+       : s==='Screen 18' ? 'screen-18' : 'screen-na';
+}
+function screenShort(s){
+  var m = /^Screen (\d+)$/.exec(s || '');
+  if (m) return 'S' + m[1];
+  return (s === 'Low grades') ? 'LG' : (s === 'AA Arabica') ? 'AA' : (s === 'FAQ') ? 'FAQ' : '\u2013';
+}
+
+/* Chart.js is loaded from a CDN. If that request is blocked, `Chart` is
+   undefined, so the defaults are applied from start() after boot() has checked
+   for it rather than at module level. */
+function themeCharts(){
+  Chart.defaults.font.family = '"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif';
+  Chart.defaults.color = COLORS.inkSoft;
+  Chart.defaults.font.size = 11.5;
+  Chart.defaults.scale.grid.borderDash = GRID_DASH;
+  Chart.defaults.scale.grid.color = COLORS.line;
+  Chart.defaults.scale.grid.tickBorderDash = GRID_DASH;
+}
+
+/* A canvas holds one live Chart at a time, so a re-render on a season,
+   currency or language switch destroys the previous instance first. */
+var CHARTS = {};
+function mountChart(canvasId, cfg){
+  var el = document.getElementById(canvasId);
+  if (!el) return null;
+  var prev = CHARTS[canvasId] || (typeof Chart.getChart === 'function' ? Chart.getChart(el) : null);
+  if (prev) prev.destroy();
+  CHARTS[canvasId] = new Chart(el.getContext('2d'), cfg);
+  return CHARTS[canvasId];
+}
+
+/* ============================= derived facts =============================
+   Figures used inside sentences, recomputed on every season, currency and
+   language change so the prose agrees with the charts. */
+var FACTS = {};
+function computeFacts(){
+  var d = D(), s = d.sales, p = d.purchases;
+  var top = d.by_buyer[0] || {buyer:'-', volume_kg:0};
+  var topScreen = d.by_screen[0] || {screen:'-', volume_kg:0};
+  var peak = d.purchases_monthly.reduce(function(a,b){
+    return (b.net_kg > a.net_kg) ? b : a;
+  }, d.purchases_monthly[0] || {month:'', net_kg:0});
+  var faq = p.net_kg - p.graded_kg;
+  var prev = prevSeason();
+  var site = (d.by_site && d.by_site[0]) || null;
+  var short = (d.contracts || []).filter(function(c){
+    return c.shipped_kg < c.contracted_kg && !c.probable_match;
+  });
+  var shortKg = short.reduce(function(a,c){ return a + (c.contracted_kg - c.shipped_kg); }, 0);
+  var contracted = (d.contracts || []).reduce(function(a,c){ return a + c.contracted_kg; }, 0);
+
+  /* Year on year over the months both years actually recorded, so a part-year
+     is not compared against a full one. */
+  var yrs = seasonList(), yoy = null;
+  if (yrs.length > 1){
+    var a = yrs[yrs.length-2], b2 = yrs[yrs.length-1];
+    var monthsOf = function(y, key){
+      var o = {};
+      ((DATA.seasons[y] || {})[key] || []).forEach(function(r){ o[r.month.slice(5)] = r; });
+      return o;
+    };
+    var pa = monthsOf(a,'purchases_monthly'), pb = monthsOf(b2,'purchases_monthly');
+    var shared = Object.keys(pb).filter(function(m){ return pa[m] !== undefined; });
+    var sumA = shared.reduce(function(x,m){ return x + pa[m].net_kg; }, 0);
+    var sumB = shared.reduce(function(x,m){ return x + pb[m].net_kg; }, 0);
+    if (sumA > 0 && shared.length){
+      yoy = { a:a, b:b2, n:shared.length,
+              pct: fmtPct(Math.abs((sumB-sumA)/sumA)),
+              dir: (sumB >= sumA) ? t('wordUp') : t('wordDown') };
+    }
+  }
+
+  FACTS = {
+    season: seasonLabel(state.season),
+    seasonCount: fmtInt(seasonList().length),
+    firstSeason: seasonList()[0],
+    lastSeason: seasonList()[seasonList().length-1],
+    volume: fmtTonnes(s.volume_kg),
+    volumeKg: fmtInt(s.volume_kg),
+    revenue: fmtRevenue(s),
+    price: fmtPrice(s),
+    lots: fmtInt(s.n_lots),
+    buyers: fmtInt(s.n_buyers),
+    topBuyer: top.buyer,
+    topBuyerVol: fmtTonnes(top.volume_kg),
+    topBuyerPct: fmtPct(s.volume_kg ? top.volume_kg/s.volume_kg : 0),
+    screenName: topScreen.screen,
+    screenPct: fmtPct(s.volume_kg ? topScreen.volume_kg/s.volume_kg : 0),
+    purchased: fmtTonnes(p.net_kg),
+    suppliers: fmtInt(p.n_suppliers),
+    deliveries: fmtInt(p.n_deliveries),
+    firstBuy: fmtDate(p.date_min),
+    lastBuy: fmtDate(p.date_max),
+    firstShip: fmtDate(s.date_min),
+    lastShip: fmtDate(s.date_max),
+    peakMonth: peak.month ? fmtMonth(peak.month) : '-',
+    peakKg: fmtTonnes(peak.net_kg),
+    faq: fmtTonnes(faq),
+    graded: fmtTonnes(p.graded_kg),
+    shipShare: fmtPct(p.net_kg ? s.volume_kg/p.net_kg : 0),
+    generated: fmtDate(DATA.meta.generated),
+    fx: fmtInt(FX_RATE),
+    prevSeason: prev ? seasonLabel(seasonList()[seasonList().indexOf(state.season)-1]) : '',
+    volumeDelta: prev ? fmtPct(Math.abs(pctChange(s.volume_kg, prev.sales.volume_kg))) : '',
+    volumeDir: prev ? dirWord(pctChange(s.volume_kg, prev.sales.volume_kg)) : '',
+    priceDelta: prev ? fmtPct(Math.abs(pctChange(s.avg_realised_usd_per_kg, prev.sales.avg_realised_usd_per_kg))) : '',
+    priceDir: prev ? dirWord(pctChange(s.avg_realised_usd_per_kg, prev.sales.avg_realised_usd_per_kg)) : '',
+    topSite: site ? nm(site.site) : '-',
+    topSitePct: site && p.net_kg ? fmtPct(site.net_kg/p.net_kg) : '-',
+    topSupplierPct: d.notes.top_supplier_share !== null ? fmtPct(d.notes.top_supplier_share) : '-',
+    moistMean: d.moisture ? d.moisture.mean.toLocaleString(numLocale(),{minimumFractionDigits:1, maximumFractionDigits:1}) + '%' : '-',
+    moistIn: d.moisture ? fmtPct(d.moisture.pct_at_or_below_target) : '-',
+    contracted: fmtTonnes(contracted),
+    nContracts: fmtInt((d.contracts || []).length),
+    nShort: fmtInt(short.length),
+    shortKg: fmtTonnes(shortKg),
+    yoyA: yoy ? yoy.a : '', yoyB: yoy ? yoy.b : '',
+    yoyN: yoy ? fmtInt(yoy.n) : '', yoyPct: yoy ? yoy.pct : '', yoyDir: yoy ? yoy.dir : '',
+    hasYoy: !!yoy,
+    flagged: 0
+  };
+}
+
+function seasonLabel(s){ return s === 'all' ? t('seasonAll') : s; }
+function pctChange(a, b){ return (b && a !== null && a !== undefined) ? (a - b) / b : 0; }
+function dirWord(d){ return d >= 0 ? t('wordUp') : t('wordDown'); }
+
+/* ============================= i18n ============================= */
+var I18N = {
+  en: {
+    navTitle:'Navigation', navPortal:'My dashboard', navImpact:'Ndugu Impact',
+    navDomestic:'Domestic Trade', navExport:'Ndugu Export', navFinance:'Ndugu Microfinance',
+    navProduction:'Ndugu Production', navCoffee:'Coffee Minds', navEudr:'EUDR Compliance',
+    navAgritracker:'Internal resources',
+    brandRole:'Export programme',
+    asofLabel:'Season',
+    seasonAll:'All', wordUp:'above', wordDown:'below',
+    vsPriorSeason:'vs prior season',
+    heroEyebrow:'Export programme',
+    heroH1:'Green coffee shipped direct to roasters and importers',
+    heroLede:function(f){
+      var open = (state.season === 'all') ? 'Altogether, Ndugu Farmers Ltd bought '
+                                          : 'In ' + f.season + ' Ndugu Farmers Ltd bought ';
+      var base = open + f.purchased + ' of green coffee from ' + f.suppliers +
+        ' suppliers and shipped ' + f.volume + ' as ' + f.lots + ' graded lots to ' +
+        f.buyers + ' buyers. ' + f.topBuyer + ' took ' + f.topBuyerPct + ' of the volume';
+      return base + (f.prevSeason
+        ? ', and shipped volume is ' + f.volumeDelta + ' ' + f.volumeDir + ' ' + f.prevSeason + '.'
+        : '.');
+    },
+    rowSourcingH:'Sourcing', rowSourcingN:'what was bought, from whom, at what quality',
+    rowMarketH:'Market', rowMarketN:'what shipped, to whom, at what price, and what was collected',
+    kpiPurchased:'Green coffee purchased',
+    kpiSuppliers:'Suppliers', kpiSuppliersSub:'largest supplier',
+    kpiTopSite:'Largest buying site',
+    kpiMoisture:'Mean moisture at intake', lblAtOrBelow:'at or below 14%',
+    kpiCert:'RFA certified volume',
+    kpiVolume:'Volume exported',
+    kpiLots:'Lots shipped', lblScreens:'screens',
+    kpiBuyers:'Buyers',
+    kpiPrice:'Average realised price', kpiPriceSub:'per kg, priced lots',
+    kpiRevenue:'Export revenue', kpiRevenueSub:'invoiced sales value',
+    lblCollected:'collected',
+    lblOfShipped:'of shipped volume', lblNotRecorded:'Not recorded',
+    lblNotOnSheet:'not on this season’s sheet',
+    secSourceH:'Where the coffee came from',
+    secSourceP:function(f){
+      return f.deliveries + ' deliveries from ' + f.suppliers + ' suppliers.';
+    },
+    secSourceTag:'Intake by buying site, quality and supplier',
+    panSiteH:'Intake by buying site', panSiteN:'Net kilograms bought in, by recorded site.',
+    panMoistH:'Moisture at intake',
+    panMoistN:'Deliveries by recorded moisture, one bar per percentage point.',
+    lblMoistMean:'Mean moisture', lblMoistIn:'At or below 14%',
+    panSuppH:'Largest suppliers', panSuppN:'Ranked by net weight delivered within the season.',
+    thSupplier:'Supplier ref', thDeliveries:'Deliveries', thNetKg:'Net delivered', thShare:'Share',
+    secMonthH:'Intake and shipment through the season',
+    secMonthP:function(f){
+      return 'Intake peaked in ' + f.peakMonth + ' at ' + f.peakKg + '.';
+    },
+    secMonthTag:'Net kilograms by month',
+    panShipH:'Bought in against shipped out',
+    panShipN:'Net kilograms bought in and net kilograms shipped, by month.',
+    secYoyH:'Season against season',
+    secYoyP:function(f){
+      return f.hasYoy
+        ? 'Over the ' + f.yoyN + ' months both years recorded, intake is ' + f.yoyPct +
+          ' ' + f.yoyDir + ' ' + f.yoyA + '.'
+        : 'Purchases and sales by calendar month.';
+    },
+    secYoyTag:'Calendar month, both years',
+    panYoyBuyH:'Monthly purchase volume',
+    panYoyBuyN:'Net kilograms bought in, 2025 dashed against 2026 solid.',
+    panYoySellH:'Monthly sales volume',
+    panYoySellN:'Net kilograms shipped, on the same scale as the panel beside it.',
+    insYoy:function(f){
+      return 'Months with no record in a completed year are shown as zero. The current ' +
+        'year stops after its last recorded month rather than falling to zero.';
+    },
+    secSuppH:'Largest suppliers',
+    secSuppP:function(f){
+      return 'Top 10 of ' + f.suppliers + ' suppliers by net weight delivered.';
+    },
+    secSuppTag:'Ranked by net weight delivered',
+    secBuyersH:'Where the coffee went',
+    secBuyersP:function(f){
+      return f.buyers + ' buyers, the largest at ' + f.topBuyerPct + ' of shipped volume.';
+    },
+    secBuyersTag:'Volume by buyer and screen grade',
+    panBuyerH:'Volume by buyer', panBuyerN:'Kilograms shipped, all lots in the season.',
+    panScreenH:'Screen grade mix', panScreenN:'Bean size determines which roasters a lot can serve.',
+    secConH:'Contracted against shipped',
+    secConP:function(f){
+      return f.nContracts + ' contracts on file for ' + f.contracted + ' of committed volume.';
+    },
+    secConTag:'Every contract on file',
+    panConH:'Contract fulfilment',
+    panConN:'Contracted volume against volume shipped under that reference.',
+    secLotsH:'Shipment ledger',
+    secLotsP:function(f){
+      return f.lots + ' lots dispatched between ' + f.firstShip + ' and ' + f.lastShip + '.';
+    },
+    secLotsTag:'Every lot dispatched this season',
+    panLotsH:'Lots dispatched', panLotsN:'Date recorded, contract, buyer, screen and volume.',
+    secFlowH:'From purchase to shipment',
+    secFlowP:function(f){
+      return f.shipShare + ' of the season’s intake left as export lots.';
+    },
+    secFlowTag:'Volume reconciliation',
+    flow1:'Bought in, FAQ', flow2:'Bought in, already graded',
+    flow3:'Total intake', flow3sub:'before grading losses', flow4:'Shipped',
+    footerDefH:'Definitions',
+    footerDefP:'FAQ: Fair Average Quality, the ungraded green coffee bought from suppliers. Screen: bean size measured over a perforated sieve, so screen 18 is a larger bean than screen 12. Lot: a graded, bulked consignment shipped against one contract. Net delivered: weight after moisture and foreign-matter deductions. Invoiced: the value billed against a lot. Collected: the value received against it.',
+    lblLots:'lots', lblDeliveries:'deliveries', lblVolume:'Volume',
+    lblOfIntake:'of intake', lblNoContract:'no contract recorded',
+    lblShipBy:'ship by', lblOf:' of', lblIntake:'Bought in', lblShipped:'Shipped',
+    conFull:'shipped in full', conNothing:'no shipment under this reference',
+    conShortBy:'short by', conReused:'reference also used in',
+    conProbable:'probably shipped as',
+    conProbableTitle:'No lot carries this reference. A lot of exactly the contracted volume went to the same buyer within eight weeks of the ship-by date, which is consistent with the same shipment filed under a different reference.',
+    insBuyer:function(f){
+      return f.topBuyer + ' is the largest destination at ' + f.topBuyerVol + ', ' +
+        f.topBuyerPct + ' of shipped volume.';
+    },
+    insScreen:function(f){
+      return f.screenName + ' is the dominant grade at ' + f.screenPct + ' of shipped volume.';
+    },
+    insShip:function(f){
+      return 'Intake peaked in ' + f.peakMonth + ' at ' + f.peakKg + '. ' + f.shipShare +
+        ' of the season’s intake has shipped.';
+    },
+    insSite:function(f){
+      return f.topSite + ' is the largest source at ' + f.topSitePct + ' of intake by weight.';
+    },
+    suppFoot:function(f){
+      return 'Top 10 of ' + f.suppliers + ' suppliers, by net weight delivered within the season.';
+    }
+  },
+  nl: {
+    navTitle:'Navigatie', navPortal:'Mijn dashboard', navImpact:'Ndugu Impact',
+    navDomestic:'Binnenlandse handel', navExport:'Ndugu Export', navFinance:'Ndugu Microfinanciering',
+    navProduction:'Ndugu Productie', navCoffee:'Coffee Minds', navEudr:'EUDR-naleving',
+    navAgritracker:'Interne bronnen',
+    brandRole:'Exportprogramma',
+    asofLabel:'Seizoen',
+    seasonAll:'Alle', wordUp:'hoger dan', wordDown:'lager dan',
+    vsPriorSeason:'t.o.v. vorig seizoen',
+    heroEyebrow:'Exportprogramma',
+    heroH1:'Groene koffie rechtstreeks naar branders en importeurs',
+    heroLede:function(f){
+      var open = (state.season === 'all') ? 'In totaal kocht Ndugu Farmers Ltd '
+                                          : 'In ' + f.season + ' kocht Ndugu Farmers Ltd ';
+      var base = open + f.purchased + ' groene koffie van ' + f.suppliers +
+        ' leveranciers en verscheepte daarvan ' + f.volume + ' als ' + f.lots +
+        ' gesorteerde partijen naar ' + f.buyers + ' afnemers. ' + f.topBuyer + ' nam ' +
+        f.topBuyerPct + ' van het volume af';
+      return base + (f.prevSeason
+        ? ', en het verscheepte volume ligt ' + f.volumeDelta + ' ' + f.volumeDir + ' ' +
+          f.prevSeason + '.'
+        : '.');
+    },
+    rowSourcingH:'Inkoop', rowSourcingN:'wat is gekocht, van wie, en met welke kwaliteit',
+    rowMarketH:'Markt', rowMarketN:'wat is verscheept, aan wie, tegen welke prijs, en wat is ontvangen',
+    kpiPurchased:'Ingekochte groene koffie',
+    kpiSuppliers:'Leveranciers', kpiSuppliersSub:'grootste leverancier',
+    kpiTopSite:'Grootste inkooppunt',
+    kpiMoisture:'Gemiddeld vochtgehalte', lblAtOrBelow:'14% of lager',
+    kpiCert:'RFA-gecertificeerd volume',
+    kpiVolume:'Geëxporteerd volume',
+    kpiLots:'Verscheepte partijen', lblScreens:'screens',
+    kpiBuyers:'Afnemers',
+    kpiPrice:'Gemiddelde gerealiseerde prijs', kpiPriceSub:'per kg, geprijsde partijen',
+    kpiRevenue:'Exportomzet', kpiRevenueSub:'gefactureerde verkoopwaarde',
+    lblCollected:'ontvangen',
+    lblOfShipped:'van het verscheepte volume', lblNotRecorded:'Niet vastgelegd',
+    lblNotOnSheet:'niet op het blad van dit seizoen',
+    secSourceH:'Waar de koffie vandaan kwam',
+    secSourceP:function(f){
+      return f.deliveries + ' leveringen van ' + f.suppliers + ' leveranciers.';
+    },
+    secSourceTag:'Inkoop per inkooppunt, kwaliteit en leverancier',
+    panSiteH:'Inkoop per inkooppunt', panSiteN:'Netto ingekochte kilogrammen, per vastgelegd punt.',
+    panMoistH:'Vochtgehalte bij inname',
+    panMoistN:'Leveringen naar vastgelegd vochtgehalte, één balk per procentpunt.',
+    lblMoistMean:'Gemiddeld vochtgehalte', lblMoistIn:'14% of lager',
+    panSuppH:'Grootste leveranciers', panSuppN:'Gerangschikt naar netto geleverd gewicht binnen het seizoen.',
+    thSupplier:'Leverancierscode', thDeliveries:'Leveringen', thNetKg:'Netto geleverd', thShare:'Aandeel',
+    secMonthH:'Inkoop en verscheping door het seizoen',
+    secMonthP:function(f){
+      return 'De inkoop piekte in ' + f.peakMonth + ' met ' + f.peakKg + '.';
+    },
+    secMonthTag:'Netto kilogrammen per maand',
+    panShipH:'Ingekocht tegenover verscheept',
+    panShipN:'Netto ingekochte en netto verscheepte kilogrammen, per maand.',
+    secYoyH:'Seizoen tegenover seizoen',
+    secYoyP:function(f){
+      return f.hasYoy
+        ? 'Over de ' + f.yoyN + ' maanden die beide jaren vastleggen ligt de inkoop ' +
+          f.yoyPct + ' ' + f.yoyDir + ' ' + f.yoyA + '.'
+        : 'Inkoop en verkoop per kalendermaand.';
+    },
+    secYoyTag:'Kalendermaand, beide jaren',
+    panYoyBuyH:'Ingekocht volume per maand',
+    panYoyBuyN:'Netto ingekochte kilogrammen, 2025 gestippeld tegenover 2026 doorgetrokken.',
+    panYoySellH:'Verkocht volume per maand',
+    panYoySellN:'Netto verscheepte kilogrammen, op dezelfde schaal als het paneel ernaast.',
+    insYoy:function(f){
+      return 'Maanden zonder registratie in een afgerond jaar staan op nul. Het lopende jaar ' +
+        'stopt na de laatst vastgelegde maand in plaats van naar nul te lopen.';
+    },
+    secSuppH:'Grootste leveranciers',
+    secSuppP:function(f){
+      return 'Top 10 van ' + f.suppliers + ' leveranciers naar netto geleverd gewicht.';
+    },
+    secSuppTag:'Naar netto geleverd gewicht',
+    secBuyersH:'Waar de koffie heen ging',
+    secBuyersP:function(f){
+      return f.buyers + ' afnemers, de grootste met ' + f.topBuyerPct + ' van het volume.';
+    },
+    secBuyersTag:'Volume per afnemer en screengrootte',
+    panBuyerH:'Volume per afnemer', panBuyerN:'Verscheepte kilogrammen, alle partijen van het seizoen.',
+    panScreenH:'Verdeling screengrootte', panScreenN:'De boongrootte bepaalt welke branders een partij kan bedienen.',
+    secConH:'Gecontracteerd tegenover verscheept',
+    secConP:function(f){
+      return f.nContracts + ' contracten vastgelegd voor ' + f.contracted + ' aan toegezegd volume.';
+    },
+    secConTag:'Alle vastgelegde contracten',
+    panConH:'Contractafwikkeling',
+    panConN:'Gecontracteerd volume tegenover het volume dat onder die referentie is verscheept.',
+    secLotsH:'Verschepingsregister',
+    secLotsP:function(f){
+      return f.lots + ' partijen verscheept tussen ' + f.firstShip + ' en ' + f.lastShip + '.';
+    },
+    secLotsTag:'Elke partij die dit seizoen is verscheept',
+    panLotsH:'Verscheepte partijen', panLotsN:'Vastgelegde datum, contract, afnemer, screen en volume.',
+    secFlowH:'Van inkoop naar verscheping',
+    secFlowP:function(f){
+      return f.shipShare + ' van de inkoop van het seizoen vertrok als exportpartij.';
+    },
+    secFlowTag:'Volumeaansluiting',
+    flow1:'Ingekocht, FAQ', flow2:'Ingekocht, al gesorteerd',
+    flow3:'Totale inkoop', flow3sub:'vóór sorteerverlies', flow4:'Verscheept',
+    footerDefH:'Definities',
+    footerDefP:'FAQ: Fair Average Quality, de ongesorteerde groene koffie die van leveranciers wordt gekocht. Screen: boongrootte gemeten over een geperforeerde zeef, dus screen 18 is een grotere boon dan screen 12. Partij: een gesorteerde, gebulkte zending onder één contract. Netto geleverd: gewicht na aftrek voor vocht en vreemde bestanddelen. Gefactureerd: de waarde die voor een partij in rekening is gebracht. Ontvangen: de waarde die daarvoor is binnengekomen.',
+    lblLots:'partijen', lblDeliveries:'leveringen', lblVolume:'Volume',
+    lblOfIntake:'van de inkoop', lblNoContract:'geen contract vastgelegd',
+    lblShipBy:'verschepen vóór', lblOf:' van', lblIntake:'Ingekocht', lblShipped:'Verscheept',
+    conFull:'volledig verscheept', conNothing:'geen verscheping onder deze referentie',
+    conShortBy:'tekort van', conReused:'referentie ook gebruikt in',
+    conProbable:'waarschijnlijk verscheept als',
+    conProbableTitle:'Geen enkele partij draagt deze referentie. Een partij met exact het gecontracteerde volume ging binnen acht weken van de uiterste verschepingsdatum naar dezelfde afnemer, wat past bij dezelfde zending onder een andere referentie.',
+    insBuyer:function(f){
+      return f.topBuyer + ' is de grootste bestemming met ' + f.topBuyerVol + ', ' +
+        f.topBuyerPct + ' van het verscheepte volume.';
+    },
+    insScreen:function(f){
+      return f.screenName + ' is de dominante sortering met ' + f.screenPct +
+        ' van het verscheepte volume.';
+    },
+    insShip:function(f){
+      return 'De inkoop piekte in ' + f.peakMonth + ' met ' + f.peakKg + '. ' + f.shipShare +
+        ' van de inkoop van het seizoen is verscheept.';
+    },
+    insSite:function(f){
+      return f.topSite + ' is de grootste bron met ' + f.topSitePct + ' van de inkoop naar gewicht.';
+    },
+    suppFoot:function(f){
+      return 'Top 10 van ' + f.suppliers + ' leveranciers, naar netto geleverd gewicht binnen het seizoen.';
+    }
+  }
+};
+function t(key){
+  var v = I18N[state.lang][key];
+  if (v === undefined) v = I18N.en[key];
+  return (typeof v === 'function') ? v(FACTS) : v;
+}
+
+function applyStaticI18n(){
+  document.querySelectorAll('[data-i18n]').forEach(function(el){
+    var v = t(el.getAttribute('data-i18n'));
+    if (v !== undefined && v !== null) el.textContent = v;
+  });
+  document.title = state.lang === 'nl' ? 'Ndugu Farmers Ltd | Exportprogramma' : 'Ndugu Farmers Ltd | Export Programme';
+  document.documentElement.lang = state.lang;
+}
+/* The data's catch-all bucket, in the page's language. */
+function nm(v){ return (state.lang === 'nl' && v === 'Other') ? 'Overig' : v; }
+
+/* ============================= renderers ============================= */
+function renderSeasonPills(){
+  var host = document.getElementById('seasonPills');
+  var opts = ['all'].concat(seasonList());
+  host.innerHTML = opts.map(function(sn){
+    return '<button class="pill' + (sn===state.season ? ' active' : '') +
+           '" data-season="' + sn + '">' + esc(seasonLabel(sn)) + '</button>';
+  }).join('');
+}
+
+function deltaHTML(curr, prev, higherIsBetter){
+  if (prev === null || prev === undefined || !prev) return '';
+  var d = (curr - prev) / prev;
+  var cls = Math.abs(d) < 0.01 ? 'flat' : (d > 0 ? 'up' : 'down');
+  var arrow = d > 0 ? '▲' : (d < 0 ? '▼' : '=');
+  return '<div class="kpi-delta ' + cls + '"><span>' + arrow + '</span><span>' +
+         fmtPct(Math.abs(d)) + ' ' + t('vsPriorSeason') + '</span></div>';
+}
+function flatDelta(text){ return '<div class="kpi-delta flat">' + text + '</div>'; }
+
+/* Ten tiles in one 2x5 grid. Row one is the sourcing side, row two the market
+   side; within each row the tone runs dark to light in reading order. A season
+   whose sheet does not carry a field reports that rather than showing zero. */
+function renderTiles(){
+  var d = D(), s = d.sales, p = d.purchases, prev = prevSeason();
+  document.getElementById('asOfSeason').textContent = seasonLabel(state.season);
+
+  var cert = (d.by_type || []).filter(function(r){ return r.type === 'RFA certified'; })[0];
+  var typed = (d.by_type || []).some(function(r){ return r.type !== 'Unrecorded'; });
+  var screens = d.by_screen.filter(function(r){ return /^Screen /.test(r.screen); })
+                           .map(function(r){ return r.screen.replace('Screen ', ''); });
+  var others = d.by_screen.filter(function(r){ return !/^Screen /.test(r.screen); });
+
+  var cells = [
+    /* Sourcing */
+    {tone:'tone-s1', icon:'plot', label:t('kpiPurchased'), value:fmtTonnes(p.net_kg),
+     sub: prev ? delta(p.net_kg, prev.purchases.net_kg)
+               : flat(fmtInt(p.n_deliveries) + ' ' + t('lblDeliveries'))},
+    {tone:'tone-s2', icon:'group', label:t('kpiSuppliers'), value:fmtInt(p.n_suppliers),
+     sub: flat(t('kpiSuppliersSub') + ' ' + FACTS.topSupplierPct)},
+    {tone:'tone-s3', icon:'pin', label:t('kpiTopSite'),
+     value: d.by_site && d.by_site.length
+       ? '<span style="font-size:17px">' + esc(nm(d.by_site[0].site)) + '</span>' : t('lblNotRecorded'),
+     sub: d.by_site && d.by_site.length
+       ? flat(FACTS.topSitePct + ' ' + t('lblOfIntake')) : flat(t('lblNotOnSheet'))},
+    {tone:'tone-s4', icon:'leaf', label:t('kpiMoisture'),
+     value: d.moisture ? FACTS.moistMean : t('lblNotRecorded'),
+     sub: d.moisture ? flat(FACTS.moistIn + ' ' + t('lblAtOrBelow'))
+                     : flat(t('lblNotOnSheet'))},
+    {tone:'tone-s5', icon:'seal', label:t('kpiCert'),
+     value: typed ? fmtTonnes(cert ? cert.volume_kg : 0) : t('lblNotRecorded'),
+     sub: typed
+       ? flat(fmtPct(s.volume_kg ? (cert ? cert.volume_kg : 0)/s.volume_kg : 0) + ' ' + t('lblOfShipped'))
+       : flat(t('lblNotOnSheet'))},
+    /* Market */
+    {tone:'tone-m1', icon:'bean', label:t('kpiVolume'), value:fmtTonnes(s.volume_kg),
+     sub: prev ? delta(s.volume_kg, prev.sales.volume_kg) : flat(fmtInt(s.volume_kg) + ' kg')},
+    {tone:'tone-m2', icon:'crate', label:t('kpiLots'), value:fmtInt(s.n_lots),
+     sub: flat(screens.length ? t('lblScreens') + ' ' + screens.join(' · ') +
+               (others.length ? ' + ' + others.length : '') : '')},
+    {tone:'tone-m3', icon:'window', label:t('kpiBuyers'), value:fmtInt(s.n_buyers),
+     sub: flat(d.by_buyer.length
+       ? d.by_buyer[0].buyer + ' ' + fmtPct(s.volume_kg ? d.by_buyer[0].volume_kg/s.volume_kg : 0) : '')},
+    {tone:'tone-m4', icon:'tag', label:t('kpiPrice'), value:fmtPrice(s),
+     sub: prev ? delta(s.avg_realised_usd_per_kg, prev.sales.avg_realised_usd_per_kg)
+               : flat(t('kpiPriceSub'))},
+    {tone:'tone-m5', icon:'cash', label:t('kpiRevenue'), value:fmtRevenue(s),
+     sub: d.settlement
+       ? flat(fmtPct(d.settlement.pct_collected) + ' ' + t('lblCollected'))
+       : (prev ? delta(s.revenue_usd, prev.sales.revenue_usd) : flat(t('kpiRevenueSub')))}
+  ];
+
+  document.getElementById('tileGrid').innerHTML = cells.map(function(c){
+    return '<div class="tile ' + c.tone + '">' + icon(c.icon) +
+           '<p class="tile-label">' + c.label + '</p>' +
+           '<div class="tile-value num">' + c.value + '</div>' + c.sub + '</div>';
+  }).join('');
+}
+
+function delta(curr, prior){
+  if (!prior) return '';
+  var v = (curr - prior) / prior;
+  var cls = Math.abs(v) < 0.01 ? 'flat' : (v > 0 ? 'up' : 'down');
+  var arrow = v > 0 ? '▲' : (v < 0 ? '▼' : '=');
+  return '<div class="tile-foot kpi-delta ' + cls + '"><span>' + arrow + '</span><span>' +
+         fmtPct(Math.abs(v)) + ' ' + t('vsPriorSeason') + '</span></div>';
+}
+function flat(text){ return text ? '<div class="tile-foot kpi-delta flat">' + text + '</div>' : ''; }
+
+function renderBuyerChart(){
+  var rows = D().by_buyer;
+  mountChart('buyerChart', {
+    type:'bar',
+    data:{
+      labels: rows.map(function(r){ return nm(r.buyer); }),
+      datasets:[{
+        label: t('lblVolume'),
+        data: rows.map(function(r){ return r.volume_kg; }),
+        backgroundColor: rows.map(function(_, i){ return BUYER_CYCLE[i % BUYER_CYCLE.length]; }),
+        borderRadius:3, borderSkipped:false, barPercentage:0.72
+      }]
+    },
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      layout:{padding:{right:6}},
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:function(c){
+          var r = rows[c.dataIndex];
+          return fmtKgShort(r.volume_kg) + '  (' + r.lots + ' ' + t('lblLots') + ')';
+        }}}
+      },
+      scales:{
+        x:{grid:{color:COLORS.line, borderDash:GRID_DASH}, border:{display:false},
+           ticks:{callback:function(v){ return fmtAxisKg(v); }}},
+        y:{grid:{display:false}, border:{display:false},
+           ticks:{font:{family:CHART_FONT, size:12}, color:COLORS.ink}}
+      }
+    }
+  });
+  document.getElementById('buyerInsight').innerHTML = t('insBuyer');
+}
+
+function renderScreenChart(){
+  var rows = D().by_screen, total = D().sales.volume_kg;
+  mountChart('screenChart', {
+    type:'doughnut',
+    data:{
+      labels: rows.map(function(r){ return r.screen; }),
+      datasets:[{
+        data: rows.map(function(r){ return r.volume_kg; }),
+        backgroundColor: rows.map(function(r){ return screenColor(r.screen); }),
+        borderColor:'#FFFCF6', borderWidth:2
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false, cutout:'56%',
+      plugins:{
+        legend:{position:'bottom', labels:{boxWidth:11, boxHeight:11, padding:10,
+          font:{family:CHART_FONT, size:11.5}, color:COLORS.inkSoft}},
+        tooltip:{callbacks:{label:function(c){
+          var r = rows[c.dataIndex];
+          return ' ' + fmtKgShort(r.volume_kg) + '  ' + fmtPct(total ? r.volume_kg/total : 0);
+        }}}
+      }
+    }
+  });
+  document.getElementById('screenInsight').innerHTML = t('insScreen');
+}
+
+/* Contracted volume against volume shipped under that reference. Where a
+   contract has no shipment of its own but an exact-volume lot went to the same
+   buyer near the ship-by date, it is reported as a probable rename rather than
+   as an unshipped contract. */
+function renderContracts(){
+  var host = document.getElementById('contractList');
+  var rows = D().contracts || [];
+  var sec = document.getElementById('secContracts');
+  if (!rows.length){ sec.hidden = true; return; }
+  sec.hidden = false;
+
+  host.innerHTML = rows.map(function(c){
+    var share = c.contracted_kg ? Math.min(c.shipped_kg / c.contracted_kg, 1) : 0;
+    var cls = share >= 0.999 ? '' : (share > 0 ? ' short' : ' none');
+    var sub = c.buyers.join(', ');
+    if (c.ship_by) sub += ' · ' + t('lblShipBy') + ' ' + fmtDate(c.ship_by);
+    var tail;
+    if (c.probable_match){
+      tail = '<span class="flag" title="' + esc(t('conProbableTitle')) + '">?</span> ' +
+             t('conProbable') + ' ' + esc(c.probable_match.ref || '');
+      cls = ' short';
+      share = 1;
+    } else if (c.ref_reused){
+      tail = t('conReused') + ' ' + c.shipped_years.join(', ');
+    } else if (c.shipped_kg === 0){
+      tail = t('conNothing');
+    } else if (c.shipped_kg < c.contracted_kg){
+      tail = t('conShortBy') + ' ' + fmtKgShort(c.contracted_kg - c.shipped_kg);
+    } else {
+      tail = t('conFull');
+    }
+    return '<div class="con-row">' +
+      '<div class="who"><div class="name">' + esc(c.ref) + '</div>' +
+        '<div class="sub">' + esc(sub) + '</div></div>' +
+      '<div class="bar' + cls + '"><span style="width:' + (share*100).toFixed(1) + '%"></span></div>' +
+      '<div class="qty"><b>' + fmtKgShort(c.shipped_kg) + '</b>' +
+        t('lblOf') + ' ' + fmtKgShort(c.contracted_kg) + '<br>' + tail + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+/* Intake and shipment share a unit and a time axis, so they sit on one frame.
+   The panel exists to show the lag between buying and shipping. */
+function renderShipChart(){
+  var d = D();
+  var months = {};
+  d.purchases_monthly.forEach(function(r){
+    months[r.month] = months[r.month] || {};
+    months[r.month].in = r.net_kg;
+    months[r.month].deliveries = r.deliveries;
+  });
+  (d.shipments_monthly || []).forEach(function(r){
+    months[r.month] = months[r.month] || {};
+    months[r.month].out = r.volume_kg;
+    months[r.month].lots = r.lots;
+  });
+  var keys = Object.keys(months).sort();
+  mountChart('shipChart', {
+    type:'bar',
+    data:{
+      labels: keys.map(fmtMonth),
+      datasets:[
+        {label:t('lblIntake'), data:keys.map(function(k){ return months[k].in || 0; }),
+         backgroundColor:COLORS.honey, borderRadius:3, borderSkipped:false, barPercentage:0.9, categoryPercentage:0.7},
+        {label:t('lblShipped'), data:keys.map(function(k){ return months[k].out || 0; }),
+         backgroundColor:COLORS.roast, borderRadius:3, borderSkipped:false, barPercentage:0.9, categoryPercentage:0.7}
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index', intersect:false},
+      plugins:{
+        legend:{position:'bottom', labels:{boxWidth:11, boxHeight:11, padding:10,
+          font:{family:CHART_FONT, size:11.5}, color:COLORS.inkSoft}},
+        tooltip:{callbacks:{
+          label:function(c){ return ' ' + c.dataset.label + ': ' + fmtKgShort(c.parsed.y); },
+          footer:function(c){
+            var m = keys[c[0].dataIndex], row = months[m];
+            var bits = [];
+            if (row.deliveries) bits.push(t('lblDeliveries') + ': ' + fmtInt(row.deliveries));
+            if (row.lots) bits.push(t('lblLots') + ': ' + fmtInt(row.lots));
+            return bits.join('  ');
+          }
+        }}
+      },
+      scales:{
+        x:{grid:{display:false}, border:{display:false}, ticks:{maxRotation:0, autoSkip:true}},
+        y:{grid:{color:COLORS.line, borderDash:GRID_DASH}, border:{display:false},
+           ticks:{callback:function(v){ return fmtAxisKg(v); }}}
+      }
+    }
+  });
+  document.getElementById('shipInsight').innerHTML = t('insShip');
+}
+
+/* Purchases and sales as two panels on a shared calendar-month axis, so the
+   two years line up month against month rather than running end to end. The
+   panels carry one measure each and are drawn to a common y scale, so the eye
+   can compare across them as well as within: a peak in the left panel and a
+   peak in the right are the same height for the same tonnage.
+
+   Line style carries the year as well as colour, so neither distinction
+   depends on the other being seen.
+
+   A completed year is filled with zero for months it recorded nothing, which
+   is what happened. The latest year stops after its last recorded month rather
+   than being drawn down to zero, because those months have not happened yet
+   and a line falling to the axis would read as a collapse in trade.
+
+   The curve uses monotone cubic interpolation, so it is smooth without ever
+   overshooting the values it joins: no month is drawn below zero and a run of
+   equal values stays flat. The axis is pinned at zero for the same reason. */
+var MONTH_KEYS = ['01','02','03','04','05','06','07','08','09','10','11','12'];
+
+function yoySeries(year, latest, key, valueField){
+  var rows = (DATA.seasons[year] || {})[key] || [];
+  var byMonth = {}, last = -1;
+  rows.forEach(function(r){
+    var i = parseInt(r.month.slice(5), 10) - 1;
+    byMonth[i] = r[valueField];
+    if (i > last) last = i;
+  });
+  return MONTH_KEYS.map(function(_, i){
+    if (byMonth[i] !== undefined) return byMonth[i];
+    if (year === latest && i > last) return null;
+    return 0;
+  });
+}
+
+function yoyChart(canvasId, key, valueField, tones, yMax){
+  var years = seasonList(), latest = years[years.length - 1];
+  var datasets = years.map(function(y, i){
+    var tone = tones[Math.min(i, tones.length - 1)];
+    return {
+      label: y,
+      data: yoySeries(y, latest, key, valueField),
+      borderColor: tone, backgroundColor: tone,
+      borderDash: (y === latest) ? [] : [5, 4],
+      borderWidth: 2, pointRadius: 2.5, pointHoverRadius: 4, spanGaps: false,
+      /* Monotone cubic interpolation rather than a plain spline. A plain
+         spline overshoots between points, which is what drives the Excel
+         version below zero on either side of a spike and bows a run of zeros
+         into a dip. Monotone never overshoots: it curves where the data rises
+         or falls and holds flat where consecutive values are equal, so a run
+         of zeros is drawn as a straight line on the axis. */
+      cubicInterpolationMode: 'monotone'
+    };
+  });
+  mountChart(canvasId, {
+    type: 'line',
+    data: { labels: monthsArr(), datasets: datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'bottom', labels: { boxWidth: 26, boxHeight: 2, padding: 12,
+          font: { family: CHART_FONT, size: 11.5 }, color: COLORS.inkSoft } },
+        tooltip: { callbacks: { label: function(c){
+          return (c.parsed.y === null) ? null : ' ' + c.dataset.label + ': ' + fmtKgShort(c.parsed.y);
+        } } }
+      },
+      scales: {
+        x: { grid: { display: false }, border: { display: false },
+             ticks: { maxRotation: 0, autoSkip: true } },
+        y: { min: 0, suggestedMax: yMax,
+             grid: { color: COLORS.line, borderDash: GRID_DASH }, border: { display: false },
+             ticks: { callback: function(v){ return fmtAxisKg(v); } } }
+      }
+    }
+  });
+}
+
+function renderYoy(){
+  var years = seasonList(), latest = years[years.length - 1];
+  /* One scale across both panels. Read from the data rather than fixed, so a
+     season that outgrows it does not get clipped. */
+  var peak = 0;
+  years.forEach(function(y){
+    [['purchases_monthly','net_kg'], ['shipments_monthly','volume_kg']].forEach(function(pair){
+      yoySeries(y, latest, pair[0], pair[1]).forEach(function(v){
+        if (v !== null && v > peak) peak = v;
+      });
+    });
+  });
+  var yMax = Math.ceil(peak * 1.06 / 10000) * 10000;
+
+  yoyChart('yoyBuyChart',  'purchases_monthly', 'net_kg',    ['#663A18', '#AA6128'], yMax);
+  yoyChart('yoySellChart', 'shipments_monthly', 'volume_kg', ['#0D4D45', '#158173'], yMax);
+  document.getElementById('yoyInsight').innerHTML = t('insYoy');
+}
+
+function renderLots(){
+  var host = document.getElementById('lotList');
+  host.innerHTML = D().lots.map(function(l){
+    var sub = l.contract ? esc(l.contract) : t('lblNoContract');
+    return '<div class="lot-row">' +
+      '<div class="seq">' + l.seq + '</div>' +
+      '<div class="who">' +
+        '<div class="name">' + esc(l.buyer) + '</div>' +
+        '<div class="sub">' + fmtDate(l.date) + ' · ' + sub + '</div>' +
+      '</div>' +
+      '<div class="screen ' + screenClass(l.screen) + '">' + esc(screenShort(l.screen)) + '</div>' +
+      '<div class="qty">' + fmtKgShort(l.volume_kg) + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+/* Buying site and moisture are recorded from the 2026 sheet onward. A season
+   with neither hides the row rather than drawing empty panels. */
+function renderIntakeQuality(){
+  var d = D();
+  var sites = d.by_site || [], moist = d.moisture;
+  var grid = document.getElementById('intakeQualityGrid');
+  var sitePanel = document.getElementById('sitePanel');
+  var moistPanel = document.getElementById('moisturePanel');
+  grid.hidden = !(sites.length || moist);
+  sitePanel.hidden = !sites.length;
+  moistPanel.hidden = !moist;
+  sitePanel.className = (moist ? 'col-7' : 'col-12') + ' panel';
+  moistPanel.className = (sites.length ? 'col-5' : 'col-12') + ' panel';
+  if (grid.hidden) return;
+
+  if (sites.length){
+    var rows = sites.slice(0, 8);
+    mountChart('siteChart', {
+      type:'bar',
+      data:{
+        labels: rows.map(function(r){ return nm(r.site); }),
+        datasets:[{
+          data: rows.map(function(r){ return r.net_kg; }),
+          backgroundColor: rows.map(function(_, i){ return BUYER_CYCLE[i % BUYER_CYCLE.length]; }),
+          borderRadius:3, borderSkipped:false, barPercentage:0.72
+        }]
+      },
+      options:{
+        indexAxis:'y', responsive:true, maintainAspectRatio:false,
+        plugins:{
+          legend:{display:false},
+          tooltip:{callbacks:{label:function(c){
+            var r = rows[c.dataIndex];
+            return fmtKgShort(r.net_kg) + '  (' + r.deliveries + ' ' + t('lblDeliveries') + ')';
+          }}}
+        },
+        scales:{
+          x:{grid:{color:COLORS.line, borderDash:GRID_DASH}, border:{display:false},
+             ticks:{callback:function(v){ return fmtAxisKg(v); }}},
+          y:{grid:{display:false}, border:{display:false},
+             ticks:{font:{family:CHART_FONT, size:12}, color:COLORS.ink}}
+        }
+      }
+    });
+    document.getElementById('siteInsight').innerHTML = t('insSite');
+  }
+
+  if (moist){
+    mountChart('moistChart', {
+      type:'bar',
+      data:{
+        labels: moist.bins.map(function(b){ return b.pct + '%'; }),
+        datasets:[{
+          data: moist.bins.map(function(b){ return b.n; }),
+          backgroundColor: moist.bins.map(function(b){
+            return b.pct <= moist.target ? GREEN : COLORS.clay;
+          }),
+          borderRadius:3, borderSkipped:false, barPercentage:0.8
+        }]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{
+          legend:{display:false},
+          tooltip:{callbacks:{label:function(c){
+            return ' ' + fmtInt(c.parsed.y) + ' ' + t('lblDeliveries');
+          }}}
+        },
+        scales:{
+          x:{grid:{display:false}, border:{display:false}},
+          y:{grid:{color:COLORS.line, borderDash:GRID_DASH}, border:{display:false},
+             ticks:{precision:0}}
+        }
+      }
+    });
+    document.getElementById('moistMean').textContent = FACTS.moistMean;
+    document.getElementById('moistIn').textContent = FACTS.moistIn;
+  }
+}
+
+function renderSuppliers(){
+  var d = D(), total = d.purchases.net_kg;
+  document.getElementById('supplierBody').innerHTML = d.top_suppliers.map(function(s, i){
+    return '<tr>' +
+      '<td class="rank">' + (i+1) + '</td>' +
+      '<td class="name code">' + esc(s.ref) + '</td>' +
+      '<td class="num">' + fmtInt(s.deliveries) + '</td>' +
+      '<td class="num">' + fmtKgShort(s.net_kg) + '</td>' +
+      '<td class="num">' + fmtPct(total ? s.net_kg/total : 0) + '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+function renderFlow(){
+  var d = D(), p = d.purchases, s = d.sales;
+  var faq = p.net_kg - p.graded_kg;
+  var byType = p.graded_by_supplier_type || {};
+  var typeBits = Object.keys(byType).sort(function(a,b){ return byType[b]-byType[a]; })
+    .map(function(k){ return k + ' ' + fmtKgShort(byType[k]); }).join(', ');
+
+  document.getElementById('flow1').textContent = fmtTonnes(faq);
+  document.getElementById('flow1sub').textContent =
+    fmtInt(p.n_deliveries) + ' ' + t('lblDeliveries');
+  document.getElementById('flow2').textContent = fmtTonnes(p.graded_kg);
+  document.getElementById('flow2sub').textContent = typeBits || '–';
+  document.getElementById('flow3').textContent = fmtTonnes(p.net_kg);
+  document.getElementById('flow4').textContent = fmtTonnes(s.volume_kg);
+  document.getElementById('flow4sub').textContent =
+    fmtPct(p.net_kg ? s.volume_kg/p.net_kg : 0) + ' ' + t('lblOfIntake');
+}
+
+/* Panels render in the order the page reads: what was bought, when it moved,
+   who bought it, what was promised, what shipped, and whether it reconciles. */
+function renderAll(){
+  computeFacts();
+  applyStaticI18n();
+  renderSeasonPills();
+  renderTiles();
+  renderIntakeQuality();
+  renderSuppliers();
+  renderShipChart();
+  renderYoy();
+  renderBuyerChart();
+  renderScreenChart();
+  renderContracts();
+  renderLots();
+  renderFlow();
+}
+
+/* ============================= controls ============================= */
+function bindControls(){
+  document.getElementById('seasonPills').addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    state.season = b.dataset.season;
+    setRate();
+    renderAll();
+  });
+  document.getElementById('currencyPills').addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    state.currency = b.dataset.currency;
+    this.querySelectorAll('.pill').forEach(function(p){ p.classList.toggle('active', p === b); });
+    renderAll();
+  });
+  document.getElementById('langPills').addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    state.lang = b.dataset.lang;
+    this.querySelectorAll('.pill').forEach(function(p){ p.classList.toggle('active', p === b); });
+    setRate();
+    renderAll();
+  });
+}
+
+/* Each season is a calendar year and converts at that year's average rate
+   (data/usd-ugx-annual.csv); "all" at the rate the lots average out at. */
+function setRate(){
+  var by = DATA.meta && DATA.meta.fx_by_season;
+  if (by && by[state.season] > 0) FX_RATE = by[state.season];
+  var fxm = DATA.meta && DATA.meta.fx, pill = document.querySelector('#currencyPills [data-currency="UGX"]');
+  if (fxm && pill) {
+    var list = Object.keys(fxm.rates).sort().map(function(y){ return y + ': ' + fmtInt(fxm.rates[y]); }).join(' · ');
+    var prov = (fxm.provisional || []).join(', ');
+    pill.title = state.lang === 'nl'
+      ? 'UGX tegen de gemiddelde koers van het kalenderjaar, UGX per USD (' + list + ')' + (prov ? '. Voorlopig: ' + prov : '') + '.'
+      : 'UGX at the calendar-year average rate, UGX per USD (' + list + ')' + (prov ? '. Provisional: ' + prov : '') + '.';
+  }
+}
+
+function start(){
+  if (DATA.meta && DATA.meta.fx_ugx_per_usd > 0) FX_RATE = DATA.meta.fx_ugx_per_usd;
+  /* Open on the combined view, so the page lands on every season at once. */
+  state.season = DATA.seasons.all ? 'all' : DATA.meta.default_season;
+  setRate();
+  themeCharts();
+  bindControls();
+  renderAll();
+}
+
+boot();
+})();
+
+</script>
+<script src="kpi-tree-data.js"></script>
+<script src="kpi-illustrative-data.js"></script>
+<script src="ndugu-kpi-translations.js"></script>
+<script src="kpi-tree.js"></script>
+<!-- ndugu:analytics -->
+<!-- Visit counting. No cookie, no localStorage, no fingerprinting;
+     figures are private to the Ndugu Cloudflare account. Managed by
+     scripts/sync_analytics.py: edits here are overwritten. -->
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "667a8f6b0e6244bab958af8756cef50b"}'></script><!-- End Cloudflare Web Analytics -->
+<!-- /ndugu:analytics -->
+</body>
+</html>

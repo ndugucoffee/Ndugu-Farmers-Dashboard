@@ -1,0 +1,2810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script src="secure-gate.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon.ico" sizes="16x16 32x32" type="image/x-icon">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+<meta name="theme-color" content="#0E564C">
+<title>Ndugu Farmers Ltd | EUDR Readiness</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<!-- chart-data drill-down (scripts/chart_tables.py) -->
+<script>
+(function(){
+  'use strict';
+  if (!window.Chart) return;
+
+  var WORDS = {
+    en:{drill:'Open in My dashboard', drillOn:'Open “{0}” in My dashboard',
+        view:'View data', title:'Data behind this chart', csv:'Download CSV', copy:'Copy table',
+        copied:'Copied', close:'Close', total:'Total', share:'Share of this chart', hidden:'hidden in the chart',
+        series:'Series', label:'Category', value:'Value', none:'This chart is awaiting a compatible source. Explore the illustrative performance view.',
+        units:'Values', rows:'rows'},
+    nl:{drill:'Openen in Mijn dashboard', drillOn:'“{0}” openen in Mijn dashboard',
+        view:'Gegevens bekijken', title:'Gegevens achter deze grafiek', csv:'CSV downloaden', copy:'Tabel kopiëren',
+        copied:'Gekopieerd', close:'Sluiten', total:'Totaal', share:'Aandeel in deze grafiek', hidden:'verborgen in de grafiek',
+        series:'Reeks', label:'Categorie', value:'Waarde', none:'Deze grafiek heeft geen gegevens.',
+        units:'Waarden', rows:'rijen'}
+  };
+  function lang(){ return /^nl/i.test(document.documentElement.lang || '') ? 'nl' : 'en'; }
+  function W(){ return WORDS[lang()]; }
+  function txt(v){ return Array.isArray(v) ? v.join(' ') : (v === null || v === undefined ? '' : String(v)); }
+  function isNum(v){ return typeof v === 'number' && isFinite(v); }
+  function num(v){
+    if (!isNum(v)) return v === null || v === undefined ? '' : txt(v);
+    var a = Math.abs(v);
+    return v.toLocaleString(lang() === 'nl' ? 'nl-NL' : 'en-US',
+      {maximumFractionDigits: a >= 1000 ? 0 : a >= 10 ? 1 : 3});
+  }
+  function pctText(v){
+    return v.toLocaleString(lang() === 'nl' ? 'nl-NL' : 'en-US', {maximumFractionDigits:1}) + '%';
+  }
+  function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function axisTitle(chart, which){
+    var s = chart.options && chart.options.scales && chart.options.scales[which];
+    return s && s.title && s.title.display !== false && s.title.text ? txt(s.title.text) : '';
+  }
+
+  /* How the value axis labels a number, asked of the chart itself: a share
+     chart stores 0.329 and shows "33%", and the table should read the same
+     way the chart does. 'fraction' means 0.5 is shown as 50%, 'percent' that
+     50 is shown as 50%, '' anything else. */
+  function pctMode(chart, axis){
+    var sc = chart.scales && chart.scales[axis], cb = sc && sc.options && sc.options.ticks && sc.options.ticks.callback;
+    if (typeof cb !== 'function') return '';
+    try {
+      var s = String(cb.call(sc, 0.5, 0, [{value:0.5}]));
+      if (!/%/.test(s)) return '';
+      return /50/.test(s) ? 'fraction' : 'percent';
+    } catch (e){ return ''; }
+  }
+
+  /* The chart's data as a table: {head:[], rows:[[...]], numeric:[bool per column], note}
+     Category charts (bar, line, doughnut, ...) give one row per label and one
+     column per dataset; point charts (scatter, bubble, {x,y} data) give one
+     row per point. A floating bar [from, to] shows as "from – to". */
+  function tableOf(chart){
+    var w = W(), data = chart.data || {}, sets = data.datasets || [], labels = data.labels || [];
+    var horiz = chart.options && chart.options.indexAxis === 'y';
+    var catAxis = horiz ? 'y' : 'x', valAxis = horiz ? 'x' : 'y';
+    var name = function(d, k){
+      var n = txt(d.label) || (sets.length > 1 ? w.series + ' ' + (k + 1) : w.value);
+      return chart.isDatasetVisible(k) ? n : n + ' (' + w.hidden + ')';
+    };
+    var points = sets.some(function(d){
+      return (d.data || []).some(function(v){ return v && typeof v === 'object' && !Array.isArray(v); });
+    });
+    var out = {head:[], rows:[], numeric:[], note:''};
+    if (points){
+      var hasR = sets.some(function(d){ return (d.data || []).some(function(v){ return v && v.r !== undefined; }); });
+      out.head = [w.series, axisTitle(chart, 'x') || 'x', axisTitle(chart, 'y') || 'y'].concat(hasR ? ['r'] : []);
+      sets.forEach(function(d, k){
+        (d.data || []).forEach(function(v, i){
+          if (!v) return;
+          var row = [name(d, k), v.x !== undefined ? v.x : (labels[i] !== undefined ? txt(labels[i]) : i + 1), v.y];
+          if (hasR) row.push(v.r);
+          out.rows.push(row);
+        });
+      });
+    } else {
+      out.head = [axisTitle(chart, catAxis) || w.label].concat(sets.map(name));
+      var n = Math.max(labels.length, sets.reduce(function(m, d){ return Math.max(m, (d.data || []).length); }, 0));
+      for (var i = 0; i < n; i++){
+        out.rows.push([labels[i] !== undefined ? txt(labels[i]) : String(i + 1)].concat(sets.map(function(d){
+          var v = (d.data || [])[i];
+          if (Array.isArray(v) && v.length === 2 && isNum(v[0]) && isNum(v[1])) return num(v[0]) + ' – ' + num(v[1]);
+          return v === undefined ? null : v;
+        })));
+      }
+      /* one series of parts of a whole: its share is the useful second column */
+      var type = chart.config.type;
+      var whole = type === 'doughnut' || type === 'pie' || type === 'polarArea' ||
+                  (sets.length === 1 && type === 'bar' && !(chart.options.scales && chart.options.scales[valAxis] && chart.options.scales[valAxis].stacked));
+      if (sets.length === 1 && out.rows.length > 1 && whole){
+        var tot = out.rows.reduce(function(s, r){ return s + (isNum(r[1]) ? r[1] : 0); }, 0);
+        if (tot > 0 && out.rows.every(function(r){ return r[1] === null || isNum(r[1]); })){
+          out.head.push(w.share);
+          out.rows.forEach(function(r){ r.push(isNum(r[1]) ? (r[1] / tot * 100).toFixed(1) + '%' : ''); });
+        }
+      }
+      /* a total row where adding up makes sense: counts, volumes and values
+         in bars and doughnuts, not the points of a line */
+      if (out.rows.length > 1 && type !== 'line' && type !== 'radar'){
+        var totals = out.head.map(function(_, c){
+          if (c === 0) return w.total;
+          var vals = out.rows.map(function(r){ return r[c]; });
+          if (!vals.every(function(v){ return v === null || isNum(v); })) return '';
+          return vals.reduce(function(s, v){ return s + (v || 0); }, 0);
+        });
+        if (totals.slice(1).some(isNum)){
+          if (out.head[out.head.length - 1] === w.share) totals[totals.length - 1] = '100%';
+          out.total = totals;
+        }
+      }
+      var units = axisTitle(chart, valAxis);
+      if (units) out.note = w.units + ': ' + units;
+      var pm = pctMode(chart, valAxis);
+      if (pm){
+        /* values become percentages, in the table and in the file, and the
+           total row goes: shares and rates do not add up to anything */
+        out.pct = true; out.total = null;
+        out.rows.forEach(function(r){
+          for (var c = 1; c <= sets.length; c++) if (isNum(r[c])) r[c] = Math.round((pm === 'fraction' ? r[c] * 100 : r[c]) * 100) / 100;
+        });
+        for (var h = 1; h <= sets.length; h++) out.head[h] += ' (%)';
+      }
+    }
+    return out;
+  }
+
+  /* ---------- the window ---------- */
+  var box = null, current = null;
+  function ensureBox(){
+    if (box) return box;
+    var st = document.createElement('style');
+    st.textContent =
+      '.cd-menu{position:fixed;z-index:2001;background:var(--surface,#FFFCF6);' +
+        'border:1px solid var(--line-strong,#D8C4A6);border-radius:6px;' +
+        'box-shadow:0 10px 30px -12px rgba(42,26,16,.55);padding:4px;min-width:150px;}' +
+      '.cd-menu[hidden]{display:none;}' +
+      '.cd-menu button{display:block;width:100%;text-align:left;font:inherit;font-size:12.5px;' +
+        'color:var(--ink,#2A1A10);background:none;border:none;border-radius:4px;' +
+        'padding:7px 10px;cursor:pointer;}' +
+      '.cd-menu button:hover{background:var(--roast-wash,#E6F3EF);}' +
+      '.cd-over{position:fixed;inset:0;z-index:2000;background:rgba(42,26,16,.45);display:flex;' +
+        'align-items:center;justify-content:center;padding:16px;}' +
+      '.cd-over[hidden]{display:none;}' +
+      '.cd-win{background:var(--surface,#FFFCF6);color:var(--ink,#2A1A10);border:1px solid var(--line-strong,#D8C4A6);' +
+        'border-radius:8px;box-shadow:0 18px 50px -20px rgba(42,26,16,.6);width:min(760px,100%);' +
+        'max-height:min(86vh,900px);display:flex;flex-direction:column;}' +
+      '.cd-top{padding:16px 18px 10px;border-bottom:1px solid var(--line,#EADCC7);}' +
+      '.cd-top h3{margin:0;font-size:15px;}' +
+      '.cd-top p{margin:4px 0 0;font-size:12.5px;color:var(--ink-soft,#63483A);}' +
+      '.cd-body{overflow:auto;padding:0 18px;}' +
+      '.cd-body table{border-collapse:collapse;width:100%;font-size:12.5px;font-variant-numeric:tabular-nums;}' +
+      '.cd-body th,.cd-body td{padding:6px 10px;border-bottom:1px solid var(--line,#EADCC7);text-align:right;white-space:nowrap;}' +
+      '.cd-body th:first-child,.cd-body td:first-child{text-align:left;white-space:normal;}' +
+      '.cd-body thead th{position:sticky;top:0;background:var(--surface,#FFFCF6);font-weight:600;' +
+        'border-bottom:1px solid var(--line-strong,#D8C4A6);}' +
+      '.cd-body tfoot td{font-weight:600;border-top:1px solid var(--line-strong,#D8C4A6);border-bottom:none;}' +
+      '.cd-foot{display:flex;gap:8px;align-items:center;padding:12px 18px;border-top:1px solid var(--line,#EADCC7);}' +
+      '.cd-foot .grow{flex:1;font-size:12px;color:var(--ink-faint,#8A7059);}' +
+      '.cd-foot button{font:inherit;font-size:12.5px;padding:6px 12px;border-radius:5px;cursor:pointer;' +
+        'border:1px solid var(--line-strong,#D8C4A6);background:var(--surface,#FFFCF6);color:var(--ink,#2A1A10);}' +
+      '.cd-foot button.cd-main{background:var(--roast,#0E564C);border-color:var(--roast,#0E564C);color:#fff;}';
+    document.head.appendChild(st);
+    box = document.createElement('div');
+    box.className = 'cd-over'; box.hidden = true;
+    box.innerHTML = '<div class="cd-win" role="dialog" aria-modal="true" aria-labelledby="cdTitle">' +
+      '<div class="cd-top"><h3 id="cdTitle"></h3><p id="cdSub"></p></div>' +
+      '<div class="cd-body" id="cdBody"></div>' +
+      '<div class="cd-foot"><span class="grow" id="cdInfo"></span>' +
+      '<button type="button" id="cdCopy"></button><button type="button" id="cdCsv" class="cd-main"></button>' +
+      '<button type="button" id="cdClose"></button></div></div>';
+    document.body.appendChild(box);
+    box.addEventListener('click', function(e){ if (e.target === box) close(); });
+    document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && !box.hidden) close(); });
+    box.querySelector('#cdClose').addEventListener('click', close);
+    box.querySelector('#cdCsv').addEventListener('click', function(){
+      if (!current) return;
+      var csv = '﻿' + lines(current.t, ',').join('\r\n');
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+      a.download = current.file + '.csv';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
+    });
+    box.querySelector('#cdCopy').addEventListener('click', function(){
+      if (!current) return;
+      var b = this, t = lines(current.t, '\t').join('\n');
+      var done = function(){ b.textContent = W().copied; setTimeout(function(){ b.textContent = W().copy; }, 1500); };
+      if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(t).then(done, function(){});
+      else { var ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select();
+             try { document.execCommand('copy'); done(); } catch (e) {} ta.remove(); }
+    });
+    return box;
+  }
+  /* the file carries raw numbers, not the display formatting */
+  function lines(t, sep){
+    var q = function(v){
+      var s = v === null || v === undefined ? '' : String(v);
+      return sep === ',' && /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s.replace(/[\t\r\n]+/g, ' ');
+    };
+    var rows = [t.head].concat(t.rows);
+    if (t.total) rows.push(t.total);
+    return rows.map(function(r){ return r.map(q).join(sep); });
+  }
+  function close(){ if (box){ box.hidden = true; current = null; } if (lastBtn) lastBtn.focus(); }
+
+  var lastBtn = null;
+  function open(canvas, btn){
+    var chart = Chart.getChart(canvas);
+    if (!chart) return;
+    var w = W(), t = tableOf(chart), panel = canvas.closest('.panel') || canvas.parentElement;
+    var title = panel.querySelector('.panel-title'), note = panel.querySelector('.panel-note');
+    if (!title){
+      /* the only chart in its section carries no title of its own: the
+         section heading above it is its title */
+      var hs = Array.prototype.filter.call(document.querySelectorAll('h2, h3'), function(h){
+        return h.compareDocumentPosition(canvas) & Node.DOCUMENT_POSITION_FOLLOWING;
+      });
+      title = hs[hs.length - 1] || null;
+    }
+    /* a chart with a toggle (volume / value / price) shows one of several
+       measures; say which */
+    var active = panel.querySelector('.seg button.active');
+    ensureBox();
+    lastBtn = btn;
+    var name = title ? title.textContent.trim() : (canvas.id || w.title);
+    if (active) t.note = [active.textContent.trim(), t.note].filter(Boolean).join(' · ');
+    current = {t:t, file:(name || 'chart').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'chart'};
+    box.querySelector('#cdTitle').textContent = name;
+    box.querySelector('#cdSub').textContent = [note ? note.textContent.trim() : '', t.note].filter(Boolean).join(' · ');
+    box.querySelector('#cdCopy').textContent = w.copy;
+    box.querySelector('#cdCsv').textContent = w.csv;
+    box.querySelector('#cdClose').textContent = w.close;
+    box.querySelector('#cdInfo').textContent = t.rows.length ? t.rows.length + ' ' + w.rows : '';
+    box.querySelector('#cdBody').innerHTML = !t.rows.length ? '<p>' + esc(w.none) + '</p>' :
+      '<table><thead><tr>' + t.head.map(function(h){ return '<th>' + esc(h) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      t.rows.map(function(r){ return '<tr>' + r.map(function(v, c){
+        return '<td>' + esc(c ? (t.pct && isNum(v) ? pctText(v) : num(v)) : txt(v)) + '</td>'; }).join('') + '</tr>'; }).join('') +
+      '</tbody>' + (t.total ? '<tfoot><tr>' + t.total.map(function(v, c){ return '<td>' + esc(c ? num(v) : v) + '</td>'; }).join('') + '</tr></tfoot>' : '') +
+      '</table>';
+    box.hidden = false;
+    box.querySelector('#cdClose').focus();
+  }
+
+  /* ---------- drill-down into My dashboard ----------
+     The figures behind a chart on this page are summaries. The records under
+     them (cooperatives, farmers, deliveries, loans, lots, plots) are in My
+     dashboard, behind the same sign-in, and only for directors, finance and
+     managers: a viewer's sign-in carries no My dashboard, so they are not
+     offered the way in. The part of the chart clicked becomes the starting
+     selection: a season by its year, anything else (a district, a
+     cooperative, a village) through My dashboard's search. */
+  var PAGE_TAB = {'export.html':'export', 'finance.html':'finance', 'impact.html':'impact', 'eudr.html':'farmers'};
+  function canDrill(){
+    try {
+      var s = JSON.parse(sessionStorage.getItem('ndugu.portal.session') || 'null');
+      return !!(s && s.role !== 'viewer' && s.units && Object.keys(s.units).length);
+    } catch (e){ return false; }
+  }
+  function pickedLabel(chart, e){
+    if (!e || !chart.getElementsAtEventForMode) return null;
+    var hit = chart.getElementsAtEventForMode(e, 'nearest', {intersect:true}, false)[0];
+    if (!hit) return null;
+    var lab = chart.data.labels && chart.data.labels[hit.index];
+    lab = txt(lab).replace(/\*$/, '').trim();
+    return lab || null;
+  }
+  function drillHref(label){
+    var page = decodeURIComponent(location.pathname.split('/').pop() || 'index.html');
+    var h = [], q = '';
+    if (PAGE_TAB[page]) h.push('tab=' + PAGE_TAB[page]);
+    if (label && /^(19|20)\d\d$/.test(label)) h.push('season=' + label);
+    else if (label && /[A-Za-z]{3}/.test(label) && label.length <= 60) q = '?q=' + encodeURIComponent(label);
+    return 'portal.html' + q + (h.length ? '#' + h.join('&') : '');
+  }
+
+  /* ---------- the right-click menu ---------- */
+  var menu = null, menuCanvas = null, menuLabel = null;
+  function ensureMenu(){
+    if (menu) return menu;
+    menu = document.createElement('div');
+    menu.className = 'cd-menu'; menu.hidden = true;
+    menu.innerHTML = '<button type="button" id="cdMenuView"></button><button type="button" id="cdMenuDrill" hidden></button>';
+    document.body.appendChild(menu);
+    menu.querySelector('#cdMenuDrill').addEventListener('click', function(){
+      var href = drillHref(menuLabel);
+      hideMenu();
+      location.href = href;
+    });
+    menu.querySelector('#cdMenuView').addEventListener('click', function(){
+      var c = menuCanvas;
+      hideMenu();
+      if (c) open(c);
+    });
+    /* Any click or a second right-click outside the menu dismisses it, the
+       same way a native context menu behaves; Escape and scrolling/resizing
+       the window do too, since a menu anchored to a now-wrong position is
+       worse than no menu. */
+    document.addEventListener('mousedown', function(e){ if (!menu.hidden && !menu.contains(e.target)) hideMenu(); });
+    document.addEventListener('contextmenu', function(e){ if (!menu.hidden && !menu.contains(e.target)) hideMenu(); });
+    document.addEventListener('keydown', function(e){ if (e.key === 'Escape') hideMenu(); });
+    window.addEventListener('scroll', hideMenu, true);
+    window.addEventListener('resize', hideMenu);
+    return menu;
+  }
+  function hideMenu(){ if (menu) menu.hidden = true; menuCanvas = null; menuLabel = null; }
+  function showMenu(x, y, canvas, label){
+    ensureMenu();
+    menu.querySelector('#cdMenuView').textContent = W().view;
+    var d = menu.querySelector('#cdMenuDrill');
+    d.hidden = !canDrill();
+    d.textContent = label ? W().drillOn.replace('{0}', label) : W().drill;
+    menuCanvas = canvas; menuLabel = label || null;
+    menu.hidden = false;
+    /* Measured after becoming visible, then clamped so a chart near the
+       right or bottom edge doesn't open a menu partly off-screen. */
+    var mw = menu.offsetWidth, mh = menu.offsetHeight;
+    menu.style.left = Math.max(4, Math.min(x, window.innerWidth - mw - 4)) + 'px';
+    menu.style.top = Math.max(4, Math.min(y, window.innerHeight - mh - 4)) + 'px';
+  }
+
+  /* One listener per canvas, made once: charts are destroyed and rebuilt on
+     every filter change, and the menu looks the chart up when it is used,
+     the same way the old link did. Right-clicking the chart replaces the
+     browser's own context menu with this one rather than adding to it. */
+  function attach(chart){
+    var canvas = chart.canvas;
+    if (!canvas || canvas.dataset.cdLink) return;
+    canvas.dataset.cdLink = '1';
+    canvas.addEventListener('contextmenu', function(e){
+      e.preventDefault();
+      var ch = Chart.getChart ? Chart.getChart(canvas) : chart;
+      showMenu(e.clientX, e.clientY, canvas, ch ? pickedLabel(ch, e) : null);
+    });
+    ensureBox();
+  }
+  Chart.register({id:'chartDataTable', afterInit:attach});
+})();
+</script>
+<!-- /chart-data drill-down -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  :root{
+    /* --- surfaces: raw parchment, cream, unbleached paper --- */
+    --paper:#F7FBF5;
+    --surface:#FFFFFF;
+    --surface-sunk:#F1F7EF;
+    /* --- ink: espresso --- */
+    --ink:#1F2D1A;
+    --ink-soft:#4D5F47;
+    --ink-faint:#72836B;
+    --line:#DCE8D8;
+    --line-strong:#C8D8C1;
+    /* --- roasted bean: the primary --- */
+    --roast:#0E564C;
+    --roast-deep:#0B4C43;
+    --roast-light:#368779;
+    --roast-wash:#EAF5E5;
+    /* --- leaf: the growing side --- */
+    --leaf:#0E564C;
+    --leaf-light:#6DAD4D;
+    --leaf-wash:#ECF6E8;
+    /* --- coffee cherry --- */
+    --cherry:#4E8E33;
+    --cherry-wash:#EEF7EA;
+    /* --- golden harvest --- */
+    --honey:#6FA649;
+    --honey-wash:#F1F8ED;
+    /* --- supporting --- */
+    --teal:#4D8F35;
+    --olive:#7EAD56;
+    --clay:#4C7A35;
+    /* Side navigation: drawn from the page's own palette: the rail is the
+       same espresso as the footer, so the dashboard sits framed between them.
+       Contrast (white on button 6.5:1, espresso on honey 6.2:1) is above AA. */
+    --nav-bg:#0B4C43;
+    --nav-edge:#0E564C;
+    --nav-title:#F7FBF5;
+    --nav-btn:#0E564C;
+    --nav-btn-hover:#126A5E;
+    --nav-btn-current:#FFFFFF;
+    --nav-btn-current-ink:#0E564C;
+    /* KPI tile gradients. Every stop was checked for white-text contrast
+       rather than picked by eye. Saturation is pushed well above the base
+       palette (leaf 0.46 -> 0.68, teal 0.50 -> 0.75) to make the row carry, but
+       each hue is then darkened only as far as it must be for white text to
+       clear 4.5:1. Full saturation passes too, and looks like neon rather than
+       coffee, so it was not used. The tiles are the loudest thing on the page;
+       unreadable labels on them would be the most visible possible mistake. */
+    --tile-leaf:linear-gradient(135deg,#5AA733 0%,#0E564C 100%);   /* 4.60:1 */
+    --tile-honey:linear-gradient(135deg,#87BC5E 0%,#5A9837 100%);  /* 4.58:1 */
+    --tile-roast:linear-gradient(135deg,#6CB345 0%,#0E564C 100%);  /* 4.55:1 */
+    --tile-cherry:linear-gradient(135deg,#75B852 0%,#438A23 100%); /* 4.57:1 */
+    --tile-teal:linear-gradient(135deg,#4FA45A 0%,#2E7F3D 100%);   /* 4.55:1 */
+    --tile-olive:linear-gradient(135deg,#95C96A 0%,#5B9438 100%);  /* 4.56:1 */
+
+    --radius-sm:4px;
+    --radius-md:8px;
+    --radius-lg:10px;
+    --shadow-pop:0 12px 30px -10px rgba(42,26,16,0.38);
+    --shadow-panel:0 1px 2px rgba(42,26,16,0.04), 0 10px 26px -20px rgba(42,26,16,0.55);
+  }
+  *{box-sizing:border-box;}
+  .kpi-value,.tile-value,.tile-foot,
+  table.leaderboard td.num,table.leaderboard th.num,
+  .district-row .qty,.district-detail b
+  {font-variant-numeric:tabular-nums; font-feature-settings:'tnum' 1;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+    font-size:15px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+    /* Power BI aligns figures with tabular numerals rather than a monospace
+     face. Segoe UI, Helvetica and Arial all ship fixed-width lining figures, so
+     columns still line up without a second typeface. */
+  .num{font-variant-numeric:tabular-nums; font-feature-settings:'tnum' 1;}
+  a{color:inherit;}
+  ::selection{background:var(--roast); color:#fff;}
+
+  /* ---------- Page frame: fixed side nav + the dashboard column ---------- */
+  .layout{display:flex; align-items:flex-start; min-height:100vh;}
+  .layout-main{flex:1 1 auto; min-width:0; max-width:100%;}   /* min-width:0 so grids can shrink */
+
+  .sidenav{
+    flex:0 0 172px; width:172px; align-self:stretch;
+    position:sticky; top:4px; max-height:calc(100vh - 4px); overflow-y:auto;
+    background:var(--nav-bg);
+    border-right:1px solid var(--nav-edge);
+    padding:16px 14px 28px;
+    display:flex; flex-direction:column; gap:13px;
+  }
+  .sidenav-title{
+    color:var(--nav-title); font-size:12px; font-weight:600;
+    text-transform:uppercase; letter-spacing:0.12em;
+    padding:2px 2px 2px; margin:0;
+  }
+  .navbtn{
+    display:block; text-align:center; text-decoration:none;
+    background:var(--nav-btn); color:#fff;
+    border:1px solid rgba(255,252,246,0.10);
+    font-size:13px; font-weight:500; line-height:1.3;
+    padding:12px 6px;
+    /* chamfered corners, matching the other dashboards' buttons */
+    clip-path:polygon(9px 0, calc(100% - 9px) 0, 100% 9px, 100% calc(100% - 9px),
+                      calc(100% - 9px) 100%, 9px 100%, 0 calc(100% - 9px), 0 9px);
+    transition:background .15s ease;
+  }
+  .navbtn:hover{background:var(--nav-btn-hover);}
+  /* clip-path would crop a normal outline, so the focus ring is drawn inside */
+  .navbtn:focus-visible{outline:none; box-shadow:inset 0 0 0 2px #fff;}
+  .navbtn[aria-current="page"]{
+    background:var(--nav-btn-current); color:var(--nav-btn-current-ink);
+    font-weight:600; border-color:transparent;
+  }
+  @media (prefers-reduced-motion:reduce){ .navbtn{transition:none;} }
+
+  @media (max-width:900px){
+    .layout{flex-direction:column;}
+    .sidenav{
+      position:static; width:auto; max-height:none; flex:0 0 auto; align-self:auto;
+      flex-direction:row; align-items:center; gap:10px;
+      /* min-width:0 is what makes overflow-x:auto actually scroll here: without
+         it the rail sizes to all nine buttons and drags the page wider than the
+         viewport rather than scrolling inside itself. */
+      min-width:0; max-width:100%;
+      overflow-x:auto; padding:12px 16px;
+      border-right:none; border-bottom:1px solid var(--nav-edge);
+    }
+    .sidenav-title{display:none;}
+    .navbtn{flex:0 0 auto; padding:10px 16px; white-space:nowrap;}
+  }
+
+  /* ---------- Layout shell ---------- */
+  .shell{max-width:1320px; margin:0 auto; padding:0 32px;}
+  @media (max-width:900px){ .shell{padding:0 18px;} }
+
+  /* ---------- Header ---------- */
+  body::before{
+    content:''; position:fixed; top:0; left:0; right:0; height:4px; z-index:60;
+    background:linear-gradient(90deg,var(--roast-deep) 0%,var(--roast) 22%,var(--cherry) 46%,var(--honey) 70%,var(--leaf) 100%);
+  }
+  header.topbar{
+    position:sticky; top:4px; z-index:50;
+    background:rgba(250,244,234,0.94);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line-strong);
+  }
+  .topbar-inner{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:8px 0; gap:20px; flex-wrap:wrap;
+  }
+  .brand{display:flex; align-items:center; gap:14px;}
+  .brand-mark{height:30px; width:auto; flex:none;}
+  .brand-text{border-left:1px solid var(--line-strong); padding-left:14px;}
+  .brand-text .role{font-size:12.5px; color:var(--ink-soft); margin-top:1px;}
+
+  .filterbar{display:flex; align-items:center; gap:18px; flex-wrap:wrap;}
+  .pillgroup{display:flex; background:var(--surface-sunk); border-radius:999px; padding:3px; gap:2px;}
+  .pill{
+    border:none; background:transparent; padding:7px 14px; border-radius:999px;
+    font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-size:13px; font-weight:500; color:var(--ink-soft);
+    cursor:pointer; transition:background .15s ease, color .15s ease;
+  }
+  .pill.active{background:var(--roast); color:#fff;}
+  .pill:not(.active):hover{color:var(--ink);}
+  .asof{font-size:12px; color:var(--ink-faint); white-space:nowrap;}
+
+  /* ---------- Section scaffolding ---------- */
+  section{padding:22px 0;}
+  section + section{border-top:1px solid var(--line);}
+  /* Part rails split the page into the two runs it actually serves: the
+     scale-and-impact read at the top, the operating detail below it. */
+  .part-rail{
+    display:flex; align-items:center; gap:12px;
+    margin:26px 0 0 0; padding-top:20px; border-top:2px solid var(--ink);
+  }
+  .part-rail span{
+    font-size:11.5px; font-weight:700; letter-spacing:.09em;
+    text-transform:uppercase; color:var(--ink); white-space:nowrap;
+  }
+  .part-rail::after{content:''; flex:1 1 auto; height:1px; background:var(--line);}
+  .part-rail + section{border-top:none; padding-top:10px;}
+  .section-head{
+    display:grid; grid-template-columns:repeat(12,minmax(0,1fr));
+    gap:24px; align-items:end; margin-bottom:12px;
+  }
+  .section-head > div:first-child{grid-column:span 8; min-width:0;}
+  .section-head h2{font-size:19px; margin:0 0 4px 0; font-weight:700; letter-spacing:-0.01em;}
+  .section-head h2::before{
+    content:''; display:block; width:44px; height:3px; border-radius:2px;
+    background:var(--roast); margin-bottom:7px;
+  }
+  .section-head p{margin:0; color:var(--ink-soft); font-size:14px; max-width:62ch;}
+  .section-tag{grid-column:span 4; align-self:end; font-size:12.5px; color:var(--ink-faint); text-align:right;}
+  @media (max-width:980px){
+    .section-head > div:first-child, .section-tag{grid-column:1 / -1;}
+    .section-tag{text-align:left;}
+  }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    padding-top:20px; padding-bottom:0; border-top:none;
+    background:
+      radial-gradient(ellipse 900px 460px at 8% -14%, var(--honey-wash) 0%, transparent 64%),
+      radial-gradient(ellipse 760px 400px at 100% -4%, var(--leaf-wash) 0%, transparent 60%),
+      radial-gradient(ellipse 520px 300px at 58% -18%, var(--roast-wash) 0%, transparent 66%);
+    margin-top:-1px;
+  }
+  .hero-head{margin-bottom:14px;}
+  /* the figure column is far taller than the badges; centring stops a dead
+     band opening up above them */
+  /* these sit before .hero h1 / .hero p.lede in the cascade, so they need
+     enough specificity to win rather than relying on source order */
+  .hero .hero-head h1{max-width:none;}
+  .hero .hero-head p.lede{max-width:none;}
+  .hero-eyebrow{font-size:14px; color:var(--roast); font-weight:600; margin:0 0 10px 0;}
+  .hero h1{font-size:25px; line-height:1.12; margin:0 0 9px 0; font-weight:700; letter-spacing:-0.015em; max-width:18ch;}
+  .hero p.lede{font-size:14.5px; color:var(--ink-soft); max-width:56ch; margin:0;}
+
+
+  /* ---------- Tile rows ----------
+     Row one (context) and row two (metrics) share one tile component so the
+     head of the page reads as a single grid. Row one runs deeper in tone than
+     row two, which gives the hierarchy without introducing another shape. */
+  .tilerow{
+    display:grid; grid-template-columns:repeat(12,minmax(0,1fr));
+    gap:10px; margin-top:14px;
+  }
+  @media (max-width:1100px){ .tilerow{grid-template-columns:repeat(6,minmax(0,1fr));} }
+  @media (max-width:640px){ .tilerow{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  /* Four-tile pages (export, EUDR) spread across the same twelve columns. */
+  .tilerow-4 .tile{grid-column:span 3;}
+  @media (max-width:1100px){ .tilerow-4 .tile{grid-column:span 3;} }
+  @media (max-width:640px){ .tilerow-4 .tile{grid-column:span 2;} }
+  .tile{
+    grid-column:span 2; min-width:0;
+    padding:13px 15px 13px; border-radius:var(--radius-lg);
+    background:var(--tile-roast); color:#fff;
+    box-shadow:0 1px 2px rgba(42,26,16,.10), 0 8px 18px -14px rgba(42,26,16,.55);
+    display:flex; flex-direction:column; justify-content:flex-start;
+  }
+  /* Row one is the network: who and what Ndugu is. It runs dark to light left
+     to right in the roast family, so the reading order is carried by tone as
+     well as position. Row two below does the same in teal. Every step is set
+     against a 4.5:1 contrast floor for white text, and the two rows share
+     their endpoints with the export dashboard so the pages read as one set. */
+  .tile-lead{background:linear-gradient(135deg,#663A18 0%,#4A2A11 100%);} /* 9.6:1 */
+  .tile-a{background:linear-gradient(135deg,#72401B 0%,#522E13 100%);}    /* 8.5:1 */
+  .tile-b{background:linear-gradient(135deg,#7E481E 0%,#5B3415 100%);}    /* 7.4:1 */
+  .tile-c{background:linear-gradient(135deg,#8C4F21 0%,#653918 100%);}    /* 6.5:1 */
+  .tile-d{background:linear-gradient(135deg,#9B5824 0%,#703F1A 100%);}    /* 5.5:1 */
+  .tile-e{background:linear-gradient(135deg,#AA6128 0%,#7B461D 100%);}    /* 4.7:1 */
+  .tile{position:relative;}
+  /* Top-right, low opacity: it should read as texture on the tile, not as a
+     second thing to look at. aria-hidden, because the label already says what
+     the tile is and a screen reader repeating it adds nothing. */
+  .tile-icon{
+    position:absolute; top:12px; right:13px; width:18px; height:18px;
+    color:#fff; opacity:.45; pointer-events:none;
+  }
+  .kpi-cell{position:relative;}
+  .kpi-cell .tile-icon{top:9px; right:10px; width:20px; height:20px; opacity:.28;}
+  .tile-label, .kpi-label{padding-right:26px; min-height:1.5em;}
+  .tile-label{
+    font-size:12px; font-weight:500; margin:0 0 6px 0;
+    color:rgba(255,255,255,.82); line-height:1.35;
+  }
+  .tile-value{
+    font-size:23px; font-weight:700; color:#fff; line-height:1.12;
+    font-variant-numeric:tabular-nums; overflow-wrap:break-word;
+  }
+  .tile-lead .tile-value{font-size:26px;}
+  .tile-value-sm{font-size:15px; line-height:1.3;}
+  .tile-foot{font-size:12.5px; color:rgba(255,255,255,.72); margin-top:5px; font-weight:400;}
+
+  /* ---------- KPI tiles ----------
+     Six saturated tiles rather than one bordered ledger strip. Each is its own
+     card so the row reads at a glance from across a room, which is what a
+     dashboard's headline numbers are for. Padding is deliberately tight: the
+     whole point of the change was to get more of the page above the fold. */
+  .kpi-strip{
+    margin-top:10px;
+    display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:10px;
+  }
+  @media (max-width:1100px){ .kpi-strip{grid-template-columns:repeat(3,minmax(0,1fr));} }
+  @media (max-width:560px){ .kpi-strip{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  .kpi-cell{
+    padding:13px 15px 13px; border-radius:var(--radius-lg);
+    background:var(--tile-roast); color:#fff; min-width:0;
+    box-shadow:0 1px 2px rgba(42,26,16,.10), 0 8px 18px -14px rgba(42,26,16,.55);
+  }
+  /* Row two is performance: what the network produced and what it was paid.
+     Same dark-to-light progression as row one, in the second family. */
+  .kpi-cell:nth-child(6n+1){background:linear-gradient(135deg,#0D4D45 0%,#093832 100%);} /* 9.7:1 */
+  .kpi-cell:nth-child(6n+2){background:linear-gradient(135deg,#0E564D 0%,#0A3E37 100%);} /* 8.5:1 */
+  .kpi-cell:nth-child(6n+3){background:linear-gradient(135deg,#106056 0%,#0B453E 100%);} /* 7.4:1 */
+  .kpi-cell:nth-child(6n+4){background:linear-gradient(135deg,#116A5F 0%,#0C4D44 100%);} /* 6.5:1 */
+  .kpi-cell:nth-child(6n+5){background:linear-gradient(135deg,#137568 0%,#0E554B 100%);} /* 5.6:1 */
+  .kpi-cell:nth-child(6n+6){background:linear-gradient(135deg,#158173 0%,#0F5D53 100%);} /* 4.8:1 */
+  .kpi-label{
+    font-size:11.5px; font-weight:500; margin:0 0 3px 0;
+    color:rgba(255,255,255,.88); letter-spacing:.01em;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .kpi-value{
+    font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-size:23px; font-weight:700; color:#fff;
+    line-height:1.12; overflow-wrap:break-word;
+  }
+  @media (max-width:560px){ .kpi-value{font-size:19px;} }
+  .kpi-value small{font-size:12px; font-weight:500; color:rgba(255,255,255,.75);}
+  /* On a coloured tile the up/down hues from the light theme have no contrast,
+     so the delta rides on the tile's own white at reduced opacity and the
+     arrow glyph carries the direction. */
+  .kpi-delta{
+    font-size:11.5px; margin-top:4px; display:flex; align-items:center; gap:4px;
+    color:rgba(255,255,255,.82);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .kpi-delta.up, .kpi-delta.down, .kpi-delta.flat{color:rgba(255,255,255,.82);}
+
+  /* ---------- KPI grid (twelve tiles, one story) ----------
+     Replaces the old two-row split with a single 4-column, 3-row grid: who
+     the network is (row 1) and how the season is moving (row 2) both run in
+     the teal/green family, so scale and activity read as one continuous
+     block; the closing row (org structure and credentials) switches to the
+     roast/brown family as a deliberate change of register. Each row still
+     lightens left to right within its family. */
+  .kpigrid{
+    display:grid; grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:10px; margin-top:14px;
+  }
+  @media (max-width:900px){ .kpigrid{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  @media (max-width:480px){ .kpigrid{grid-template-columns:1fr;} }
+  .kpigrid .tile{grid-column:span 1;}
+  /* Every stop below is one already validated elsewhere in this file (the
+     kpi-cell teal ramp and the tile-a..e roast ramp) — reused rather than
+     picked fresh, so the 4.5:1 white-text floor and the deuteranopia-safe
+     green stay intact without re-checking new hex. */
+  .kt1{background:linear-gradient(135deg,#0D4D45 0%,#093832 100%);} /* 9.7:1 */
+  .kt2{background:linear-gradient(135deg,#0E564D 0%,#0A3E37 100%);} /* 8.5:1 */
+  .kt3{background:linear-gradient(135deg,#106056 0%,#0B453E 100%);} /* 7.4:1 */
+  .kt4{background:linear-gradient(135deg,#116A5F 0%,#0C4D44 100%);} /* 6.5:1 */
+  .kt5{background:linear-gradient(135deg,#0E564D 0%,#0A3E37 100%);} /* 8.5:1 */
+  .kt6{background:linear-gradient(135deg,#106056 0%,#0B453E 100%);} /* 7.4:1 */
+  .kt7{background:linear-gradient(135deg,#116A5F 0%,#0C4D44 100%);} /* 6.5:1 */
+  .kt8{background:linear-gradient(135deg,#137568 0%,#0E554B 100%);} /* 5.6:1 */
+  .kt9{background:linear-gradient(135deg,#72401B 0%,#522E13 100%);} /* 8.5:1 */
+  .kt10{background:linear-gradient(135deg,#7E481E 0%,#5B3415 100%);} /* 7.4:1 */
+  .kt11{background:linear-gradient(135deg,#8C4F21 0%,#653918 100%);} /* 6.5:1 */
+  .kt12{background:linear-gradient(135deg,#9B5824 0%,#703F1A 100%);} /* 5.5:1 */
+
+  /* ---------- Generic panel ---------- */
+  .panel{
+    border:1px solid var(--line-strong); border-radius:var(--radius-md);
+    background:var(--surface); padding:14px; box-shadow:var(--shadow-panel);
+    display:flex; flex-direction:column; min-width:0;
+  }
+  .panel-title{font-size:14.5px; font-weight:600; margin:0 0 4px 0; min-height:1.4em;}
+  .panel-note{font-size:12.5px; color:var(--ink-faint); margin:0 0 8px 0; min-height:1.5em;}
+
+  /* ---------- Map section ---------- */
+  /* The map used to be the one section on the page with no card chrome —
+     every other panel, including the district ledger it sits beside, has a
+     border, a surface fill and a shadow. Giving it the same .panel treatment
+     plus its own title/note (matching the ledger's head) is what makes the
+     row read as two matching cards instead of a list beside a bare drawing. */
+  .map-panel{
+    position:relative; display:flex; flex-direction:column; min-width:0;
+    border:1px solid var(--line-strong); border-radius:var(--radius-md);
+    background:var(--surface); padding:14px; box-shadow:var(--shadow-panel);
+  }
+  /* A fixed height used to letterbox the map: at 420px tall the viewBox (a
+     near-square 900x943, 2.1deg lon by 2.2deg lat) only draws about 400px
+     wide, leaving 70-80px of bare parchment on each side of a col-6 track —
+     visible dead space rather than map. aspect-ratio matches the box to the
+     viewBox exactly instead, so the drawing fills the full column width with
+     nothing left over, and the column stays col-6, the same width as the
+     ledger beside it. The row is taller for it (roughly 600px on a typical
+     desktop width rather than 420), so the ledger's list below is no longer
+     capped to an old fixed height — .grid's align-items:stretch makes it
+     match the map, whichever is taller, same as it did before either panel
+     had an explicit height. Narrow viewports stack the two panels instead of
+     sitting them side by side, so nothing there needs to match a neighbour's
+     width; the map reverts to a plain fixed height there. */
+  .map-svg-wrap{
+    position:relative; width:100%; aspect-ratio:900/943;
+    border-radius:var(--radius-sm); overflow:hidden;
+    background:linear-gradient(180deg,var(--surface) 0%,var(--surface-sunk) 100%);
+    border:1px solid var(--line);
+  }
+  @media (max-width:980px){ .map-svg-wrap{aspect-ratio:auto; height:340px;} }
+  .map-svg-wrap svg{width:100%; height:100%; display:block;}
+  .map-tooltip{
+    position:absolute; pointer-events:none; z-index:10;
+    background:var(--ink); color:#fff; padding:9px 12px; border-radius:var(--radius-sm);
+    font-size:12.5px; line-height:1.45; box-shadow:var(--shadow-pop);
+    transform:translate(-50%,-115%); white-space:nowrap; opacity:0; transition:opacity .1s ease;
+  }
+  .map-tooltip strong{font-weight:600;}
+  .map-tooltip .num{color:#EBD6BC;}
+  .map-legend{display:flex; gap:18px; margin-top:10px; flex-wrap:wrap; font-size:12px; color:var(--ink-soft);}
+  .map-legend .item{display:flex; align-items:center; gap:6px;}
+  .map-legend .sw{width:11px; height:11px; border-radius:50%; flex:none;}
+
+  .district-ledger{
+    border:1px solid var(--line-strong); border-radius:var(--radius-md); background:var(--surface);
+    overflow:hidden; box-shadow:var(--shadow-panel); display:flex; flex-direction:column;
+    /* min-height:0 lets the list inside scroll instead of pushing this panel
+       taller than the map it sits beside; the two then end level. */
+    min-height:0;
+  }
+  /* flex-basis:0, not auto: the list's own row count must not feed into the
+     grid row's auto height, or an eleven-row list (taller than any map worth
+     drawing) would pull the map-panel card down to match it, leaving empty
+     space below the map instead of beside it. With a zero basis the ledger's
+     only contribution to that calculation is its header, so the map (sized
+     by aspect-ratio) is reliably what sets the row height, and this list
+     just grows to fill and scrolls within whatever that turns out to be —
+     the same relationship as before, just with the two panels' roles
+     swapped. Below 980px the two panels stack instead of sitting side by
+     side, so nothing here needs to match a neighbour's height; capped back
+     to a fixed scroll height there so one district-heavy list can't push the
+     page to an awkward length. */
+  #districtList{flex:1 1 0; overflow-y:auto; min-height:0;}
+  @media (max-width:980px){ #districtList{max-height:382px;} }
+  .district-ledger-head{padding:14px 16px 10px; border-bottom:1px solid var(--line);}
+  .district-row{
+    display:grid; grid-template-columns:1fr auto auto; gap:12px; align-items:center;
+    padding:6px 16px; border-bottom:1px solid var(--line); cursor:pointer;
+    transition:background .12s ease;
+  }
+  .district-row:last-child{border-bottom:none;}
+  .district-row:nth-child(even){background:var(--surface-sunk);}
+  .district-row:hover{background:var(--roast-wash);}
+  .district-row.selected{background:var(--roast-wash); box-shadow:inset 3px 0 0 var(--roast);}
+  .district-row .name{font-size:13.5px; font-weight:500; line-height:1.35;}
+  .district-row .sub{font-size:11.5px; color:var(--ink-faint); margin-top:1px; line-height:1.35;}
+  .district-row .bar-track{width:64px; height:5px; background:var(--surface-sunk); border-radius:3px; overflow:hidden; justify-self:end;}
+  .district-row .bar-fill{height:100%; background:linear-gradient(90deg,var(--roast) 0%,var(--roast-light) 100%);}
+  .district-row .qty{font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-size:13px; text-align:right; min-width:64px;}
+  .district-detail{padding:12px 16px; border-top:1px solid var(--line); background:var(--surface-sunk); font-size:12.5px; color:var(--ink-soft);}
+  .district-detail b{color:var(--ink); font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-weight:600;}
+
+  /* ---------- Chart toggle ---------- */
+  .toggle-row{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:14px;}
+  .seg{display:inline-flex; border:1px solid var(--line-strong); border-radius:var(--radius-sm); overflow:hidden;}
+  .seg button{
+    border:none; background:var(--surface); padding:8px 16px; font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+    font-size:13px; font-weight:500; color:var(--ink-soft); cursor:pointer; border-right:1px solid var(--line-strong);
+  }
+  .seg button:last-child{border-right:none;}
+  .seg button.active{background:var(--roast); color:#fff;}
+  /* flex-basis 0 keeps the canvas from feeding its own height back into the row */
+  .chart-box{position:relative; flex:1 1 0%; min-height:225px;}
+  .chart-box.short{min-height:180px;}
+  .chart-box canvas{position:absolute; left:0; top:0;}
+  .insight-line{
+    margin-top:9px; padding:8px 12px; background:var(--honey-wash); border-radius:var(--radius-sm);
+    font-size:13px; color:#5C3A15; border-left:3px solid var(--honey);
+  }
+  .insight-line b{font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-weight:600;}
+
+  /* ---------- 12-column layout grid ----------
+     Every row on the page sits on the same twelve columns with the same 24px
+     gutter, so panel edges line up vertically all the way down. Two-panel rows
+     split 6/6 (map, chart pairs); everything else spans 12.
+     minmax(0,1fr) stops a responsive canvas from forcing its column wider. */
+  .grid{
+    display:grid; grid-template-columns:repeat(12,minmax(0,1fr));
+    gap:14px; align-items:stretch;
+  }
+  .col-4{grid-column:span 4;}
+  .col-5{grid-column:span 5;}
+  .col-6{grid-column:span 6;}
+  .col-7{grid-column:span 7;}
+  .col-8{grid-column:span 8;}
+  .col-12{grid-column:span 12;}
+  /* A grid item defaults to min-width:auto, which is its CONTENT width, so a
+     wide table or a fixed-width canvas inside one pushes the whole page wider
+     than the viewport instead of scrolling within its own panel. */
+  .grid > [class*="col-"]{min-width:0;}
+  @media (max-width:980px){ .grid > [class*="col-"]{grid-column:1 / -1;} }
+
+  table.leaderboard{
+    width:100%; border-collapse:separate; border-spacing:0; font-size:13.5px;
+    table-layout:fixed; border:1px solid var(--line-strong);
+    border-radius:var(--radius-sm); overflow:hidden;
+  }
+  table.leaderboard th{
+    text-align:left; font-size:11px; font-weight:600; color:#F0DFC7;
+    background:var(--roast-deep);
+    padding:9px 14px; text-transform:uppercase; letter-spacing:0.07em; white-space:nowrap;
+  }
+  table.leaderboard td{
+    padding:8px 14px; border-bottom:1px solid var(--line);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  /* Alternating rows. The stripe is the palette's own parchment rather than a
+     grey, so it reads as part of the theme instead of a browser default. */
+  table.leaderboard tbody tr:nth-child(odd){background:var(--surface);}
+  table.leaderboard tbody tr:nth-child(even){background:var(--surface-sunk);}
+  table.leaderboard tbody tr:last-child td{border-bottom:none;}
+  table.leaderboard tbody tr:hover{background:var(--roast-wash);}
+  table.leaderboard td.num, table.leaderboard th.num{text-align:right; font-variant-numeric:tabular-nums;}
+  table.leaderboard td.name{font-weight:500;}
+  /* A code is an identifier, not a quantity, so it stays left-aligned under a
+     left-aligned header. It keeps tabular figures so the codes stack evenly. */
+  table.leaderboard td.code{
+    text-align:left; font-variant-numeric:tabular-nums; letter-spacing:.01em;
+  }
+  /* A rule down the left of the first data column, so the eye has a rail to
+     follow across a wide row. */
+  table.leaderboard td.rank{
+    color:var(--ink-faint); font-variant-numeric:tabular-nums;
+    box-shadow:inset 3px 0 0 var(--roast-wash);
+  }
+  table.leaderboard tbody tr:hover td.rank{box-shadow:inset 3px 0 0 var(--roast);}
+  /* Unconditional rather than only under 820px: the table has a 660px floor,
+     so any container narrower than that has to scroll it, and min-width:0 lets
+     the container shrink far enough for that to happen. */
+  .leaderboard-scroll{overflow-x:auto; min-width:0;}
+  @media (max-width:820px){ table.leaderboard{min-width:660px;} }
+
+  /* ---------- Footer ---------- */
+  footer{
+    margin-top:22px; padding:24px 0 30px; font-size:12.5px; line-height:1.7;
+    background:var(--roast-deep); color:#BFA98F;
+    border-top:4px solid var(--roast);
+  }
+  footer .fgrid{display:grid; grid-template-columns:1fr; gap:40px;}
+  footer h4{font-size:12.5px; color:#F0DFC7; font-weight:600; margin:0 0 8px 0; letter-spacing:0.02em;}
+
+  .vis-hidden{display:none !important;}
+
+  /* ---------- boot states (before data.json arrives) ---------- */
+  .boot{
+    max-width:640px; margin:0 auto; padding:96px 24px 120px; text-align:center;
+  }
+  .boot-spinner{
+    width:26px; height:26px; margin:0 auto 18px; border-radius:50%;
+    border:2.5px solid var(--line-strong); border-top-color:var(--roast);
+    animation:boot-spin .8s linear infinite;
+  }
+  @keyframes boot-spin{to{transform:rotate(360deg);}}
+  @media (prefers-reduced-motion:reduce){ .boot-spinner{animation-duration:2.4s;} }
+  .boot p{margin:0; color:var(--ink-soft); font-size:14px;}
+  .boot-title{font-size:16px; font-weight:600; color:var(--ink); margin:0 0 10px 0;}
+  .boot-detail{
+    font-size:13.5px; color:var(--ink-soft); line-height:1.6;
+    background:var(--surface); border:1px solid var(--line-strong);
+    border-left:3px solid var(--cherry); border-radius:var(--radius-sm);
+    padding:14px 16px; text-align:left; margin-top:16px;
+  }
+
+  /* ---------- EUDR-only ---------- */
+
+  /* Countdown band. Deliberately loud: the whole page is about a date. */
+  .countdown{
+    display:flex; align-items:center; gap:18px; flex-wrap:wrap;
+    background:var(--roast-deep); color:#F0DFC7;
+    border-radius:var(--radius-md); padding:14px 20px; margin-top:22px;
+  }
+  .countdown .days{
+    font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-size:32px; font-weight:600;
+    color:#fff; line-height:1;
+  }
+  .countdown .days.urgent{color:var(--honey);}
+  .countdown .lab{font-size:13px; line-height:1.45;}
+  .countdown .lab b{color:#fff; font-weight:600;}
+  .countdown .rule{width:1px; align-self:stretch; background:rgba(240,223,199,0.25);}
+
+  /* Gap ledger: what is missing, and what closing it involves. */
+  .gap-row{
+    display:grid; grid-template-columns:10px 1fr auto; gap:12px;
+    align-items:start; padding:10px 16px; border-bottom:1px solid var(--line);
+  }
+  .gap-row:last-child{border-bottom:none;}
+  .gap-row:nth-child(even){background:var(--surface-sunk);}
+  .gap-row .chip{width:10px; height:10px; border-radius:2px; margin-top:5px;}
+  .gap-row .name{font-size:13.5px; font-weight:600; line-height:1.35;}
+  .gap-row .fix{font-size:12px; color:var(--ink-soft); margin-top:3px; line-height:1.45;}
+  .gap-row .qty{font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-size:13px; text-align:right; white-space:nowrap;}
+  .gap-row .qty .sub{
+    display:block; font-size:11px; color:var(--ink-faint);
+    font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+  }
+
+  /* The four things the regulation actually asks for. */
+  .req{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px;}
+  @media (max-width:900px){ .req{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  @media (max-width:560px){ .req{grid-template-columns:1fr;} }
+  .req-card{
+    border:1px solid var(--line-strong); border-top:3px solid var(--roast);
+    border-radius:var(--radius-sm); background:var(--surface); padding:13px 15px;
+  }
+  .req-card h4{font-size:13px; margin:0 0 6px 0; font-weight:600; color:var(--ink);}
+  .req-card p{margin:0; font-size:12px; color:var(--ink-soft); line-height:1.55;}
+  .req-card .art{
+    font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-size:10.5px; color:var(--ink-faint);
+    display:block; margin-top:7px; letter-spacing:0.02em;
+  }
+  .req-card:nth-child(2){border-top-color:var(--honey);}
+  .req-card:nth-child(3){border-top-color:var(--leaf);}
+  .req-card:nth-child(4){border-top-color:var(--teal);}
+
+  .callout{
+    border:1px solid var(--line-strong); border-left:3px solid var(--teal);
+    border-radius:var(--radius-sm); background:var(--surface);
+    padding:14px 16px; font-size:13px; color:var(--ink-soft); line-height:1.6;
+  }
+  .callout b{color:var(--ink); font-weight:600;}
+  .callout .n{font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; color:var(--ink); font-weight:600;}
+  .callout + .callout{margin-top:10px;}
+  .callout.act{border-left-color:var(--honey); background:var(--honey-wash); color:#5C3A15;}
+  .callout.act b, .callout.act .n{color:#3E2609;}
+
+  /* Readiness meter used in the officer and district tables. */
+  .meter{display:flex; align-items:center; gap:8px; justify-content:flex-end;}
+  .meter .track{
+    width:70px; height:6px; border-radius:3px; background:var(--surface-sunk);
+    overflow:hidden; flex:none;
+  }
+  .meter .fill{height:100%; background:var(--leaf);}
+  .meter .fill.low{background:var(--honey);}
+  .meter .val{font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-size:12.5px; min-width:3.4em; text-align:right;}
+
+  .statline{
+    display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-bottom:14px;
+  }
+  @media (max-width:700px){ .statline{grid-template-columns:1fr;} }
+  .statline .cell{
+    border:1px solid var(--line-strong); border-radius:var(--radius-sm);
+    background:var(--surface-sunk); padding:12px 14px;
+  }
+  .statline .cell .v{font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-size:19px; font-weight:600; color:var(--ink);}
+  .statline .cell .l{font-size:12px; color:var(--ink-soft); margin-top:3px; line-height:1.45;}
+
+  /* ---------- Plot boundary map ---------- */
+  .mapwrap{
+    position:relative; width:100%; flex:1 1 0%; min-height:520px;
+    border-radius:var(--radius-sm); overflow:hidden;
+    background:linear-gradient(180deg,#F7EFE1 0%,#EFE3D0 100%);
+    touch-action:none;
+  }
+  @media (max-width:980px){ .mapwrap{min-height:400px;} }
+  /* Leaflet paints its own grey behind the tiles. On the plain basemap there
+     are no tiles, so that grey would be the whole map: the paper wash has to
+     win, and the container above supplies it. */
+  /* Satellite mode paints a dark ground under the tiles. Boundaries are drawn
+     white there, and white on the paper wash is invisible: without this the map
+     is blank for the second or two the tiles take to arrive, and stays blank
+     for a reader whose network cannot reach the tile host at all. */
+  .mapwrap.sat{background:#241C15;}
+  .mapwrap .leaflet-container{
+    width:100%; height:100%; background:transparent;
+    font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+  }
+  /* Leaflet's own controls are replaced by the buttons in .mapbar, which are
+     already styled, already translated and already where the reader is
+     looking. Only the attribution stays, because the tile licence requires it. */
+  .mapwrap .leaflet-control-attribution{
+    background:rgba(255,252,246,.82); color:var(--ink-faint); font-size:10.5px;
+  }
+  .mapwrap .leaflet-control-attribution a{color:var(--ink-soft);}
+  .mapwrap.sat .leaflet-control-attribution{
+    background:rgba(20,14,10,.62); color:#EFE3D0;
+  }
+  .mapwrap.sat .leaflet-control-attribution a{color:#F7EFE1;}
+
+  /* District name over its bubble. A Leaflet divIcon rather than SVG text, so
+     it stays upright and the same size at every zoom; the halo is what keeps it
+     readable over both the paper wash and a dark canopy. */
+  .dlabel{
+    position:absolute; transform:translate(-50%,-230%); white-space:nowrap;
+    font-size:11px; font-weight:600; color:var(--ink);
+    paint-order:stroke; text-shadow:
+      0 0 3px #F7EFE1, 0 0 3px #F7EFE1, 0 0 3px #F7EFE1, 0 0 3px #F7EFE1;
+  }
+  .mapwrap.sat .dlabel{
+    color:#FFFCF6;
+    text-shadow:0 0 4px rgba(0,0,0,.95), 0 0 4px rgba(0,0,0,.95), 0 1px 2px rgba(0,0,0,.9);
+  }
+  .dlabel-icon{pointer-events:none;}
+
+  /* The satellite / plain switch, over the map's top-right corner. */
+  .mapmode{
+    position:absolute; z-index:500; top:10px; right:10px; display:flex;
+    border:1px solid var(--line-strong); border-radius:var(--radius-sm);
+    overflow:hidden; box-shadow:var(--shadow-pop); background:var(--surface);
+  }
+  .mapmode button{
+    border:none; background:transparent; color:var(--ink-soft); cursor:pointer;
+    font-family:inherit; font-size:12px; padding:6px 11px;
+  }
+  .mapmode button + button{border-left:1px solid var(--line-strong);}
+  .mapmode button[aria-pressed="true"]{background:var(--roast); color:#fff;}
+  .mapmode button:focus-visible{outline:2px solid var(--roast); outline-offset:-2px;}
+
+  .maptip{
+    position:absolute; pointer-events:none; z-index:12;
+    background:var(--ink); color:#fff; padding:9px 12px; border-radius:var(--radius-sm);
+    font-size:12.5px; line-height:1.5; box-shadow:var(--shadow-pop);
+    transform:translate(-50%,-118%); white-space:nowrap; opacity:0; transition:opacity .1s ease;
+  }
+  .maptip b{font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-weight:600; color:#EBD6BC;}
+
+  .mapbar{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:11px;
+  }
+  .mapbar .crumb{font-size:13px; color:var(--ink-soft);}
+  .mapbar .crumb b{color:var(--ink); font-weight:600;}
+  .mapbtn{
+    border:1px solid var(--line-strong); background:var(--surface); color:var(--ink-soft);
+    font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-size:12.5px; padding:6px 12px;
+    border-radius:var(--radius-sm); cursor:pointer;
+  }
+  .mapbtn:hover{background:var(--roast-wash); color:var(--ink);}
+  .mapbtn[disabled]{opacity:0.45; cursor:default;}
+  .mapbtn:focus-visible{outline:2px solid var(--roast); outline-offset:2px;}
+  .mapstat{margin-left:auto; font-size:12px; color:var(--ink-faint);}
+  .mapfind{
+    border:1px solid var(--line-strong); background:var(--surface); color:var(--ink);
+    font-family:"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; font-size:12.5px; padding:6px 10px;
+    border-radius:var(--radius-sm); width:170px; min-width:0;
+  }
+  .mapfind:focus-visible{outline:2px solid var(--roast); outline-offset:1px;}
+  .mapfind[hidden]{display:none;}
+
+  .maplegend{
+    display:flex; gap:16px; margin-top:10px; flex-wrap:wrap;
+    font-size:12px; color:var(--ink-soft); align-items:center;
+  }
+  .maplegend .item{display:flex; align-items:center; gap:6px;}
+  .maplegend .sw{width:13px; height:11px; border-radius:2px; flex:none; border:1px solid #E8791C;}
+  .maplegend .sw.prov{background:transparent; border:1.5px dashed var(--teal);}
+
+  .mapload{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    background:rgba(247,239,225,0.82); font-size:13px; color:var(--ink-soft); z-index:11;
+  }
+  /* display:flex outranks the user-agent's [hidden]{display:none}, so without
+     this the overlay stays laid out while "hidden" and silently swallows every
+     click on the map underneath it. */
+  .mapload[hidden]{display:none;}
+</style>
+
+<style id="ndugu-green-theme-overrides">
+  :root{color-scheme:light;}
+  .sidenav{background:var(--nav-bg)!important;border-color:var(--nav-edge)!important}
+  .sidenav-title{color:var(--nav-title)!important}
+  .navbtn{background:var(--nav-btn)!important;color:#fff!important;border-color:rgba(255,255,255,.12)!important}
+  .navbtn:hover{background:var(--nav-btn-hover)!important}
+  .navbtn[aria-current="page"]{background:var(--nav-btn-current)!important;color:var(--nav-btn-current-ink)!important;border-color:transparent!important}
+  ::selection{background:#0E564C;color:#fff}
+</style>
+<script src="ndugu-preferences.js"></script>
+<link rel="stylesheet" href="ndugu-brand.css">
+</head>
+<body>
+
+<div class="boot" id="bootLoading">
+  <div class="boot-spinner"></div>
+  <p>Loading dashboard data&hellip;</p>
+</div>
+
+<div class="boot" id="bootError" hidden>
+  <p class="boot-title"></p>
+  <p class="boot-detail"></p>
+</div>
+
+<div id="dashboard" hidden>
+<div class="layout">
+
+<nav class="sidenav" aria-label="Dashboards">
+  <p class="sidenav-title" data-i18n="navTitle">Navigation</p>
+  <form class="sidenav-search" action="portal.html" method="get" role="search"><input type="search" name="q" autocomplete="off" placeholder="Search…" data-ph-en="Search…" data-ph-nl="Zoeken…" aria-label="Find a farmer, cooperative, district or village in My dashboard" data-aria-nl="Zoek een boer, coöperatie, district of dorp in Mijn dashboard"></form>
+  <a class="navbtn" href="portal.html"      data-i18n="navPortal">My dashboard</a>
+  <a class="navbtn" href="impact.html"      data-i18n="navImpact">Ndugu Impact</a>
+  <a class="navbtn" href="domestic.html"    data-i18n="navDomestic">Domestic Trade</a>
+  <a class="navbtn" href="export.html"      data-i18n="navExport">Ndugu Export</a>
+  <a class="navbtn" href="finance.html"     data-i18n="navFinance">Ndugu Microfinance</a>
+  <a class="navbtn" href="production.html"  data-i18n="navProduction">Ndugu Production</a>
+  <a class="navbtn" href="coffee.html"      data-i18n="navCoffee">Coffee Minds</a>
+  <a class="navbtn" href="eudr.html"        aria-current="page" data-i18n="navEudr">EUDR Compliance</a>
+  <a class="navbtn" href="agritracker.html" data-i18n="navAgritracker">Internal resources</a>
+</nav>
+
+<div class="layout-main">
+
+<header class="topbar">
+  <div class="shell topbar-inner">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 1080 283.07" xmlns="http://www.w3.org/2000/svg"><style>.cls-1{fill:#0E564C;}</style><path class="cls-1" d="M469.14,81.5c41.67,0,59.71,16.51,59.71,54.37v74.95H495.56V136.89c0-18.81-7.62-27.19-26.42-27.19-19.06,0-26.94,8.38-26.94,27.19v73.93h-33V135.87C409.17,98,426.7,81.5,469.14,81.5Z"></path><path class="cls-1" d="M593.37,81.5c20.32,0,30,6.6,37.6,13.46h1.78V28.46h33V148.83c0,44.21-20.58,64.28-63.52,64.28S538,193,538,148.83v-3.05C538,100.3,556.78,81.5,593.37,81.5Zm8.89,103.41c21.85,0,30.49-9.91,30.49-37.1v-1c0-27.18-8.64-37.09-30.49-37.09s-31,9.91-31,37.09v1C571.26,175,580.41,184.91,602.26,184.91Z"></path><path class="cls-1" d="M872.33,81.5c42.94,0,63.52,20.83,63.52,65.29V203c0,41.92-16.51,60-65.3,60a216.77,216.77,0,0,1-39.89-3.81V232.42a251.24,251.24,0,0,0,36.84,3.3c26.93,0,35.32-8.38,35.32-26.17v-9.91H901c-7.62,6.86-17.28,13.47-37.6,13.47-36.59,0-55.39-18.8-55.39-64.28v-3.05C808.05,101.57,829.39,81.5,872.33,81.5Zm0,103.41c21.85,0,30.49-9.91,30.49-37.1v-1c0-27.18-8.64-37.09-30.49-37.09s-31,9.91-31,37.09v1C841.33,175,850.48,184.91,872.33,184.91Z"></path><path class="cls-1" d="M948,80.84h33v76.88c0,18.8,7.88,27.19,26.94,27.19,18.8,0,26.42-8.39,26.42-27.19V80.84h33.29v77.9c0,37.85-18,54.37-59.71,54.37-42.44,0-60-16.52-60-54.37Z"></path><path class="cls-1" d="M799.15,80.85v77.9c0,37.85-18,54.36-59.7,54.36-42.42,0-60-16.51-60-54.36V80.85h42.64c-2.25,3.84-4.59,11-7,15.49-.92,1.93-1.78,3.86-2.55,5.77C701,130,702.28,156.31,716,174.48c0,.05,0,.07,0,.1A17.61,17.61,0,0,0,721,180.2a58.17,58.17,0,0,0,15.73,11,72,72,0,0,0,9.46,3.76,38.85,38.85,0,0,1-1.71-3.76,34.06,34.06,0,0,1-1.9-6.37c-4.07-19.62,8.9-37.66,15.57-56.5,2.36-6.62,5.87-14.37,7.78-25.68a142.1,142.1,0,0,0,1.36-19.93c0-.65,0-1.28,0-1.88Z"></path><path class="cls-1" d="M727.74,164.64c-.71-.78-8.53-11.11,9-59.73,1.05-2.93,1.9-5.66,2.63-8.32a48.22,48.22,0,0,0,7.18-1.21,121.65,121.65,0,0,1-4.47,11.82C724.22,147.81,727.46,163.44,727.74,164.64Z"></path><path class="cls-1" d="M240.49,8.16c23.92,0,77.27,38.63,98.88,117.28,18.77,68.29-39.55,149.46-67.6,149.46-58.41,0-45.53-94.28-43.23-104.85C251.07,79.45,214.74,8.16,240.49,8.16Z"></path><path class="cls-1" d="M211,274.9c-23.92,0-77.27-35.1-98.88-106.55-18.77-62.06,39.55-135.81,67.6-135.81,58.41,0,45.53,85.66,43.23,95.27C200.41,210.13,236.74,274.9,211,274.9Z"></path><path class="cls-1" d="M26.3,232.09a1.23,1.23,0,0,1,.21,1.67c-2.34,3.26-4.74,6.56-7.06,9.66-2.53,3.4-4.81,11.58-3.74,15.5s13.52,6.38,14.86,5.51,6.18-12.52,9.21-18.78c5.6-11.56,10.67-23.4,16.91-34.59,3.93-7.06,9.14-13.4,14.22-20.32a1.26,1.26,0,0,0-1.2-2c-12,1.85-20.42,10.16-28.44,18.17-.42.51-1.11.14-1-.28,7.62-14.37,20.45-20.79,35.69-22.2,12.23-1.13,20.52,5.89,26.66,16a1.19,1.19,0,0,1,.15.35A87.14,87.14,0,0,1,105,211.9c1.6,8.2,1,16.38-3.08,23.78C88.2,260.16,66.79,273,39.23,274.86c-6,.42-12.9-2.41-18.38-5.52a17.38,17.38,0,0,1-6.48-23.26c2.67-5,6.53-9.34,10-13.91a1.24,1.24,0,0,1,1.81-.2Zm34.57,24.78C75,245,81.15,230.78,90.41,217.9c5.1-7.09,3.94-20.8,1.35-24.06-2.36-3-5.24-3.55-8.43-4.55a1.24,1.24,0,0,0-1.49.58c-3.94,7.42-8.61,18.78-12.33,21.86-3.88,3.21-10.55,14.84-15.05,22.86-4.67,8.31-21.06,26.12-19.63,32.62S59.72,257.83,60.87,256.87Z"></path></svg>
+      <div class="brand-text">
+        <div class="role" data-i18n="brandRole">EUDR readiness</div>
+      </div>
+    </div>
+    <div class="filterbar">
+      <div class="pillgroup" id="langPills">
+        <button class="pill active" data-lang="en">EN</button>
+        <button class="pill" data-lang="nl">NL</button>
+      </div>
+      <div class="asof"><span data-i18n="asofLabel">Assessed</span> <span class="num" id="asOf">-</span></div>
+    </div>
+  </div>
+</header>
+
+<main class="shell">
+
+  <section class="hero">
+    <div class="hero-head">
+      <p class="hero-eyebrow" data-i18n="heroEyebrow">EU Deforestation Regulation</p>
+      <h1 data-i18n="heroH1">Every kilogram sold into Europe needs the location of the plot it grew on</h1>
+      <p class="lede" data-i18n="heroLede">-</p>
+    </div>
+
+    <div class="tilerow tilerow-4">
+      <div class="tile tile-lead" id="tileLead">
+        <p class="tile-label" data-i18n="heroCap">of volume meets the geolocation standard</p>
+        <div class="tile-value num" id="heroBig">-</div>
+        <div class="tile-foot num" id="heroSub">-</div>
+      </div>
+      <div class="tile tile-a" id="tileReg">
+        <p class="tile-label" id="badgeReg">-</p>
+        <div class="tile-value tile-value-sm" id="badgeRegV">-</div>
+      </div>
+      <div class="tile tile-b" id="tileCutoff">
+        <p class="tile-label" id="badgeCutoff">-</p>
+        <div class="tile-value num" id="badgeCutoffV">-</div>
+      </div>
+      <div class="tile tile-c" id="tilePrec">
+        <p class="tile-label" id="badgePrecision">-</p>
+        <div class="tile-value num" id="badgePrecisionV">-</div>
+      </div>
+    </div>
+
+    <div class="kpi-strip">
+      <div class="kpi-cell"><span class="kpi-icon-slot" data-icon="plot"></span>
+        <p class="kpi-label" data-i18n="kpiCompliant">Volume that qualifies</p>
+        <div class="kpi-value" id="kpiCompliant">-</div>
+        <div class="kpi-delta flat" id="kpiCompliantSub">-</div>
+      </div>
+      <div class="kpi-cell"><span class="kpi-icon-slot" data-icon="tag"></span>
+        <p class="kpi-label" data-i18n="kpiAtRisk">Volume at risk</p>
+        <div class="kpi-value" id="kpiAtRisk">-</div>
+        <div class="kpi-delta down" id="kpiAtRiskSub">-</div>
+      </div>
+      <div class="kpi-cell"><span class="kpi-icon-slot" data-icon="person"></span>
+        <p class="kpi-label" data-i18n="kpiVisits">Farmers needing a visit</p>
+        <div class="kpi-value" id="kpiVisits">-</div>
+        <div class="kpi-delta flat" id="kpiVisitsSub">-</div>
+      </div>
+      <div class="kpi-cell"><span class="kpi-icon-slot" data-icon="crate"></span>
+        <p class="kpi-label" data-i18n="kpiMappedPlots">Plot boundaries walked</p>
+        <div class="kpi-value" id="kpiPolygon">-</div>
+        <div class="kpi-delta up" id="kpiPolygonSub">-</div>
+      </div>
+      <div class="kpi-cell"><span class="kpi-icon-slot" data-icon="pin"></span>
+        <p class="kpi-label" data-i18n="kpiMapped">Farmers with a usable point</p>
+        <div class="kpi-value" id="kpiMapped">-</div>
+        <div class="kpi-delta flat" id="kpiMappedSub">-</div>
+      </div>
+      <div class="kpi-cell"><span class="kpi-icon-slot" data-icon="seal"></span>
+        <p class="kpi-label" data-i18n="kpiChain">Chain intact</p>
+        <div class="kpi-value" id="kpiChain">-</div>
+        <div class="kpi-delta up" data-i18n="kpiChainSub">every kg links to a farmer</div>
+      </div>
+    </div>
+
+    <div class="countdown">
+      <div><span class="days" id="cdDays">-</span></div>
+      <div class="lab" id="cdLab">-</div>
+      <div class="rule"></div>
+      <div class="lab" id="cdSmall">-</div>
+    </div>
+  </section>
+
+  <section id="mapSection">
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="secMapH">Mapped plot boundaries</h2>
+        <p data-i18n="secMapP">-</p>
+      </div>
+      <div class="section-tag" data-i18n="secMapTag">Click a district to open its plots</div>
+    </div>
+    <div class="grid">
+      <div class="col-8 panel">
+        <div class="mapbar">
+          <button class="mapbtn" id="mapBack" disabled data-i18n="mapBack">All districts</button>
+          <button class="mapbtn" id="mapReset" data-i18n="mapReset">Reset zoom</button>
+          <input class="mapfind" id="mapFind" type="search" autocomplete="off"
+                 placeholder="Find a plot" aria-label="Find a plot">
+          <span class="crumb" id="mapCrumb">-</span>
+          <span class="mapstat" id="mapStat">-</span>
+        </div>
+        <div class="mapwrap sat" id="mapWrap">
+          <div class="mapmode" id="mapMode" role="group" aria-label="Basemap">
+            <button type="button" data-mode="sat" aria-pressed="true" data-i18n="mapModeSat">Satellite</button>
+            <button type="button" data-mode="plain" aria-pressed="false" data-i18n="mapModePlain">Plain</button>
+          </div>
+          <div class="mapload" id="mapLoad" hidden>-</div>
+          <div class="maptip" id="mapTip"></div>
+        </div>
+        <div class="maplegend" id="mapLegend"></div>
+      </div>
+      <div class="district-ledger col-4">
+        <div class="district-ledger-head">
+          <p class="panel-title" style="margin:0;" data-i18n="panMapListH">Districts mapped</p>
+          <p class="panel-note" style="margin:2px 0 0;" data-i18n="panMapListN">Click a row to open its plots.</p>
+        </div>
+        <div id="mapDistrictList"></div>
+      </div>
+      <div class="col-12">
+        <div class="callout" id="mapNote">-</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="secReqH">What the regulation asks for</h2>
+        <p data-i18n="secReqP">-</p>
+      </div>
+      <div class="section-tag" id="secReqTag">-</div>
+    </div>
+    <div class="grid">
+      <div class="col-12 panel">
+        <div class="req">
+          <div class="req-card">
+            <h4 data-i18n="req1H">Geolocation of every plot</h4>
+            <p data-i18n="req1P">Latitude and longitude for each plot the coffee was produced on, to at least six decimal digits. Fewer digits is not a rounding preference, it fails the test.</p>
+            <span class="art" data-i18n="req1A">Art. 9(1)(d)</span>
+          </div>
+          <div class="req-card">
+            <h4 data-i18n="req2H">Polygons above 4 hectares</h4>
+            <p data-i18n="req2P">A plot larger than four hectares must be given as a polygon tracing its perimeter. A single point is only accepted at four hectares or below.</p>
+            <span class="art" data-i18n="req2A">Art. 2(28)</span>
+          </div>
+          <div class="req-card">
+            <h4 data-i18n="req3H">Deforestation-free</h4>
+            <p data-i18n="req3P">The land must not have been converted from forest after 31 December 2020. The geolocation is what makes that checkable against satellite records.</p>
+            <span class="art" data-i18n="req3A">Art. 3(a)</span>
+          </div>
+          <div class="req-card">
+            <h4 data-i18n="req4H">Legally produced</h4>
+            <p data-i18n="req4P">Production must comply with Uganda's law on land use, tenure and labour. Evidencing that needs the administrative location, not just the district.</p>
+            <span class="art" data-i18n="req4A">Art. 3(b)</span>
+          </div>
+        </div>
+        <div style="margin-top:14px;">
+          <div class="callout" id="whoFiles">-</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="secGapH">What is missing</h2>
+        <p data-i18n="secGapP">-</p>
+      </div>
+      <div class="section-tag" data-i18n="secGapTag">Volume that cannot be documented today</div>
+    </div>
+    <div class="grid">
+      <div class="col-7 panel">
+        <p class="panel-title" data-i18n="panGapH">Volume at risk, by reason</p>
+        <p class="panel-note" data-i18n="panGapN">Each farmer counts once, under the work their plot actually needs.</p>
+        <div class="chart-box"><canvas id="gapChart"></canvas></div>
+      </div>
+      <div class="district-ledger col-5">
+        <div class="district-ledger-head">
+          <p class="panel-title" style="margin:0;" data-i18n="panFixH">What closing each gap involves</p>
+          <p class="panel-note" style="margin:2px 0 0;" data-i18n="panFixN">Farmers affected and volume behind them.</p>
+        </div>
+        <div id="gapList"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="secPlanH">What it would take to close it</h2>
+        <p data-i18n="secPlanP">-</p>
+      </div>
+      <div class="section-tag" data-i18n="secPlanTag">Field visits against volume recovered</div>
+    </div>
+    <div class="grid">
+      <div class="col-7 panel">
+        <p class="panel-title" data-i18n="panCurveH">Compliance recovered per farmer visited</p>
+        <p class="panel-note" data-i18n="panCurveN">Largest suppliers with a gap visited first.</p>
+        <div class="chart-box"><canvas id="curveChart"></canvas></div>
+        <div class="insight-line" id="curveInsight">-</div>
+      </div>
+      <div class="district-ledger col-5">
+        <div class="district-ledger-head">
+          <p class="panel-title" style="margin:0;" data-i18n="panDistH">Where the work is</p>
+          <p class="panel-note" style="margin:2px 0 0;" data-i18n="panDistN">Districts by volume at risk.</p>
+        </div>
+        <div id="districtList"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="secBuyerH">Readiness by buyer</h2>
+        <p data-i18n="secBuyerP">-</p>
+      </div>
+      <div class="section-tag" data-i18n="secBuyerTag">Where the exposure actually sits</div>
+    </div>
+    <div class="grid">
+      <div class="col-12 panel">
+        <div class="chart-box" style="min-height:300px"><canvas id="buyerChart"></canvas></div>
+        <div class="insight-line" id="buyerInsight">-</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="officerSection">
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="secOffH">By field officer</h2>
+        <p data-i18n="secOffP">-</p>
+      </div>
+      <div class="section-tag" data-i18n="secOffTag">Data completeness is an operational metric</div>
+    </div>
+    <div class="grid">
+      <div class="col-12 panel">
+        <div class="leaderboard-scroll">
+          <table class="leaderboard">
+            <thead>
+              <tr>
+                <th data-i18n="thOfficer">Field officer</th>
+                <th class="num" style="width:7rem;" data-i18n="thFarmers">Farmers</th>
+                <th class="num" style="width:9rem;" data-i18n="thVolume">Volume sourced</th>
+                <th class="num" style="width:12rem;" data-i18n="thReady">Meets the standard</th>
+              </tr>
+            </thead>
+            <tbody id="officerBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <section>
+    <div class="section-head">
+      <div>
+        <h2 data-i18n="secOtherH">Gaps that will surface next</h2>
+        <p data-i18n="secOtherP">-</p>
+      </div>
+      <div class="section-tag" data-i18n="secOtherTag">Beyond the coordinate itself</div>
+    </div>
+    <div class="grid">
+      <div class="col-12 panel">
+        <div class="statline">
+          <div class="cell">
+            <div class="v" id="stPlots">-</div>
+            <div class="l" id="stPlotsL">-</div>
+          </div>
+          <div class="cell">
+            <div class="v" id="stParish">-</div>
+            <div class="l" id="stParishL">-</div>
+          </div>
+          <div class="cell">
+            <div class="v" id="stSize">-</div>
+            <div class="l" id="stSizeL">-</div>
+          </div>
+        </div>
+        <div id="otherNotes"></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="shell fgrid">
+    <div>
+      <h4 data-i18n="footerDefH">Definitions</h4>
+      <p data-i18n="footerDefP">EUDR: Regulation (EU) 2023/1115 on deforestation-free products, as amended. Operator: the party first placing goods on the EU market. DDS: the due diligence statement an operator files before placing a consignment. Plot: a single parcel of land on which the coffee was produced. Polygon: the traced perimeter of a plot, as opposed to a single point inside it.</p>
+    </div>
+  </div>
+</footer>
+
+</div><!-- /.layout-main -->
+</div><!-- /.layout -->
+</div><!-- /#dashboard -->
+
+<script>
+
+(function(){
+"use strict";
+
+/* ---------------------------------------------------------------------------
+   Every figure is read from ./eudr-data.json, rebuilt by scripts/build_eudr.py
+   from the farmer list, the transactions and the batches. That file carries
+   counts and kilograms only: no farmer name, code, contact detail or
+   coordinate, so no individual farmer is identifiable from this page.
+   --------------------------------------------------------------------------- */
+var DATA = null;
+var DATA_POLY = null;
+var POLY_V = Date.now();
+var REQUIRED_KEYS = ['meta','kpis','gaps','precision','by_buyer','by_district',
+  'by_cooperative','by_officer','curve','plots','admin_completeness','size_flags'];
+
+function showFatal(title, detail){
+  var el = document.getElementById('bootError');
+  document.getElementById('bootLoading').hidden = true;
+  el.hidden = false;
+  el.querySelector('.boot-title').textContent = title;
+  el.querySelector('.boot-detail').textContent = detail;
+}
+
+function boot(){
+  if (typeof Chart === 'undefined'){
+    showFatal('Charting library could not be loaded',
+      'The page loads Chart.js from cdnjs.cloudflare.com and the request did not ' +
+      'complete. This is usually a network or proxy restriction rather than a problem ' +
+      'with the dashboard. Check that cdnjs.cloudflare.com is reachable from this machine.');
+    return;
+  }
+  fetch('./eudr-data.json?v=' + Date.now(), {cache:'no-store'})
+    .then(function(r){
+      if (!r.ok) throw new Error('HTTP ' + r.status + ' ' + r.statusText);
+      return r.json();
+    })
+    .then(function(json){
+      var missing = REQUIRED_KEYS.filter(function(k){ return !(k in json); });
+      if (missing.length) throw new Error('eudr-data.json is missing: ' + missing.join(', '));
+      DATA = json;
+      /* The boundary index is optional: if it is missing the rest of the page
+         is still correct, so a failure here hides the map instead of blocking
+         the dashboard. */
+      return fetch('./polygon-data.json?v=' + POLY_V, {cache:'no-store'})
+        .then(function(r){ return r.ok ? r.json() : null; })
+        .catch(function(){ return null; })
+        .then(function(poly){
+          DATA_POLY = poly;
+          document.getElementById('bootLoading').hidden = true;
+          document.getElementById('dashboard').hidden = false;
+          start();
+        });
+    })
+    .catch(function(err){
+      var hint = (location.protocol === 'file:')
+        ? 'The page was opened straight from disk. Browsers block fetch() on file:// URLs. Serve the folder over HTTP instead (python -m http.server 8000) or use the deployed GitHub Pages URL.'
+        : 'Could not load ./eudr-data.json next to this page. If this is a fresh deploy, check that the build workflow finished and published it.';
+      showFatal('Dashboard data could not be loaded', hint + '  [' + err.message + ']');
+    });
+}
+
+/* ============================= state & formatters ============================= */
+var state = { lang:'en' };
+var MONTHS_EN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var MONTHS_NL = ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
+function monthsArr(){ return state.lang==='nl' ? MONTHS_NL : MONTHS_EN; }
+function numLocale(){ return state.lang==='nl' ? 'nl-NL' : 'en-US'; }
+function fmtInt(v){ return Math.round(v).toLocaleString(numLocale()); }
+function fmtTonnes(kg){
+  var t = kg/1000;
+  return t.toLocaleString(numLocale(),{maximumFractionDigits: t<10?2:1}) + ' t';
+}
+function fmtKgShort(kg){ return kg >= 1000 ? fmtTonnes(kg) : fmtInt(kg) + ' kg'; }
+/* Axis ticks stay in one unit the whole way up, so the zero tick is not "0 kg"
+   next to "10 t". */
+function fmtAxisT(kg){
+  return (kg/1000).toLocaleString(numLocale(),{maximumFractionDigits:1}) + ' t';
+}
+function fmtPct(v, dp){
+  if (dp === undefined) dp = 1;
+  return (v*100).toLocaleString(numLocale(),{minimumFractionDigits:dp, maximumFractionDigits:dp}) + '%';
+}
+function fmtDate(d){
+  if (!d) return '-';
+  var p = d.split('-');
+  return parseInt(p[2],10) + ' ' + monthsArr()[parseInt(p[1],10)-1] + ' ' + p[0];
+}
+function esc(s){
+  return (s===null||s===undefined) ? '' :
+    String(s).replace(/[&<>]/g, function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});
+}
+
+/* ============================= palette ============================= */
+/* Dotted grid lines, matching index.html. Set through Chart.defaults so
+   any chart added later inherits it. */
+/* ============================= tile icons =============================
+   Hand-drawn glyphs rather than an icon library: no extra request, no
+   dependency, and nothing here resembles anyone's logo or brand mark. Each is
+   a 24x24 stroke path so they share a weight, and they sit at low opacity so
+   they decorate the tile without competing with the figure on it. */
+var ICONS = {
+  /* rosette seal for certification */
+  seal:'<circle cx="12" cy="9.5" r="5.5"/><path d="M9 14.5 7.5 21l4.5-2.4 4.5 2.4L15 14.5"/>',
+  /* one person */
+  person:'<circle cx="12" cy="8" r="3.5"/><path d="M5.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/>',
+  /* map pin */
+  pin:'<path d="M12 21s6.5-6.2 6.5-11a6.5 6.5 0 1 0-13 0C5.5 14.8 12 21 12 21Z"/>'+
+      '<circle cx="12" cy="10" r="2.4"/>',
+  /* price tag */
+  tag:'<path d="M11 3.5H4.5A1.5 1.5 0 0 0 3 5v6.4c0 .4.2.8.4 1l8.6 8.6a1.5 1.5 0 0 0 2.1 0l6-6a1.5 1.5 0 0 0 0-2.1L11.6 4a1.5 1.5 0 0 0-1-.5Z"/>'+
+      '<circle cx="7.5" cy="8.5" r="1.4"/>',
+  /* stacked crate, for a dispatched batch */
+  crate:'<path d="M3 8.2 12 4l9 4.2v7.6L12 20l-9-4.2Z"/><path d="M3 8.2 12 12.4l9-4.2M12 12.4V20"/>',
+  /* surveyed plot boundary */
+  plot:'<path d="M4 6.5 10 4l4.5 2.5L20 4.4v13.2L14.5 20 10 17.5 4 20Z"/><path d="M10 4v13.5M14.5 6.5V20"/>',
+  /* leaf, for the growing side */
+  leaf:'<path d="M20 4C10 4 4 9 4 15.5A4.5 4.5 0 0 0 8.5 20C15 20 20 14 20 4Z"/><path d="M15 9C10.5 11 8 14.5 7 19"/>'
+};
+function icon(name){
+  var d = ICONS[name];
+  if (!d) return '';
+  return '<svg class="tile-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" ' +
+         'fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" ' +
+         'stroke-linejoin="round">' + d + '</svg>';
+}
+
+var GRID_DASH = [2, 3];
+var CHART_FONT = '"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif';
+var COLORS = {
+  roast:'#0E564C', roastDeep:'#083B34', roastLight:'#358879', roastWash:'#EAF4E6',
+  leaf:'#367729', leafLight:'#70A95A', leafWash:'#EAF5E5',
+  cherry:'#5D9842', honey:'#73A35A', honeyWash:'#F3FAEF',
+  teal:'#2D7950', olive:'#82AF65', clay:'#568940',
+  ink:'#21351B', inkSoft:'#486541', inkFaint:'#6D8467', line:'#DDE9D8'
+};
+/* One green across every dashboard: the dark teal of the KPI tiles. It is not
+   a decorative choice. On this background it measures 9.5:1, where the leaf
+   green it replaces measured 4.8:1, and against the clay it sits beside in the
+   moisture chart a deuteranope saw a CIEDE2000 separation of 1.2 with leaf
+   green, which is no separation at all. With this green that pair measures
+   28.8, and green against gold measures 49.0. Gold is still below 3:1 on this
+   background, so every gold mark stays labelled or sits beside a table. */
+var GREEN = '#0E564C';
+
+/* Compliant vs at-risk. Green against red is what a red-green colour-blind
+   reader cannot separate, so at-risk is gold rather than red. */
+var C_OK = GREEN;
+var C_RISK = COLORS.honey;
+
+function themeCharts(){
+  Chart.defaults.font.family = '"Segoe UI","Segoe UI Web (West European)",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif';
+  Chart.defaults.color = COLORS.inkSoft;
+  Chart.defaults.font.size = 11.5;
+  Chart.defaults.scale.grid.borderDash = GRID_DASH;
+  Chart.defaults.scale.grid.color = COLORS.line;
+  Chart.defaults.scale.grid.tickBorderDash = GRID_DASH;
+}
+
+var CHARTS = {};
+function mountChart(canvasId, cfg){
+  var el = document.getElementById(canvasId);
+  if (!el) return null;
+  var prev = CHARTS[canvasId] || (typeof Chart.getChart === 'function' ? Chart.getChart(el) : null);
+  if (prev) prev.destroy();
+  CHARTS[canvasId] = new Chart(el.getContext('2d'), cfg);
+  return CHARTS[canvasId];
+}
+
+/* ============================= derived facts ============================= */
+var FACTS = {};
+function computeFacts(){
+  var k = DATA.kpis, meta = DATA.meta;
+  var top = DATA.by_district[0] || {district:'-', kg_at_risk:0, farmers:0};
+  var direct = null, worst = null;
+  DATA.by_buyer.forEach(function(b){
+    if (b.direct_export) direct = b;
+    if (b.kg > 50000 && (!worst || b.pct < worst.pct)) worst = b;
+  });
+  /* The knee of the curve: the fewest visits that pass 90%. */
+  var knee = null;
+  DATA.curve.forEach(function(p){ if (!knee && p.pct >= 0.9) knee = p; });
+  if (!knee) knee = DATA.curve[DATA.curve.length-1];
+  var byGap = {};
+  DATA.gaps.forEach(function(g){ byGap[g.key] = g; });
+
+  FACTS = {
+    pctReady: fmtPct(k.pct_volume_ready),
+    pctFarmers: fmtPct(k.pct_farmers_ready),
+    ready: fmtTonnes(k.ready_kg),
+    total: fmtTonnes(k.total_kg),
+    atRisk: fmtTonnes(k.kg_at_risk),
+    toFix: fmtInt(k.n_farmers_to_fix),
+    farmers: fmtInt(k.n_farmers),
+    polygon: fmtInt(k.n_needing_polygon),
+    days: fmtInt(meta.days_remaining),
+    deadline: fmtDate(meta.deadline),
+    deadlineSmall: fmtDate(meta.deadline_small),
+    cutoff: fmtDate(meta.cutoff),
+    decimals: meta.min_decimals,
+    ha: meta.polygon_above_ha,
+    regulation: meta.regulation,
+    generated: fmtDate(meta.generated),
+    kneeN: fmtInt(knee.farmers),
+    kneePct: fmtPct(knee.pct),
+    topDistrict: top.district,
+    topDistrictKg: fmtTonnes(top.kg_at_risk),
+    topDistrictFarmers: fmtInt(top.farmers),
+    topDistrictShare: fmtPct(k.kg_at_risk ? top.kg_at_risk/k.kg_at_risk : 0),
+    directBuyer: direct ? direct.buyer : '-',
+    directPct: direct ? fmtPct(direct.pct) : '-',
+    directKg: direct ? fmtTonnes(direct.kg) : '-',
+    worstBuyer: worst ? worst.buyer : '-',
+    worstPct: worst ? fmtPct(worst.pct) : '-',
+    lowPrecN: byGap.low_precision ? fmtInt(byGap.low_precision.farmers) : '0',
+    lowPrecKg: byGap.low_precision ? fmtTonnes(byGap.low_precision.kg) : '0 t',
+    noGpsN: byGap.no_gps ? fmtInt(byGap.no_gps.farmers) : '0',
+    multiPlot: fmtInt(DATA.plots.farmers_multi_plot),
+    multiPlotKg: fmtTonnes(DATA.plots.kg_from_multi_plot),
+    maxPlots: DATA.plots.max_plots,
+    parishPct: fmtPct(DATA.admin_completeness.parish),
+    villagePct: fmtPct(DATA.admin_completeness.village),
+    subcountyPct: fmtPct(DATA.admin_completeness.subcounty),
+    over50: fmtInt(DATA.size_flags.over_50_ha),
+    maxHa: fmtInt(DATA.size_flags.max_ha),
+    noSize: fmtInt(DATA.size_flags.zero_or_missing),
+    mapped: fmtInt(k.n_mapped || 0),
+    mappedPct: fmtPct(k.pct_farmers_mapped || 0),
+    mappedKg: fmtTonnes(k.mapped_kg || 0),
+    plots: DATA_POLY ? fmtInt(DATA_POLY.summary.plots) : '0',
+    mapDistricts: DATA_POLY ? fmtInt(DATA_POLY.summary.districts) : '0',
+    mapHa: DATA_POLY ? fmtInt(DATA_POLY.summary.total_ha) : '0',
+    provisional: DATA_POLY ? fmtInt(DATA_POLY.summary.provisional) : '0',
+    medianHa: DATA_POLY ? String(DATA_POLY.summary.median_ha) : '-',
+    over4Measured: DATA_POLY ? fmtInt(DATA_POLY.summary.over4) : '0',
+    defAll: DATA_POLY ? fmtInt((DATA_POLY.deforestation_conflict.all_sheet||{})['Deforestation detected']||0) : '0',
+    defFailed: DATA_POLY ? fmtInt((DATA_POLY.deforestation_conflict.failed_sheet||{})['Deforestation detected']||0) : '0'
+  };
+}
+
+/* ============================= i18n ============================= */
+/* Readiness comes in two grades now: a walked boundary, and an adequate point
+   for a holding small enough that a point is accepted. Everything else is a
+   gap. Listing the ready keys here rather than testing for one literal is what
+   stops a newly added ready category from silently rendering as a gap. */
+var READY_KEYS = {ready_polygon:1, ready_point:1};
+/* Six reasons shown together in one bar chart, so each needs to read apart
+   from its neighbours rather than sharing one hue. Red is deliberately not
+   among them: paired with the honey gold used elsewhere on this page, red
+   is exactly the combination a deuteranope cannot separate (see the module
+   docstring). Olive stands in for it instead. */
+var GAP_META = {
+  low_precision:  {color:COLORS.roast},
+  needs_polygon:  {color:COLORS.honey},
+  no_gps:         {color:COLORS.olive},
+  zeroed:         {color:COLORS.clay},
+  outside_uganda: {color:COLORS.teal},
+  unmatched:      {color:COLORS.inkFaint}
+};
+
+var I18N = {
+  en: {
+    navTitle:'Navigation', navPortal:'My dashboard', navImpact:'Ndugu Impact',
+    navDomestic:'Domestic Trade', navExport:'Ndugu Export', navFinance:'Ndugu Microfinance',
+    navProduction:'Ndugu Production', navCoffee:'Coffee Minds', navEudr:'EUDR Compliance',
+    navAgritracker:'Internal resources',
+    brandRole:'EUDR readiness', asofLabel:'Assessed',
+    heroEyebrow:'EU Deforestation Regulation',
+    heroH1:'Every kilogram sold into Europe needs the location of the plot it grew on',
+    heroLede:function(f){
+      return f.plots + ' mapped plot boundaries are available. ' + f.mapped +
+        ' farmers have at least one usable mapped polygon. Of the ' + f.total +
+        ' transacted, ' + f.ready + ' has a preliminary geolocation coverage signal. ' +
+        f.atRisk + ' is linked to ' + f.toFix + ' actively delivering farmers with recorded location gaps. ' +
+        'All producing plots, deforestation status and legal compliance still need verification.';
+    },
+    heroCap:'of volume with preliminary geolocation coverage',
+    cdLab:function(f){
+      return '<b>' + f.days + ' days</b> until ' + f.deadline +
+        ', when large and medium operators must comply';
+    },
+    cdSmall:function(f){ return 'Micro and small operators: ' + f.deadlineSmall; },
+    badgeReg:function(f){ return f.regulation; },
+    badgeCutoff:function(f){ return 'Deforestation-free since ' + f.cutoff; },
+    badgePrecision:function(f){ return 'At least ' + f.decimals + ' decimal digits'; },
+    kpiCompliant:'Volume with location evidence', kpiAtRisk:'Volume at risk',
+    kpiVisits:'Farmers needing a visit',
+    kpiPolygonSub:'over 4 ha, point not accepted',
+    kpiMappedPlots:'Plot boundaries walked',
+    lblFarmersMapped:'farmers mapped',
+    kpiMapped:'Farmers with a usable point', kpiChain:'Chain intact',
+    kpiChainSub:'every kg links to a farmer',
+    secGapH:'What is missing',
+    secGapP:function(f){
+      return 'The chain itself is sound: every kilogram links to a named farmer and onward ' +
+        'to a buyer, and ' + f.mapped + ' farmers now have a walked plot boundary, which ' +
+        'satisfies the requirement outright. What remains is a short tail, and it fails in ' +
+        'distinct ways that need different work.';
+    },
+    secGapTag:'Volume that cannot be documented today',
+    panGapH:'Volume at risk, by reason',
+    panGapN:'Each farmer counts once, under the work their plot actually needs.',
+    panFixH:'What closing each gap involves',
+    panFixN:'Farmers affected and volume behind them.',
+    secPlanH:'What it would take to close it',
+    secPlanP:function(f){
+      return 'Volume is heavily concentrated, so the gap is far smaller in practice than ' +
+        'in headcount. Visiting the largest suppliers with a gap first, ' + f.kneeN +
+        ' farm visits carry compliance past ' + f.kneePct + '.';
+    },
+    secPlanTag:'Field visits against volume recovered',
+    panCurveH:'Compliance recovered per farmer visited',
+    panCurveN:'Largest suppliers with a gap visited first.',
+    panDistH:'Where the work is', panDistN:'Districts by volume at risk.',
+    secBuyerH:'Readiness by buyer',
+    secBuyerP:function(f){
+      return 'Coffee sold to a trader is placed on the EU market by that trader, who ' +
+        'needs our geolocation to do it. On the direct export channel there is no ' +
+        'intermediary to absorb the problem.';
+    },
+    secBuyerTag:'Where the exposure actually sits',
+    secOffH:'By field officer',
+    secOffP:function(f){
+      return 'Registration data is captured in the field, so completeness tracks the ' +
+        'officer who collected it. The spread here is wide enough to be a training ' +
+        'question rather than a data question.';
+    },
+    secOffTag:'Data completeness is an operational metric',
+    thOfficer:'Field officer', thFarmers:'Farmers', thVolume:'Volume sourced',
+    thReady:'Meets the standard',
+    secMapH:'Mapped plot boundaries',
+    secMapP:function(f){
+      return f.plots + ' plot boundaries have been walked and recorded across ' +
+        f.mapDistricts + ' districts, covering ' + f.mapHa +
+        ' hectares. Click a district to open its plots, then scroll to zoom and drag to pan.';
+    },
+    secMapTag:'Click a district to open its plots',
+    mapBack:'All districts', mapReset:'Reset zoom',
+    mapModeSat:'Satellite', mapModePlain:'Plain',
+    mapLoading:'Loading boundaries\u2026',
+    mapFailed:'Those boundaries could not be loaded.',
+    mapOpenHint:'Click to open',
+    crumbAll:'Bubble size shows how many plots are mapped in each district.',
+    crumbDistrict:'Showing every mapped plot in <b>%s</b>.',
+    legendBubble:'Bubble area is proportional to the number of mapped plots.',
+    lblPlots:'plots', lblAcres:'acres', lblItc:'submitted to ITC',
+    lblProvShort:'provisional',
+    lblRef:'Ref', lblMatches:'matches', lblNoMatch:'no match',
+    lblCutoffLabel:'Deforestation-free cut-off', lblPrecisionLabel:'Coordinate precision required',
+    findPlaceholder:'Find a plot or code',
+    req1H:'Geolocation of every plot',
+    req1P:'Latitude and longitude for each plot the coffee was produced on, to at least six decimal digits. Fewer digits is not a rounding preference, it fails the test.',
+    req1A:'Art. 9(1)(d)',
+    req2H:'Polygons above 4 hectares',
+    req2P:'A plot larger than four hectares must be given as a polygon tracing its perimeter. A single point is only accepted at four hectares or below.',
+    req2A:'Art. 2(28)',
+    req3H:'Deforestation-free',
+    req3P:'The land must not have been converted from forest after 31 December 2020. The geolocation is what makes that checkable against satellite records.',
+    req3A:'Art. 3(a)',
+    req4H:'Legally produced',
+    req4P:"Production must comply with Uganda's law on land use, tenure and labour. Evidencing that needs the administrative location, not just the district.",
+    req4A:'Art. 3(b)',
+    panMapListH:'Districts mapped', panMapListN:'Click a row to open its plots.',
+    band_under_half:'Under 0.5 ha', band_half1:'0.5 to 1 ha', band_1to2:'1 to 2 ha',
+    band_2to4:'2 to 4 ha', band_over4:'Over 4 ha',
+    bandProvisional:'Provisional, matched on name',
+    tipRegistered:'Mapped plot', tipProvisional:'Provisional, matched on name',
+    mapNote:function(f){
+      return '<b>Mapped boundaries are from the consolidated Polygons worksheet.</b> ' +
+        'Plots are shown with anonymous references, not farmer names, farmer codes or farm unit IDs. ' +
+        'The mapped area is calculated from geometry in hectares. ' +
+        'The source does not include ITC submissions or verified deforestation-test results, ' +
+        'so these statuses are not reported. Geolocation alone does not establish full EUDR compliance.';
+    },
+    secReqH:'What the regulation asks for',
+    secReqP:function(f){
+      return 'Four tests, all of which have to pass for a consignment. This page ' +
+        'measures the first two, which are the ones our own records determine.';
+    },
+    secOtherH:'Gaps that will surface next',
+    secOtherP:function(f){
+      return 'Fixing the coordinates does not finish the job. Three further gaps are ' +
+        'already visible in the register and are cheaper to close during the same ' +
+        'field visits than in a second round.';
+    },
+    secOtherTag:'Beyond the coordinate itself',
+    footerDefH:'Definitions',
+    footerDefP:'EUDR: Regulation (EU) 2023/1115 on deforestation-free products, as amended. Operator: the party first placing goods on the EU market. DDS: the due diligence statement an operator files before placing a consignment. Plot: a single parcel of land on which the coffee was produced. Polygon: the traced perimeter of a plot, as opposed to a single point inside it.',
+    gapShort:{
+      ready_polygon:'Boundary walked', ready_point:'Point on file',
+      low_precision:'Below 6 decimals', needs_polygon:'Over 4 ha, no polygon',
+      no_gps:'No GPS fix', zeroed:'Saved as zero', outside_uganda:'Outside Uganda',
+      unmatched:'Unmatched'
+    },
+    gapName:{
+      ready_polygon:'Plot boundary walked', ready_point:'Adequate point on file',
+      low_precision:'Coordinates below six decimal places',
+      needs_polygon:'Farms over 4 ha with no polygon',
+      no_gps:'No GPS fix on file at all',
+      zeroed:'Coordinates saved as zero',
+      outside_uganda:'Coordinates outside Uganda',
+      unmatched:'Volume not matched to a farmer'
+    },
+    gapFix:{
+      ready_polygon:'A walked boundary satisfies the geolocation requirement outright, at any plot size.',
+      ready_point:'A point is accepted at or below four hectares, which measurement suggests is nearly every holding here.',
+      low_precision:'The farm is mapped but the digits were truncated on capture. Re-record the fix at full precision; usually no new visit is needed if the device still holds it.',
+      needs_polygon:'Walk the perimeter and record it as a polygon. A single point is not accepted above 4 ha, however precise.',
+      no_gps:'A first mapping visit. Nothing is on file for these farmers.',
+      zeroed:'The location field was saved empty and stored as 0,0. Re-capture on the next visit.',
+      outside_uganda:'Latitude and longitude are almost certainly transposed or mistyped. Verify against the village before re-capturing.',
+      unmatched:'Volume that could not be linked back to a registered farmer.'
+    },
+    lblFarmers:'farmers', lblFarmer:'farmer', lblCompliant:'Meets the standard', lblAtRisk:'At risk',
+    lblVisits:'Farm visits', lblCompliance:'Volume compliant',
+    lblDirect:'direct export',
+    ofVolume:function(f){ return 'of ' + f.total; },
+    ofFarmers:function(f){ return 'of ' + f.farmers + ' registered'; },
+    insCurve:function(f){
+      return 'Visiting <b>' + f.kneeN + '</b> farmers carries compliance to <b>' +
+        f.kneePct + '</b>. All ' + f.toFix + ' would close it completely.';
+    },
+    insBuyer:function(f){
+      return 'The direct export channel sits at <b>' + f.directPct + '</b> on ' + f.directKg +
+        ', the weakest of the meaningful volumes and the one with no intermediary between ' +
+        'Ndugu and a European buyer.';
+    },
+    whoFiles:function(f){
+      return '<b>Ndugu does not file the due diligence statement.</b> Under the 2025 ' +
+        'amendment only the party first placing goods on the EU market files, which means ' +
+        'our European buyers file, not us. Our exposure is commercial rather than legal: ' +
+        'a buyer cannot file without plot geolocation from its supplier, so volume that ' +
+        'fails these tests is volume a European buyer cannot lawfully accept. ' +
+        'That is what the ' + f.atRisk + ' above represents.';
+    },
+    stPlotsL:function(f){
+      return 'farmers deliver from more than one plot, but one coordinate is held per ' +
+        'farmer, not per plot. Behind them sits ' + f.multiPlotKg +
+        '. The register allows up to ' + f.maxPlots + ' plots for one farmer.';
+    },
+    stParishL:function(f){
+      return 'of farmers have a parish recorded. Village reaches ' + f.villagePct +
+        ' and subcounty ' + f.subcountyPct + '. Evidencing lawful production needs the ' +
+        'administrative location, not just the district.';
+    },
+    stSizeL:function(f){
+      return 'farms are recorded above 50 ha, the largest at ' + f.maxHa +
+        ' ha, on a register whose median holding is under one hectare. ' + f.noSize +
+        ' have no size at all, so the 4 ha polygon test cannot be applied to them.';
+    },
+    noteOther:function(f){
+      return 'All three are cheaper to fix during the mapping visits above than in a ' +
+        'separate round. A farmer whose perimeter is being walked can have their plots ' +
+        'separated, their parish recorded and their acreage checked in the same visit.';
+    },
+  },
+  nl: {
+    navTitle:'Navigatie', navPortal:'Mijn dashboard', navImpact:'Ndugu Impact',
+    navDomestic:'Binnenlandse handel', navExport:'Ndugu Export', navFinance:'Ndugu Microfinanciering',
+    navProduction:'Ndugu Productie', navCoffee:'Coffee Minds', navEudr:'EUDR-naleving',
+    navAgritracker:'Interne bronnen',
+    brandRole:'EUDR-gereedheid', asofLabel:'Beoordeeld',
+    heroEyebrow:'EU-ontbossingsverordening',
+    heroH1:'Elke kilo die naar Europa gaat heeft de locatie nodig van het perceel waarop hij groeide',
+    heroLede:function(f){
+      return f.plots + ' ingemeten perceelgrenzen zijn beschikbaar. ' + f.mapped +
+        ' boeren hebben ten minste één bruikbare perceelgrens. Van de ' + f.total +
+        ' verhandelde hoeveelheid heeft ' + f.ready + ' een voorlopig geolocatiesignaal. ' +
+        f.atRisk + ' hangt samen met ' + f.toFix + ' actieve leverende boeren met locatieproblemen. ' +
+        'Alle productiepercelen, ontbossingsstatus en wettelijke naleving vereisen nog controle.';
+    },
+    heroCap:'van het volume met voorlopige geolocatiedekking',
+    cdLab:function(f){
+      return '<b>' + f.days + ' dagen</b> tot ' + f.deadline +
+        ', wanneer grote en middelgrote marktdeelnemers moeten voldoen';
+    },
+    cdSmall:function(f){ return 'Micro- en kleine marktdeelnemers: ' + f.deadlineSmall; },
+    badgeReg:function(f){ return f.regulation; },
+    badgeCutoff:function(f){ return 'Ontbossingsvrij sinds ' + f.cutoff; },
+    badgePrecision:function(f){ return 'Minimaal ' + f.decimals + ' decimalen'; },
+    kpiCompliant:'Volume met locatiegegevens', kpiAtRisk:'Volume met risico',
+    kpiVisits:'Boeren die bezoek nodig hebben',
+    kpiPolygonSub:'boven 4 ha, punt niet toegestaan',
+    kpiMappedPlots:'Ingemeten perceelgrenzen',
+    lblFarmersMapped:'boeren ingemeten',
+    kpiMapped:'Boeren met een bruikbaar punt', kpiChain:'Keten intact',
+    kpiChainSub:'elke kg is te herleiden tot een boer',
+    secGapH:'Wat ontbreekt',
+    secGapP:function(f){
+      return 'De keten zelf is in orde: elke kilo is te herleiden tot een boer met naam en ' +
+        'vervolgens tot een afnemer, en ' + f.mapped + ' boeren hebben nu een ingemeten ' +
+        'perceelgrens, wat zonder meer aan de eis voldoet. Wat overblijft is een korte ' +
+        'staart, met verschillende oorzaken die elk ander werk vragen.';
+    },
+    secGapTag:'Volume dat vandaag niet te onderbouwen is',
+    panGapH:'Volume met risico, naar oorzaak',
+    panGapN:'Elke boer telt één keer mee, bij het werk dat zijn perceel werkelijk nodig heeft.',
+    panFixH:'Wat het dichten van elk gat inhoudt',
+    panFixN:'Betrokken boeren en het volume daarachter.',
+    secPlanH:'Wat er nodig is om het te dichten',
+    secPlanP:function(f){
+      return 'Het volume is sterk geconcentreerd, dus in de praktijk is het gat veel ' +
+        'kleiner dan het aantal boeren suggereert. Door de grootste leveranciers met een ' +
+        'gat eerst te bezoeken, brengen ' + f.kneeN + ' bedrijfsbezoeken de naleving ' +
+        'voorbij ' + f.kneePct + '.';
+    },
+    secPlanTag:'Veldbezoeken tegenover teruggewonnen volume',
+    panCurveH:'Teruggewonnen naleving per bezochte boer',
+    panCurveN:'Grootste leveranciers met een gat eerst bezocht.',
+    panDistH:'Waar het werk zit', panDistN:'Districten naar volume met risico.',
+    secBuyerH:'Gereedheid per afnemer',
+    secBuyerP:function(f){
+      return 'Koffie die aan een handelaar wordt verkocht, wordt door die handelaar op de ' +
+        'EU-markt gebracht, en daarvoor heeft hij onze geolocatie nodig. Op het directe ' +
+        'exportkanaal is er geen tussenpersoon die het probleem opvangt.';
+    },
+    secBuyerTag:'Waar het risico werkelijk zit',
+    secOffH:'Per veldmedewerker',
+    secOffP:function(f){
+      return 'Registratiegegevens worden in het veld vastgelegd, dus volledigheid volgt de ' +
+        'medewerker die ze heeft verzameld. De spreiding is groot genoeg om eerder een ' +
+        'trainingsvraag te zijn dan een datavraag.';
+    },
+    secOffTag:'Datavolledigheid is een operationele maatstaf',
+    thOfficer:'Veldmedewerker', thFarmers:'Boeren', thVolume:'Ingekocht volume',
+    thReady:'Voldoet aan de norm',
+    secMapH:'Ingemeten perceelgrenzen',
+    secMapP:function(f){
+      return f.plots + ' perceelgrenzen zijn afgelopen en vastgelegd in ' + f.mapDistricts +
+        ' districten, samen ' + f.mapHa + ' hectare. Klik op een district om de percelen ' +
+        'te openen, scroll om in te zoomen en sleep om te verschuiven.';
+    },
+    secMapTag:'Klik op een district om de percelen te openen',
+    mapBack:'Alle districten', mapReset:'Zoom herstellen',
+    mapModeSat:'Satelliet', mapModePlain:'Effen',
+    mapLoading:'Grenzen laden\u2026',
+    mapFailed:'Die grenzen konden niet worden geladen.',
+    mapOpenHint:'Klik om te openen',
+    crumbAll:'De grootte van de bol toont hoeveel percelen per district zijn ingemeten.',
+    crumbDistrict:'Alle ingemeten percelen in <b>%s</b>.',
+    legendBubble:'Het oppervlak van de bol is evenredig met het aantal ingemeten percelen.',
+    lblPlots:'percelen', lblAcres:'acres', lblItc:'ingediend bij ITC',
+    lblProvShort:'voorlopig',
+    lblRef:'Ref', lblMatches:'treffers', lblNoMatch:'geen treffer',
+    lblCutoffLabel:'Peildatum ontbossingsvrij', lblPrecisionLabel:'Vereiste coördinaatprecisie',
+    findPlaceholder:'Zoek perceel of code',
+    req1H:'Geolocatie van elk perceel',
+    req1P:'Breedte- en lengtegraad van elk perceel waarop de koffie is geteeld, tot op ten minste zes decimalen. Minder decimalen is geen kwestie van afronden: dan voldoet het niet.',
+    req1A:'Art. 9, lid 1, onder d)',
+    req2H:'Polygonen boven 4 hectare',
+    req2P:'Een perceel groter dan vier hectare moet worden vastgelegd als polygoon langs de omtrek. Eén punt wordt alleen geaccepteerd bij vier hectare of minder.',
+    req2A:'Art. 2, punt 28',
+    req3H:'Ontbossingsvrij',
+    req3P:'Het land mag na 31 december 2020 niet van bos zijn omgezet. De geolocatie maakt dat controleerbaar aan de hand van satellietbeelden.',
+    req3A:'Art. 3, onder a)',
+    req4H:'Legaal geproduceerd',
+    req4P:'De productie moet voldoen aan de Oegandese wetgeving over landgebruik, grondrechten en arbeid. Om dat aan te tonen is de administratieve locatie nodig, niet alleen het district.',
+    req4A:'Art. 3, onder b)',
+    panMapListH:'Ingemeten districten', panMapListN:'Klik op een rij om de percelen te openen.',
+    band_under_half:'Onder 0,5 ha', band_half1:'0,5 tot 1 ha', band_1to2:'1 tot 2 ha',
+    band_2to4:'2 tot 4 ha', band_over4:'Boven 4 ha',
+    bandProvisional:'Voorlopig, gematcht op naam',
+    tipRegistered:'Ingemeten perceel', tipProvisional:'Voorlopig, gematcht op naam',
+    mapNote:function(f){
+      return '<b>De perceelgrenzen komen uit het samengevoegde werkblad Polygons.</b> ' +
+        'Percelen worden weergegeven met anonieme referenties, zonder boerennaam, boerencode of farm unit ID. ' +
+        'De oppervlakte wordt uit de geometrie in hectare berekend. ' +
+        'De bron bevat geen ITC-indieningen of geverifieerde ontbossingstests; ' +
+        'deze statussen worden daarom niet weergegeven. Geolocatie alleen bewijst geen volledige EUDR-naleving.';
+    },
+    secReqH:'Wat de verordening vraagt',
+    secReqP:function(f){
+      return 'Vier toetsen, die allemaal moeten slagen voor een zending. Deze pagina meet ' +
+        'de eerste twee, de toetsen die door onze eigen administratie worden bepaald.';
+    },
+    secOtherH:'Gaten die hierna opduiken',
+    secOtherP:function(f){
+      return 'Het herstellen van de coördinaten maakt het werk niet af. Drie andere gaten ' +
+        'zijn al zichtbaar in het register en zijn goedkoper te dichten tijdens dezelfde ' +
+        'veldbezoeken dan in een tweede ronde.';
+    },
+    secOtherTag:'Verder dan de coördinaat zelf',
+    footerDefH:'Definities',
+    footerDefP:'EUDR: Verordening (EU) 2023/1115 inzake ontbossingsvrije producten, zoals gewijzigd. Marktdeelnemer: de partij die de goederen als eerste op de EU-markt brengt. DDS: de zorgvuldigheidsverklaring die een marktdeelnemer indient voordat hij een zending op de markt brengt. Perceel: één stuk land waarop de koffie is geproduceerd. Polygoon: de uitgezette omtrek van een perceel, in plaats van één punt daarbinnen.',
+    gapShort:{
+      ready_polygon:'Grens ingemeten', ready_point:'Punt vastgelegd',
+      low_precision:'Minder dan 6 decimalen', needs_polygon:'Boven 4 ha, geen polygoon',
+      no_gps:'Geen GPS-meting', zeroed:'Opgeslagen als nul', outside_uganda:'Buiten Oeganda',
+      unmatched:'Niet gekoppeld'
+    },
+    gapName:{
+      ready_polygon:'Perceelgrens ingemeten', ready_point:'Bruikbaar punt vastgelegd',
+      low_precision:'Coördinaten met minder dan zes decimalen',
+      needs_polygon:'Percelen boven 4 ha zonder polygoon',
+      no_gps:'Geen GPS-meting vastgelegd',
+      zeroed:'Coördinaten opgeslagen als nul',
+      outside_uganda:'Coördinaten buiten Oeganda',
+      unmatched:'Volume niet gekoppeld aan een boer'
+    },
+    gapFix:{
+      ready_polygon:'Een ingemeten grens voldoet zonder meer aan de geolocatie-eis, bij elke perceelgrootte.',
+      ready_point:'Een punt wordt geaccepteerd tot en met vier hectare, wat volgens de metingen vrijwel elk bedrijf hier is.',
+      low_precision:'Het perceel is in kaart gebracht maar de decimalen zijn bij het vastleggen afgekapt. Leg de meting opnieuw vast op volledige precisie; meestal is geen nieuw bezoek nodig als het apparaat de meting nog heeft.',
+      needs_polygon:'Loop de omtrek af en leg die vast als polygoon. Boven 4 ha wordt één punt niet geaccepteerd, hoe nauwkeurig ook.',
+      no_gps:'Een eerste karteringsbezoek. Voor deze boeren is niets vastgelegd.',
+      zeroed:'Het locatieveld is leeg opgeslagen en staat als 0,0 in het bestand. Opnieuw vastleggen bij het volgende bezoek.',
+      outside_uganda:'Breedte- en lengtegraad zijn vrijwel zeker verwisseld of verkeerd getypt. Controleer tegen het dorp voordat u opnieuw vastlegt.',
+      unmatched:'Volume dat niet kon worden herleid tot een geregistreerde boer.'
+    },
+    lblFarmers:'boeren', lblFarmer:'boer', lblCompliant:'Voldoet aan de norm', lblAtRisk:'Met risico',
+    lblVisits:'Bedrijfsbezoeken', lblCompliance:'Volume dat voldoet',
+    lblDirect:'directe export',
+    ofVolume:function(f){ return 'van ' + f.total; },
+    ofFarmers:function(f){ return 'van ' + f.farmers + ' geregistreerd'; },
+    insCurve:function(f){
+      return 'Het bezoeken van <b>' + f.kneeN + '</b> boeren brengt de naleving op <b>' +
+        f.kneePct + '</b>. Alle ' + f.toFix + ' zou het volledig dichten.';
+    },
+    insBuyer:function(f){
+      return 'Het directe exportkanaal staat op <b>' + f.directPct + '</b> over ' + f.directKg +
+        ', het zwakste van de betekenisvolle volumes en het enige zonder tussenpersoon ' +
+        'tussen Ndugu en een Europese afnemer.';
+    },
+    whoFiles:function(f){
+      return '<b>Ndugu dient de zorgvuldigheidsverklaring niet zelf in.</b> Onder de ' +
+        'wijziging van 2025 dient alleen de partij die de goederen als eerste op de ' +
+        'EU-markt brengt de verklaring in, en dat zijn onze Europese afnemers, niet wij. ' +
+        'Ons risico is commercieel en niet juridisch: een afnemer kan niet indienen zonder ' +
+        'perceelgeolocatie van zijn leverancier, dus volume dat deze toetsen niet doorstaat ' +
+        'is volume dat een Europese afnemer niet rechtmatig kan aannemen. Dat is wat de ' +
+        f.atRisk + ' hierboven vertegenwoordigt.';
+    },
+    stPlotsL:function(f){
+      return 'boeren leveren van meer dan één perceel, maar er wordt één coördinaat per ' +
+        'boer bewaard, niet per perceel. Daarachter zit ' + f.multiPlotKg +
+        '. Het register staat tot ' + f.maxPlots + ' percelen voor één boer toe.';
+    },
+    stParishL:function(f){
+      return 'van de boeren heeft een parish vastgelegd. Dorp haalt ' + f.villagePct +
+        ' en subcounty ' + f.subcountyPct + '. Het aantonen van rechtmatige productie vraagt ' +
+        'de administratieve locatie, niet alleen het district.';
+    },
+    stSizeL:function(f){
+      return 'percelen staan geregistreerd boven 50 ha, het grootste op ' + f.maxHa +
+        ' ha, in een register waarvan het mediane bedrijf onder één hectare ligt. ' +
+        f.noSize + ' hebben helemaal geen oppervlakte, waardoor de 4 ha-toets voor ' +
+        'polygonen niet op hen kan worden toegepast.';
+    },
+    noteOther:function(f){
+      return 'Alle drie zijn goedkoper te herstellen tijdens de karteringsbezoeken ' +
+        'hierboven dan in een aparte ronde. Bij een boer van wie de omtrek wordt afgelopen ' +
+        'kunnen in hetzelfde bezoek de percelen worden gesplitst, de parish worden ' +
+        'vastgelegd en de oppervlakte worden gecontroleerd.';
+    },
+  }
+};
+function t(key){
+  var v = I18N[state.lang][key];
+  if (v === undefined) v = I18N.en[key];
+  return (typeof v === 'function') ? v(FACTS) : v;
+}
+function gapName(k){ return (I18N[state.lang].gapName || {})[k] || I18N.en.gapName[k] || k; }
+/* 'Luuka, 1 farmers' reads as a bug even though the number is right. */
+function farmersLabel(n){ return fmtInt(n) + ' ' + t(n === 1 ? 'lblFarmer' : 'lblFarmers'); }
+function gapShort(k){ return (I18N[state.lang].gapShort || {})[k] || I18N.en.gapShort[k] || k; }
+function gapFix(k){ return (I18N[state.lang].gapFix || {})[k] || I18N.en.gapFix[k] || ''; }
+
+function applyStaticI18n(){
+  document.querySelectorAll('[data-i18n]').forEach(function(el){
+    var v = t(el.getAttribute('data-i18n'));
+    if (v !== undefined && v !== null) el.textContent = v;
+  });
+  var mf = document.getElementById('mapFind');
+  if (mf) { mf.placeholder = t('findPlaceholder'); mf.setAttribute('aria-label', t('findPlaceholder')); }
+  document.title = state.lang === 'nl' ? 'Ndugu Farmers Ltd | EUDR-gereedheid' : 'Ndugu Farmers Ltd | EUDR Readiness';
+  document.documentElement.lang = state.lang;
+}
+
+
+/* ======================= plot boundary map =======================
+   Two levels. The overview places one bubble per district, sized by plot
+   count. Opening a district fetches only that district's boundaries, which is
+   why the ETL splits them: Masaka alone is 1.6 MB and nobody should pay for it
+   to look at Rakai.
+
+   The projection is equirectangular with longitude scaled by cos(latitude), so
+   a plot keeps its true shape instead of being stretched east-west. Zoom and
+   pan are done by moving the SVG viewBox, which keeps every boundary as real
+   geometry rather than a raster, so it stays sharp at any magnification. */
+var MAP = {
+  level:'districts', district:null, plots:null, cache:{},
+  map:null, tiles:null, layer:null, shapes:null, home:null, mode:'sat'
+};
+/* Sequential ramp, light to dark, for a magnitude (plot size). One hue: a
+   categorical palette here would imply the bands are unordered, which they are
+   not. It runs down to the dashboard green, so the darkest plot on this map is
+   the same colour as the darkest bar everywhere else. Steps were picked on
+   relative luminance rather than by eye, which is why the light end is spaced
+   wider than the dark: equal hex steps are not equal visual steps. Provisional
+   plots carry a dashed outline as a second encoding, so they are
+   distinguishable without relying on colour. */
+var BAND_FILL = {
+  under_half:'#C7DED7', half1:'#93C2B7', '1to2':'#579C8E',
+  '2to4':'#27756A', over4:'#0D4D45'
+};
+var BAND_ORDER = ['under_half','half1','1to2','2to4','over4'];
+/* Every plot's own outline, in both basemaps. White used to do this job on
+   imagery specifically because it was the one colour that held against both
+   canopy and bare soil; orange holds up nearly as well against either and
+   reads as one boundary colour across both modes instead of switching to
+   match the sourcefill on the plain map, which is the trade made here. */
+var PLOT_STROKE = '#E8791C';
+
+/* Esri World Imagery. Free and keyless, and the only one of the keyless
+   providers with sub-metre cover over this part of Uganda, which is the whole
+   point: at plot zoom a reader has to be able to see the coffee. The licence
+   requires the credit line, so the attribution control stays on. */
+var SAT_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+var SAT_ATTR = 'Imagery &copy; Esri, Maxar, Earthstar Geographics';
+/* Esri's actual capture over this part of Uganda tops out at 17: asking for
+   real tiles past that returns a placeholder reading "map data not yet
+   available" instead of imagery. maxNativeZoom on the tile layer stops
+   Leaflet requesting tiles past 17 at all; past that it upscales the zoom-17
+   tile instead, so the map keeps zooming (staying blurrier, not blank) up to
+   the reader-facing ceiling below. */
+var SAT_NATIVE_MAX = 17;
+var SAT_MAX = 20;
+
+/* Plot outlines are drawn on a canvas, not as SVG elements. Masaka alone holds
+   5,629 of them; one DOM node each is what turns panning into a slideshow. */
+var RENDERER = null;
+
+function mapLoading(on, msg){
+  var el = document.getElementById('mapLoad');
+  el.hidden = !on;
+  if (on) el.textContent = msg || t('mapLoading');
+}
+
+/* The most useful label available, given whatever identity mode the build
+   published. "u" is the farm unit id, "c" the farmer code, "n" the plot name,
+   "r" an opaque reference; in "none" mode there is nothing to show. */
+function plotLabel(pl){
+  if (pl.u) return pl.u + (pl.n && pl.n !== pl.u ? ' · ' + pl.n : '');
+  if (pl.c) return pl.c + (pl.n ? ' · ' + pl.n : '');
+  if (pl.n) return pl.n;
+  if (pl.r) return t('lblRef') + ' ' + pl.r;
+  return '';
+}
+
+function plotStyle(r, hit){
+  var col = BAND_FILL[r.b] || '#A97244';
+  var sat = MAP.mode === 'sat';
+  return {
+    /* On imagery the fill has to drop right back or it buries the thing the
+       reader came to see; the outline carries the shape instead. */
+    color: hit ? '#D24422' : (r.s === 'provisional' ? '#2C7A83' : PLOT_STROKE),
+    weight: hit ? 3 : (sat ? 1.4 : 1.1),
+    opacity: sat ? 0.95 : 1,
+    dashArray: r.s === 'provisional' ? '4,3' : null,
+    fillColor: col,
+    fillOpacity: sat ? 0.16 : 0.9
+  };
+}
+
+function ensureMap(){
+  if (MAP.map) return MAP.map;
+  var m = L.map('mapWrap', {
+    zoomControl:false, attributionControl:true,
+    preferCanvas:true, maxZoom:SAT_MAX, wheelPxPerZoomLevel:90
+  });
+  RENDERER = L.canvas({padding:0.3});
+  MAP.map = m;
+  setMode(MAP.mode, true);
+  return m;
+}
+
+/* Plain is deliberately no tiles at all rather than a second tile provider:
+   it keeps the map readable with nothing loaded, matches the rest of the
+   dashboard, and means a reader who does not want a third party fetching for
+   them has somewhere to stand. */
+function setMode(mode, force){
+  if (!force && mode === MAP.mode) return;
+  MAP.mode = mode;
+  var wrap = document.getElementById('mapWrap');
+  wrap.classList.toggle('sat', mode === 'sat');
+  if (MAP.map){
+    if (mode === 'sat'){
+      if (!MAP.tiles){
+        MAP.tiles = L.tileLayer(SAT_URL, {maxZoom:SAT_MAX, maxNativeZoom:SAT_NATIVE_MAX, attribution:SAT_ATTR});
+      }
+      MAP.tiles.addTo(MAP.map);
+    } else if (MAP.tiles){
+      MAP.map.removeLayer(MAP.tiles);
+    }
+  }
+  document.querySelectorAll('#mapMode button').forEach(function(b){
+    b.setAttribute('aria-pressed', String(b.dataset.mode === mode));
+  });
+  restyleAll();
+}
+
+function restyleAll(){
+  if (!MAP.shapes) return;
+  for (var i=0;i<MAP.shapes.length;i++){
+    var sh = MAP.shapes[i];
+    if (sh && sh.setStyle) sh.setStyle(plotStyle(MAP.plots[i], sh._hit));
+  }
+}
+
+function clearLayer(){
+  if (MAP.layer){ MAP.map.removeLayer(MAP.layer); MAP.layer = null; }
+  MAP.shapes = null;
+}
+
+function tipAt(e, html){
+  var wrap = document.getElementById('mapWrap');
+  var tip = document.getElementById('mapTip');
+  var r = wrap.getBoundingClientRect();
+  tip.style.left = (e.originalEvent.clientX - r.left) + 'px';
+  tip.style.top  = (e.originalEvent.clientY - r.top) + 'px';
+  tip.innerHTML = html;
+  tip.style.opacity = 1;
+}
+function tipOff(){ document.getElementById('mapTip').style.opacity = 0; }
+
+function renderDistricts(){
+  var m = ensureMap();
+  MAP.level='districts'; MAP.district=null; MAP.plots=null;
+  clearLayer();
+  var ds = DATA_POLY.districts;
+  var maxP = Math.max.apply(null, ds.map(function(d){ return d.plots; }));
+  var grp = L.layerGroup();
+  var bounds = L.latLngBounds([]);
+
+  ds.forEach(function(d, i){
+    var c = [(d.bbox[0]+d.bbox[2])/2, (d.bbox[1]+d.bbox[3])/2];
+    bounds.extend([d.bbox[0], d.bbox[1]]);
+    bounds.extend([d.bbox[2], d.bbox[3]]);
+    /* Area-proportional radius, so a bubble twice the area means twice the
+       plots. In pixels, so it stays the same size as the reader zooms: this
+       layer is a count, not a footprint, and growing it would pretend the
+       district covers that much ground. */
+    var rad = Math.sqrt(d.plots/maxP) * 26 + 5;
+    var circ = L.circleMarker(c, {
+      radius:rad, color:'#FFFCF6', weight:1.5,
+      fillColor:'#0E564C', fillOpacity:0.62, interactive:true
+    });
+    circ.on('mouseover mousemove', function(e){
+      tipAt(e, '<strong>'+esc(d.district)+'</strong><br>'+
+        '<b>'+fmtInt(d.plots)+'</b> '+t('lblPlots')+' · <b>'+fmtInt(d.ha)+'</b> ha<br>'+
+        t('mapOpenHint'));
+      this.setStyle({fillOpacity:0.85});
+    });
+    circ.on('mouseout', function(){ tipOff(); this.setStyle({fillOpacity:0.62}); });
+    circ.on('click', function(){ openDistrict(i); });
+    grp.addLayer(circ);
+    if (d.plots >= maxP*0.02){
+      grp.addLayer(L.marker(c, {interactive:false, icon:L.divIcon({
+        className:'dlabel-icon', html:'<span class="dlabel">'+esc(d.district)+'</span>',
+        iconSize:[0,0]
+      })}));
+    }
+  });
+
+  MAP.layer = grp.addTo(m);
+  MAP.home = bounds.pad(0.08);
+  m.fitBounds(MAP.home);
+
+  document.getElementById('mapBack').disabled = true;
+  var f = document.getElementById('mapFind');
+  if (f){ f.hidden = true; f.value = ''; }
+  document.getElementById('mapCrumb').innerHTML = t('crumbAll');
+  document.getElementById('mapStat').textContent =
+    fmtInt(DATA_POLY.summary.plots) + ' ' + t('lblPlots') + ' · ' +
+    fmtInt(DATA_POLY.summary.total_ha) + ' ha';
+  renderLegend(false);
+  renderMapList();
+}
+
+function openDistrict(idx){
+  var d = DATA_POLY.districts[idx];
+  if (!d) return;
+  var done = function(rows){
+    var m = ensureMap();
+    MAP.level='district'; MAP.district=d; MAP.plots=rows;
+    clearLayer();
+
+    var grp = L.layerGroup();
+    var shapes = new Array(rows.length);
+    for (var i=0;i<rows.length;i++){
+      var r = rows[i];
+      /* p is already [lat, lng] pairs, which is the order Leaflet takes. */
+      var poly = L.polygon(r.p, plotStyle(r, false));
+      poly._idx = i;
+      poly.on('mouseover mousemove', function(e){
+        var pl = MAP.plots[this._idx];
+        tipAt(e, (plotLabel(pl) ? '<strong>'+esc(plotLabel(pl))+'</strong><br>' : '')+
+          '<strong>'+t('band_'+pl.b)+'</strong><br>'+
+          '<b>'+pl.h.toLocaleString(numLocale(),{maximumFractionDigits:2})+'</b> ha'+
+          ' · <b>'+(pl.h*2.4711).toLocaleString(numLocale(),{maximumFractionDigits:2})+'</b> '+t('lblAcres')+'<br>'+
+          (pl.s==='provisional' ? t('tipProvisional') : t('tipRegistered')) +
+          (pl.i ? ' · ' + t('lblItc') : ''));
+        this.setStyle({weight:3, color:'#2A1A10'});
+      });
+      poly.on('mouseout', function(){
+        tipOff();
+        this.setStyle(plotStyle(MAP.plots[this._idx], this._hit));
+      });
+      /* Click frames the plot with its neighbours around it. Wheel-zooming
+         into the middle of a district usually lands on empty ground, because
+         the plots sit in tight clusters with long gaps between them, and a
+         boundary on its own tells a reader nothing: it is the fit against the
+         plots either side, and against what the imagery shows on the ground,
+         that says whether it is plausible. The padding is what buys that
+         context, and 'Reset zoom' comes back out. */
+      poly.on('click', function(){
+        MAP.map.fitBounds(this.getBounds().pad(6), {maxZoom:SAT_MAX - 1});
+      });
+      shapes[i] = poly;
+      grp.addLayer(poly);
+    }
+    MAP.shapes = shapes;
+    MAP.layer = grp.addTo(m);
+
+    /* Percentile extent of plot centroids. A district's true bounding box is
+       set by its few most distant plots, which squeezes the cluster everyone
+       actually wants to look at into a corner. Framing the 2nd to 98th
+       percentile puts the bulk on screen; the outliers are still drawn and
+       still reachable by zooming out. */
+    MAP.home = rows.length > 20 ? robustBounds(rows) : L.latLngBounds(
+      [d.bbox[0], d.bbox[1]], [d.bbox[2], d.bbox[3]]).pad(0.08);
+    m.fitBounds(MAP.home);
+
+    mapLoading(false);
+    document.getElementById('mapBack').disabled = false;
+    var f = document.getElementById('mapFind');
+    if (f){
+      /* nothing to search on when the build published no identifiers */
+      f.hidden = !(rows.length && plotLabel(rows[0]));
+      f.value = '';
+      f.placeholder = t('findPlaceholder');
+    }
+    document.getElementById('mapCrumb').innerHTML = t('crumbDistrict').replace('%s', esc(d.district));
+    document.getElementById('mapStat').textContent =
+      fmtInt(d.plots) + ' ' + t('lblPlots') + ' · ' + fmtInt(d.ha) + ' ha' +
+      (d.itc == null ? '' : ' · ' + fmtInt(d.itc) + ' ' + t('lblItc'));
+    renderLegend(true);
+    renderMapList();
+  };
+  if (MAP.cache[d.file]) return done(MAP.cache[d.file]);
+  mapLoading(true, t('mapLoading'));
+  fetch('./' + d.file + '?v=' + POLY_V, {cache:'no-store'})
+    .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+    .then(function(rows){ MAP.cache[d.file]=rows; done(rows); })
+    .catch(function(err){
+      mapLoading(true, t('mapFailed') + ' [' + err.message + ']');
+    });
+}
+
+function robustBounds(rows){
+  var lats = [], lngs = [];
+  for (var i=0;i<rows.length;i++){
+    var r = rows[i].p, sa = 0, sg = 0;
+    for (var j=0;j<r.length;j++){ sa += r[j][0]; sg += r[j][1]; }
+    lats.push(sa/r.length); lngs.push(sg/r.length);
+  }
+  lats.sort(function(a,b){return a-b;}); lngs.sort(function(a,b){return a-b;});
+  var q = function(a, f){ return a[Math.min(a.length-1, Math.max(0, Math.floor(a.length*f)))]; };
+  return L.latLngBounds([q(lats,0.02), q(lngs,0.02)], [q(lats,0.98), q(lngs,0.98)]).pad(0.08);
+}
+
+function renderMapList(){
+  var host = document.getElementById('mapDistrictList');
+  if (!host || !DATA_POLY) return;
+  var ds = DATA_POLY.districts;
+  var maxP = Math.max.apply(null, ds.map(function(d){ return d.plots; }));
+  host.innerHTML = ds.map(function(d, i){
+    var sel = (MAP.district === d) ? ' selected' : '';
+    return '<div class="district-row' + sel + '" data-i="' + i + '" role="button" tabindex="0">' +
+      '<div><div class="name">' + esc(d.district) + '</div>' +
+        '<div class="sub">' + fmtInt(d.ha) + ' ha' +
+        (d.provisional ? ' · ' + fmtInt(d.provisional) + ' ' + t('lblProvShort') : '') +
+        '</div></div>' +
+      '<div class="bar-track"><div class="bar-fill" style="width:' +
+        (d.plots/maxP*100).toFixed(1) + '%"></div></div>' +
+      '<div class="qty">' + fmtInt(d.plots) + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function renderLegend(detail){
+  var el = document.getElementById('mapLegend');
+  if (!detail){
+    el.innerHTML = '<span class="item">' + t('legendBubble') + '</span>';
+    return;
+  }
+  var html = BAND_ORDER.map(function(b){
+    return '<span class="item"><span class="sw" style="background:'+BAND_FILL[b]+'"></span>'+
+           t('band_'+b)+'</span>';
+  }).join('');
+  html += '<span class="item"><span class="sw prov"></span>'+t('bandProvisional')+'</span>';
+  el.innerHTML = html;
+}
+
+function bindMap(){
+  document.getElementById('mapWrap').addEventListener('mouseleave', tipOff);
+
+  document.getElementById('mapMode').addEventListener('click', function(e){
+    var b = e.target.closest('button');
+    if (b) setMode(b.dataset.mode);
+  });
+
+  var list = document.getElementById('mapDistrictList');
+  if (list){
+    var open = function(e){
+      var row = e.target.closest('.district-row');
+      if (!row) return;
+      if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') return;
+      e.preventDefault();
+      openDistrict(parseInt(row.dataset.i, 10));
+    };
+    list.addEventListener('click', open);
+    list.addEventListener('keydown', open);
+  }
+
+  var find = document.getElementById('mapFind');
+  if (find){
+    find.addEventListener('input', function(){
+      var q = this.value.trim().toLowerCase();
+      if (MAP.level !== 'district' || !MAP.plots || !MAP.shapes) return;
+      var first = null, n = 0;
+      for (var i=0;i<MAP.plots.length;i++){
+        var lab = plotLabel(MAP.plots[i]).toLowerCase();
+        var on = q.length >= 2 && lab && lab.indexOf(q) !== -1;
+        if (MAP.shapes[i]._hit !== on){
+          MAP.shapes[i]._hit = on;
+          MAP.shapes[i].setStyle(plotStyle(MAP.plots[i], on));
+        }
+        if (on){ if (!first) first = MAP.shapes[i]; n++; }
+      }
+      if (q.length < 2){
+        document.getElementById('mapStat').textContent =
+          fmtInt(MAP.district.plots) + ' ' + t('lblPlots');
+        return;
+      }
+      document.getElementById('mapStat').textContent =
+        n ? n + ' ' + t('lblMatches') : t('lblNoMatch');
+      /* Zoom to the first match, so finding a plot actually shows it rather
+         than highlighting a pixel somewhere off screen. Padded out well past
+         the plot itself: the neighbours are what say whether a boundary is
+         plausible, and a lone shape centred on the screen says nothing. */
+      if (first) MAP.map.fitBounds(first.getBounds().pad(6));
+    });
+  }
+
+  document.getElementById('mapBack').addEventListener('click', renderDistricts);
+  document.getElementById('mapReset').addEventListener('click', function(){
+    if (MAP.map && MAP.home) MAP.map.fitBounds(MAP.home);
+  });
+  /* Leaflet tracks its own container size, so the old manual resize handler is
+     gone. What it cannot know is that this panel starts hidden on a narrow
+     screen and on the language switch, so the size is re-checked whenever the
+     window changes shape. */
+  window.addEventListener('resize', function(){
+    if (MAP.map) MAP.map.invalidateSize({animate:false});
+  });
+}
+
+function renderMap(){
+  var sec = document.getElementById('mapSection');
+  if (!DATA_POLY || !DATA_POLY.districts || !DATA_POLY.districts.length){
+    sec.hidden = true; return;
+  }
+  sec.hidden = false;
+  document.getElementById('mapNote').innerHTML = t('mapNote');
+  if (MAP.level === 'district' && MAP.district){
+    var i = DATA_POLY.districts.indexOf(MAP.district);
+    if (i >= 0) return openDistrict(i);
+  }
+  renderDistricts();
+}
+
+/* ============================= renderers ============================= */
+function renderHeader(){
+  var k = DATA.kpis, meta = DATA.meta;
+  document.getElementById('asOf').textContent = fmtDate(meta.generated);
+  document.getElementById('heroBig').textContent = FACTS.pctReady;
+  document.getElementById('heroSub').textContent = FACTS.ready + ' ' + t('ofVolume');
+  document.getElementById('badgeRegV').textContent = 'EUDR';
+  document.getElementById('badgeReg').textContent = meta.regulation;
+  document.getElementById('badgeCutoffV').textContent = FACTS.cutoff;
+  document.getElementById('badgeCutoff').textContent = t('lblCutoffLabel');
+  document.getElementById('badgePrecisionV').textContent = meta.min_decimals + ' dp';
+  document.getElementById('badgePrecision').textContent = t('lblPrecisionLabel');
+
+  var days = document.getElementById('cdDays');
+  days.textContent = FACTS.days;
+  days.className = 'days' + (meta.days_remaining <= 180 ? ' urgent' : '');
+  document.getElementById('cdLab').innerHTML = t('cdLab');
+  document.getElementById('cdSmall').innerHTML = t('cdSmall');
+
+  document.getElementById('kpiCompliant').textContent = FACTS.ready;
+  document.getElementById('kpiCompliantSub').textContent = FACTS.pctReady + ' ' + t('ofVolume');
+  document.getElementById('kpiAtRisk').textContent = FACTS.atRisk;
+  document.getElementById('kpiAtRiskSub').textContent = fmtPct(1 - k.pct_volume_ready) + ' ' + t('ofVolume');
+  document.getElementById('kpiVisits').textContent = FACTS.toFix;
+  document.getElementById('kpiVisitsSub').textContent = FACTS.topDistrictShare + ' ' + FACTS.topDistrict;
+  document.getElementById('kpiPolygon').textContent = FACTS.plots;
+  document.getElementById('kpiPolygonSub').textContent =
+    FACTS.mapped + ' ' + t('lblFarmersMapped');
+  document.getElementById('kpiMapped').textContent = fmtInt(k.n_ready);
+  document.getElementById('kpiMappedSub').textContent = FACTS.pctFarmers + ' ' + t('ofFarmers');
+  document.getElementById('kpiChain').textContent = '100%';
+}
+
+function renderGap(){
+  var rows = DATA.gaps.filter(function(g){ return !READY_KEYS[g.key] && g.kg > 0; });
+  rows.sort(function(a,b){ return b.kg - a.kg; });
+  mountChart('gapChart', {
+    type:'bar',
+    data:{
+      labels: rows.map(function(r){ return gapShort(r.key); }),
+      datasets:[{
+        label: t('lblAtRisk'),
+        /* One colour per reason (GAP_META), matched to that reason's swatch
+           in the ledger beside this chart, so the two can be read together. */
+        data: rows.map(function(r){ return r.kg; }),
+        backgroundColor: rows.map(function(r){
+          return (GAP_META[r.key] || {}).color || COLORS.roast;
+        }),
+        borderRadius:4, borderSkipped:false, barPercentage:0.7
+      }]
+    },
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:function(c){
+          var r = rows[c.dataIndex];
+          return fmtKgShort(r.kg) + '  ·  ' + farmersLabel(r.farmers);
+        }}}
+      },
+      scales:{
+        x:{grid:{color:COLORS.line, borderDash:GRID_DASH}, border:{display:false},
+           ticks:{maxTicksLimit:6, callback:function(v){ return fmtAxisT(v); }}},
+        y:{grid:{display:false}, border:{display:false},
+           ticks:{font:{family:CHART_FONT, size:12}, color:COLORS.ink}}
+      }
+    }
+  });
+
+  document.getElementById('gapList').innerHTML = rows.map(function(r){
+    var col = (GAP_META[r.key] || {}).color || COLORS.roast;
+    return '<div class="gap-row">' +
+      '<div class="chip" style="background:' + col + '"></div>' +
+      '<div><div class="name">' + esc(gapName(r.key)) + '</div>' +
+        '<div class="fix">' + esc(gapFix(r.key)) + '</div></div>' +
+      '<div class="qty">' + fmtKgShort(r.kg) +
+        '<span class="sub">' + farmersLabel(r.farmers) + '</span></div>' +
+    '</div>';
+  }).join('');
+}
+
+function renderCurve(){
+  var pts = DATA.curve;
+  mountChart('curveChart', {
+    type:'line',
+    data:{
+      datasets:[{
+        label: t('lblCompliance'),
+        /* {x,y} pairs on a linear axis. On a category axis the samples (50,
+           100, 250 ... 1255) would be evenly spaced, which flattens the early
+           steepness and moves the apparent knee. The shape of this curve is
+           the whole argument, so the axis has to be true to it. */
+        data: pts.map(function(p){ return {x:p.farmers, y:p.pct*100}; }),
+        borderColor: C_OK, backgroundColor:'rgba(40,95,22,0.10)',
+        borderWidth:2, pointRadius:4, pointHoverRadius:6,
+        pointBackgroundColor: C_OK, pointBorderColor:'#FFFCF6', pointBorderWidth:2,
+        fill:true, tension:0.25
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index', intersect:false},
+      plugins:{
+        /* One series: the panel title names it, so no legend box. */
+        legend:{display:false},
+        tooltip:{callbacks:{
+          title:function(c){ return fmtInt(c[0].parsed.x) + ' ' + t('lblVisits').toLowerCase(); },
+          label:function(c){ return ' ' + t('lblCompliance') + ': ' + fmtPct(c.parsed.y/100); }
+        }}
+      },
+      scales:{
+        x:{type:'linear', grid:{display:false}, border:{display:false},
+           min:0, ticks:{maxTicksLimit:7, callback:function(v){ return fmtInt(v); }},
+           title:{display:true, text:t('lblVisits'), color:COLORS.inkFaint,
+                  font:{family:CHART_FONT, size:11.5}}},
+        y:{grid:{color:COLORS.line, borderDash:GRID_DASH}, border:{display:false},
+           min:60, max:100,
+           ticks:{callback:function(v){ return v + '%'; }}}
+      }
+    }
+  });
+  document.getElementById('curveInsight').innerHTML = t('insCurve');
+
+  var maxKg = Math.max.apply(null, DATA.by_district.map(function(d){ return d.kg_at_risk; }));
+  document.getElementById('districtList').innerHTML = DATA.by_district.map(function(d){
+    return '<div class="district-row">' +
+      '<div><div class="name">' + esc(d.district) + '</div>' +
+        '<div class="sub">' + farmersLabel(d.farmers) + '</div></div>' +
+      '<div class="bar-track"><div class="bar-fill" style="width:' +
+        (maxKg ? (d.kg_at_risk/maxKg*100) : 0) + '%; background:' + C_RISK + '"></div></div>' +
+      '<div class="qty">' + fmtKgShort(d.kg_at_risk) + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function renderBuyers(){
+  var rows = DATA.by_buyer;
+  mountChart('buyerChart', {
+    type:'bar',
+    data:{
+      labels: rows.map(function(r){
+        return r.buyer + (r.direct_export ? ' • ' + t('lblDirect') : '');
+      }),
+      datasets:[
+        {label:t('lblCompliant'), data:rows.map(function(r){ return r.ready_kg; }),
+         backgroundColor:C_OK, borderRadius:{topLeft:4,bottomLeft:4},
+         borderSkipped:false, barPercentage:0.72,
+         /* 2px of surface between stacked segments so the boundary reads even
+            where the two colours meet at similar lightness. */
+         borderColor:'#FFFCF6', borderWidth:{right:2}},
+        {label:t('lblAtRisk'), data:rows.map(function(r){ return r.kg - r.ready_kg; }),
+         backgroundColor:C_RISK, borderRadius:{topRight:4,bottomRight:4},
+         borderSkipped:false, barPercentage:0.72}
+      ]
+    },
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{position:'bottom', labels:{boxWidth:11, boxHeight:11, padding:12,
+          font:{family:CHART_FONT, size:12}, color:COLORS.inkSoft}},
+        tooltip:{callbacks:{
+          label:function(c){
+            var r = rows[c.dataIndex];
+            return ' ' + c.dataset.label + ': ' + fmtKgShort(c.parsed.x) +
+                   '  (' + fmtPct(r.kg ? c.parsed.x/r.kg : 0) + ')';
+          },
+          footer:function(c){
+            var r = rows[c[0].dataIndex];
+            return t('lblCompliant') + ' ' + fmtPct(r.pct);
+          }
+        }}
+      },
+      scales:{
+        x:{stacked:true, grid:{color:COLORS.line, borderDash:GRID_DASH}, border:{display:false},
+           ticks:{callback:function(v){ return fmtAxisT(v); }}},
+        y:{stacked:true, grid:{display:false}, border:{display:false},
+           ticks:{font:{family:CHART_FONT, size:12}, color:COLORS.ink}}
+      }
+    }
+  });
+  document.getElementById('buyerInsight').innerHTML = t('insBuyer');
+}
+
+function renderOfficers(){
+  var sec = document.getElementById('officerSection');
+  if (!DATA.by_officer || !DATA.by_officer.length){ sec.hidden = true; return; }
+  sec.hidden = false;
+  document.getElementById('officerBody').innerHTML = DATA.by_officer.map(function(o){
+    var low = o.pct < 0.75;
+    return '<tr>' +
+      '<td class="name">' + esc(o.officer) + '</td>' +
+      '<td class="num">' + fmtInt(o.farmers) + '</td>' +
+      '<td class="num">' + fmtKgShort(o.kg) + '</td>' +
+      '<td class="num"><div class="meter">' +
+        '<div class="track"><div class="fill' + (low ? ' low' : '') +
+          '" style="width:' + (o.pct*100) + '%"></div></div>' +
+        '<span class="val">' + fmtPct(o.pct) + '</span>' +
+      '</div></td>' +
+    '</tr>';
+  }).join('');
+}
+
+function renderOther(){
+  document.getElementById('secReqTag').textContent = DATA.meta.regulation;
+  document.getElementById('whoFiles').innerHTML = t('whoFiles');
+
+  document.getElementById('stPlots').textContent = FACTS.multiPlot;
+  document.getElementById('stPlotsL').textContent = t('stPlotsL');
+  document.getElementById('stParish').textContent = FACTS.parishPct;
+  document.getElementById('stParishL').textContent = t('stParishL');
+  document.getElementById('stSize').textContent = FACTS.over50;
+  document.getElementById('stSizeL').textContent = t('stSizeL');
+  document.getElementById('otherNotes').innerHTML =
+    '<div class="callout act">' + t('noteOther') + '</div>';
+}
+
+var TILE_ICONS = {'tileLead': 'plot', 'tileReg': 'seal', 'tileCutoff': 'leaf', 'tilePrec': 'pin'};
+function paintTileIcons(){
+  /* KPI tiles carry their glyph name on the element, so the markup stays
+     declarative and the SVG is built in one place. */
+  document.querySelectorAll('.kpi-icon-slot').forEach(function(slot){
+    if (slot.dataset.done) return;
+    slot.outerHTML = icon(slot.dataset.icon);
+  });
+  Object.keys(TILE_ICONS).forEach(function(id){
+    var el = document.getElementById(id);
+    if (!el || el.querySelector('.tile-icon')) return;
+    el.insertAdjacentHTML('afterbegin', icon(TILE_ICONS[id]));
+  });
+}
+
+function renderAll(){
+  paintTileIcons();
+  computeFacts();
+  applyStaticI18n();
+  renderHeader();
+  renderGap();
+  renderCurve();
+  renderBuyers();
+  renderOfficers();
+  renderMap();
+  renderOther();
+}
+
+function bindControls(){
+  document.getElementById('langPills').addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    state.lang = b.dataset.lang;
+    this.querySelectorAll('.pill').forEach(function(p){ p.classList.toggle('active', p === b); });
+    renderAll();
+  });
+}
+
+function start(){
+  themeCharts();
+  bindControls();
+  bindMap();
+  renderAll();
+}
+
+boot();
+})();
+
+</script>
+<!-- ndugu:analytics -->
+<!-- Visit counting. No cookie, no localStorage, no fingerprinting;
+     figures are private to the Ndugu Cloudflare account. Managed by
+     scripts/sync_analytics.py: edits here are overwritten. -->
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "667a8f6b0e6244bab958af8756cef50b"}'></script><!-- End Cloudflare Web Analytics -->
+<!-- /ndugu:analytics -->
+</body>
+</html>
